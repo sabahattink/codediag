@@ -1,10 +1,18 @@
-import { Project, type SourceFile } from "ts-morph";
-import { join, relative } from "path";
+import { existsSync } from "node:fs";
+import { join, relative } from "node:path";
 import { glob } from "glob";
-import { existsSync } from "fs";
+import { Project, type SourceFile } from "ts-morph";
 import type { AnalyzerResult, DiagnosticIssue } from "../types.js";
 
-const HTTP_DECORATORS = ["Get", "Post", "Put", "Delete", "Patch", "Head", "Options"];
+const HTTP_DECORATORS = [
+  "Get",
+  "Post",
+  "Put",
+  "Delete",
+  "Patch",
+  "Head",
+  "Options",
+];
 
 interface EndpointInfo {
   method: string;
@@ -16,13 +24,16 @@ interface EndpointInfo {
   hasReturnType: boolean;
 }
 
-export async function analyzeNestjsApi(projectPath: string): Promise<AnalyzerResult> {
+export async function analyzeNestjsApi(
+  projectPath: string,
+  ignore: string[] = ["node_modules/**", "dist/**"],
+): Promise<AnalyzerResult> {
   const issues: DiagnosticIssue[] = [];
   const endpoints: EndpointInfo[] = [];
 
   const controllerFiles = await glob("**/*.controller.ts", {
     cwd: projectPath,
-    ignore: ["node_modules/**", "dist/**"],
+    ignore,
     absolute: true,
   });
 
@@ -30,11 +41,13 @@ export async function analyzeNestjsApi(projectPath: string): Promise<AnalyzerRes
     return {
       name: "API Health",
       score: 0,
-      issues: [{
-        severity: "critical",
-        rule: "no-controllers",
-        message: "No controller files found (*.controller.ts)",
-      }],
+      issues: [
+        {
+          severity: "critical",
+          rule: "no-controllers",
+          message: "No controller files found (*.controller.ts)",
+        },
+      ],
       summary: "No controllers detected",
     };
   }
@@ -44,7 +57,10 @@ export async function analyzeNestjsApi(projectPath: string): Promise<AnalyzerRes
 
   try {
     if (existsSync(tsConfigPath)) {
-      project = new Project({ tsConfigFilePath: tsConfigPath, skipAddingFilesFromTsConfig: true });
+      project = new Project({
+        tsConfigFilePath: tsConfigPath,
+        skipAddingFilesFromTsConfig: true,
+      });
     } else {
       project = new Project({ compilerOptions: { strict: true } });
     }
@@ -68,33 +84,61 @@ export async function analyzeNestjsApi(projectPath: string): Promise<AnalyzerRes
 
       const args = controllerDecorator.getArguments();
       const basePath = args[0]?.getText().replace(/['"]/g, "") || "";
-      const classHasGuard = cls.getDecorators().some((d) => d.getName() === "UseGuards");
+      const classHasGuard = cls
+        .getDecorators()
+        .some((d) => d.getName() === "UseGuards");
 
       for (const method of cls.getMethods()) {
         const decorators = method.getDecorators();
-        const httpDec = decorators.find((d) => HTTP_DECORATORS.includes(d.getName()));
+        const httpDec = decorators.find((d) =>
+          HTTP_DECORATORS.includes(d.getName()),
+        );
         if (!httpDec) continue;
 
         const httpMethod = httpDec.getName().toUpperCase();
-        const routePath = httpDec.getArguments()[0]?.getText().replace(/['"]/g, "") || "";
-        const fullPath = `/${basePath}/${routePath}`.replace(/\/+/g, "/").replace(/\/$/, "") || "/";
+        const routePath =
+          httpDec.getArguments()[0]?.getText().replace(/['"]/g, "") || "";
+        const fullPath =
+          `/${basePath}/${routePath}`.replace(/\/+/g, "/").replace(/\/$/, "") ||
+          "/";
         const relFile = relative(projectPath, filePath).replace(/\\/g, "/");
 
-        const hasGuard = classHasGuard || decorators.some((d) => d.getName() === "UseGuards");
+        const hasGuard =
+          classHasGuard || decorators.some((d) => d.getName() === "UseGuards");
 
         const hasDto = method.getParameters().some((p) => {
-          return p.getDecorators().some((d) => d.getName() === "Body") && p.getTypeNode() !== undefined;
+          return (
+            p.getDecorators().some((d) => d.getName() === "Body") &&
+            p.getTypeNode() !== undefined
+          );
         });
 
         const hasSwagger = decorators.some((d) =>
-          ["ApiOperation", "ApiResponse", "ApiTags", "ApiBody", "ApiBearerAuth"].includes(d.getName())
+          [
+            "ApiOperation",
+            "ApiResponse",
+            "ApiTags",
+            "ApiBody",
+            "ApiBearerAuth",
+          ].includes(d.getName()),
         );
 
         const hasReturnType = method.getReturnTypeNode() !== undefined;
 
-        endpoints.push({ method: httpMethod, path: fullPath, file: relFile, hasGuard, hasDto, hasSwagger, hasReturnType });
+        endpoints.push({
+          method: httpMethod,
+          path: fullPath,
+          file: relFile,
+          hasGuard,
+          hasDto,
+          hasSwagger,
+          hasReturnType,
+        });
 
-        if (!hasGuard && ["POST", "PUT", "DELETE", "PATCH"].includes(httpMethod)) {
+        if (
+          !hasGuard &&
+          ["POST", "PUT", "DELETE", "PATCH"].includes(httpMethod)
+        ) {
           issues.push({
             severity: "warning",
             rule: "missing-guard",
@@ -140,20 +184,35 @@ export async function analyzeNestjsApi(projectPath: string): Promise<AnalyzerRes
     return {
       name: "API Health",
       score: 50,
-      issues: [{ severity: "warning", rule: "no-endpoints", message: "Controllers found but no HTTP endpoints detected" }],
+      issues: [
+        {
+          severity: "warning",
+          rule: "no-endpoints",
+          message: "Controllers found but no HTTP endpoints detected",
+        },
+      ],
       summary: `${controllerFiles.length} controllers, 0 endpoints`,
     };
   }
 
-  const mutatingEndpoints = endpoints.filter((e) => ["POST", "PUT", "PATCH"].includes(e.method));
-  const guardRate = endpoints.filter((e) => e.hasGuard).length / endpoints.length;
-  const dtoRate = mutatingEndpoints.length > 0
-    ? mutatingEndpoints.filter((e) => e.hasDto).length / mutatingEndpoints.length
-    : 1;
-  const swaggerRate = endpoints.filter((e) => e.hasSwagger).length / endpoints.length;
-  const returnTypeRate = endpoints.filter((e) => e.hasReturnType).length / endpoints.length;
+  const mutatingEndpoints = endpoints.filter((e) =>
+    ["POST", "PUT", "PATCH"].includes(e.method),
+  );
+  const guardRate =
+    endpoints.filter((e) => e.hasGuard).length / endpoints.length;
+  const dtoRate =
+    mutatingEndpoints.length > 0
+      ? mutatingEndpoints.filter((e) => e.hasDto).length /
+        mutatingEndpoints.length
+      : 1;
+  const swaggerRate =
+    endpoints.filter((e) => e.hasSwagger).length / endpoints.length;
+  const returnTypeRate =
+    endpoints.filter((e) => e.hasReturnType).length / endpoints.length;
 
-  const score = Math.round(guardRate * 35 + dtoRate * 25 + swaggerRate * 20 + returnTypeRate * 20);
+  const score = Math.round(
+    guardRate * 35 + dtoRate * 25 + swaggerRate * 20 + returnTypeRate * 20,
+  );
 
   return {
     name: "API Health",

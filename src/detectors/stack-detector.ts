@@ -1,6 +1,11 @@
-import { existsSync, readFileSync } from "fs";
-import { join } from "path";
+import { existsSync, readFileSync } from "node:fs";
+import { join } from "node:path";
 import type { StackInfo } from "../types.js";
+
+interface PackageJson {
+  dependencies?: Record<string, string>;
+  devDependencies?: Record<string, string>;
+}
 
 export function detectStack(projectPath: string): StackInfo {
   const info: StackInfo = {
@@ -17,7 +22,7 @@ export function detectStack(projectPath: string): StackInfo {
   const pkgPath = join(projectPath, "package.json");
   if (!existsSync(pkgPath)) return info;
 
-  let pkg: Record<string, any>;
+  let pkg: PackageJson;
   try {
     pkg = JSON.parse(readFileSync(pkgPath, "utf-8"));
   } catch {
@@ -30,35 +35,42 @@ export function detectStack(projectPath: string): StackInfo {
   };
 
   // Language
-  if (allDeps["typescript"] || existsSync(join(projectPath, "tsconfig.json"))) {
+  if (allDeps.typescript || existsSync(join(projectPath, "tsconfig.json"))) {
     info.language = "typescript";
   }
 
   // Framework
-  if (allDeps["@nestjs/core"] || existsSync(join(projectPath, "nest-cli.json"))) {
+  if (
+    allDeps["@nestjs/core"] ||
+    existsSync(join(projectPath, "nest-cli.json"))
+  ) {
     info.framework = "nestjs";
   } else if (
-    allDeps["next"] ||
+    allDeps.next ||
     existsSync(join(projectPath, "next.config.js")) ||
     existsSync(join(projectPath, "next.config.mjs")) ||
     existsSync(join(projectPath, "next.config.ts"))
   ) {
     info.framework = "nextjs";
-  } else if (allDeps["express"]) {
+  } else if (allDeps.express) {
     info.framework = "express";
   } else if (pkg.dependencies || pkg.devDependencies) {
     info.framework = "generic";
   }
 
   // ORM
-  if (allDeps["prisma"] || allDeps["@prisma/client"] || existsSync(join(projectPath, "prisma", "schema.prisma"))) {
+  if (
+    allDeps.prisma ||
+    allDeps["@prisma/client"] ||
+    existsSync(join(projectPath, "prisma", "schema.prisma"))
+  ) {
     info.orm = "prisma";
     info.hasPrisma = true;
-  } else if (allDeps["typeorm"]) {
+  } else if (allDeps.typeorm) {
     info.orm = "typeorm";
-  } else if (allDeps["sequelize"]) {
+  } else if (allDeps.sequelize) {
     info.orm = "sequelize";
-  } else if (allDeps["mongoose"]) {
+  } else if (allDeps.mongoose) {
     info.orm = "mongoose";
   } else if (allDeps["drizzle-orm"]) {
     info.orm = "drizzle";

@@ -1,8 +1,8 @@
 {
   "name": "codediag",
-  "version": "0.1.1",
-  "description": "Diagnose your code before you ship. Automated project health scanner for NestJS and beyond.",
-  "author": "Scuton Technology <hello@scuton.com> (https://scuton.com)",
+  "version": "0.2.0",
+  "description": "Automated project health scanner for Node.js and NestJS projects.",
+  "author": "Sabahattin Kalkan <hello@sabahattinkalkan.com> (https://sabahattinkalkan.com)",
   "license": "MIT",
   "type": "module",
   "bin": {
@@ -16,16 +16,22 @@
     "build": "tsup",
     "dev": "tsup --watch",
     "start": "node dist/index.js",
+    "lint": "biome lint src tests tests-cli",
+    "format": "biome format --write src tests tests-cli",
+    "format:check": "biome format src tests tests-cli",
+    "test": "tsx --test tests/**/*.test.ts",
+    "test:cli": "node --test tests-cli/**/*.test.mjs",
+    "check": "npm run lint && npm run format:check && npm run typecheck && npm test && npm run build && npm run test:cli",
     "typecheck": "tsc --noEmit",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "npm run check"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/scuton-technology/codediag.git"
+    "url": "git+https://github.com/sabahattink/codediag.git"
   },
-  "homepage": "https://codediag.dev",
+  "homepage": "https://sabahattink.github.io/codediag/",
   "bugs": {
-    "url": "https://github.com/scuton-technology/codediag/issues"
+    "url": "https://github.com/sabahattink/codediag/issues"
   },
   "keywords": [
     "code-quality",
@@ -49,13 +55,16 @@
     "chalk": "^5.3.0",
     "cli-table3": "^0.6.5",
     "commander": "^12.1.0",
-    "glob": "^11.0.0",
+    "glob": "^13.0.6",
     "ora": "^8.1.0",
-    "ts-morph": "^24.0.0"
+    "ts-morph": "^24.0.0",
+    "yaml": "^2.8.1"
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.5.4",
     "@types/node": "^22.0.0",
     "tsup": "^8.3.0",
+    "tsx": "^4.20.6",
     "typescript": "^5.6.0"
   }
 }

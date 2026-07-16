@@ -4,7 +4,8 @@ import type { ScanResult } from "../types.js";
 function scoreBar(score: number, width = 20): string {
   const filled = Math.round((score / 100) * width);
   const empty = width - filled;
-  const color = score >= 80 ? chalk.green : score >= 60 ? chalk.yellow : chalk.red;
+  const color =
+    score >= 80 ? chalk.green : score >= 60 ? chalk.yellow : chalk.red;
   return color("\u2588".repeat(filled)) + chalk.dim("\u2591".repeat(empty));
 }
 
@@ -18,54 +19,90 @@ function gradeColor(grade: string): string {
 
 function severityIcon(severity: string): string {
   switch (severity) {
-    case "critical": return chalk.red("\u2716");
-    case "warning": return chalk.yellow("\u26A0");
-    case "info": return chalk.blue("\u2139");
-    default: return "\u00B7";
+    case "critical":
+      return chalk.red("\u2716");
+    case "warning":
+      return chalk.yellow("\u26A0");
+    case "info":
+      return chalk.blue("\u2139");
+    default:
+      return "\u00B7";
   }
 }
 
-export function renderTerminal(result: ScanResult, options: { quiet?: boolean; verbose?: boolean } = {}): void {
+export function renderTerminal(
+  result: ScanResult,
+  options: { quiet?: boolean; verbose?: boolean } = {},
+): void {
   console.log();
 
   if (options.quiet) {
-    const color = result.totalScore >= 80 ? chalk.green : result.totalScore >= 60 ? chalk.yellow : chalk.red;
-    console.log(`  ${chalk.bold("codediag")} ${color(result.totalScore + "/100")} ${gradeColor(result.grade)}`);
+    const color =
+      result.totalScore >= 80
+        ? chalk.green
+        : result.totalScore >= 60
+          ? chalk.yellow
+          : chalk.red;
+    console.log(
+      `  ${chalk.bold("codediag")} ${color(`${result.totalScore}/100`)} ${gradeColor(result.grade)}`,
+    );
     console.log();
     return;
   }
 
   // Header
-  console.log(chalk.bold("  codediag") + chalk.dim(" \u2014 Diagnostic Report"));
+  console.log(
+    chalk.bold("  codediag") + chalk.dim(" \u2014 Diagnostic Report"),
+  );
   console.log();
 
   // Project info
-  const stackLabel = [result.stack.framework, result.stack.language, result.stack.orm].filter(Boolean).join(chalk.dim(" + "));
+  const stackLabel = [
+    result.stack.framework,
+    result.stack.language,
+    result.stack.orm,
+  ]
+    .filter(Boolean)
+    .join(chalk.dim(" + "));
   console.log(chalk.dim("  Project:  ") + chalk.white(result.project));
   console.log(chalk.dim("  Stack:    ") + stackLabel);
-  console.log(chalk.dim("  Score:    ") + gradeColor(result.grade) + chalk.dim(` (${result.totalScore}/100)`));
+  console.log(
+    chalk.dim("  Score:    ") +
+      gradeColor(result.grade) +
+      chalk.dim(` (${result.totalScore}/100)`),
+  );
   console.log();
 
   // Scores
   for (const a of result.analyzers) {
     const bar = scoreBar(a.score);
     const scoreStr = String(a.score).padStart(3);
-    console.log(`  ${chalk.dim(a.name.padEnd(16))} ${bar} ${chalk.bold(scoreStr)}`);
+    console.log(
+      `  ${chalk.dim(a.name.padEnd(16))} ${bar} ${chalk.bold(scoreStr)}`,
+    );
   }
   console.log();
 
   // Issues
-  const criticals = result.analyzers.flatMap((a) => a.issues.filter((i) => i.severity === "critical"));
-  const warnings = result.analyzers.flatMap((a) => a.issues.filter((i) => i.severity === "warning"));
-  const infos = result.analyzers.flatMap((a) => a.issues.filter((i) => i.severity === "info"));
+  const criticals = result.analyzers.flatMap((a) =>
+    a.issues.filter((i) => i.severity === "critical"),
+  );
+  const warnings = result.analyzers.flatMap((a) =>
+    a.issues.filter((i) => i.severity === "warning"),
+  );
+  const infos = result.analyzers.flatMap((a) =>
+    a.issues.filter((i) => i.severity === "info"),
+  );
   const total = criticals.length + warnings.length + infos.length;
 
   if (total > 0) {
     const parts: string[] = [];
-    if (criticals.length > 0) parts.push(chalk.red(`${criticals.length} critical`));
-    if (warnings.length > 0) parts.push(chalk.yellow(`${warnings.length} warnings`));
+    if (criticals.length > 0)
+      parts.push(chalk.red(`${criticals.length} critical`));
+    if (warnings.length > 0)
+      parts.push(chalk.yellow(`${warnings.length} warnings`));
     if (infos.length > 0) parts.push(chalk.blue(`${infos.length} info`));
-    console.log("  " + parts.join(chalk.dim(" \u00B7 ")));
+    console.log(`  ${parts.join(chalk.dim(" \u00B7 "))}`);
     console.log();
 
     const showIssues = options.verbose
@@ -80,8 +117,12 @@ export function renderTerminal(result: ScanResult, options: { quiet?: boolean; v
 
     if (!options.verbose) {
       const remaining = criticals.length + warnings.length - showIssues.length;
-      if (remaining > 0) console.log(chalk.dim(`  ... and ${remaining} more issues`));
-      if (infos.length > 0 && !options.verbose) console.log(chalk.dim(`  ${infos.length} info issues hidden (use --verbose)`));
+      if (remaining > 0)
+        console.log(chalk.dim(`  ... and ${remaining} more issues`));
+      if (infos.length > 0 && !options.verbose)
+        console.log(
+          chalk.dim(`  ${infos.length} info issues hidden (use --verbose)`),
+        );
     }
     console.log();
   } else {

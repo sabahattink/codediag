@@ -5,4 +5,5 @@ dist/
 .env.*
 !.env.example
 coverage/
+.claude/
 .DS_Store

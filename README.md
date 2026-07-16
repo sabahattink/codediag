@@ -12,8 +12,8 @@
 <p align="center">
   <a href="https://www.npmjs.com/package/codediag"><img src="https://img.shields.io/npm/v/codediag?color=cb3837&label=npm" alt="npm" /></a>
   <a href="https://www.npmjs.com/package/codediag"><img src="https://img.shields.io/npm/dm/codediag?color=007ec6" alt="downloads" /></a>
-  <a href="https://github.com/scuton-technology/codediag/actions"><img src="https://img.shields.io/github/actions/workflow/status/scuton-technology/codediag/ci.yml?branch=main&label=CI" alt="CI" /></a>
-  <a href="https://github.com/scuton-technology/codediag/blob/main/LICENSE"><img src="https://img.shields.io/github/license/scuton-technology/codediag?color=2ea44f" alt="license" /></a>
+  <a href="https://github.com/sabahattink/codediag/actions"><img src="https://img.shields.io/github/actions/workflow/status/sabahattink/codediag/ci.yml?branch=main&label=CI" alt="CI" /></a>
+  <a href="https://github.com/sabahattink/codediag/blob/main/LICENSE"><img src="https://img.shields.io/github/license/sabahattink/codediag?color=2ea44f" alt="license" /></a>
 </p>
 
 <br>
@@ -30,7 +30,7 @@
 npx codediag scan .
 ```
 
-That's it. No config. No account. No server.
+That's it. Configuration is optional. No account or server is required.
 
 Or install globally:
 
@@ -80,8 +80,8 @@ API Health: 25%  ·  Security: 30%  ·  Dependencies: 20%  ·  Testing: 15%  · 
 codediag scan .                    # Full report
 codediag scan . --format json      # JSON (for CI/CD)
 codediag scan . --format md        # Markdown (for PRs)
-codediag scan . --ci               # JSON + exit code
-codediag scan . --threshold 80     # Fail below 80
+codediag scan . --ci               # JSON output + exit code
+codediag scan . --threshold 80     # Exit 1 below 80 in any output mode
 codediag scan . --quiet            # Score only
 codediag scan . --verbose          # All issues
 codediag init                      # Create .codediag.yml
@@ -107,7 +107,10 @@ npx codediag scan . --quiet --threshold 70
 
 ## Config
 
-Optional. Create `.codediag.yml` or run `codediag init`:
+Optional. Create `.codediag.yml` or run `codediag init`. Command-line
+`--threshold` takes precedence over the configured threshold. A configured
+threshold is enforced whenever that project is scanned. Without a config file,
+plain scans are informational; `--ci` uses the default threshold of 70.
 
 ```yaml
 threshold: 70
@@ -119,6 +122,10 @@ analyzers:
   testing: true
   structure: true
 ```
+
+Unknown options and invalid values fail the scan instead of being silently
+ignored. Directory and glob entries under `ignore` are applied to analyzers
+that inspect source files.
 
 ## Supported stacks
 
@@ -144,32 +151,55 @@ analyzers:
 
 ## Roadmap
 
-- [x] NestJS API health analyzer
-- [x] Security scanner
-- [x] Dependency auditor
-- [x] Test coverage analyzer
-- [x] Project structure analyzer
+CodeDiag is under active development. Existing analyzers are useful baseline
+checks, not a claim of complete framework or security coverage.
+
+### 0.2 - Reliable foundation
+
+- [x] NestJS API, security, dependency, testing, and structure analyzers
+- [x] Validated `.codediag.yml` configuration
+- [x] Deterministic threshold exit behavior
+- [x] npm audit results preserved when vulnerabilities produce a non-zero exit
+- [x] Automated regression tests
+- [ ] npm ownership migration and `0.2.0` release
+
+### 0.3 - Framework depth
+
 - [ ] Next.js analyzer
 - [ ] Express analyzer
+- [ ] Framework-specific fixtures and integration tests
+
+### 0.4 - CI distribution
+
 - [ ] SVG badge generator
-- [ ] GitHub Action
+- [ ] Reusable GitHub Action
+- [ ] Machine-readable schema documentation
+
+### Later
+
 - [ ] Web dashboard
-- [ ] AI-powered fixes
 - [ ] VS Code extension
+- [ ] AI-powered fix proposals with explicit review
 
 ## Contributing
 
 ```bash
-git clone https://github.com/scuton-technology/codediag.git
+git clone https://github.com/sabahattink/codediag.git
 cd codediag && npm install && npm run build
 node dist/index.js scan /path/to/project
 ```
 
 Use [conventional commits](https://www.conventionalcommits.org/): `feat:`, `fix:`, `docs:`, `refactor:`
 
+Run the complete local validation before opening a pull request:
+
+```bash
+npm run check
+```
+
 ## License
 
-MIT — [Scuton Technology](https://scuton.com)
+MIT - [Sabahattin Kalkan](https://sabahattinkalkan.com)
 
 <br>
 

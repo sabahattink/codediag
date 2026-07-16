@@ -18,7 +18,8 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
       - run: npm ci
-      - run: npm run typecheck
-      - run: npm run build
-      - name: Test CLI
-        run: node dist/index.js scan . --quiet
+      - run: npm run check
+      - name: Test CLI threshold behavior
+        run: |
+          node dist/index.js --version
+          node dist/index.js scan . --quiet --threshold 0

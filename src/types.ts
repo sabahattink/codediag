@@ -46,6 +46,8 @@ export interface CodediagConfig {
   };
 }
 
+export type AnalyzerKey = keyof CodediagConfig["analyzers"];
+
 export const DEFAULT_CONFIG: CodediagConfig = {
   threshold: 70,
   ignore: ["node_modules", "dist", ".git", "coverage"],
