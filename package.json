@@ -19,8 +19,8 @@
     "lint": "biome lint src tests tests-cli",
     "format": "biome format --write src tests tests-cli",
     "format:check": "biome format src tests tests-cli",
-    "test": "tsx --test tests/**/*.test.ts",
-    "test:cli": "node --test tests-cli/**/*.test.mjs",
+    "test": "tsx --test tests/*.test.ts",
+    "test:cli": "node --test tests-cli/*.test.mjs",
     "check": "npm run lint && npm run format:check && npm run typecheck && npm test && npm run build && npm run test:cli",
     "typecheck": "tsc --noEmit",
     "prepublishOnly": "npm run check"
