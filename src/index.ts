@@ -4,10 +4,13 @@ import chalk from "chalk";
 import { Command } from "commander";
 import { isBelowThreshold, loadConfig, parseThreshold } from "./config.js";
 import { renderJson } from "./reporters/json.js";
+import { renderSvg } from "./reporters/svg.js";
 import { renderTerminal } from "./reporters/terminal.js";
 import { scan } from "./scanner.js";
 import type { ScanResult } from "./types.js";
 import { getPackageVersion } from "./version.js";
+
+const OUTPUT_FORMATS = new Set(["terminal", "json", "md", "svg"]);
 
 function renderMarkdown(result: ScanResult): string {
   const lines = [
@@ -50,7 +53,7 @@ program
   .argument("[path]", "Project directory to scan", ".")
   .option(
     "-f, --format <type>",
-    "Output format: terminal, json, md",
+    "Output format: terminal, json, md, svg",
     "terminal",
   )
   .option("-t, --threshold <number>", "Minimum passing score")
@@ -62,6 +65,12 @@ program
     const format = options.ci ? "json" : options.format;
 
     try {
+      if (!OUTPUT_FORMATS.has(format)) {
+        throw new Error(
+          `Unknown output format "${format}". Expected terminal, json, md, or svg.`,
+        );
+      }
+
       const hasConfig = existsSync(resolve(targetPath, ".codediag.yml"));
       const config = loadConfig(targetPath);
       const threshold =
@@ -78,6 +87,9 @@ program
           break;
         case "md":
           console.log(renderMarkdown(result));
+          break;
+        case "svg":
+          console.log(renderSvg(result));
           break;
         default:
           renderTerminal(result, {

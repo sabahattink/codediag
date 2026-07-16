@@ -71,3 +71,31 @@ test("plain scans without config are informational", () => {
     rmSync(directory, { recursive: true, force: true });
   }
 });
+
+test("SVG output is valid badge markup on stdout", () => {
+  const directory = mkdtempSync(join(tmpdir(), "codediag-cli-"));
+  try {
+    writeFileSync(
+      join(directory, "package.json"),
+      JSON.stringify({ name: "badge-fixture", devDependencies: {} }),
+    );
+
+    const result = runCli(["scan", ".", "--format", "svg"], directory);
+    assert.equal(result.status, 0);
+    assert.match(
+      result.stdout,
+      /^<svg xmlns="http:\/\/www\.w3\.org\/2000\/svg"/,
+    );
+    assert.match(result.stdout, /aria-label="codediag:/);
+    assert.match(result.stdout, /<\/svg>\s*$/);
+  } finally {
+    rmSync(directory, { recursive: true, force: true });
+  }
+});
+
+test("unknown output formats fail explicitly", () => {
+  const result = runCli(["scan", ".", "--format", "xml"]);
+
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /Unknown output format "xml"/);
+});

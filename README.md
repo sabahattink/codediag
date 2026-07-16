@@ -85,11 +85,18 @@ API Health: 25%  ·  Security: 30%  ·  Dependencies: 20%  ·  Testing: 15%  · 
 codediag scan .                    # Full report
 codediag scan . --format json      # JSON (for CI/CD)
 codediag scan . --format md        # Markdown (for PRs)
+codediag scan . --format svg       # SVG score badge
 codediag scan . --ci               # JSON output + exit code
 codediag scan . --threshold 80     # Exit 1 below 80 in any output mode
 codediag scan . --quiet            # Score only
 codediag scan . --verbose          # All issues
 codediag init                      # Create .codediag.yml
+```
+
+Generate a repository badge:
+
+```bash
+codediag scan . --format svg > codediag.svg
 ```
 
 ## CI/CD
@@ -176,7 +183,7 @@ checks, not a claim of complete framework or security coverage.
 
 ### 0.4 - CI distribution
 
-- [ ] SVG badge generator
+- [x] SVG badge generator
 - [ ] Reusable GitHub Action
 - [ ] Machine-readable schema documentation
 

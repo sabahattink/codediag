@@ -12,6 +12,7 @@ All notable changes to CodeDiag are documented in this file.
 - Next.js App Router and Pages Router API analysis with frontend-only projects
   treated as not applicable.
 - Framework-specific Express and Next.js integration fixtures.
+- Dependency-free SVG score badge output through `--format svg`.
 - Validated `.codediag.yml` loading with analyzer selection and ignore patterns.
 - Regression tests for configuration, threshold handling, package version, and
   npm audit parsing.
