@@ -9,6 +9,9 @@ All notable changes to CodeDiag are documented in this file.
 - Express API health analysis for route authentication, request validation,
   centralized error handling, and runtime health endpoints.
 - Express JavaScript and TypeScript integration coverage.
+- Next.js App Router and Pages Router API analysis with frontend-only projects
+  treated as not applicable.
+- Framework-specific Express and Next.js integration fixtures.
 - Validated `.codediag.yml` loading with analyzer selection and ignore patterns.
 - Regression tests for configuration, threshold handling, package version, and
   npm audit parsing.

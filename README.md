@@ -42,12 +42,14 @@ npm install -g codediag
 
 codediag auto-detects your stack and runs 5 analyzers:
 
-### API Health `NestJS · Express`
+### API Health `NestJS · Express · Next.js`
 
 Uses AST analysis (ts-morph, not regex) to inspect NestJS decorators and
 Express `app` or `router` routes. NestJS checks cover auth guards, typed DTOs,
 Swagger docs, and return types. Express checks cover recognizable auth and
 validation middleware, centralized error handling, and health endpoints.
+Next.js checks App Router and Pages Router API handlers without penalizing
+frontend-only projects.
 
 ### Security
 
@@ -135,7 +137,7 @@ that inspect source files.
 | Stack | API Health | Security | Deps | Testing | Structure |
 |-------|:---------:|:--------:|:----:|:-------:|:---------:|
 | NestJS | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Next.js | 🔜 | ✅ | ✅ | ✅ | ✅ |
+| Next.js | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Express | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Node.js | — | ✅ | ✅ | ✅ | ✅ |
 
@@ -168,9 +170,9 @@ checks, not a claim of complete framework or security coverage.
 
 ### 0.3 - Framework depth
 
-- [ ] Next.js analyzer
+- [x] Next.js analyzer
 - [x] Express analyzer
-- [ ] Framework-specific fixtures and integration tests
+- [x] Framework-specific fixtures and integration tests
 
 ### 0.4 - CI distribution
 

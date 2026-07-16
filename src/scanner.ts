@@ -5,6 +5,7 @@ import ora from "ora";
 import { analyzeDependencies } from "./analyzers/dependencies.js";
 import { analyzeExpressApi } from "./analyzers/express-api.js";
 import { analyzeNestjsApi } from "./analyzers/nestjs-api.js";
+import { analyzeNextjsApi } from "./analyzers/nextjs-api.js";
 import { analyzeSecurity } from "./analyzers/security.js";
 import { analyzeStructure } from "./analyzers/structure.js";
 import { analyzeTesting } from "./analyzers/testing.js";
@@ -56,15 +57,23 @@ export async function scan(
   // Framework-specific API health
   if (
     config.analyzers.api &&
-    (stack.framework === "nestjs" || stack.framework === "express")
+    (stack.framework === "nestjs" ||
+      stack.framework === "express" ||
+      stack.framework === "nextjs")
   ) {
     spinner.start(chalk.dim("Analyzing API health..."));
     const r =
       stack.framework === "nestjs"
         ? await analyzeNestjsApi(projectPath, ignore)
-        : await analyzeExpressApi(projectPath, ignore);
-    results.push(r);
-    spinner.succeed(chalk.dim(`API Health: ${r.score}/100`));
+        : stack.framework === "express"
+          ? await analyzeExpressApi(projectPath, ignore)
+          : await analyzeNextjsApi(projectPath, ignore);
+    if (r) {
+      results.push(r);
+      spinner.succeed(chalk.dim(`API Health: ${r.score}/100`));
+    } else {
+      spinner.succeed(chalk.dim("API Health: not applicable"));
+    }
   }
 
   // Security
