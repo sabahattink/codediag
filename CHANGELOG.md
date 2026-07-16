@@ -6,6 +6,9 @@ All notable changes to CodeDiag are documented in this file.
 
 ### Added
 
+- Express API health analysis for route authentication, request validation,
+  centralized error handling, and runtime health endpoints.
+- Express JavaScript and TypeScript integration coverage.
 - Validated `.codediag.yml` loading with analyzer selection and ignore patterns.
 - Regression tests for configuration, threshold handling, package version, and
   npm audit parsing.

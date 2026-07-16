@@ -3,6 +3,7 @@ import { basename } from "node:path";
 import chalk from "chalk";
 import ora from "ora";
 import { analyzeDependencies } from "./analyzers/dependencies.js";
+import { analyzeExpressApi } from "./analyzers/express-api.js";
 import { analyzeNestjsApi } from "./analyzers/nestjs-api.js";
 import { analyzeSecurity } from "./analyzers/security.js";
 import { analyzeStructure } from "./analyzers/structure.js";
@@ -52,10 +53,16 @@ export async function scan(
   const results: AnalyzerResult[] = [];
   const ignore = normalizeIgnorePatterns(config.ignore);
 
-  // API Health (NestJS only)
-  if (config.analyzers.api && stack.framework === "nestjs") {
+  // Framework-specific API health
+  if (
+    config.analyzers.api &&
+    (stack.framework === "nestjs" || stack.framework === "express")
+  ) {
     spinner.start(chalk.dim("Analyzing API health..."));
-    const r = await analyzeNestjsApi(projectPath, ignore);
+    const r =
+      stack.framework === "nestjs"
+        ? await analyzeNestjsApi(projectPath, ignore)
+        : await analyzeExpressApi(projectPath, ignore);
     results.push(r);
     spinner.succeed(chalk.dim(`API Health: ${r.score}/100`));
   }
