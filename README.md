@@ -57,7 +57,10 @@ Scans for hardcoded secrets (API keys, Stripe keys, AWS credentials, GitHub toke
 
 ### Dependencies
 
-Runs `npm audit`, checks lock file existence, flags deprecated packages, validates engine specs and essential npm scripts.
+Runs the matching npm, pnpm, Yarn Classic, or modern Yarn audit command,
+checks lock file existence, flags deprecated packages, and validates engine
+specs and essential package scripts. Monorepo lock files are detected up to
+three parent directories.
 
 ### Testing
 
@@ -191,7 +194,7 @@ checks, not a claim of complete framework or security coverage.
 - [x] NestJS API, security, dependency, testing, and structure analyzers
 - [x] Validated `.codediag.yml` configuration
 - [x] Deterministic threshold exit behavior
-- [x] npm audit results preserved when vulnerabilities produce a non-zero exit
+- [x] npm, pnpm, and Yarn audit results preserved on vulnerability exit codes
 - [x] Automated regression tests
 - [ ] npm ownership migration and `0.2.0` release
 

@@ -1,6 +1,6 @@
 import { spawnSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 import type { AnalyzerResult, DiagnosticIssue } from "../types.js";
 
 interface AuditSummary {
@@ -13,30 +13,205 @@ interface AuditSummary {
 interface PackageJson {
   dependencies?: Record<string, string>;
   devDependencies?: Record<string, string>;
+  packageManager?: string;
   engines?: {
     node?: string;
   };
   scripts?: Record<string, string>;
 }
 
-export function parseAuditSummary(output: string): AuditSummary {
-  const audit = JSON.parse(output) as {
-    metadata?: {
-      vulnerabilities?: Partial<Record<keyof AuditSummary, unknown>>;
+type AuditManager = "npm" | "pnpm" | "yarn";
+
+export interface AuditCommand {
+  manager: AuditManager;
+  command: string;
+  args: string[];
+  fixCommand: string;
+}
+
+interface LockFile {
+  manager: AuditManager;
+  directory: string;
+}
+
+const lockFileNames: Record<AuditManager, string[]> = {
+  npm: ["package-lock.json", "npm-shrinkwrap.json"],
+  pnpm: ["pnpm-lock.yaml"],
+  yarn: ["yarn.lock"],
+};
+
+function findLockFile(
+  projectPath: string,
+  preferredManager?: AuditManager | null,
+): LockFile | null {
+  let directory = projectPath;
+  const managers: AuditManager[] = preferredManager
+    ? [
+        preferredManager,
+        ...(["pnpm", "yarn", "npm"] as AuditManager[]).filter(
+          (manager) => manager !== preferredManager,
+        ),
+      ]
+    : ["pnpm", "yarn", "npm"];
+
+  for (let depth = 0; depth <= 3; depth++) {
+    for (const manager of managers) {
+      if (
+        lockFileNames[manager].some((name) => existsSync(join(directory, name)))
+      ) {
+        return { manager, directory };
+      }
+    }
+
+    const parent = dirname(directory);
+    if (parent === directory) break;
+    directory = parent;
+  }
+
+  return null;
+}
+
+function declaredManager(value: string | undefined): AuditManager | null {
+  const match = /^(npm|pnpm|yarn)@/i.exec(value ?? "");
+  return (match?.[1]?.toLowerCase() as AuditManager | undefined) ?? null;
+}
+
+function isModernYarn(
+  projectPath: string,
+  packageManager: string | undefined,
+  lockDirectory: string | undefined,
+): boolean {
+  const version = /^yarn@(\d+)/i.exec(packageManager ?? "")?.[1];
+  if (version && Number(version) >= 2) return true;
+
+  let directory = projectPath;
+  for (let depth = 0; depth <= 3; depth++) {
+    if (existsSync(join(directory, ".yarnrc.yml"))) return true;
+    if (directory === lockDirectory) break;
+    const parent = dirname(directory);
+    if (parent === directory) break;
+    directory = parent;
+  }
+
+  return false;
+}
+
+export function resolveAuditCommand(
+  projectPath: string,
+  packageManager?: string,
+): AuditCommand {
+  const preferredManager = declaredManager(packageManager);
+  const lockFile = findLockFile(projectPath, preferredManager);
+  const manager = preferredManager ?? lockFile?.manager ?? "npm";
+  const executable = `${manager}${process.platform === "win32" ? ".cmd" : ""}`;
+
+  if (manager === "pnpm") {
+    return {
+      manager,
+      command: executable,
+      args: ["audit", "--json"],
+      fixCommand: "pnpm audit --fix",
     };
-  };
-  const vulnerabilities = audit.metadata?.vulnerabilities ?? {};
-  const readCount = (name: keyof AuditSummary): number => {
-    const value = vulnerabilities[name];
-    return typeof value === "number" && Number.isFinite(value) ? value : 0;
-  };
+  }
+
+  if (manager === "yarn") {
+    const modern = isModernYarn(
+      projectPath,
+      packageManager,
+      lockFile?.directory,
+    );
+    return {
+      manager,
+      command: executable,
+      args: modern
+        ? ["npm", "audit", "--json", "--recursive"]
+        : ["audit", "--json"],
+      fixCommand: modern ? "yarn up <package>" : "yarn upgrade",
+    };
+  }
 
   return {
-    critical: readCount("critical"),
-    high: readCount("high"),
-    moderate: readCount("moderate"),
-    low: readCount("low"),
+    manager,
+    command: executable,
+    args: ["audit", "--json"],
+    fixCommand: "npm audit fix",
   };
+}
+
+function readVulnerabilityCounts(value: unknown): AuditSummary | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const record = value as Record<string, unknown>;
+  const names: Array<keyof AuditSummary> = [
+    "critical",
+    "high",
+    "moderate",
+    "low",
+  ];
+  if (!names.some((name) => name in record)) return null;
+
+  const summary = {} as AuditSummary;
+  for (const name of names) {
+    const count = record[name];
+    if (typeof count !== "number" || !Number.isFinite(count) || count < 0) {
+      throw new Error(`invalid ${name} vulnerability count`);
+    }
+    summary[name] = count;
+  }
+  return summary;
+}
+
+function findAuditSummary(value: unknown): AuditSummary | null {
+  if (!value || typeof value !== "object") return null;
+  if (Array.isArray(value)) {
+    for (const entry of value) {
+      const summary = findAuditSummary(entry);
+      if (summary) return summary;
+    }
+    return null;
+  }
+
+  const record = value as Record<string, unknown>;
+  const metadata = record.metadata as Record<string, unknown> | undefined;
+  const metadataSummary = readVulnerabilityCounts(metadata?.vulnerabilities);
+  if (metadataSummary) return metadataSummary;
+
+  if (record.type === "auditSummary") {
+    const data = record.data as Record<string, unknown> | undefined;
+    const yarnSummary = readVulnerabilityCounts(data?.vulnerabilities);
+    if (yarnSummary) return yarnSummary;
+  }
+
+  return null;
+}
+
+export function parseAuditSummary(output: string): AuditSummary {
+  const trimmed = output.trim();
+  if (!trimmed) throw new Error("audit returned no JSON");
+
+  try {
+    const summary = findAuditSummary(JSON.parse(trimmed));
+    if (summary) return summary;
+  } catch (error) {
+    if (error instanceof SyntaxError) {
+      // Yarn Classic emits one JSON object per line.
+    } else {
+      throw error;
+    }
+  }
+
+  for (const line of trimmed.split(/\r?\n/)) {
+    if (!line.trim()) continue;
+    let entry: unknown;
+    try {
+      entry = JSON.parse(line);
+    } catch {
+      throw new Error("audit returned invalid JSON");
+    }
+    const summary = findAuditSummary(entry);
+    if (summary) return summary;
+  }
+
+  throw new Error("audit JSON did not include a vulnerability summary");
 }
 
 export async function analyzeDependencies(
@@ -82,35 +257,33 @@ export async function analyzeDependencies(
 
   // 1. Lock file — check projectPath and up to 3 parent directories (monorepo support)
   checksRun++;
-  const lockFileNames = ["package-lock.json", "pnpm-lock.yaml", "yarn.lock"];
-  let hasLock = false;
-  {
-    let dir = projectPath;
-    for (let i = 0; i <= 3; i++) {
-      if (lockFileNames.some((f) => existsSync(join(dir, f)))) {
-        hasLock = true;
-        break;
-      }
-      const parent = join(dir, "..");
-      if (parent === dir) break;
-      dir = parent;
-    }
-  }
+  const preferredManager = declaredManager(pkg.packageManager);
+  const lockFile = findLockFile(projectPath, preferredManager);
+  const auditCommand = resolveAuditCommand(projectPath, pkg.packageManager);
+  const hasLock =
+    lockFile !== null &&
+    (preferredManager === null || lockFile.manager === auditCommand.manager);
   if (hasLock) {
     checksPassed++;
+  } else if (lockFile) {
+    issues.push({
+      severity: "critical",
+      rule: "lock-file-manager-mismatch",
+      message: `packageManager selects ${auditCommand.manager}, but the detected lock file belongs to ${lockFile.manager}`,
+      fix: `Generate and commit the ${auditCommand.manager} lock file, then remove conflicting lock files`,
+    });
   } else {
     issues.push({
       severity: "critical",
       rule: "no-lock-file",
       message: "No lock file — builds not reproducible",
-      fix: "Run npm install to generate package-lock.json",
+      fix: `Run ${auditCommand.manager} install to generate a lock file`,
     });
   }
 
-  // 2. npm audit
+  // 2. Package manager audit
   checksRun++;
-  const npmCommand = process.platform === "win32" ? "npm.cmd" : "npm";
-  const auditProcess = spawnSync(npmCommand, ["audit", "--json"], {
+  const auditProcess = spawnSync(auditCommand.command, auditCommand.args, {
     cwd: projectPath,
     timeout: 30000,
     encoding: "utf-8",
@@ -122,7 +295,8 @@ export async function analyzeDependencies(
     if (auditProcess.error) throw auditProcess.error;
     if (!auditProcess.stdout.trim()) {
       throw new Error(
-        auditProcess.stderr.trim() || "npm audit returned no JSON",
+        auditProcess.stderr.trim() ||
+          `${auditCommand.manager} audit returned no JSON`,
       );
     }
 
@@ -137,21 +311,21 @@ export async function analyzeDependencies(
           severity: "critical",
           rule: "vuln-critical",
           message: `${critical} critical vulnerabilit${critical > 1 ? "ies" : "y"}`,
-          fix: "Run npm audit fix",
+          fix: `Run ${auditCommand.fixCommand}`,
         });
       if (high > 0)
         issues.push({
           severity: "warning",
           rule: "vuln-high",
           message: `${high} high severity vulnerabilit${high > 1 ? "ies" : "y"}`,
-          fix: "Run npm audit fix",
+          fix: `Run ${auditCommand.fixCommand}`,
         });
       if (moderate > 0)
         issues.push({
           severity: "warning",
           rule: "vuln-moderate",
           message: `${moderate} moderate vulnerabilit${moderate > 1 ? "ies" : "y"}`,
-          fix: "Review npm audit output",
+          fix: `Review ${auditCommand.manager} audit output`,
         });
       if (low > 0)
         issues.push({
@@ -164,8 +338,8 @@ export async function analyzeDependencies(
     issues.push({
       severity: "warning",
       rule: "audit-unavailable",
-      message: `npm audit could not be evaluated: ${error instanceof Error ? error.message : String(error)}`,
-      fix: "Run npm audit --json and resolve the reported error",
+      message: `${auditCommand.manager} audit could not be evaluated: ${error instanceof Error ? error.message : String(error)}`,
+      fix: `Run ${[auditCommand.manager, ...auditCommand.args].join(" ")} and resolve the reported error`,
     });
   }
 
