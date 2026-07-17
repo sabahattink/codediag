@@ -72,7 +72,9 @@ Detects test files and frameworks (Jest, Vitest, Mocha, Ava), calculates the tes
 
 ### Structure
 
-Validates README quality, linter/formatter config, TypeScript strict mode, NestJS module organization, and `.env.example` presence.
+Validates useful README content, workspace or package-level lint/format config,
+resolved TypeScript strict mode, NestJS feature modules, and environment
+templates such as `.env.example` or `.env.sample`.
 
 ## Scoring
 

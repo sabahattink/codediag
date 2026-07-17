@@ -108,7 +108,7 @@ export async function scan(
   // Structure
   if (config.analyzers.structure) {
     spinner.start(chalk.dim("Analyzing project structure..."));
-    const str = await analyzeStructure(projectPath);
+    const str = await analyzeStructure(projectPath, ignore);
     results.push(str);
     spinner.succeed(chalk.dim(`Structure: ${str.score}/100`));
   }
