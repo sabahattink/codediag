@@ -134,6 +134,21 @@ codediag scan . --format prompt > codediag-prompt.txt
 See the [review-first fix proposal guide](docs/fix-proposals.md) for the output
 contract and recommended workflow.
 
+### VS Code extension
+
+The VS Code extension runs the same analyzer engine, publishes located
+findings to the Problems panel, and opens HTML reports, fix plans, or AI review
+prompts directly in the editor. Successful GitHub Actions runs publish an
+installable `.vsix` artifact until the extension is available in the Visual
+Studio Marketplace.
+
+```bash
+npm run extension:package
+```
+
+See the [VS Code extension guide](docs/vscode-extension.md) for installation,
+commands, workspace trust boundaries, and scan-on-save behavior.
+
 The JSON output contract is published as
 [`schema/scan-result.schema.json`](https://github.com/sabahattink/codediag/blob/main/schema/scan-result.schema.json).
 See the
@@ -245,7 +260,7 @@ checks, not a claim of complete framework or security coverage.
 ### Later
 
 - [x] Portable HTML dashboard report
-- [ ] VS Code extension
+- [x] VS Code extension with Problems, reports, and review artifacts
 - [x] Review-first fix plans and AI prompt export
 
 ## Contributing

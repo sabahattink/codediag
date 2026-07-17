@@ -19,12 +19,16 @@
     "bundle:check": "git diff --exit-code -- dist/action.cjs dist/action.cjs.LEGAL.txt",
     "dev": "tsup --watch",
     "start": "node dist/index.js",
-    "lint": "biome lint src tests tests-cli",
-    "format": "biome format --write src tests tests-cli",
-    "format:check": "biome format src tests tests-cli",
+    "extension:build": "node scripts/build-vscode-extension.mjs",
+    "extension:typecheck": "tsc --noEmit -p extensions/vscode/tsconfig.json",
+    "extension:check": "npm run extension:typecheck && npm run extension:build",
+    "extension:package": "npm run extension:check && node scripts/package-vscode-extension.mjs",
+    "lint": "biome lint src tests tests-cli extensions/vscode/src scripts",
+    "format": "biome format --write src tests tests-cli extensions/vscode/src scripts",
+    "format:check": "biome format src tests tests-cli extensions/vscode/src scripts",
     "test": "tsx --test tests/*.test.ts",
     "test:cli": "node --test tests-cli/*.test.mjs",
-    "check": "npm run lint && npm run format:check && npm run typecheck && npm test && npm run build && npm run bundle:check && npm run test:cli",
+    "check": "npm run lint && npm run format:check && npm run typecheck && npm run extension:check && npm test && npm run build && npm run bundle:check && npm run test:cli",
     "typecheck": "tsc --noEmit",
     "prepublishOnly": "npm run check"
   },
@@ -53,6 +57,11 @@
   "publishConfig": {
     "access": "public"
   },
+  "overrides": {
+    "tsup": {
+      "esbuild": "^0.28.1"
+    }
+  },
   "engines": {
     "node": ">=18.0.0"
   },
@@ -68,7 +77,10 @@
   "devDependencies": {
     "@biomejs/biome": "^2.5.4",
     "@types/node": "^22.0.0",
+    "@types/vscode": "^1.95.0",
+    "@vscode/vsce": "^3.9.2",
     "ajv": "^8.20.0",
+    "esbuild": "^0.28.1",
     "tsup": "^8.3.0",
     "tsx": "^4.20.6",
     "typescript": "^5.6.0"

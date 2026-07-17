@@ -5,6 +5,9 @@ dist/*
 !dist/action.cjs
 !dist/action.cjs.LEGAL.txt
 *.tgz
+*.vsix
+artifacts/
+extensions/vscode/dist/
 .env
 .env.*
 !.env.example

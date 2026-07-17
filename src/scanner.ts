@@ -26,6 +26,31 @@ const WEIGHTS: Record<string, number> = {
   Structure: 10,
 };
 
+export interface ScanOptions {
+  interactive?: boolean;
+  onProgress?: (message: string) => void;
+}
+
+interface ProgressReporter {
+  start(message: string): void;
+  succeed(message: string): void;
+}
+
+function createProgressReporter(options: ScanOptions): ProgressReporter {
+  const spinner = options.interactive === false ? null : ora({ color: "cyan" });
+
+  return {
+    start(message) {
+      options.onProgress?.(message);
+      spinner?.start(chalk.dim(message));
+    },
+    succeed(message) {
+      options.onProgress?.(message);
+      spinner?.succeed(chalk.dim(message));
+    },
+  };
+}
+
 function calculateGrade(score: number): Grade {
   if (score >= 95) return "A+";
   if (score >= 90) return "A";
@@ -39,22 +64,21 @@ function calculateGrade(score: number): Grade {
 export async function scan(
   projectPath: string,
   config: CodediagConfig = loadConfig(projectPath),
+  options: ScanOptions = {},
 ): Promise<ScanResult> {
   if (!existsSync(projectPath)) {
     throw new Error(`Directory not found: ${projectPath}`);
   }
 
-  const spinner = ora({
-    text: chalk.dim("Detecting project stack..."),
-    color: "cyan",
-  }).start();
+  const progress = createProgressReporter(options);
+  progress.start("Detecting project stack...");
 
   // Detect stack
   const stack = detectStack(projectPath);
   const stackLabel = [stack.framework, stack.language, stack.orm]
     .filter(Boolean)
     .join(" + ");
-  spinner.succeed(chalk.dim(`Stack: ${stackLabel}`));
+  progress.succeed(`Stack: ${stackLabel}`);
 
   const results: AnalyzerResult[] = [];
   const ignore = normalizeIgnorePatterns(config.ignore);
@@ -66,7 +90,7 @@ export async function scan(
       stack.framework === "express" ||
       stack.framework === "nextjs")
   ) {
-    spinner.start(chalk.dim("Analyzing API health..."));
+    progress.start("Analyzing API health...");
     const r =
       stack.framework === "nestjs"
         ? await analyzeNestjsApi(projectPath, ignore)
@@ -75,42 +99,42 @@ export async function scan(
           : await analyzeNextjsApi(projectPath, ignore);
     if (r) {
       results.push(r);
-      spinner.succeed(chalk.dim(`API Health: ${r.score}/100`));
+      progress.succeed(`API Health: ${r.score}/100`);
     } else {
-      spinner.succeed(chalk.dim("API Health: not applicable"));
+      progress.succeed("API Health: not applicable");
     }
   }
 
   // Security
   if (config.analyzers.security) {
-    spinner.start(chalk.dim("Scanning security..."));
+    progress.start("Scanning security...");
     const sec = await analyzeSecurity(projectPath, ignore);
     results.push(sec);
-    spinner.succeed(chalk.dim(`Security: ${sec.score}/100`));
+    progress.succeed(`Security: ${sec.score}/100`);
   }
 
   // Dependencies
   if (config.analyzers.dependencies) {
-    spinner.start(chalk.dim("Auditing dependencies..."));
+    progress.start("Auditing dependencies...");
     const dep = await analyzeDependencies(projectPath);
     results.push(dep);
-    spinner.succeed(chalk.dim(`Dependencies: ${dep.score}/100`));
+    progress.succeed(`Dependencies: ${dep.score}/100`);
   }
 
   // Testing
   if (config.analyzers.testing) {
-    spinner.start(chalk.dim("Checking test coverage..."));
+    progress.start("Checking test coverage...");
     const test = await analyzeTesting(projectPath, ignore);
     results.push(test);
-    spinner.succeed(chalk.dim(`Testing: ${test.score}/100`));
+    progress.succeed(`Testing: ${test.score}/100`);
   }
 
   // Structure
   if (config.analyzers.structure) {
-    spinner.start(chalk.dim("Analyzing project structure..."));
+    progress.start("Analyzing project structure...");
     const str = await analyzeStructure(projectPath, ignore);
     results.push(str);
-    spinner.succeed(chalk.dim(`Structure: ${str.score}/100`));
+    progress.succeed(`Structure: ${str.score}/100`);
   }
 
   // Calculate total

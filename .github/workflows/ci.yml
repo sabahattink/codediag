@@ -44,3 +44,18 @@ jobs:
           test -n "$CODEDIAG_GRADE"
           test "$CODEDIAG_REPORT" = "$GITHUB_WORKSPACE/codediag-action-report.json"
           test -s "$CODEDIAG_REPORT"
+
+  vscode-extension:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - run: npm ci
+      - run: npm run extension:package
+      - uses: actions/upload-artifact@v7
+        with:
+          name: codediag-vscode
+          path: artifacts/*.vsix
+          if-no-files-found: error

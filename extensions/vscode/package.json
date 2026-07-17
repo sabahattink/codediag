@@ -1,0 +1,97 @@
+{
+  "name": "codediag-vscode",
+  "displayName": "CodeDiag",
+  "description": "Project health diagnostics for Node.js, NestJS, Express, and Next.js workspaces.",
+  "version": "0.1.0",
+  "publisher": "sabahattink",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.95.0"
+  },
+  "categories": [
+    "Linters",
+    "Testing",
+    "Visualization"
+  ],
+  "keywords": [
+    "diagnostics",
+    "security",
+    "nestjs",
+    "nextjs",
+    "express",
+    "code quality"
+  ],
+  "main": "./dist/extension.cjs",
+  "extensionKind": [
+    "workspace"
+  ],
+  "activationEvents": [
+    "onCommand:codediag.scanWorkspace",
+    "onCommand:codediag.showReport",
+    "onCommand:codediag.showFixPlan",
+    "onCommand:codediag.createAiPrompt",
+    "onCommand:codediag.clearDiagnostics"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sabahattink/codediag.git"
+  },
+  "homepage": "https://sabahattink.github.io/codediag/",
+  "bugs": {
+    "url": "https://github.com/sabahattink/codediag/issues"
+  },
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": false,
+      "description": "CodeDiag reads project files and runs the detected package manager audit command."
+    },
+    "virtualWorkspaces": {
+      "supported": false,
+      "description": "CodeDiag requires local filesystem and package-manager access."
+    }
+  },
+  "contributes": {
+    "commands": [
+      {
+        "command": "codediag.scanWorkspace",
+        "title": "CodeDiag: Scan Workspace",
+        "icon": "$(shield)"
+      },
+      {
+        "command": "codediag.showReport",
+        "title": "CodeDiag: Scan and Show HTML Report",
+        "icon": "$(graph)"
+      },
+      {
+        "command": "codediag.showFixPlan",
+        "title": "CodeDiag: Scan and Open Fix Plan",
+        "icon": "$(checklist)"
+      },
+      {
+        "command": "codediag.createAiPrompt",
+        "title": "CodeDiag: Scan and Create AI Review Prompt",
+        "icon": "$(sparkle)"
+      },
+      {
+        "command": "codediag.clearDiagnostics",
+        "title": "CodeDiag: Clear Diagnostics",
+        "icon": "$(clear-all)"
+      }
+    ],
+    "configuration": {
+      "title": "CodeDiag",
+      "properties": {
+        "codediag.scanOnSave": {
+          "type": "boolean",
+          "default": false,
+          "scope": "resource",
+          "description": "Run CodeDiag after a file is saved. Disabled by default because dependency audits may access the network."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "build": "node ../../scripts/build-vscode-extension.mjs",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  }
+}
