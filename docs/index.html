@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>codediag — Diagnose your code before you ship</title>
-<meta name="description" content="One command. Five analyzers. One score. Automated project health scanner for NestJS and beyond.">
+<meta name="description" content="One command. Five analyzers. One score. Project health analysis for Node.js, NestJS, Express, and Next.js.">
 <meta property="og:title" content="codediag — Diagnose your code before you ship">
 <meta property="og:description" content="One command. Five analyzers. One score. Know exactly what's wrong with your project before your users do.">
 <meta property="og:type" content="website">
@@ -85,6 +85,7 @@ h2{font-size:clamp(28px,4vw,40px);font-weight:900;letter-spacing:-1px;margin-bot
 
 /* Score visual */
 .score-section{text-align:center}
+.score-section .section-sub{margin-left:auto;margin-right:auto}
 .grades{display:flex;justify-content:center;gap:16px;flex-wrap:wrap;margin-top:40px}
 .grade-pill{font-family:var(--mono);font-size:20px;font-weight:700;width:56px;height:56px;border-radius:12px;display:flex;align-items:center;justify-content:center;border:1px solid var(--border)}
 .grade-pill.ga{background:rgba(74,222,128,0.1);color:var(--green);border-color:rgba(74,222,128,0.3)}
@@ -149,7 +150,7 @@ footer a:hover{color:var(--green)}
   <div class="badge">Open source &mdash; Available on npm</div>
   <h1>Diagnose your code<br>before you ship.</h1>
   <p class="subtitle">One command. Five analyzers. One score.<br>Know exactly what's wrong — before your users do.</p>
-  
+
   <div class="hero-cmd" onclick="navigator.clipboard.writeText('npx codediag scan .');this.querySelector('.copy').textContent='Copied!'">
     <span class="prompt">$</span>
     <span class="cmd-text">npx codediag scan .</span>
@@ -194,13 +195,13 @@ footer a:hover{color:var(--green)}
 
 <section id="features">
   <h2>Five analyzers.<br>Zero config.</h2>
-  <p class="section-sub">codediag auto-detects your stack and runs every check that matters. NestJS-first, expanding to Next.js and Express.</p>
+  <p class="section-sub">codediag auto-detects Node.js, NestJS, Express, and Next.js projects, then applies framework-aware checks.</p>
 
   <div class="features">
     <div class="feature">
       <div class="feature-icon">API</div>
       <h3>API Health</h3>
-      <p>Discovers endpoints from NestJS decorators. Checks auth guards, DTO validation, Swagger docs, and return types.</p>
+      <p>Inspects NestJS, Express, and Next.js APIs. Checks authentication, validation, documentation, error handling, and health routes.</p>
     </div>
     <div class="feature">
       <div class="feature-icon">&lbrace;&rbrace;</div>
@@ -227,7 +228,7 @@ footer a:hover{color:var(--green)}
 
 <section class="score-section" id="scoring">
   <h2>One unified score.</h2>
-  <p class="section-sub" style="margin-left:auto;margin-right:auto">Every analyzer contributes to a weighted total. Security counts most, because shipping vulnerable code is the worst bug.</p>
+  <p class="section-sub">Every analyzer contributes to a weighted total. Security counts most, because shipping vulnerable code is the worst bug.</p>
   <div class="grades">
     <div class="grade-pill ga">A+</div>
     <div class="grade-pill ga">A</div>
@@ -245,7 +246,11 @@ footer a:hover{color:var(--green)}
   <div class="ci-block">
     <span class="t-dim"># GitHub Actions</span><br>
     <span class="t-yellow">- name:</span> <span class="t-white">Code Diagnostics</span><br>
-    <span class="t-yellow">&nbsp; run:</span> <span class="t-green">npx codediag scan . --ci --threshold 80</span>
+    <span class="t-yellow">&nbsp; run:</span> <span class="t-green">npx codediag scan . --ci --threshold 80</span><br>
+    <br>
+    <span class="t-dim"># Machine-readable output and score badge</span><br>
+    <span class="t-green">npx codediag scan . --format json</span><br>
+    <span class="t-green">npx codediag scan . --format svg &gt; codediag.svg</span>
   </div>
 </section>
 
