@@ -201,19 +201,21 @@ checks, not a claim of complete framework or security coverage.
 
 ## Contributing
 
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the development workflow, testing
+expectations, and pull request guidance.
+
 ```bash
 git clone https://github.com/sabahattink/codediag.git
-cd codediag && npm install && npm run build
+cd codediag
+npm ci
+npm run check
 node dist/index.js scan /path/to/project
 ```
 
 Use [conventional commits](https://www.conventionalcommits.org/): `feat:`, `fix:`, `docs:`, `refactor:`
 
-Run the complete local validation before opening a pull request:
-
-```bash
-npm run check
-```
+Security vulnerabilities should be reported privately according to
+[SECURITY.md](SECURITY.md), not through a public issue.
 
 ## License
 

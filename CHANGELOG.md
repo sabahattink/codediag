@@ -20,6 +20,8 @@ All notable changes to CodeDiag are documented in this file.
   npm audit parsing.
 - A single `npm run check` command for local and CI validation.
 - Enforced Biome linting and formatting plus EditorConfig defaults.
+- Contribution and security policies, structured issue forms, a pull request
+  template, and automated dependency update configuration.
 
 ### Changed
 
