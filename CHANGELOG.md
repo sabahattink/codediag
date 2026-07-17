@@ -13,6 +13,8 @@ All notable changes to CodeDiag are documented in this file.
   treated as not applicable.
 - Framework-specific Express and Next.js integration fixtures.
 - Dependency-free SVG score badge output through `--format svg`.
+- A packaged JSON Schema and compatibility documentation for machine-readable
+  scan results.
 - Validated `.codediag.yml` loading with analyzer selection and ignore patterns.
 - Regression tests for configuration, threshold handling, package version, and
   npm audit parsing.

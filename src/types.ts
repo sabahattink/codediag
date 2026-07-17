@@ -25,12 +25,14 @@ export interface AnalyzerResult {
   summary: string;
 }
 
+export type Grade = "A+" | "A" | "B+" | "B" | "C" | "D" | "F";
+
 export interface ScanResult {
   project: string;
   stack: StackInfo;
   analyzers: AnalyzerResult[];
   totalScore: number;
-  grade: string;
+  grade: Grade;
   timestamp: string;
 }
 

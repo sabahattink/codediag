@@ -11,7 +11,12 @@ import { analyzeStructure } from "./analyzers/structure.js";
 import { analyzeTesting } from "./analyzers/testing.js";
 import { loadConfig, normalizeIgnorePatterns } from "./config.js";
 import { detectStack } from "./detectors/stack-detector.js";
-import type { AnalyzerResult, CodediagConfig, ScanResult } from "./types.js";
+import type {
+  AnalyzerResult,
+  CodediagConfig,
+  Grade,
+  ScanResult,
+} from "./types.js";
 
 const WEIGHTS: Record<string, number> = {
   "API Health": 25,
@@ -21,7 +26,7 @@ const WEIGHTS: Record<string, number> = {
   Structure: 10,
 };
 
-function calculateGrade(score: number): string {
+function calculateGrade(score: number): Grade {
   if (score >= 95) return "A+";
   if (score >= 90) return "A";
   if (score >= 85) return "B+";

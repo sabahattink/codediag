@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { renderSvg } from "../src/reporters/svg.js";
-import type { ScanResult } from "../src/types.js";
+import type { Grade, ScanResult } from "../src/types.js";
 
-function result(score: number, grade: string, project = "fixture"): ScanResult {
+function result(score: number, grade: Grade, project = "fixture"): ScanResult {
   return {
     project,
     stack: {

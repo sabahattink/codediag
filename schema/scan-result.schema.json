@@ -1,0 +1,183 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/sabahattink/codediag/main/schema/scan-result.schema.json",
+  "title": "CodeDiag Scan Result",
+  "description": "Machine-readable result produced by codediag scan --format json.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "project",
+    "stack",
+    "analyzers",
+    "totalScore",
+    "grade",
+    "timestamp"
+  ],
+  "properties": {
+    "project": {
+      "type": "string",
+      "minLength": 1
+    },
+    "stack": {
+      "$ref": "#/$defs/stackInfo"
+    },
+    "analyzers": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/analyzerResult"
+      }
+    },
+    "totalScore": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 100
+    },
+    "grade": {
+      "type": "string",
+      "enum": [
+        "A+",
+        "A",
+        "B+",
+        "B",
+        "C",
+        "D",
+        "F"
+      ]
+    },
+    "timestamp": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z$"
+    }
+  },
+  "$defs": {
+    "stackInfo": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "framework",
+        "language",
+        "orm",
+        "hasDocker",
+        "hasEnvFile",
+        "hasPrisma",
+        "hasTests",
+        "packageManager"
+      ],
+      "properties": {
+        "framework": {
+          "type": "string",
+          "enum": [
+            "nestjs",
+            "nextjs",
+            "express",
+            "generic",
+            "unknown"
+          ]
+        },
+        "language": {
+          "type": "string",
+          "enum": [
+            "typescript",
+            "javascript"
+          ]
+        },
+        "orm": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "hasDocker": {
+          "type": "boolean"
+        },
+        "hasEnvFile": {
+          "type": "boolean"
+        },
+        "hasPrisma": {
+          "type": "boolean"
+        },
+        "hasTests": {
+          "type": "boolean"
+        },
+        "packageManager": {
+          "type": "string",
+          "enum": [
+            "npm",
+            "pnpm",
+            "yarn",
+            "unknown"
+          ]
+        }
+      }
+    },
+    "analyzerResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "score",
+        "issues",
+        "summary"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "score": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "issues": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/diagnosticIssue"
+          }
+        },
+        "summary": {
+          "type": "string"
+        }
+      }
+    },
+    "diagnosticIssue": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "severity",
+        "rule",
+        "message"
+      ],
+      "properties": {
+        "severity": {
+          "type": "string",
+          "enum": [
+            "critical",
+            "warning",
+            "info"
+          ]
+        },
+        "rule": {
+          "type": "string",
+          "minLength": 1
+        },
+        "message": {
+          "type": "string",
+          "minLength": 1
+        },
+        "file": {
+          "type": "string",
+          "minLength": 1
+        },
+        "line": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "fix": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    }
+  }
+}

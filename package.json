@@ -1,7 +1,7 @@
 {
   "name": "codediag",
   "version": "0.2.0",
-  "description": "Automated project health scanner for Node.js and NestJS projects.",
+  "description": "Automated project health scanner for Node.js, NestJS, Express, and Next.js projects.",
   "author": "Sabahattin Kalkan <hello@sabahattinkalkan.com> (https://sabahattinkalkan.com)",
   "license": "MIT",
   "type": "module",
@@ -10,7 +10,8 @@
   },
   "main": "./dist/index.js",
   "files": [
-    "dist"
+    "dist",
+    "schema"
   ],
   "scripts": {
     "build": "tsup",
@@ -37,6 +38,8 @@
     "code-quality",
     "diagnostics",
     "nestjs",
+    "nextjs",
+    "express",
     "security",
     "audit",
     "cli",
@@ -63,6 +66,7 @@
   "devDependencies": {
     "@biomejs/biome": "^2.5.4",
     "@types/node": "^22.0.0",
+    "ajv": "^8.20.0",
     "tsup": "^8.3.0",
     "tsx": "^4.20.6",
     "typescript": "^5.6.0"

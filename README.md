@@ -99,6 +99,12 @@ Generate a repository badge:
 codediag scan . --format svg > codediag.svg
 ```
 
+The JSON output contract is published as
+[`schema/scan-result.schema.json`](https://github.com/sabahattink/codediag/blob/main/schema/scan-result.schema.json).
+See the
+[JSON output documentation](https://github.com/sabahattink/codediag/blob/main/docs/json-output.md)
+for compatibility guarantees and field definitions.
+
 ## CI/CD
 
 ```yaml
@@ -185,7 +191,7 @@ checks, not a claim of complete framework or security coverage.
 
 - [x] SVG badge generator
 - [ ] Reusable GitHub Action
-- [ ] Machine-readable schema documentation
+- [x] Machine-readable schema documentation
 
 ### Later
 
