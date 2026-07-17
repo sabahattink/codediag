@@ -3,6 +3,7 @@ import { resolve } from "node:path";
 import chalk from "chalk";
 import { Command } from "commander";
 import { isBelowThreshold, loadConfig, parseThreshold } from "./config.js";
+import { renderHtml } from "./reporters/html.js";
 import { renderJson } from "./reporters/json.js";
 import { renderSvg } from "./reporters/svg.js";
 import { renderTerminal } from "./reporters/terminal.js";
@@ -10,7 +11,7 @@ import { scan } from "./scanner.js";
 import type { ScanResult } from "./types.js";
 import { getPackageVersion } from "./version.js";
 
-const OUTPUT_FORMATS = new Set(["terminal", "json", "md", "svg"]);
+const OUTPUT_FORMATS = new Set(["terminal", "json", "md", "svg", "html"]);
 
 function renderMarkdown(result: ScanResult): string {
   const lines = [
@@ -53,7 +54,7 @@ program
   .argument("[path]", "Project directory to scan", ".")
   .option(
     "-f, --format <type>",
-    "Output format: terminal, json, md, svg",
+    "Output format: terminal, json, md, svg, html",
     "terminal",
   )
   .option("-t, --threshold <number>", "Minimum passing score")
@@ -67,7 +68,7 @@ program
     try {
       if (!OUTPUT_FORMATS.has(format)) {
         throw new Error(
-          `Unknown output format "${format}". Expected terminal, json, md, or svg.`,
+          `Unknown output format "${format}". Expected terminal, json, md, svg, or html.`,
         );
       }
 
@@ -90,6 +91,9 @@ program
           break;
         case "svg":
           console.log(renderSvg(result));
+          break;
+        case "html":
+          console.log(renderHtml(result));
           break;
         default:
           renderTerminal(result, {

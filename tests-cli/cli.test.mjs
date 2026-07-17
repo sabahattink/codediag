@@ -104,6 +104,29 @@ test("SVG output is valid badge markup on stdout", () => {
   }
 });
 
+test("HTML output is a self-contained project dashboard", () => {
+  const directory = mkdtempSync(join(tmpdir(), "codediag-cli-"));
+  try {
+    writeFileSync(
+      join(directory, "package.json"),
+      JSON.stringify({ name: "dashboard-fixture", devDependencies: {} }),
+    );
+
+    const result = runCli(["scan", ".", "--format", "html"], directory);
+    assert.equal(result.status, 0);
+    assert.match(result.stdout, /^<!doctype html>/);
+    assert.match(
+      result.stdout,
+      /<title>codediag-cli-[^<]+ · CodeDiag report<\/title>/,
+    );
+    assert.match(result.stdout, /data-filter="critical"/);
+    assert.match(result.stdout, /No source code was uploaded/);
+    assert.match(result.stdout, /<\/html>\s*$/);
+  } finally {
+    rmSync(directory, { recursive: true, force: true });
+  }
+});
+
 test("unknown output formats fail explicitly", () => {
   const result = runCli(["scan", ".", "--format", "xml"]);
 

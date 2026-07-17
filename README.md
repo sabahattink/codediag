@@ -95,6 +95,7 @@ codediag scan .                    # Full report
 codediag scan . --format json      # JSON (for CI/CD)
 codediag scan . --format md        # Markdown (for PRs)
 codediag scan . --format svg       # SVG score badge
+codediag scan . --format html > codediag-report.html  # Interactive dashboard
 codediag scan . --ci               # JSON output + exit code
 codediag scan . --threshold 80     # Exit 1 below 80 in any output mode
 codediag scan . --quiet            # Score only
@@ -218,7 +219,7 @@ checks, not a claim of complete framework or security coverage.
 
 ### Later
 
-- [ ] Web dashboard
+- [x] Portable HTML dashboard report
 - [ ] VS Code extension
 - [ ] AI-powered fix proposals with explicit review
 
