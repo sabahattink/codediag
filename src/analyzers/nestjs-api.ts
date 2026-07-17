@@ -33,7 +33,12 @@ export async function analyzeNestjsApi(
 
   const controllerFiles = await glob("**/*.controller.ts", {
     cwd: projectPath,
-    ignore,
+    ignore: [
+      ...ignore,
+      "**/*.test.ts",
+      "**/*.spec.ts",
+      "**/{test,tests,__tests__,e2e}/**",
+    ],
     absolute: true,
   });
 
@@ -87,6 +92,9 @@ export async function analyzeNestjsApi(
       const classHasGuard = cls
         .getDecorators()
         .some((d) => d.getName() === "UseGuards");
+      const classHasSwagger = cls
+        .getDecorators()
+        .some((d) => ["ApiTags", "ApiBearerAuth"].includes(d.getName()));
 
       for (const method of cls.getMethods()) {
         const decorators = method.getDecorators();
@@ -102,26 +110,30 @@ export async function analyzeNestjsApi(
           `/${basePath}/${routePath}`.replace(/\/+/g, "/").replace(/\/$/, "") ||
           "/";
         const relFile = relative(projectPath, filePath).replace(/\\/g, "/");
+        const line = method.getStartLineNumber();
 
         const hasGuard =
           classHasGuard || decorators.some((d) => d.getName() === "UseGuards");
 
         const hasDto = method.getParameters().some((p) => {
-          return (
+          const typeNode = p.getTypeNode();
+          return Boolean(
             p.getDecorators().some((d) => d.getName() === "Body") &&
-            p.getTypeNode() !== undefined
+              typeNode &&
+              !["any", "unknown", "object"].includes(typeNode.getText()),
           );
         });
 
-        const hasSwagger = decorators.some((d) =>
-          [
-            "ApiOperation",
-            "ApiResponse",
-            "ApiTags",
-            "ApiBody",
-            "ApiBearerAuth",
-          ].includes(d.getName()),
-        );
+        const hasSwagger =
+          classHasSwagger ||
+          decorators.some((d) =>
+            [
+              "ApiOperation",
+              "ApiResponse",
+              "ApiBody",
+              "ApiBearerAuth",
+            ].includes(d.getName()),
+          );
 
         const hasReturnType = method.getReturnTypeNode() !== undefined;
 
@@ -144,6 +156,7 @@ export async function analyzeNestjsApi(
             rule: "missing-guard",
             message: `${httpMethod} ${fullPath} has no auth guard`,
             file: relFile,
+            line,
             fix: "Add @UseGuards(AuthGuard) to protect this endpoint",
           });
         }
@@ -154,6 +167,7 @@ export async function analyzeNestjsApi(
             rule: "missing-dto",
             message: `${httpMethod} ${fullPath} has no typed DTO for request body`,
             file: relFile,
+            line,
             fix: "Create a DTO class with class-validator decorators",
           });
         }
@@ -164,6 +178,7 @@ export async function analyzeNestjsApi(
             rule: "missing-swagger",
             message: `${httpMethod} ${fullPath} has no Swagger documentation`,
             file: relFile,
+            line,
             fix: "Add @ApiOperation() and @ApiResponse() decorators",
           });
         }
@@ -174,6 +189,7 @@ export async function analyzeNestjsApi(
             rule: "missing-return-type",
             message: `${httpMethod} ${fullPath} has no explicit return type`,
             file: relFile,
+            line,
           });
         }
       }
