@@ -187,8 +187,8 @@ footer a:hover{color:var(--green)}
       <span class="t-dim">    src/users/users.controller.ts</span><br>
       <span class="t-dim">    &rarr; Add @UseGuards(AuthGuard)</span><br>
       <br>
-      <span class="t-yellow">&telrec;</span> <span class="t-white">No rate limiting package detected</span><br>
-      <span class="t-dim">    &rarr; Install @nestjs/throttler</span><br>
+      <span class="t-yellow">&telrec;</span> <span class="t-white">Rate limiting is not configured in runtime source</span><br>
+      <span class="t-dim">    &rarr; Configure a framework-appropriate rate limiter</span><br>
     </div>
   </div>
 </section>
@@ -206,7 +206,7 @@ footer a:hover{color:var(--green)}
     <div class="feature">
       <div class="feature-icon">&lbrace;&rbrace;</div>
       <h3>Security</h3>
-      <p>Scans for hardcoded secrets, missing .gitignore entries, helmet, CORS misconfig, rate limiting, and password hashing.</p>
+      <p>Finds hardcoded secrets, unsafe .env tracking, open CORS, missing runtime Helmet or rate limiting, and weak password handling.</p>
     </div>
     <div class="feature">
       <div class="feature-icon">pkg</div>

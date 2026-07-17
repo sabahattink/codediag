@@ -53,7 +53,11 @@ frontend-only projects.
 
 ### Security
 
-Scans for hardcoded secrets (API keys, Stripe keys, AWS credentials, GitHub tokens), validates `.gitignore`, checks helmet middleware, CORS configuration, rate limiting, and password hashing.
+Scans source files for hardcoded API keys and credentials, validates that
+`.gitignore` protects `.env`, and verifies runtime use of Helmet and rate
+limiting in supported web servers. It also reports open CORS configuration,
+weak password hashes, direct password comparisons, and password persistence
+without recognizable hashing.
 
 ### Dependencies
 
