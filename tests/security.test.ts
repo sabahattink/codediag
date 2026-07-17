@@ -189,3 +189,29 @@ test("commented credentials are ignored while live tokens include a line", async
     },
   );
 });
+
+test("runtime sink findings contribute to the security analyzer score", async () => {
+  await withProject(
+    {
+      ".gitignore": ".env\n",
+      "package.json": JSON.stringify({ name: "fixture" }),
+      "src/handler.ts": [
+        'import { exec } from "node:child_process";',
+        "export function handler(req: any) {",
+        "  return exec(req.query.command);",
+        "}",
+      ].join("\n"),
+    },
+    async (directory) => {
+      const result = await analyzeSecurity(directory);
+      const issue = result.issues.find(
+        (entry) => entry.rule === "dynamic-command-execution",
+      );
+
+      assert.equal(issue?.severity, "critical");
+      assert.equal(issue?.file, "src/handler.ts");
+      assert.equal(issue?.line, 3);
+      assert.ok(result.score < 100);
+    },
+  );
+});

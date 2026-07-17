@@ -6,6 +6,8 @@ All notable changes to CodeDiag are documented in this file.
 
 ### Added
 
+- AST-based security sink detection for runtime code execution, dynamic shell
+  commands, dynamic SQL queries, and disabled TLS certificate verification.
 - SARIF 2.1.0 output through `--format sarif`, including stable rule IDs,
   source locations, severity mapping, and deterministic finding fingerprints.
 - JSON and SARIF report outputs from the reusable GitHub Action for optional

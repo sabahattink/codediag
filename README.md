@@ -57,7 +57,10 @@ Scans source files for hardcoded API keys and credentials, validates that
 `.gitignore` protects `.env`, and verifies runtime use of Helmet and rate
 limiting in supported web servers. It also reports open CORS configuration,
 weak password hashes, direct password comparisons, and password persistence
-without recognizable hashing.
+without recognizable hashing. AST-based runtime checks detect `eval` and the
+`Function` constructor, dynamic shell and SQL execution, and disabled TLS
+certificate verification while excluding test fixtures. See
+[Security analysis](docs/security-analysis.md) for rule behavior and scope.
 
 ### Dependencies
 

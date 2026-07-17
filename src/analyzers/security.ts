@@ -2,6 +2,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { dirname, join, relative } from "node:path";
 import { glob } from "glob";
 import type { AnalyzerResult, DiagnosticIssue } from "../types.js";
+import { analyzeSecuritySinks } from "./security-sinks.js";
 
 interface SourceRecord {
   file: string;
@@ -441,6 +442,11 @@ export async function analyzeSecurity(
     if (detectedPasswordIssues.length === 0) checksPassed++;
     issues.push(...detectedPasswordIssues);
   }
+
+  checksRun++;
+  const sinkIssues = await analyzeSecuritySinks(projectPath, ignore);
+  if (sinkIssues.length === 0) checksPassed++;
+  issues.push(...sinkIssues);
 
   if (isWebServer) {
     checksRun++;
