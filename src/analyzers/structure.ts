@@ -10,6 +10,7 @@ export async function analyzeStructure(
   let checksPassed = 0;
   const pkgPath = join(projectPath, "package.json");
   let isNestjs = false;
+  let isTypescript = existsSync(join(projectPath, "tsconfig.json"));
 
   if (existsSync(pkgPath)) {
     try {
@@ -17,6 +18,11 @@ export async function analyzeStructure(
       isNestjs = Boolean(
         pkg.dependencies?.["@nestjs/core"] ||
           pkg.devDependencies?.["@nestjs/core"],
+      );
+      isTypescript = Boolean(
+        isTypescript ||
+          pkg.dependencies?.typescript ||
+          pkg.devDependencies?.typescript,
       );
     } catch {
       // Invalid package metadata is reported by the dependency analyzer.
@@ -65,7 +71,9 @@ export async function analyzeStructure(
   checksRun++;
   const hasLinter =
     existsSync(join(projectPath, "eslint.config.js")) ||
+    existsSync(join(projectPath, "eslint.config.cjs")) ||
     existsSync(join(projectPath, "eslint.config.mjs")) ||
+    existsSync(join(projectPath, "eslint.config.ts")) ||
     existsSync(join(projectPath, ".eslintrc.js")) ||
     existsSync(join(projectPath, ".eslintrc.json")) ||
     existsSync(join(projectPath, ".eslintrc.yml")) ||
@@ -88,11 +96,16 @@ export async function analyzeStructure(
   const hasFormatter =
     existsSync(join(projectPath, ".prettierrc")) ||
     existsSync(join(projectPath, ".prettierrc.js")) ||
+    existsSync(join(projectPath, ".prettierrc.cjs")) ||
+    existsSync(join(projectPath, ".prettierrc.mjs")) ||
     existsSync(join(projectPath, ".prettierrc.json")) ||
     existsSync(join(projectPath, ".prettierrc.yml")) ||
     existsSync(join(projectPath, "prettier.config.js")) ||
+    existsSync(join(projectPath, "prettier.config.cjs")) ||
     existsSync(join(projectPath, "prettier.config.mjs")) ||
-    existsSync(join(projectPath, "biome.json")); // biome handles formatting too
+    existsSync(join(projectPath, "prettier.config.ts")) ||
+    existsSync(join(projectPath, "biome.json")) ||
+    existsSync(join(projectPath, "biome.jsonc"));
 
   if (hasFormatter) {
     checksPassed++;
@@ -106,27 +119,36 @@ export async function analyzeStructure(
   }
 
   // 5. tsconfig strict mode
-  checksRun++;
   const tsconfigPath = join(projectPath, "tsconfig.json");
-  if (existsSync(tsconfigPath)) {
-    try {
-      const tsconfig = JSON.parse(readFileSync(tsconfigPath, "utf-8"));
-      if (tsconfig.compilerOptions?.strict === true) {
-        checksPassed++;
-      } else {
+  if (isTypescript) {
+    checksRun++;
+    if (!existsSync(tsconfigPath)) {
+      issues.push({
+        severity: "warning",
+        rule: "no-tsconfig",
+        message: "TypeScript is installed but tsconfig.json is missing",
+        fix: "Create a tsconfig.json with strict mode enabled",
+      });
+    } else {
+      try {
+        const tsconfig = JSON.parse(readFileSync(tsconfigPath, "utf-8"));
+        if (tsconfig.compilerOptions?.strict === true) {
+          checksPassed++;
+        } else {
+          issues.push({
+            severity: "warning",
+            rule: "no-strict-mode",
+            message: "TypeScript strict mode is not enabled",
+            fix: 'Set "strict": true in tsconfig.json compilerOptions',
+          });
+        }
+      } catch {
         issues.push({
-          severity: "warning",
-          rule: "no-strict-mode",
-          message: "TypeScript strict mode is not enabled",
-          fix: 'Set "strict": true in tsconfig.json compilerOptions',
+          severity: "info",
+          rule: "invalid-tsconfig",
+          message: "Cannot parse tsconfig.json",
         });
       }
-    } catch {
-      issues.push({
-        severity: "info",
-        rule: "invalid-tsconfig",
-        message: "Cannot parse tsconfig.json",
-      });
     }
   }
 
