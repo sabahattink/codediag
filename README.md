@@ -61,7 +61,7 @@ Runs `npm audit`, checks lock file existence, flags deprecated packages, validat
 
 ### Testing
 
-Detects test files and frameworks (Jest, Vitest, Mocha, Ava), calculates test-to-source ratio, checks for e2e directories and coverage configuration.
+Detects test files and frameworks (Jest, Vitest, Mocha, Ava), calculates the test-to-source ratio, and checks for e2e directories. When Jest, Vitest, or Istanbul produces `coverage/coverage-summary.json`, CodeDiag measures line and statement coverage against an 80% baseline and function and branch coverage against a 70% baseline. Without a report, it falls back to checking coverage configuration.
 
 ### Structure
 

@@ -1,7 +1,89 @@
 import { existsSync, readFileSync } from "node:fs";
-import { join } from "node:path";
+import { join, relative } from "node:path";
 import { glob } from "glob";
 import type { AnalyzerResult, DiagnosticIssue } from "../types.js";
+
+const COVERAGE_THRESHOLDS = {
+  lines: 80,
+  statements: 80,
+  functions: 70,
+  branches: 70,
+} as const;
+
+type CoverageMetricName = keyof typeof COVERAGE_THRESHOLDS;
+
+interface CoverageMetric {
+  total: number;
+  covered: number;
+  pct: number;
+}
+
+interface CoverageReport {
+  file: string;
+  metrics: Record<CoverageMetricName, CoverageMetric>;
+  score: number;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function parseCoverageMetric(value: unknown): CoverageMetric | null {
+  if (!isRecord(value)) return null;
+
+  const total = value.total;
+  const covered = value.covered;
+  const pct = value.pct;
+  if (
+    typeof total !== "number" ||
+    typeof covered !== "number" ||
+    typeof pct !== "number" ||
+    !Number.isFinite(total) ||
+    !Number.isFinite(covered) ||
+    !Number.isFinite(pct) ||
+    total < 0 ||
+    covered < 0 ||
+    covered > total ||
+    pct < 0 ||
+    pct > 100
+  ) {
+    return null;
+  }
+
+  return { total, covered, pct };
+}
+
+function readCoverageReport(projectPath: string): CoverageReport | null {
+  const candidates = [
+    join(projectPath, "coverage", "coverage-summary.json"),
+    join(projectPath, "coverage-summary.json"),
+  ];
+  const reportPath = candidates.find((candidate) => existsSync(candidate));
+  if (!reportPath) return null;
+
+  const document: unknown = JSON.parse(readFileSync(reportPath, "utf-8"));
+  if (!isRecord(document) || !isRecord(document.total)) {
+    throw new Error("missing total coverage summary");
+  }
+
+  const metrics = {} as Record<CoverageMetricName, CoverageMetric>;
+  for (const name of Object.keys(COVERAGE_THRESHOLDS) as CoverageMetricName[]) {
+    const metric = parseCoverageMetric(document.total[name]);
+    if (!metric) throw new Error(`invalid ${name} coverage metric`);
+    metrics[name] = metric;
+  }
+
+  const score = Math.round(
+    Object.values(metrics).reduce((sum, metric) => sum + metric.pct, 0) /
+      Object.keys(metrics).length,
+  );
+
+  return {
+    file: relative(projectPath, reportPath).replace(/\\/g, "/"),
+    metrics,
+    score,
+  };
+}
 
 export async function analyzeTesting(
   projectPath: string,
@@ -129,7 +211,7 @@ export async function analyzeTesting(
     }
   }
 
-  // 6. Coverage threshold
+  // 6. Coverage report or threshold configuration
   checksRun++;
   let hasCoverageConfig = false;
   if (existsSync(pkgPath)) {
@@ -159,9 +241,54 @@ export async function analyzeTesting(
     }
   }
 
-  if (hasCoverageConfig) {
+  let coverageReport: CoverageReport | null = null;
+  let invalidCoverageReport = false;
+  try {
+    coverageReport = readCoverageReport(projectPath);
+  } catch (error) {
+    invalidCoverageReport = true;
+    issues.push({
+      severity: "warning",
+      rule: "invalid-coverage-report",
+      message: `Coverage summary could not be read: ${
+        error instanceof Error ? error.message : String(error)
+      }`,
+      file: existsSync(join(projectPath, "coverage", "coverage-summary.json"))
+        ? "coverage/coverage-summary.json"
+        : "coverage-summary.json",
+      fix: "Regenerate coverage-summary.json with Jest, Vitest, or Istanbul",
+    });
+  }
+
+  if (coverageReport) {
+    checksPassed += coverageReport.score / 100;
+    const belowThreshold = (
+      Object.keys(COVERAGE_THRESHOLDS) as CoverageMetricName[]
+    ).filter(
+      (name) => coverageReport.metrics[name].pct < COVERAGE_THRESHOLDS[name],
+    );
+
+    if (belowThreshold.length > 0) {
+      const details = belowThreshold
+        .map(
+          (name) =>
+            `${name} ${coverageReport.metrics[name].pct}% < ${COVERAGE_THRESHOLDS[name]}%`,
+        )
+        .join(", ");
+      const isCritical = belowThreshold.some(
+        (name) => coverageReport.metrics[name].pct < 50,
+      );
+      issues.push({
+        severity: isCritical ? "critical" : "warning",
+        rule: "coverage-below-threshold",
+        message: `Coverage below recommended thresholds: ${details}`,
+        file: coverageReport.file,
+        fix: "Add tests for the uncovered code paths and regenerate coverage",
+      });
+    }
+  } else if (hasCoverageConfig && !invalidCoverageReport) {
     checksPassed++;
-  } else {
+  } else if (!invalidCoverageReport) {
     issues.push({
       severity: "info",
       rule: "no-coverage-config",
@@ -176,6 +303,8 @@ export async function analyzeTesting(
     name: "Testing",
     score,
     issues,
-    summary: `${testFiles.length} test files, framework: ${framework}`,
+    summary: `${testFiles.length} test files, framework: ${framework}, coverage: ${
+      coverageReport ? `${coverageReport.score}%` : "not reported"
+    }`,
   };
 }
