@@ -1,5 +1,9 @@
 node_modules/
 dist/
+!dist/
+dist/*
+!dist/action.cjs
+!dist/action.cjs.LEGAL.txt
 *.tgz
 .env
 .env.*

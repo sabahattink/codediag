@@ -10,11 +10,13 @@
   },
   "main": "./dist/index.js",
   "files": [
-    "dist",
+    "dist/index.js",
+    "dist/index.js.map",
     "schema"
   ],
   "scripts": {
-    "build": "tsup",
+    "build": "node -e \"require('node:fs').rmSync('dist',{recursive:true,force:true})\" && tsup && node scripts/normalize-action-legal.mjs",
+    "bundle:check": "git diff --exit-code -- dist/action.cjs dist/action.cjs.LEGAL.txt",
     "dev": "tsup --watch",
     "start": "node dist/index.js",
     "lint": "biome lint src tests tests-cli",
@@ -22,7 +24,7 @@
     "format:check": "biome format src tests tests-cli",
     "test": "tsx --test tests/*.test.ts",
     "test:cli": "node --test tests-cli/*.test.mjs",
-    "check": "npm run lint && npm run format:check && npm run typecheck && npm test && npm run build && npm run test:cli",
+    "check": "npm run lint && npm run format:check && npm run typecheck && npm test && npm run build && npm run bundle:check && npm run test:cli",
     "typecheck": "tsc --noEmit",
     "prepublishOnly": "npm run check"
   },

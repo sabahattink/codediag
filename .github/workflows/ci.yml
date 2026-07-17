@@ -23,3 +23,24 @@ jobs:
         run: |
           node dist/index.js --version
           node dist/index.js scan . --quiet --threshold 0
+
+  action:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Run repository Action bundle
+        id: codediag
+        uses: ./
+        with:
+          threshold: 0
+          report: codediag-action-report.json
+      - name: Validate Action outputs
+        env:
+          CODEDIAG_SCORE: ${{ steps.codediag.outputs.score }}
+          CODEDIAG_GRADE: ${{ steps.codediag.outputs.grade }}
+          CODEDIAG_REPORT: ${{ steps.codediag.outputs.report }}
+        run: |
+          test "$CODEDIAG_SCORE" -ge 0
+          test -n "$CODEDIAG_GRADE"
+          test "$CODEDIAG_REPORT" = "$GITHUB_WORKSPACE/codediag-action-report.json"
+          test -s "$CODEDIAG_REPORT"

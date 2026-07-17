@@ -1,0 +1,33 @@
+name: CodeDiag project health scan
+description: Scan a Node.js project and enforce a minimum health score.
+author: Sabahattin Kalkan
+
+inputs:
+  path:
+    description: Project directory to scan, relative to the repository workspace.
+    required: false
+    default: .
+  threshold:
+    description: Minimum passing score from 0 to 100.
+    required: false
+    default: "70"
+  report:
+    description: JSON report path, relative to the repository workspace.
+    required: false
+    default: codediag-report.json
+
+outputs:
+  score:
+    description: Overall CodeDiag score.
+  grade:
+    description: Overall CodeDiag grade.
+  report:
+    description: Absolute path to the generated JSON report.
+
+runs:
+  using: node20
+  main: dist/action.cjs
+
+branding:
+  icon: activity
+  color: purple

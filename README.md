@@ -108,7 +108,21 @@ for compatibility guarantees and field definitions.
 ## CI/CD
 
 ```yaml
-# GitHub Actions
+# GitHub Actions (no npm install required)
+- uses: sabahattink/codediag@main
+  id: codediag
+  with:
+    threshold: 80
+```
+
+The Action adds score annotations and a job summary, writes
+`codediag-report.json`, and fails when the score is below the requested
+threshold. Its `score`, `grade`, and `report` outputs can be used by later
+steps. See the [GitHub Action guide](docs/github-action.md) for all inputs,
+outputs, and a complete workflow.
+
+```yaml
+# npm-based GitHub Actions step
 - run: npx codediag scan . --ci --threshold 80
 ```
 
@@ -190,7 +204,7 @@ checks, not a claim of complete framework or security coverage.
 ### 0.4 - CI distribution
 
 - [x] SVG badge generator
-- [ ] Reusable GitHub Action
+- [x] Reusable GitHub Action
 - [x] Machine-readable schema documentation
 
 ### Later

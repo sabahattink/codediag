@@ -22,6 +22,10 @@ All notable changes to CodeDiag are documented in this file.
 - Enforced Biome linting and formatting plus EditorConfig defaults.
 - Contribution and security policies, structured issue forms, a pull request
   template, and automated dependency update configuration.
+- A dependency-bundled reusable GitHub Action with quality gates, annotations,
+  JSON reports, outputs, and job summaries.
+- A GitHub-hosted smoke test that executes the checked-in Action bundle on
+  every pull request and main-branch update.
 
 ### Changed
 
