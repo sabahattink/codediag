@@ -6,6 +6,10 @@ All notable changes to CodeDiag are documented in this file.
 
 ### Added
 
+- SARIF 2.1.0 output through `--format sarif`, including stable rule IDs,
+  source locations, severity mapping, and deterministic finding fingerprints.
+- JSON and SARIF report outputs from the reusable GitHub Action for optional
+  GitHub Code Scanning uploads.
 - Express API health analysis for route authentication, request validation,
   centralized error handling, and runtime health endpoints.
 - Express JavaScript and TypeScript integration coverage.

@@ -1,18 +1,12 @@
-import { readFileSync } from "node:fs";
-
-interface PackageMetadata {
-  version?: unknown;
-}
+import packageMetadata from "../package.json";
 
 export function getPackageVersion(): string {
-  const packagePath = new URL("../package.json", import.meta.url);
-  const metadata = JSON.parse(
-    readFileSync(packagePath, "utf-8"),
-  ) as PackageMetadata;
-
-  if (typeof metadata.version !== "string" || metadata.version.length === 0) {
+  if (
+    typeof packageMetadata.version !== "string" ||
+    packageMetadata.version.length === 0
+  ) {
     throw new Error("package.json does not contain a valid version");
   }
 
-  return metadata.version;
+  return packageMetadata.version;
 }

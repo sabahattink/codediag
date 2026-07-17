@@ -1,6 +1,7 @@
 import { appendFileSync, mkdirSync, writeFileSync } from "node:fs";
 import { dirname, isAbsolute, resolve } from "node:path";
 import { isBelowThreshold, loadConfig, parseThreshold } from "./config.js";
+import { renderSarif } from "./reporters/sarif.js";
 import { scan } from "./scanner.js";
 import type { DiagnosticIssue, ScanResult } from "./types.js";
 
@@ -121,16 +122,28 @@ export async function runAction(): Promise<void> {
       workspace,
       validatePathInput("report", getInput("report", "codediag-report.json")),
     );
+    const sarifPath = resolveWorkspacePath(
+      workspace,
+      validatePathInput("sarif", getInput("sarif", "codediag-report.sarif")),
+    );
+
+    if (reportPath === sarifPath) {
+      throw new Error("report and sarif must resolve to different files.");
+    }
+
     const threshold = parseThreshold(getInput("threshold", "70"));
 
     const result = await scan(projectPath, loadConfig(projectPath));
 
     mkdirSync(dirname(reportPath), { recursive: true });
     writeFileSync(reportPath, `${JSON.stringify(result, null, 2)}\n`, "utf8");
+    mkdirSync(dirname(sarifPath), { recursive: true });
+    writeFileSync(sarifPath, renderSarif(result), "utf8");
 
     writeOutput("score", String(result.totalScore));
     writeOutput("grade", result.grade);
     writeOutput("report", reportPath);
+    writeOutput("sarif", sarifPath);
     emitAnnotations(result);
 
     if (process.env.GITHUB_STEP_SUMMARY) {
@@ -142,7 +155,7 @@ export async function runAction(): Promise<void> {
     }
 
     console.log(
-      `CodeDiag score: ${result.totalScore}/100 (${result.grade}); report: ${reportPath}`,
+      `CodeDiag score: ${result.totalScore}/100 (${result.grade}); JSON: ${reportPath}; SARIF: ${sarifPath}`,
     );
 
     if (isBelowThreshold(result.totalScore, threshold)) {

@@ -93,6 +93,7 @@ API Health: 25%  ·  Security: 30%  ·  Dependencies: 20%  ·  Testing: 15%  · 
 ```bash
 codediag scan .                    # Full report
 codediag scan . --format json      # JSON (for CI/CD)
+codediag scan . --format sarif     # SARIF 2.1.0 (for code scanning)
 codediag scan . --format md        # Markdown (for PRs)
 codediag scan . --format svg       # SVG score badge
 codediag scan . --format html > codediag-report.html  # Interactive dashboard
@@ -155,6 +156,16 @@ See the
 [JSON output documentation](https://github.com/sabahattink/codediag/blob/main/docs/json-output.md)
 for compatibility guarantees and field definitions.
 
+For code-scanning platforms, `--format sarif` emits SARIF 2.1.0 with stable
+rule IDs, source locations, severity levels, and finding fingerprints:
+
+```bash
+codediag scan . --format sarif > codediag-report.sarif
+```
+
+See the [SARIF output documentation](docs/sarif-output.md) for the field
+mapping and GitHub Code Scanning workflow.
+
 ## CI/CD
 
 ```yaml
@@ -165,11 +176,11 @@ for compatibility guarantees and field definitions.
     threshold: 80
 ```
 
-The Action adds score annotations and a job summary, writes
-`codediag-report.json`, and fails when the score is below the requested
-threshold. Its `score`, `grade`, and `report` outputs can be used by later
-steps. See the [GitHub Action guide](docs/github-action.md) for all inputs,
-outputs, and a complete workflow.
+The Action adds score annotations and a job summary, writes JSON and SARIF
+reports, and fails when the score is below the requested threshold. Its
+`score`, `grade`, `report`, and `sarif` outputs can be used by later steps. See
+the [GitHub Action guide](docs/github-action.md) for all inputs, outputs, and a
+complete workflow.
 
 ```yaml
 # npm-based GitHub Actions step
@@ -256,6 +267,7 @@ checks, not a claim of complete framework or security coverage.
 - [x] SVG badge generator
 - [x] Reusable GitHub Action
 - [x] Machine-readable schema documentation
+- [x] SARIF 2.1.0 and GitHub Code Scanning output
 
 ### Later
 

@@ -127,6 +127,27 @@ test("HTML output is a self-contained project dashboard", () => {
   }
 });
 
+test("SARIF output is valid Code Scanning interchange data", () => {
+  const directory = mkdtempSync(join(tmpdir(), "codediag-cli-"));
+  try {
+    writeFileSync(
+      join(directory, "package.json"),
+      JSON.stringify({ name: "sarif-fixture", devDependencies: {} }),
+    );
+
+    const result = runCli(["scan", ".", "--format", "sarif"], directory);
+    assert.equal(result.status, 0, result.stderr);
+
+    const sarif = JSON.parse(result.stdout);
+    assert.equal(sarif.version, "2.1.0");
+    assert.equal(sarif.runs[0].tool.driver.name, "CodeDiag");
+    assert.ok(Array.isArray(sarif.runs[0].results));
+    assert.match(sarif.runs[0].properties.project, /^codediag-cli-/);
+  } finally {
+    rmSync(directory, { recursive: true, force: true });
+  }
+});
+
 test("fixes output is a review-only remediation checklist", () => {
   const directory = mkdtempSync(join(tmpdir(), "codediag-cli-"));
   try {

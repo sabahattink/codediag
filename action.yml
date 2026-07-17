@@ -15,6 +15,10 @@ inputs:
     description: JSON report path, relative to the repository workspace.
     required: false
     default: codediag-report.json
+  sarif:
+    description: SARIF report path, relative to the repository workspace.
+    required: false
+    default: codediag-report.sarif
 
 outputs:
   score:
@@ -23,6 +27,8 @@ outputs:
     description: Overall CodeDiag grade.
   report:
     description: Absolute path to the generated JSON report.
+  sarif:
+    description: Absolute path to the generated SARIF report.
 
 runs:
   using: node20

@@ -34,16 +34,21 @@ jobs:
         with:
           threshold: 0
           report: codediag-action-report.json
+          sarif: codediag-action-report.sarif
       - name: Validate Action outputs
         env:
           CODEDIAG_SCORE: ${{ steps.codediag.outputs.score }}
           CODEDIAG_GRADE: ${{ steps.codediag.outputs.grade }}
           CODEDIAG_REPORT: ${{ steps.codediag.outputs.report }}
+          CODEDIAG_SARIF: ${{ steps.codediag.outputs.sarif }}
         run: |
           test "$CODEDIAG_SCORE" -ge 0
           test -n "$CODEDIAG_GRADE"
           test "$CODEDIAG_REPORT" = "$GITHUB_WORKSPACE/codediag-action-report.json"
           test -s "$CODEDIAG_REPORT"
+          test "$CODEDIAG_SARIF" = "$GITHUB_WORKSPACE/codediag-action-report.sarif"
+          test -s "$CODEDIAG_SARIF"
+          node -e 'const fs=require("fs"); const s=JSON.parse(fs.readFileSync(process.env.CODEDIAG_SARIF,"utf8")); if(s.version!=="2.1.0" || s.runs[0].tool.driver.name!=="CodeDiag") process.exit(1)'
 
   vscode-extension:
     runs-on: ubuntu-latest

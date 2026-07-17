@@ -6,6 +6,7 @@ import { isBelowThreshold, loadConfig, parseThreshold } from "./config.js";
 import { renderHtml } from "./reporters/html.js";
 import { renderAiPrompt, renderFixPlan } from "./reporters/fix-plan.js";
 import { renderJson } from "./reporters/json.js";
+import { renderSarif } from "./reporters/sarif.js";
 import { renderSvg } from "./reporters/svg.js";
 import { renderTerminal } from "./reporters/terminal.js";
 import { scan } from "./scanner.js";
@@ -15,6 +16,7 @@ import { getPackageVersion } from "./version.js";
 const OUTPUT_FORMATS = new Set([
   "terminal",
   "json",
+  "sarif",
   "md",
   "svg",
   "html",
@@ -63,7 +65,7 @@ program
   .argument("[path]", "Project directory to scan", ".")
   .option(
     "-f, --format <type>",
-    "Output format: terminal, json, md, svg, html, fixes, prompt",
+    "Output format: terminal, json, sarif, md, svg, html, fixes, prompt",
     "terminal",
   )
   .option("-t, --threshold <number>", "Minimum passing score")
@@ -77,7 +79,7 @@ program
     try {
       if (!OUTPUT_FORMATS.has(format)) {
         throw new Error(
-          `Unknown output format "${format}". Expected terminal, json, md, svg, html, fixes, or prompt.`,
+          `Unknown output format "${format}". Expected terminal, json, sarif, md, svg, html, fixes, or prompt.`,
         );
       }
 
@@ -94,6 +96,9 @@ program
       switch (format) {
         case "json":
           renderJson(result);
+          break;
+        case "sarif":
+          console.log(renderSarif(result).trimEnd());
           break;
         case "md":
           console.log(renderMarkdown(result));

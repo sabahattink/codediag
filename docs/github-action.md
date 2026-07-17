@@ -43,10 +43,12 @@ first Action release is cut.
 | `path` | `.` | Project directory relative to `GITHUB_WORKSPACE` |
 | `threshold` | `70` | Minimum passing score from 0 through 100 |
 | `report` | `codediag-report.json` | JSON report path relative to `GITHUB_WORKSPACE` |
+| `sarif` | `codediag-report.sarif` | SARIF 2.1.0 report path relative to `GITHUB_WORKSPACE` |
 
-Absolute `path` and `report` values are also accepted for advanced workflows.
-The project `.codediag.yml` controls analyzer selection and ignore patterns;
-the Action input controls the enforced threshold.
+Absolute `path`, `report`, and `sarif` values are also accepted for advanced
+workflows. JSON and SARIF paths must resolve to different files. The project
+`.codediag.yml` controls analyzer selection and ignore patterns; the Action
+input controls the enforced threshold.
 
 ## Outputs
 
@@ -55,9 +57,12 @@ the Action input controls the enforced threshold.
 | `score` | Weighted project health score |
 | `grade` | Letter grade derived from the score |
 | `report` | Absolute path to the JSON report |
+| `sarif` | Absolute path to the SARIF report |
 
 The report follows the published
 [`scan-result.schema.json`](../schema/scan-result.schema.json) contract.
+The SARIF report follows version 2.1.0 and is documented in
+[`sarif-output.md`](sarif-output.md).
 
 ## Pull request feedback
 
@@ -82,7 +87,14 @@ The action exits with:
     path: apps/api
     threshold: 85
     report: artifacts/api-codediag.json
+    sarif: artifacts/api-codediag.sarif
 ```
+
+## GitHub Code Scanning
+
+Grant `security-events: write`, then upload the `sarif` output with
+`github/codeql-action/upload-sarif`. The complete workflow and permission
+notes are in the [SARIF output guide](sarif-output.md).
 
 CodeDiag does not require repository write permissions or secrets. The
 dependency analyzer invokes the package manager audit command in the selected

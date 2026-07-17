@@ -9,11 +9,12 @@ import { fileURLToPath } from "node:url";
 const repositoryRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const actionEntry = join(repositoryRoot, "dist", "action.cjs");
 
-test("GitHub Action writes outputs, JSON report, and job summary", async () => {
+test("GitHub Action writes outputs, JSON and SARIF reports, and job summary", async () => {
   const temporaryDirectory = await mkdtemp(join(tmpdir(), "codediag-action-"));
   const outputFile = join(temporaryDirectory, "output.txt");
   const summaryFile = join(temporaryDirectory, "summary.md");
   const reportFile = join(temporaryDirectory, "report.json");
+  const sarifFile = join(temporaryDirectory, "report.sarif");
 
   try {
     const result = spawnSync(process.execPath, [actionEntry], {
@@ -27,6 +28,7 @@ test("GitHub Action writes outputs, JSON report, and job summary", async () => {
         INPUT_PATH: ".",
         INPUT_THRESHOLD: "0",
         INPUT_REPORT: reportFile,
+        INPUT_SARIF: sarifFile,
       },
     });
 
@@ -39,11 +41,20 @@ test("GitHub Action writes outputs, JSON report, and job summary", async () => {
       outputs,
       new RegExp(`^report=${reportFile.replaceAll("\\", "\\\\")}$`, "m"),
     );
+    assert.match(
+      outputs,
+      new RegExp(`^sarif=${sarifFile.replaceAll("\\", "\\\\")}$`, "m"),
+    );
 
     const report = JSON.parse(await readFile(reportFile, "utf8"));
     assert.equal(report.project, "codediag");
     assert.equal(typeof report.totalScore, "number");
     assert.ok(Array.isArray(report.analyzers));
+
+    const sarif = JSON.parse(await readFile(sarifFile, "utf8"));
+    assert.equal(sarif.version, "2.1.0");
+    assert.equal(sarif.runs[0].tool.driver.name, "CodeDiag");
+    assert.equal(sarif.runs[0].properties.project, "codediag");
 
     const summary = await readFile(summaryFile, "utf8");
     assert.match(summary, /^## CodeDiag project health/m);
@@ -58,6 +69,7 @@ test("GitHub Action fails when the score is below the threshold", async () => {
   const temporaryDirectory = await mkdtemp(join(tmpdir(), "codediag-gate-"));
   const outputFile = join(temporaryDirectory, "output.txt");
   const reportFile = join(temporaryDirectory, "report.json");
+  const sarifFile = join(temporaryDirectory, "report.sarif");
 
   try {
     await writeFile(
@@ -90,6 +102,7 @@ test("GitHub Action fails when the score is below the threshold", async () => {
         INPUT_PATH: ".",
         INPUT_THRESHOLD: "100",
         INPUT_REPORT: reportFile,
+        INPUT_SARIF: sarifFile,
       },
     });
 
@@ -99,9 +112,34 @@ test("GitHub Action fails when the score is below the threshold", async () => {
 
     const report = JSON.parse(await readFile(reportFile, "utf8"));
     assert.ok(report.totalScore < 100);
+    assert.equal(
+      JSON.parse(await readFile(sarifFile, "utf8")).version,
+      "2.1.0",
+    );
   } finally {
     await rm(temporaryDirectory, { recursive: true, force: true });
   }
+});
+
+test("GitHub Action rejects colliding report paths", () => {
+  const result = spawnSync(process.execPath, [actionEntry], {
+    cwd: repositoryRoot,
+    encoding: "utf8",
+    env: {
+      ...process.env,
+      GITHUB_WORKSPACE: repositoryRoot,
+      INPUT_PATH: ".",
+      INPUT_THRESHOLD: "0",
+      INPUT_REPORT: "same-output.json",
+      INPUT_SARIF: "same-output.json",
+    },
+  });
+
+  assert.equal(result.status, 2, result.stderr || result.stdout);
+  assert.match(
+    result.stderr,
+    /report and sarif must resolve to different files/,
+  );
 });
 
 test("GitHub Action reports invalid inputs as operational failures", () => {
