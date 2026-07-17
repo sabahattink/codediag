@@ -10,8 +10,8 @@
 </p>
 
 <p align="center">
-  <a href="https://www.npmjs.com/package/codediag"><img src="https://img.shields.io/npm/v/codediag?color=cb3837&label=npm" alt="npm" /></a>
-  <a href="https://www.npmjs.com/package/codediag"><img src="https://img.shields.io/npm/dm/codediag?color=007ec6" alt="downloads" /></a>
+  <a href="https://www.npmjs.com/package/@sabahattink/codediag"><img src="https://img.shields.io/npm/v/%40sabahattink/codediag?color=cb3837&label=npm" alt="npm" /></a>
+  <a href="https://www.npmjs.com/package/@sabahattink/codediag"><img src="https://img.shields.io/npm/dm/%40sabahattink/codediag?color=007ec6" alt="downloads" /></a>
   <a href="https://github.com/sabahattink/codediag/actions"><img src="https://img.shields.io/github/actions/workflow/status/sabahattink/codediag/ci.yml?branch=main&label=CI" alt="CI" /></a>
   <a href="https://github.com/sabahattink/codediag/blob/main/LICENSE"><img src="https://img.shields.io/github/license/sabahattink/codediag?color=2ea44f" alt="license" /></a>
 </p>
@@ -27,16 +27,22 @@
 ## Install
 
 ```bash
-npx codediag scan .
+npx @sabahattink/codediag scan .
 ```
 
 That's it. Configuration is optional. No account or server is required.
 
-Or install globally:
+Or install globally — this also puts the `codediag` command on your `PATH`,
+which every other example below assumes:
 
 ```bash
-npm install -g codediag
+npm install -g @sabahattink/codediag
 ```
+
+> **Package name note:** published as `@sabahattink/codediag` while ownership
+> of the legacy `codediag` name on npm is transferred. The CLI binary is still
+> `codediag` after install. A migration announcement will follow if/when the
+> unscoped name becomes available again.
 
 ## What it checks
 
@@ -187,18 +193,18 @@ complete workflow.
 
 ```yaml
 # npm-based GitHub Actions step
-- run: npx codediag scan . --ci --threshold 80
+- run: npx @sabahattink/codediag scan . --ci --threshold 80
 ```
 
 ```yaml
 # GitLab CI
 codediag:
-  script: npx codediag scan . --ci --threshold 80
+  script: npx @sabahattink/codediag scan . --ci --threshold 80
 ```
 
 ```bash
 # Pre-push hook (husky)
-npx codediag scan . --quiet --threshold 70
+npx @sabahattink/codediag scan . --quiet --threshold 70
 ```
 
 ## Config
@@ -257,7 +263,7 @@ checks, not a claim of complete framework or security coverage.
 - [x] Deterministic threshold exit behavior
 - [x] npm, pnpm, and Yarn audit results preserved on vulnerability exit codes
 - [x] Automated regression tests
-- [ ] npm ownership migration and `0.2.0` release
+- [x] `0.2.0` released as `@sabahattink/codediag` (legacy `codediag` npm name transfer still pending)
 
 ### 0.3 - Framework depth
 

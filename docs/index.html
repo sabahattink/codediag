@@ -151,9 +151,9 @@ footer a:hover{color:var(--green)}
   <h1>Diagnose your code<br>before you ship.</h1>
   <p class="subtitle">One command. Five analyzers. One score.<br>Know exactly what's wrong — before your users do.</p>
 
-  <div class="hero-cmd" onclick="navigator.clipboard.writeText('npx codediag scan .');this.querySelector('.copy').textContent='Copied!'">
+  <div class="hero-cmd" onclick="navigator.clipboard.writeText('npx @sabahattink/codediag scan .');this.querySelector('.copy').textContent='Copied!'">
     <span class="prompt">$</span>
-    <span class="cmd-text">npx codediag scan .</span>
+    <span class="cmd-text">npx @sabahattink/codediag scan .</span>
     <span class="copy">Copy</span>
   </div>
 
@@ -256,22 +256,22 @@ footer a:hover{color:var(--green)}
   <div class="ci-block">
     <span class="t-dim"># GitHub Actions</span><br>
     <span class="t-yellow">- name:</span> <span class="t-white">Code Diagnostics</span><br>
-    <span class="t-yellow">&nbsp; run:</span> <span class="t-green">npx codediag scan . --ci --threshold 80</span><br>
+    <span class="t-yellow">&nbsp; run:</span> <span class="t-green">npx @sabahattink/codediag scan . --ci --threshold 80</span><br>
     <br>
     <span class="t-dim"># Reports and score badge</span><br>
-    <span class="t-green">npx codediag scan . --format json</span><br>
-    <span class="t-green">npx codediag scan . --format svg &gt; codediag.svg</span><br>
-    <span class="t-green">npx codediag scan . --format html &gt; codediag-report.html</span><br>
-    <span class="t-green">npx codediag scan . --format fixes &gt; codediag-fixes.md</span><br>
-    <span class="t-green">npx codediag scan . --format prompt &gt; codediag-prompt.txt</span>
+    <span class="t-green">npx @sabahattink/codediag scan . --format json</span><br>
+    <span class="t-green">npx @sabahattink/codediag scan . --format svg &gt; codediag.svg</span><br>
+    <span class="t-green">npx @sabahattink/codediag scan . --format html &gt; codediag-report.html</span><br>
+    <span class="t-green">npx @sabahattink/codediag scan . --format fixes &gt; codediag-fixes.md</span><br>
+    <span class="t-green">npx @sabahattink/codediag scan . --format prompt &gt; codediag-prompt.txt</span>
   </div>
 </section>
 
 <section class="cta">
   <h2>Ship with confidence.</h2>
-  <p class="cta-cmd">npx codediag scan .</p>
+  <p class="cta-cmd">npx @sabahattink/codediag scan .</p>
   <div class="cta-links">
-    <a href="https://www.npmjs.com/package/codediag" class="cta-primary" target="_blank">Install from npm</a>
+    <a href="https://www.npmjs.com/package/@sabahattink/codediag" class="cta-primary" target="_blank">Install from npm</a>
     <a href="https://github.com/sabahattink/codediag" class="cta-secondary" target="_blank">View on GitHub</a>
   </div>
 </section>

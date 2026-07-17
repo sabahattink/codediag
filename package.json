@@ -1,5 +1,5 @@
 {
-  "name": "codediag",
+  "name": "@sabahattink/codediag",
   "version": "0.2.0",
   "description": "Automated project health scanner for Node.js, NestJS, Express, and Next.js projects.",
   "author": "Sabahattin Kalkan <hello@sabahattinkalkan.com> (https://sabahattinkalkan.com)",
