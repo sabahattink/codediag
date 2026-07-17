@@ -223,6 +223,11 @@ footer a:hover{color:var(--green)}
       <h3>Structure</h3>
       <p>Validates useful README content, inherited lint and format config, resolved TypeScript strict mode, NestJS feature modules, and environment templates.</p>
     </div>
+    <div class="feature">
+      <div class="feature-icon">fix</div>
+      <h3>Review-first fixes</h3>
+      <p>Turns findings into a prioritized checklist or a structured AI handoff. It never edits files or applies a recommendation without explicit approval.</p>
+    </div>
   </div>
 </section>
 
@@ -251,7 +256,9 @@ footer a:hover{color:var(--green)}
     <span class="t-dim"># Reports and score badge</span><br>
     <span class="t-green">npx codediag scan . --format json</span><br>
     <span class="t-green">npx codediag scan . --format svg &gt; codediag.svg</span><br>
-    <span class="t-green">npx codediag scan . --format html &gt; codediag-report.html</span>
+    <span class="t-green">npx codediag scan . --format html &gt; codediag-report.html</span><br>
+    <span class="t-green">npx codediag scan . --format fixes &gt; codediag-fixes.md</span><br>
+    <span class="t-green">npx codediag scan . --format prompt &gt; codediag-prompt.txt</span>
   </div>
 </section>
 

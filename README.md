@@ -96,6 +96,8 @@ codediag scan . --format json      # JSON (for CI/CD)
 codediag scan . --format md        # Markdown (for PRs)
 codediag scan . --format svg       # SVG score badge
 codediag scan . --format html > codediag-report.html  # Interactive dashboard
+codediag scan . --format fixes > codediag-fixes.md     # Review checklist
+codediag scan . --format prompt > codediag-prompt.txt  # Review-only AI handoff
 codediag scan . --ci               # JSON output + exit code
 codediag scan . --threshold 80     # Exit 1 below 80 in any output mode
 codediag scan . --quiet            # Score only
@@ -108,6 +110,29 @@ Generate a repository badge:
 ```bash
 codediag scan . --format svg > codediag.svg
 ```
+
+### Review-first fix proposals
+
+CodeDiag can turn analyzer findings into a prioritized remediation checklist.
+Every item remains unchecked and explicitly requires review; CodeDiag never
+edits project files or applies a recommendation automatically.
+
+```bash
+codediag scan . --format fixes > codediag-fixes.md
+```
+
+For use with a coding agent, `--format prompt` creates a structured handoff
+that treats diagnostics as untrusted data and instructs the agent to inspect
+the referenced files before proposing a patch. The prompt contains diagnostic
+metadata only, not source file contents or secrets, and prohibits edits until
+the user gives explicit approval.
+
+```bash
+codediag scan . --format prompt > codediag-prompt.txt
+```
+
+See the [review-first fix proposal guide](docs/fix-proposals.md) for the output
+contract and recommended workflow.
 
 The JSON output contract is published as
 [`schema/scan-result.schema.json`](https://github.com/sabahattink/codediag/blob/main/schema/scan-result.schema.json).
@@ -221,7 +246,7 @@ checks, not a claim of complete framework or security coverage.
 
 - [x] Portable HTML dashboard report
 - [ ] VS Code extension
-- [ ] AI-powered fix proposals with explicit review
+- [x] Review-first fix plans and AI prompt export
 
 ## Contributing
 
