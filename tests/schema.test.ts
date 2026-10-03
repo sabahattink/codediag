@@ -70,6 +70,25 @@ test("JSON schema accepts optional issue fields being omitted", () => {
   assert.equal(validate(result), true, JSON.stringify(validate.errors));
 });
 
+test("JSON schema accepts the optional skipped-file summary", () => {
+  const result = validResult();
+  result.skipped = {
+    total: 1,
+    tooLarge: 0,
+    minified: 1,
+    unreadable: 0,
+    files: [{ file: "public/bundle.js", reason: "minified" }],
+  };
+  assert.equal(validate(result), true, JSON.stringify(validate.errors));
+
+  const invalid = validResult() as unknown as Record<string, unknown>;
+  invalid.skipped = {
+    ...result.skipped,
+    files: [{ file: "a.js", reason: "x" }],
+  };
+  assert.equal(validate(invalid), false);
+});
+
 test("JSON schema rejects out-of-range scores and incomplete stacks", () => {
   const invalid = validResult() as unknown as Record<string, unknown>;
   invalid.totalScore = 101;

@@ -6,6 +6,12 @@ All notable changes to CodeDiag are documented in this file.
 
 ### Added
 
+- A shared scan context: files are discovered once, read once, and parsed by a
+  single ts-morph project for all analyzers.
+- `.gitignore` support for source discovery, including nested files and parent
+  directories up to the Git root.
+- `maxFileSizeKb` configuration (default 512) and an optional `skipped` summary
+  in JSON output for oversized, minified, or unreadable code files.
 - AST-based security sink detection for runtime code execution, dynamic shell
   commands, dynamic SQL queries, and disabled TLS certificate verification.
 - SARIF 2.1.0 output through `--format sarif`, including stable rule IDs,
@@ -35,6 +41,11 @@ All notable changes to CodeDiag are documented in this file.
 
 ### Changed
 
+- `node_modules`, `dist`, `build`, `out`, `coverage`, `.next`, and `.turbo`
+  directories plus `*.min.js` and `*.map` files are now ignored at any depth,
+  not only at the project root. Monorepo scans no longer report findings from
+  nested dependencies or build output.
+- Replaced the `glob` runtime dependency with `minimatch` and `ignore`.
 - Project ownership and links now use the canonical Sabahattin Kalkan identity.
 - CLI version is read from `package.json`.
 - Threshold failures now return exit code 1 in every output mode.

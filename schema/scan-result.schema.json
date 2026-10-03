@@ -47,6 +47,9 @@
     "timestamp": {
       "type": "string",
       "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z$"
+    },
+    "skipped": {
+      "$ref": "#/$defs/skippedSummary"
     }
   },
   "$defs": {
@@ -176,6 +179,61 @@
         "fix": {
           "type": "string",
           "minLength": 1
+        }
+      }
+    },
+    "skippedSummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "total",
+        "tooLarge",
+        "minified",
+        "unreadable",
+        "files"
+      ],
+      "properties": {
+        "total": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "tooLarge": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "minified": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "unreadable": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "files": {
+          "type": "array",
+          "maxItems": 50,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "file",
+              "reason"
+            ],
+            "properties": {
+              "file": {
+                "type": "string",
+                "minLength": 1
+              },
+              "reason": {
+                "type": "string",
+                "enum": [
+                  "too-large",
+                  "minified",
+                  "unreadable"
+                ]
+              }
+            }
+          }
         }
       }
     }

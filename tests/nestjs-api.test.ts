@@ -1,9 +1,10 @@
 import assert from "node:assert/strict";
-import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 import { analyzeNestjsApi } from "../src/analyzers/nestjs-api.js";
+import { createScanContext } from "../src/core/scan-context.js";
 
 function createProject(): string {
   const directory = mkdtempSync(join(tmpdir(), "codediag-nestjs-"));
@@ -33,7 +34,7 @@ class UsersController {
 `,
     );
 
-    const result = await analyzeNestjsApi(directory);
+    const result = await analyzeNestjsApi(createScanContext(directory));
 
     assert.equal(result.score, 100);
     assert.equal(result.issues.length, 0);
@@ -59,7 +60,7 @@ class AdminController {
 `,
     );
 
-    const result = await analyzeNestjsApi(directory);
+    const result = await analyzeNestjsApi(createScanContext(directory));
     const rules = new Set(result.issues.map((issue) => issue.rule));
 
     assert.deepEqual(
@@ -89,7 +90,7 @@ test("NestJS analyzer excludes controller fixtures in test directories", async (
       '@Controller("fixture")\nclass FixtureController {\n  @Get() get() {}\n}\n',
     );
 
-    const result = await analyzeNestjsApi(directory);
+    const result = await analyzeNestjsApi(createScanContext(directory));
 
     assert.equal(result.score, 0);
     assert.equal(result.issues[0]?.rule, "no-controllers");

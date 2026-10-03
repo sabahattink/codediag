@@ -9,7 +9,8 @@ import { analyzeNextjsApi } from "./analyzers/nextjs-api.js";
 import { analyzeSecurity } from "./analyzers/security.js";
 import { analyzeStructure } from "./analyzers/structure.js";
 import { analyzeTesting } from "./analyzers/testing.js";
-import { loadConfig, normalizeIgnorePatterns } from "./config.js";
+import { loadConfig } from "./config.js";
+import { createScanContext } from "./core/scan-context.js";
 import { detectStack } from "./detectors/stack-detector.js";
 import type {
   AnalyzerResult,
@@ -81,7 +82,7 @@ export async function scan(
   progress.succeed(`Stack: ${stackLabel}`);
 
   const results: AnalyzerResult[] = [];
-  const ignore = normalizeIgnorePatterns(config.ignore);
+  const context = createScanContext(projectPath, config, { stack });
 
   // Framework-specific API health
   if (
@@ -93,10 +94,10 @@ export async function scan(
     progress.start("Analyzing API health...");
     const r =
       stack.framework === "nestjs"
-        ? await analyzeNestjsApi(projectPath, ignore)
+        ? await analyzeNestjsApi(context)
         : stack.framework === "express"
-          ? await analyzeExpressApi(projectPath, ignore)
-          : await analyzeNextjsApi(projectPath, ignore);
+          ? await analyzeExpressApi(context)
+          : await analyzeNextjsApi(context);
     if (r) {
       results.push(r);
       progress.succeed(`API Health: ${r.score}/100`);
@@ -108,7 +109,7 @@ export async function scan(
   // Security
   if (config.analyzers.security) {
     progress.start("Scanning security...");
-    const sec = await analyzeSecurity(projectPath, ignore);
+    const sec = await analyzeSecurity(context);
     results.push(sec);
     progress.succeed(`Security: ${sec.score}/100`);
   }
@@ -116,7 +117,7 @@ export async function scan(
   // Dependencies
   if (config.analyzers.dependencies) {
     progress.start("Auditing dependencies...");
-    const dep = await analyzeDependencies(projectPath);
+    const dep = await analyzeDependencies(context);
     results.push(dep);
     progress.succeed(`Dependencies: ${dep.score}/100`);
   }
@@ -124,7 +125,7 @@ export async function scan(
   // Testing
   if (config.analyzers.testing) {
     progress.start("Checking test coverage...");
-    const test = await analyzeTesting(projectPath, ignore);
+    const test = await analyzeTesting(context);
     results.push(test);
     progress.succeed(`Testing: ${test.score}/100`);
   }
@@ -132,7 +133,7 @@ export async function scan(
   // Structure
   if (config.analyzers.structure) {
     progress.start("Analyzing project structure...");
-    const str = await analyzeStructure(projectPath, ignore);
+    const str = await analyzeStructure(context);
     results.push(str);
     progress.succeed(`Structure: ${str.score}/100`);
   }
@@ -149,6 +150,7 @@ export async function scan(
   const totalScore =
     totalWeight > 0 ? Math.round(weightedSum / totalWeight) : 0;
   const grade = calculateGrade(totalScore);
+  const skipped = context.skipped();
 
   return {
     project: basename(projectPath),
@@ -157,5 +159,6 @@ export async function scan(
     totalScore,
     grade,
     timestamp: new Date().toISOString(),
+    ...(skipped.total > 0 ? { skipped } : {}),
   };
 }

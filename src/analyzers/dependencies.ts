@@ -1,23 +1,14 @@
 import { spawnSync } from "node:child_process";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync } from "node:fs";
 import { dirname, join } from "node:path";
-import type { AnalyzerResult, DiagnosticIssue } from "../types.js";
+import type { ScanContext } from "../core/scan-context.js";
+import type { AnalyzerResult, DiagnosticIssue, PackageJson } from "../types.js";
 
 interface AuditSummary {
   critical: number;
   high: number;
   moderate: number;
   low: number;
-}
-
-interface PackageJson {
-  dependencies?: Record<string, string>;
-  devDependencies?: Record<string, string>;
-  packageManager?: string;
-  engines?: {
-    node?: string;
-  };
-  scripts?: Record<string, string>;
 }
 
 type AuditManager = "npm" | "pnpm" | "yarn";
@@ -215,14 +206,14 @@ export function parseAuditSummary(output: string): AuditSummary {
 }
 
 export async function analyzeDependencies(
-  projectPath: string,
+  context: ScanContext,
 ): Promise<AnalyzerResult> {
+  const { projectPath } = context;
   const issues: DiagnosticIssue[] = [];
   let checksRun = 0;
   let checksPassed = 0;
 
-  const pkgPath = join(projectPath, "package.json");
-  if (!existsSync(pkgPath)) {
+  if (context.packageJsonStatus === "missing") {
     return {
       name: "Dependencies",
       score: 0,
@@ -237,10 +228,8 @@ export async function analyzeDependencies(
     };
   }
 
-  let pkg: PackageJson;
-  try {
-    pkg = JSON.parse(readFileSync(pkgPath, "utf-8"));
-  } catch {
+  const pkg: PackageJson | null = context.packageJson;
+  if (!pkg) {
     return {
       name: "Dependencies",
       score: 0,

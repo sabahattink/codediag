@@ -52,6 +52,26 @@ test("rejects invalid and unknown configuration", () => {
   });
 });
 
+test("loads and validates maxFileSizeKb", () => {
+  withProject((directory) => {
+    assert.equal(loadConfig(directory).maxFileSizeKb, 512);
+
+    writeFileSync(join(directory, ".codediag.yml"), "maxFileSizeKb: 2048\n");
+    assert.equal(loadConfig(directory).maxFileSizeKb, 2048);
+
+    for (const value of ["0", "1.5", '"512"']) {
+      writeFileSync(
+        join(directory, ".codediag.yml"),
+        `maxFileSizeKb: ${value}\n`,
+      );
+      assert.throws(
+        () => loadConfig(directory),
+        /maxFileSizeKb must be an integer/,
+      );
+    }
+  });
+});
+
 test("normalizes directories without corrupting glob patterns", () => {
   assert.deepEqual(normalizeIgnorePatterns(["dist", "generated/**"]), [
     "dist",

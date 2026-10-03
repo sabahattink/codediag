@@ -4,6 +4,7 @@ import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import test from "node:test";
 import { analyzeSecuritySinks } from "../src/analyzers/security-sinks.js";
+import { createScanContext } from "../src/core/scan-context.js";
 
 async function scan(files: Record<string, string>) {
   const directory = mkdtempSync(join(tmpdir(), "codediag-sinks-"));
@@ -13,10 +14,7 @@ async function scan(files: Record<string, string>) {
       mkdirSync(dirname(file), { recursive: true });
       writeFileSync(file, content);
     }
-    return await analyzeSecuritySinks(directory, [
-      "node_modules/**",
-      "dist/**",
-    ]);
+    return await analyzeSecuritySinks(createScanContext(directory));
   } finally {
     rmSync(directory, { recursive: true, force: true });
   }

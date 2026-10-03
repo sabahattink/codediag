@@ -4,6 +4,7 @@ import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import test from "node:test";
 import { analyzeNextjsApi } from "../src/analyzers/nextjs-api.js";
+import { createScanContext } from "../src/core/scan-context.js";
 import { scan } from "../src/scanner.js";
 
 function createNextProject(): string {
@@ -44,7 +45,7 @@ test("Next.js analyzer handles App Router methods and dynamic paths", async () =
   );
 
   try {
-    const result = await analyzeNextjsApi(directory);
+    const result = await analyzeNextjsApi(createScanContext(directory));
     assert.ok(result);
     assert.equal(result.score, 100);
     assert.equal(result.issues.length, 0);
@@ -68,7 +69,7 @@ test("Next.js analyzer reports missing mutating route safeguards", async () => {
   );
 
   try {
-    const result = await analyzeNextjsApi(directory);
+    const result = await analyzeNextjsApi(createScanContext(directory));
     assert.ok(result);
     assert.equal(result.score, 20);
     assert.deepEqual(
@@ -99,7 +100,7 @@ test("Next.js analyzer recognizes Pages Router method branches", async () => {
   );
 
   try {
-    const result = await analyzeNextjsApi(directory);
+    const result = await analyzeNextjsApi(createScanContext(directory));
     assert.ok(result);
     assert.equal(result.score, 100);
     assert.equal(result.issues.length, 0);
@@ -117,7 +118,7 @@ test("frontend-only Next.js projects do not receive an API score", async () => {
   );
 
   try {
-    assert.equal(await analyzeNextjsApi(directory), null);
+    assert.equal(await analyzeNextjsApi(createScanContext(directory)), null);
     const result = await scan(directory);
     assert.equal(result.stack.framework, "nextjs");
     assert.equal(

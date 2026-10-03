@@ -7,6 +7,7 @@ import {
   analyzeSecurity,
   gitignoreProtectsEnv,
 } from "../src/analyzers/security.js";
+import { createScanContext } from "../src/core/scan-context.js";
 
 function withProject(
   files: Record<string, string>,
@@ -38,7 +39,7 @@ test("generic Node packages are not penalized for web middleware", async () => {
       "index.ts": "export const value = 1;\n",
     },
     async (directory) => {
-      const result = await analyzeSecurity(directory);
+      const result = await analyzeSecurity(createScanContext(directory));
       assert.equal(result.score, 100);
       assert.equal(rules(result).includes("no-helmet"), false);
       assert.equal(rules(result).includes("no-rate-limiting"), false);
@@ -74,7 +75,7 @@ test("middleware imports without runtime invocation do not pass", async () => {
       ].join("\n"),
     },
     async (directory) => {
-      const result = await analyzeSecurity(directory);
+      const result = await analyzeSecurity(createScanContext(directory));
       assert.ok(rules(result).includes("no-helmet"));
       assert.ok(rules(result).includes("no-rate-limiting"));
     },
@@ -111,7 +112,7 @@ test("configured middleware and secure password hashing pass", async () => {
       ].join("\n"),
     },
     async (directory) => {
-      const result = await analyzeSecurity(directory);
+      const result = await analyzeSecurity(createScanContext(directory));
       assert.equal(result.score, 100);
       assert.deepEqual(result.issues, []);
     },
@@ -132,7 +133,7 @@ test("open Express CORS reports its source location", async () => {
       ].join("\n"),
     },
     async (directory) => {
-      const result = await analyzeSecurity(directory);
+      const result = await analyzeSecurity(createScanContext(directory));
       const issue = result.issues.find((entry) => entry.rule === "open-cors");
       assert.equal(issue?.file, "server.ts");
       assert.equal(issue?.line, 3);
@@ -155,7 +156,7 @@ test("unsafe password handling is reported without duplicate persistence noise",
       ].join("\n"),
     },
     async (directory) => {
-      const result = await analyzeSecurity(directory);
+      const result = await analyzeSecurity(createScanContext(directory));
       assert.ok(rules(result).includes("weak-password-hash"));
       assert.ok(rules(result).includes("plaintext-password-comparison"));
       assert.equal(
@@ -180,7 +181,7 @@ test("commented credentials are ignored while live tokens include a line", async
       ].join("\n"),
     },
     async (directory) => {
-      const result = await analyzeSecurity(directory);
+      const result = await analyzeSecurity(createScanContext(directory));
       const secretIssues = result.issues.filter(
         (issue) => issue.rule === "hardcoded-secret",
       );
@@ -203,7 +204,7 @@ test("runtime sink findings contribute to the security analyzer score", async ()
       ].join("\n"),
     },
     async (directory) => {
-      const result = await analyzeSecurity(directory);
+      const result = await analyzeSecurity(createScanContext(directory));
       const issue = result.issues.find(
         (entry) => entry.rule === "dynamic-command-execution",
       );

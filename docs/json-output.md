@@ -44,6 +44,12 @@ https://raw.githubusercontent.com/sabahattink/codediag/main/schema/scan-result.s
 | `totalScore` | integer | Weighted score from 0 through 100 |
 | `grade` | string | `A+`, `A`, `B+`, `B`, `C`, `D`, or `F` |
 | `timestamp` | string | UTC ISO 8601 scan timestamp |
+| `skipped` | object | Optional. Present only when source files were left out of analysis |
+
+`skipped` counts code files that were not analyzed: `tooLarge` (larger than
+`maxFileSizeKb`), `minified` (bundler or minifier output, detected by an
+average line length above 500 characters), and `unreadable`. `files` lists up
+to 50 of them as `{ "file", "reason" }`, sorted by path.
 
 Each diagnostic issue always includes `severity`, `rule`, and `message`.
 `file`, `line`, and `fix` are optional.

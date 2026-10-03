@@ -1,8 +1,7 @@
-import { existsSync, readFileSync, readdirSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { dirname, join, relative } from "node:path";
-import { glob } from "glob";
-import { Project } from "ts-morph";
-import type { AnalyzerResult, DiagnosticIssue } from "../types.js";
+import type { ScanContext } from "../core/scan-context.js";
+import type { AnalyzerResult, DiagnosticIssue, PackageJson } from "../types.js";
 
 const LINTER_CONFIGS = [
   "eslint.config.js",
@@ -40,24 +39,6 @@ const FORMATTER_CONFIGS = [
 ];
 
 const ENV_TEMPLATES = [".env.example", ".env.sample", ".env.template"];
-
-interface PackageMetadata {
-  dependencies?: Record<string, string>;
-  devDependencies?: Record<string, string>;
-  eslintConfig?: unknown;
-  prettier?: unknown;
-}
-
-function parsePackageMetadata(projectPath: string): PackageMetadata {
-  try {
-    return JSON.parse(
-      readFileSync(join(projectPath, "package.json"), "utf-8"),
-    ) as PackageMetadata;
-  } catch {
-    // Invalid package metadata is reported by the dependency analyzer.
-    return {};
-  }
-}
 
 function findConfigUp(
   projectPath: string,
@@ -131,12 +112,11 @@ function rootEnvFiles(projectPath: string): string[] {
   }
 }
 
-async function analyzeNestOrganization(
-  projectPath: string,
-  ignore: string[],
+function analyzeNestOrganization(
+  context: ScanContext,
   issues: DiagnosticIssue[],
-): Promise<boolean> {
-  const srcPath = join(projectPath, "src");
+): boolean {
+  const srcPath = join(context.projectPath, "src");
   if (!existsSync(srcPath)) {
     issues.push({
       severity: "warning",
@@ -148,27 +128,21 @@ async function analyzeNestOrganization(
   }
 
   const scanIgnore = [
-    ...ignore,
     "**/*.spec.*",
     "**/*.test.*",
     "**/{test,tests,__tests__,e2e}/**",
   ];
 
   try {
-    const [moduleFiles, controllerFiles, serviceFiles] = await Promise.all([
-      glob("src/**/*.module.{ts,js,mjs,cjs}", {
-        cwd: projectPath,
-        ignore: scanIgnore,
+    const [moduleFiles, controllerFiles, serviceFiles] = [
+      "module",
+      "controller",
+      "service",
+    ].map((kind) =>
+      context.matchFiles(`src/**/*.${kind}.{ts,js,mjs,cjs}`, {
+        exclude: scanIgnore,
       }),
-      glob("src/**/*.controller.{ts,js,mjs,cjs}", {
-        cwd: projectPath,
-        ignore: scanIgnore,
-      }),
-      glob("src/**/*.service.{ts,js,mjs,cjs}", {
-        cwd: projectPath,
-        ignore: scanIgnore,
-      }),
-    ]);
+    );
 
     if (moduleFiles.length === 0) {
       issues.push({
@@ -225,13 +199,14 @@ async function analyzeNestOrganization(
 }
 
 export async function analyzeStructure(
-  projectPath: string,
-  ignore: string[] = ["node_modules/**", "dist/**", ".git/**", "coverage/**"],
+  context: ScanContext,
 ): Promise<AnalyzerResult> {
+  const { projectPath } = context;
   const issues: DiagnosticIssue[] = [];
   let checksRun = 0;
   let checksPassed = 0;
-  const pkg = parsePackageMetadata(projectPath);
+  // Invalid package metadata is reported by the dependency analyzer.
+  const pkg: PackageJson = context.packageJson ?? {};
   const hasDependency = (name: string): boolean =>
     Boolean(pkg.dependencies?.[name] || pkg.devDependencies?.[name]);
   const isNestjs = hasDependency("@nestjs/core");
@@ -311,46 +286,39 @@ export async function analyzeStructure(
   // 5. Resolve JSONC and inherited TypeScript compiler options.
   if (isTypescript) {
     checksRun++;
-    if (!existsSync(tsconfigPath)) {
+    const typescriptConfig = context.typescriptConfig();
+    if (typescriptConfig.status === "missing") {
       issues.push({
         severity: "warning",
         rule: "no-tsconfig",
         message: "TypeScript is installed but tsconfig.json is missing",
         fix: "Create a tsconfig.json with strict mode enabled",
       });
+    } else if (typescriptConfig.status === "invalid") {
+      issues.push({
+        severity: "warning",
+        rule: "invalid-tsconfig",
+        message: "Cannot resolve tsconfig.json compiler options",
+        file: "tsconfig.json",
+        fix: "Fix invalid JSONC or an unresolved extends reference",
+      });
+    } else if (typescriptConfig.options.strict === true) {
+      checksPassed++;
     } else {
-      try {
-        const project = new Project({
-          tsConfigFilePath: tsconfigPath,
-          skipAddingFilesFromTsConfig: true,
-        });
-        if (project.getCompilerOptions().strict === true) {
-          checksPassed++;
-        } else {
-          issues.push({
-            severity: "warning",
-            rule: "no-strict-mode",
-            message: "TypeScript strict mode is not enabled",
-            file: "tsconfig.json",
-            fix: 'Set "strict": true in tsconfig.json compilerOptions',
-          });
-        }
-      } catch {
-        issues.push({
-          severity: "warning",
-          rule: "invalid-tsconfig",
-          message: "Cannot resolve tsconfig.json compiler options",
-          file: "tsconfig.json",
-          fix: "Fix invalid JSONC or an unresolved extends reference",
-        });
-      }
+      issues.push({
+        severity: "warning",
+        rule: "no-strict-mode",
+        message: "TypeScript strict mode is not enabled",
+        file: "tsconfig.json",
+        fix: 'Set "strict": true in tsconfig.json compilerOptions',
+      });
     }
   }
 
   // 6. NestJS feature directories with controllers or services need modules.
   if (isNestjs) {
     checksRun++;
-    if (await analyzeNestOrganization(projectPath, ignore, issues)) {
+    if (analyzeNestOrganization(context, issues)) {
       checksPassed++;
     }
   }

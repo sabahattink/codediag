@@ -1,9 +1,10 @@
 import assert from "node:assert/strict";
-import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 import { analyzeTesting } from "../src/analyzers/testing.js";
+import { createScanContext } from "../src/core/scan-context.js";
 
 function createProject(): string {
   const directory = mkdtempSync(join(tmpdir(), "codediag-testing-"));
@@ -62,7 +63,7 @@ test("testing analyzer scores a real coverage summary", async () => {
       branches: 76,
     });
 
-    const result = await analyzeTesting(directory);
+    const result = await analyzeTesting(createScanContext(directory));
 
     assert.match(result.summary, /coverage: 84%/);
     assert.equal(
@@ -85,7 +86,7 @@ test("testing analyzer reports low coverage metrics", async () => {
       branches: 60,
     });
 
-    const result = await analyzeTesting(directory);
+    const result = await analyzeTesting(createScanContext(directory));
     const issue = result.issues.find(
       (candidate) => candidate.rule === "coverage-below-threshold",
     );
@@ -109,7 +110,7 @@ test("testing analyzer reports malformed coverage without crashing", async () =>
       JSON.stringify({ total: { lines: { pct: "unknown" } } }),
     );
 
-    const result = await analyzeTesting(directory);
+    const result = await analyzeTesting(createScanContext(directory));
 
     assert.equal(
       result.issues.some((issue) => issue.rule === "invalid-coverage-report"),

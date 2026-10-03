@@ -1,7 +1,4 @@
-import { existsSync } from "node:fs";
-import { join, relative } from "node:path";
-import { glob } from "glob";
-import { Project, type SourceFile } from "ts-morph";
+import type { ScanContext } from "../core/scan-context.js";
 import type { AnalyzerResult, DiagnosticIssue } from "../types.js";
 
 const HTTP_DECORATORS = [
@@ -25,21 +22,17 @@ interface EndpointInfo {
 }
 
 export async function analyzeNestjsApi(
-  projectPath: string,
-  ignore: string[] = ["node_modules/**", "dist/**"],
+  context: ScanContext,
 ): Promise<AnalyzerResult> {
   const issues: DiagnosticIssue[] = [];
   const endpoints: EndpointInfo[] = [];
 
-  const controllerFiles = await glob("**/*.controller.ts", {
-    cwd: projectPath,
-    ignore: [
-      ...ignore,
+  const controllerFiles = context.matchFiles("**/*.controller.ts", {
+    exclude: [
       "**/*.test.ts",
       "**/*.spec.ts",
       "**/{test,tests,__tests__,e2e}/**",
     ],
-    absolute: true,
   });
 
   if (controllerFiles.length === 0) {
@@ -57,29 +50,9 @@ export async function analyzeNestjsApi(
     };
   }
 
-  const tsConfigPath = join(projectPath, "tsconfig.json");
-  let project: Project;
-
-  try {
-    if (existsSync(tsConfigPath)) {
-      project = new Project({
-        tsConfigFilePath: tsConfigPath,
-        skipAddingFilesFromTsConfig: true,
-      });
-    } else {
-      project = new Project({ compilerOptions: { strict: true } });
-    }
-  } catch {
-    project = new Project({ compilerOptions: { strict: true } });
-  }
-
-  for (const filePath of controllerFiles) {
-    let sourceFile: SourceFile;
-    try {
-      sourceFile = project.addSourceFileAtPath(filePath);
-    } catch {
-      continue;
-    }
+  for (const relFile of controllerFiles) {
+    const sourceFile = context.getSourceFile(relFile);
+    if (!sourceFile) continue;
 
     const classes = sourceFile.getClasses();
 
@@ -109,7 +82,6 @@ export async function analyzeNestjsApi(
         const fullPath =
           `/${basePath}/${routePath}`.replace(/\/+/g, "/").replace(/\/$/, "") ||
           "/";
-        const relFile = relative(projectPath, filePath).replace(/\\/g, "/");
         const line = method.getStartLineNumber();
 
         const hasGuard =

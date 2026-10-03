@@ -1,7 +1,11 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join, relative } from "node:path";
-import { glob } from "glob";
+import type { ScanContext } from "../core/scan-context.js";
 import type { AnalyzerResult, DiagnosticIssue } from "../types.js";
+
+const TEST_CONFIG_FILES = ["jest", "vitest"].flatMap((tool) =>
+  ["ts", "js", "mjs", "mts"].map((extension) => `${tool}.config.${extension}`),
+);
 
 const COVERAGE_THRESHOLDS = {
   lines: 80,
@@ -86,19 +90,16 @@ function readCoverageReport(projectPath: string): CoverageReport | null {
 }
 
 export async function analyzeTesting(
-  projectPath: string,
-  ignore: string[] = ["node_modules/**", "dist/**"],
+  context: ScanContext,
 ): Promise<AnalyzerResult> {
+  const { projectPath, packageJson: pkg } = context;
   const issues: DiagnosticIssue[] = [];
   let checksRun = 0;
   let checksPassed = 0;
 
   // 1. Test files exist
   checksRun++;
-  const testFiles = await glob("**/*.{spec,test}.{ts,js,tsx,jsx}", {
-    cwd: projectPath,
-    ignore,
-  });
+  const testFiles = context.matchFiles("**/*.{spec,test}.{ts,js,tsx,jsx}");
 
   if (testFiles.length > 0) {
     checksPassed++;
@@ -113,25 +114,18 @@ export async function analyzeTesting(
 
   // 2. Test framework detected
   checksRun++;
-  const pkgPath = join(projectPath, "package.json");
   let framework = "none";
-  if (existsSync(pkgPath)) {
-    try {
-      const pkg = JSON.parse(readFileSync(pkgPath, "utf-8"));
-      const deps = { ...pkg.dependencies, ...pkg.devDependencies };
-      if (deps.jest || deps["@jest/core"] || deps["ts-jest"])
-        framework = "jest";
-      else if (deps.vitest) framework = "vitest";
-      else if (deps.mocha) framework = "mocha";
-      else if (deps.ava) framework = "ava";
-      else if (
-        pkg.scripts?.test?.includes("--test") ||
-        pkg.scripts?.["test:cli"]?.includes("--test")
-      )
-        framework = "node:test";
-    } catch {
-      /* skip */
-    }
+  if (pkg) {
+    const deps = { ...pkg.dependencies, ...pkg.devDependencies };
+    if (deps.jest || deps["@jest/core"] || deps["ts-jest"]) framework = "jest";
+    else if (deps.vitest) framework = "vitest";
+    else if (deps.mocha) framework = "mocha";
+    else if (deps.ava) framework = "ava";
+    else if (
+      pkg.scripts?.test?.includes("--test") ||
+      pkg.scripts?.["test:cli"]?.includes("--test")
+    )
+      framework = "node:test";
   }
 
   if (framework !== "none") {
@@ -147,9 +141,8 @@ export async function analyzeTesting(
 
   // 3. Test-to-source ratio
   checksRun++;
-  const sourceFiles = await glob("**/*.{ts,js,tsx,jsx}", {
-    cwd: projectPath,
-    ignore: [...ignore, "**/*.spec.*", "**/*.test.*", "**/*.d.ts"],
+  const sourceFiles = context.matchFiles("**/*.{ts,js,tsx,jsx}", {
+    exclude: ["**/*.spec.*", "**/*.test.*", "**/*.d.ts"],
   });
 
   const ratio =
@@ -213,20 +206,11 @@ export async function analyzeTesting(
 
   // 6. Coverage report or threshold configuration
   checksRun++;
-  let hasCoverageConfig = false;
-  if (existsSync(pkgPath)) {
-    try {
-      const pkg = JSON.parse(readFileSync(pkgPath, "utf-8"));
-      if (pkg.jest?.coverageThreshold) hasCoverageConfig = true;
-    } catch {
-      /* skip */
-    }
-  }
+  let hasCoverageConfig = Boolean(pkg?.jest?.coverageThreshold);
 
-  const configFiles = await glob("{jest,vitest}.config.{ts,js,mjs,mts}", {
-    cwd: projectPath,
-    absolute: true,
-  });
+  const configFiles = TEST_CONFIG_FILES.map((name) =>
+    join(projectPath, name),
+  ).filter((path) => existsSync(path));
   for (const cf of configFiles) {
     try {
       if (

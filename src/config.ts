@@ -38,6 +38,22 @@ function readIgnore(value: unknown, fallback: string[]): string[] {
   return value.map((entry) => entry.trim());
 }
 
+const MAX_FILE_SIZE_KB_LIMIT = 1024 * 1024;
+
+function readMaxFileSizeKb(value: unknown, fallback: number): number {
+  if (value === undefined) return fallback;
+  if (
+    !Number.isInteger(value) ||
+    Number(value) < 1 ||
+    Number(value) > MAX_FILE_SIZE_KB_LIMIT
+  ) {
+    throw new Error(
+      `maxFileSizeKb must be an integer between 1 and ${MAX_FILE_SIZE_KB_LIMIT}`,
+    );
+  }
+  return Number(value);
+}
+
 function readAnalyzers(
   value: unknown,
   fallback: CodediagConfig["analyzers"],
@@ -72,6 +88,7 @@ export function loadConfig(projectPath: string): CodediagConfig {
     return {
       threshold: DEFAULT_CONFIG.threshold,
       ignore: [...DEFAULT_CONFIG.ignore],
+      maxFileSizeKb: DEFAULT_CONFIG.maxFileSizeKb,
       analyzers: { ...DEFAULT_CONFIG.analyzers },
     };
   }
@@ -90,7 +107,12 @@ export function loadConfig(projectPath: string): CodediagConfig {
     throw new Error("Invalid .codediag.yml: root must be an object");
   }
 
-  const allowedKeys = new Set(["threshold", "ignore", "analyzers"]);
+  const allowedKeys = new Set([
+    "threshold",
+    "ignore",
+    "maxFileSizeKb",
+    "analyzers",
+  ]);
   const unknownKeys = Object.keys(document).filter(
     (key) => !allowedKeys.has(key),
   );
@@ -104,6 +126,10 @@ export function loadConfig(projectPath: string): CodediagConfig {
     return {
       threshold: readThreshold(document.threshold, DEFAULT_CONFIG.threshold),
       ignore: readIgnore(document.ignore, DEFAULT_CONFIG.ignore),
+      maxFileSizeKb: readMaxFileSizeKb(
+        document.maxFileSizeKb,
+        DEFAULT_CONFIG.maxFileSizeKb,
+      ),
       analyzers: readAnalyzers(document.analyzers, DEFAULT_CONFIG.analyzers),
     };
   } catch (error) {

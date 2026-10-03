@@ -4,6 +4,8 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 import { analyzeStructure } from "../src/analyzers/structure.js";
+import { loadConfig } from "../src/config.js";
+import { createScanContext } from "../src/core/scan-context.js";
 
 function createProject(): string {
   return mkdtempSync(join(tmpdir(), "codediag-structure-"));
@@ -27,7 +29,7 @@ test("structure analyzer does not penalize JavaScript for missing tsconfig", asy
     writeFileSync(join(directory, ".editorconfig"), "root = true\n");
     writeFileSync(join(directory, "biome.jsonc"), "{ /* config */ }\n");
 
-    const result = await analyzeStructure(directory);
+    const result = await analyzeStructure(createScanContext(directory));
 
     assert.equal(result.score, 100);
     assert.equal(result.issues.length, 0);
@@ -56,7 +58,7 @@ test("structure analyzer requires strict mode for TypeScript", async () => {
       JSON.stringify({ compilerOptions: { strict: false } }),
     );
 
-    const result = await analyzeStructure(directory);
+    const result = await analyzeStructure(createScanContext(directory));
 
     assert.equal(
       result.issues.some((issue) => issue.rule === "no-strict-mode"),
@@ -77,7 +79,7 @@ test("structure analyzer reports a missing tsconfig for TypeScript", async () =>
       JSON.stringify({ devDependencies: { typescript: "5.0.0" } }),
     );
 
-    const result = await analyzeStructure(directory);
+    const result = await analyzeStructure(createScanContext(directory));
 
     assert.equal(
       result.issues.some((issue) => issue.rule === "no-tsconfig"),
@@ -110,7 +112,7 @@ test("structure analyzer resolves JSONC and inherited strict mode", async () => 
       '{\n  "extends": "./tsconfig.base.json",\n}\n',
     );
 
-    const result = await analyzeStructure(directory);
+    const result = await analyzeStructure(createScanContext(directory));
 
     assert.equal(result.score, 100);
     assert.equal(result.issues.length, 0);
@@ -134,7 +136,7 @@ test("structure analyzer finds workspace-level editor and lint configs", async (
       "module.exports = {};\n",
     );
 
-    const result = await analyzeStructure(directory);
+    const result = await analyzeStructure(createScanContext(directory));
 
     assert.equal(result.score, 100);
     assert.equal(result.issues.length, 0);
@@ -154,7 +156,7 @@ test("structure analyzer rejects a badge-only README", async () => {
     );
     writeFileSync(join(directory, "package.json"), JSON.stringify({}));
 
-    const result = await analyzeStructure(directory);
+    const result = await analyzeStructure(createScanContext(directory));
 
     assert.equal(
       result.issues.some((issue) => issue.rule === "short-readme"),
@@ -173,14 +175,16 @@ test("structure analyzer requires a template for environment variants", async ()
     writeFileSync(join(directory, "package.json"), JSON.stringify({}));
     writeFileSync(join(directory, ".env.production"), "TOKEN=secret\n");
 
-    const missingTemplate = await analyzeStructure(directory);
+    const missingTemplate = await analyzeStructure(
+      createScanContext(directory),
+    );
     assert.equal(
       missingTemplate.issues.some((issue) => issue.rule === "no-env-example"),
       true,
     );
 
     writeFileSync(join(directory, ".env.sample"), "TOKEN=\n");
-    const withTemplate = await analyzeStructure(directory);
+    const withTemplate = await analyzeStructure(createScanContext(directory));
     assert.equal(
       withTemplate.issues.some((issue) => issue.rule === "no-env-example"),
       false,
@@ -210,7 +214,7 @@ test("structure analyzer ignores NestJS utility directories without handlers", a
       "export const Public = true;\n",
     );
 
-    const result = await analyzeStructure(directory);
+    const result = await analyzeStructure(createScanContext(directory));
 
     assert.equal(
       result.issues.some((issue) => issue.rule === "poor-module-org"),
@@ -243,7 +247,7 @@ test("structure analyzer reports NestJS handler directories without a module", a
       "export class AuthService {}\n",
     );
 
-    const withoutModule = await analyzeStructure(directory);
+    const withoutModule = await analyzeStructure(createScanContext(directory));
     const issue = withoutModule.issues.find(
       (candidate) => candidate.rule === "poor-module-org",
     );
@@ -253,7 +257,7 @@ test("structure analyzer reports NestJS handler directories without a module", a
       join(directory, "src", "auth", "auth.module.ts"),
       "export class AuthModule {}\n",
     );
-    const withModule = await analyzeStructure(directory);
+    const withModule = await analyzeStructure(createScanContext(directory));
     assert.equal(
       withModule.issues.some(
         (candidate) => candidate.rule === "poor-module-org",
@@ -289,7 +293,7 @@ test("structure analyzer accepts a feature module above nested handlers", async 
       "export class UsersController {}\n",
     );
 
-    const result = await analyzeStructure(directory);
+    const result = await analyzeStructure(createScanContext(directory));
 
     assert.equal(
       result.issues.some((issue) => issue.rule === "poor-module-org"),
@@ -318,7 +322,12 @@ test("structure analyzer honors ignore patterns for NestJS feature checks", asyn
       "export class ClientService {}\n",
     );
 
-    const result = await analyzeStructure(directory, ["src/generated/**"]);
+    const result = await analyzeStructure(
+      createScanContext(directory, {
+        ...loadConfig(directory),
+        ignore: ["src/generated/**"],
+      }),
+    );
 
     assert.equal(
       result.issues.some((issue) => issue.rule === "poor-module-org"),

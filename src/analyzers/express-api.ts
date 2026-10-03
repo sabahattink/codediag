@@ -1,12 +1,10 @@
-import { relative } from "node:path";
-import { glob } from "glob";
 import {
-  Node,
-  Project,
-  SyntaxKind,
   type CallExpression,
+  Node,
   type SourceFile,
+  SyntaxKind,
 } from "ts-morph";
+import type { ScanContext } from "../core/scan-context.js";
 import type { AnalyzerResult, DiagnosticIssue } from "../types.js";
 
 const HTTP_METHODS = new Set([
@@ -64,13 +62,9 @@ function isExpressReceiver(receiver: string): boolean {
 
 function findEndpoints(
   sourceFile: SourceFile,
-  projectPath: string,
+  file: string,
 ): ExpressEndpoint[] {
   const endpoints: ExpressEndpoint[] = [];
-  const file = relative(projectPath, sourceFile.getFilePath()).replace(
-    /\\/g,
-    "/",
-  );
 
   for (const call of sourceFile.getDescendantsOfKind(
     SyntaxKind.CallExpression,
@@ -140,40 +134,25 @@ function hasErrorMiddleware(sourceFiles: SourceFile[]): boolean {
 }
 
 export async function analyzeExpressApi(
-  projectPath: string,
-  ignore: string[] = ["node_modules/**", "dist/**"],
+  context: ScanContext,
 ): Promise<AnalyzerResult> {
   const issues: DiagnosticIssue[] = [];
-  const sourcePaths = await glob("**/*.{ts,tsx,js,mjs,cjs}", {
-    cwd: projectPath,
-    ignore: [
-      ...ignore,
+  const sources: Array<{ file: string; sourceFile: SourceFile }> = [];
+  for (const file of context.matchFiles("**/*.{ts,tsx,js,mjs,cjs}", {
+    exclude: [
       "**/*.test.{ts,tsx,js,mjs,cjs}",
       "**/*.spec.{ts,tsx,js,mjs,cjs}",
       "**/__tests__/**",
     ],
-    absolute: true,
-  });
-
-  const project = new Project({
-    compilerOptions: {
-      allowJs: true,
-      checkJs: false,
-    },
-    skipAddingFilesFromTsConfig: true,
-  });
-
-  const sourceFiles: SourceFile[] = [];
-  for (const sourcePath of sourcePaths) {
-    try {
-      sourceFiles.push(project.addSourceFileAtPath(sourcePath));
-    } catch {
-      // A malformed source file should not prevent analysis of the rest.
-    }
+  })) {
+    // A malformed source file should not prevent analysis of the rest.
+    const sourceFile = context.getSourceFile(file);
+    if (sourceFile) sources.push({ file, sourceFile });
   }
+  const sourceFiles = sources.map(({ sourceFile }) => sourceFile);
 
-  const endpoints = sourceFiles.flatMap((sourceFile) =>
-    findEndpoints(sourceFile, projectPath),
+  const endpoints = sources.flatMap(({ file, sourceFile }) =>
+    findEndpoints(sourceFile, file),
   );
 
   if (endpoints.length === 0) {

@@ -4,6 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 import { analyzeExpressApi } from "../src/analyzers/express-api.js";
+import { createScanContext } from "../src/core/scan-context.js";
 import { scan } from "../src/scanner.js";
 
 function createProject(source: string, extension = "ts"): string {
@@ -33,7 +34,7 @@ test("Express analyzer recognizes protected and validated routes", async () => {
   `);
 
   try {
-    const result = await analyzeExpressApi(directory);
+    const result = await analyzeExpressApi(createScanContext(directory));
     assert.equal(result.score, 100);
     assert.equal(result.issues.length, 0);
     assert.match(result.summary, /^2 Express endpoints/);
@@ -54,7 +55,7 @@ test("Express analyzer reports missing API safeguards with locations", async () 
   );
 
   try {
-    const result = await analyzeExpressApi(directory);
+    const result = await analyzeExpressApi(createScanContext(directory));
     assert.equal(result.score, 0);
     assert.deepEqual(
       result.issues.map((issue) => issue.rule),
@@ -84,7 +85,7 @@ test("Express analyzer does not treat handler internals as middleware", async ()
   `);
 
   try {
-    const result = await analyzeExpressApi(directory);
+    const result = await analyzeExpressApi(createScanContext(directory));
     assert.deepEqual(
       result.issues.slice(0, 2).map((issue) => issue.rule),
       ["missing-auth-middleware", "missing-validation-middleware"],
@@ -108,7 +109,7 @@ test("Express analyzer excludes routes declared only in test files", async () =>
   );
 
   try {
-    const result = await analyzeExpressApi(directory);
+    const result = await analyzeExpressApi(createScanContext(directory));
     assert.equal(result.score, 0);
     assert.equal(result.issues[0]?.rule, "no-express-routes");
   } finally {

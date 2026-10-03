@@ -1,6 +1,6 @@
 import { existsSync, readFileSync } from "node:fs";
 import { dirname, join, relative } from "node:path";
-import { glob } from "glob";
+import type { ScanContext } from "../core/scan-context.js";
 import type { AnalyzerResult, DiagnosticIssue } from "../types.js";
 import { analyzeSecuritySinks } from "./security-sinks.js";
 
@@ -29,6 +29,8 @@ const SECRET_PATTERNS = [
     name: "AWS Key",
   },
 ];
+
+const SOURCE_PATTERN = "**/*.{ts,tsx,js,jsx,mjs,cjs}";
 
 const RUNTIME_IGNORES = [
   "**/*.test.{ts,tsx,js,jsx,mjs,cjs}",
@@ -321,49 +323,38 @@ function passwordIssues(sources: SourceRecord[]): DiagnosticIssue[] {
   return issues;
 }
 
-async function readSources(
-  projectPath: string,
-  ignore: string[],
-  runtimeOnly: boolean,
-): Promise<SourceRecord[]> {
-  const files = await glob("**/*.{ts,tsx,js,jsx,mjs,cjs}", {
-    cwd: projectPath,
-    ignore: runtimeOnly ? [...ignore, ...RUNTIME_IGNORES] : ignore,
-    absolute: true,
-    nodir: true,
-  });
-  const sources: SourceRecord[] = [];
-  for (const filePath of files) {
-    try {
-      sources.push({
-        file: relative(projectPath, filePath).replace(/\\/g, "/"),
-        content: stripComments(readFileSync(filePath, "utf-8")),
-      });
-    } catch {
-      // Files that disappear during a scan cannot be analyzed.
-    }
+function readSources(context: ScanContext): {
+  allSources: SourceRecord[];
+  runtimeSources: SourceRecord[];
+} {
+  const runtimeFiles = new Set(
+    context.matchFiles(SOURCE_PATTERN, { exclude: RUNTIME_IGNORES }),
+  );
+  const allSources: SourceRecord[] = [];
+  const runtimeSources: SourceRecord[] = [];
+  for (const file of context.matchFiles(SOURCE_PATTERN)) {
+    const content = context.readText(file);
+    // Files that cannot be read are reported in the scan's skipped summary.
+    if (content === null) continue;
+    const source = { file, content: stripComments(content) };
+    allSources.push(source);
+    if (runtimeFiles.has(file)) runtimeSources.push(source);
   }
-  return sources;
+  return { allSources, runtimeSources };
 }
 
 export async function analyzeSecurity(
-  projectPath: string,
-  ignore: string[] = ["node_modules/**", "dist/**"],
+  context: ScanContext,
 ): Promise<AnalyzerResult> {
+  const { projectPath } = context;
   const issues: DiagnosticIssue[] = [];
   let checksRun = 0;
   let checksPassed = 0;
-  const pkgPath = join(projectPath, "package.json");
-  let dependencies: Record<string, unknown> = {};
-
-  if (existsSync(pkgPath)) {
-    try {
-      const pkg = JSON.parse(readFileSync(pkgPath, "utf-8"));
-      dependencies = { ...pkg.dependencies, ...pkg.devDependencies };
-    } catch {
-      // Invalid package metadata is reported by the dependency analyzer.
-    }
-  }
+  // Invalid package metadata is reported by the dependency analyzer.
+  const dependencies: Record<string, unknown> = {
+    ...context.packageJson?.dependencies,
+    ...context.packageJson?.devDependencies,
+  };
 
   const isWebServer = [
     "@nestjs/core",
@@ -410,8 +401,7 @@ export async function analyzeSecurity(
     }
   }
 
-  const allSources = await readSources(projectPath, ignore, false);
-  const runtimeSources = await readSources(projectPath, ignore, true);
+  const { allSources, runtimeSources } = readSources(context);
 
   checksRun++;
   let secretsFound = false;
@@ -444,7 +434,7 @@ export async function analyzeSecurity(
   }
 
   checksRun++;
-  const sinkIssues = await analyzeSecuritySinks(projectPath, ignore);
+  const sinkIssues = await analyzeSecuritySinks(context);
   if (sinkIssues.length === 0) checksPassed++;
   issues.push(...sinkIssues);
 

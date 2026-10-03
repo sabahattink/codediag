@@ -1,14 +1,14 @@
-import { relative } from "node:path";
-import { glob } from "glob";
 import {
-  Node,
-  Project,
-  SyntaxKind,
   type CallExpression,
   type Expression,
+  Node,
   type SourceFile,
+  SyntaxKind,
 } from "ts-morph";
+import type { ScanContext } from "../core/scan-context.js";
 import type { DiagnosticIssue } from "../types.js";
+
+const SOURCE_PATTERN = "**/*.{ts,tsx,js,jsx,mjs,cjs}";
 
 const RUNTIME_IGNORES = [
   "**/*.test.{ts,tsx,js,jsx,mjs,cjs}",
@@ -37,15 +37,8 @@ interface CommandBindings {
   namespaces: Set<string>;
 }
 
-function sourceLocation(
-  sourceFile: SourceFile,
-  projectPath: string,
-  line: number,
-) {
-  return {
-    file: relative(projectPath, sourceFile.getFilePath()).replace(/\\/g, "/"),
-    line,
-  };
+function sourceLocation(file: string, line: number) {
+  return { file, line };
 }
 
 function isModuleCall(expression: Expression, modules: Set<string>): boolean {
@@ -149,7 +142,7 @@ function severityForDynamicInput(text: string): DiagnosticIssue["severity"] {
 
 function inspectSourceFile(
   sourceFile: SourceFile,
-  projectPath: string,
+  file: string,
 ): DiagnosticIssue[] {
   const issues: DiagnosticIssue[] = [];
   const bindings = commandBindings(sourceFile);
@@ -169,7 +162,7 @@ function inspectSourceFile(
         severity: "critical",
         rule: "unsafe-dynamic-code",
         message: "Runtime code execution uses eval()",
-        ...sourceLocation(sourceFile, projectPath, call.getStartLineNumber()),
+        ...sourceLocation(file, call.getStartLineNumber()),
         fix: "Replace eval() with explicit parsing, dispatch, or a sandbox designed for untrusted code",
       });
       continue;
@@ -182,7 +175,7 @@ function inspectSourceFile(
           severity: severityForDynamicInput(command.getText()),
           rule: "dynamic-command-execution",
           message: "Shell execution receives a non-literal command",
-          ...sourceLocation(sourceFile, projectPath, call.getStartLineNumber()),
+          ...sourceLocation(file, call.getStartLineNumber()),
           fix: "Avoid a shell; use execFile or spawn with a fixed executable and validated argument array",
         });
       }
@@ -194,7 +187,7 @@ function inspectSourceFile(
         severity: severityForDynamicInput(query?.getText() ?? ""),
         rule: "dynamic-sql-query",
         message: "SQL execution uses a dynamically constructed query",
-        ...sourceLocation(sourceFile, projectPath, call.getStartLineNumber()),
+        ...sourceLocation(file, call.getStartLineNumber()),
         fix: "Use parameterized queries or the ORM's safe tagged-template API",
       });
     }
@@ -214,11 +207,7 @@ function inspectSourceFile(
       severity: "critical",
       rule: "unsafe-dynamic-code",
       message: "Runtime code execution uses the Function constructor",
-      ...sourceLocation(
-        sourceFile,
-        projectPath,
-        expression.getStartLineNumber(),
-      ),
+      ...sourceLocation(file, expression.getStartLineNumber()),
       fix: "Replace generated code with explicit parsing or a sandbox designed for untrusted code",
     });
   }
@@ -240,7 +229,7 @@ function inspectSourceFile(
       severity: "critical",
       rule: "tls-verification-disabled",
       message: "TLS certificate verification is disabled",
-      ...sourceLocation(sourceFile, projectPath, property.getStartLineNumber()),
+      ...sourceLocation(file, property.getStartLineNumber()),
       fix: "Enable certificate verification and configure a trusted CA when a private PKI is required",
     });
   }
@@ -264,11 +253,7 @@ function inspectSourceFile(
       severity: "critical",
       rule: "tls-verification-disabled",
       message: "TLS certificate verification is disabled globally",
-      ...sourceLocation(
-        sourceFile,
-        projectPath,
-        assignment.getStartLineNumber(),
-      ),
+      ...sourceLocation(file, assignment.getStartLineNumber()),
       fix: "Remove NODE_TLS_REJECT_UNAUTHORIZED=0 and configure a trusted CA instead",
     });
   }
@@ -277,31 +262,19 @@ function inspectSourceFile(
 }
 
 export async function analyzeSecuritySinks(
-  projectPath: string,
-  ignore: string[],
+  context: ScanContext,
 ): Promise<DiagnosticIssue[]> {
-  const sourcePaths = await glob("**/*.{ts,tsx,js,jsx,mjs,cjs}", {
-    cwd: projectPath,
-    ignore: [...ignore, ...RUNTIME_IGNORES],
-    absolute: true,
-    nodir: true,
-  });
-  const project = new Project({
-    compilerOptions: { allowJs: true, checkJs: false },
-    skipAddingFilesFromTsConfig: true,
-  });
   const issues: DiagnosticIssue[] = [];
 
-  for (const sourcePath of sourcePaths) {
+  for (const file of context.matchFiles(SOURCE_PATTERN, {
+    exclude: RUNTIME_IGNORES,
+  })) {
+    const sourceFile = context.getSourceFile(file);
+    if (!sourceFile) continue;
     try {
-      issues.push(
-        ...inspectSourceFile(
-          project.addSourceFileAtPath(sourcePath),
-          projectPath,
-        ),
-      );
+      issues.push(...inspectSourceFile(sourceFile, file));
     } catch {
-      // A malformed or disappearing source file should not stop the scan.
+      // A malformed source file should not stop the scan.
     }
   }
 

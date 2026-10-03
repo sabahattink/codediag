@@ -217,6 +217,7 @@ plain scans are informational; `--ci` uses the default threshold of 70.
 ```yaml
 threshold: 70
 ignore: [node_modules, dist, .git, coverage]
+maxFileSizeKb: 512
 analyzers:
   api: true
   security: true
@@ -228,6 +229,13 @@ analyzers:
 Unknown options and invalid values fail the scan instead of being silently
 ignored. Directory and glob entries under `ignore` are applied to analyzers
 that inspect source files.
+
+Source discovery always skips `node_modules`, `dist`, `build`, `out`,
+`coverage`, `.next`, and `.turbo` directories at any depth, `*.min.js` and
+`*.map` files, dot directories, and everything matched by the project's
+`.gitignore` files (including nested ones and those in parent directories up
+to the Git root). Code files larger than `maxFileSizeKb` or that look like
+minified bundles are skipped and reported in the JSON `skipped` summary.
 
 ## Supported stacks
 
