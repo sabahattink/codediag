@@ -1,6 +1,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join, relative } from "node:path";
 import type { ScanContext } from "../core/scan-context.js";
+import { fromRule } from "../rules/registry.js";
 import type { AnalyzerResult, DiagnosticIssue } from "../types.js";
 
 const TEST_CONFIG_FILES = ["jest", "vitest"].flatMap((tool) =>
@@ -105,8 +106,7 @@ export async function analyzeTesting(
     checksPassed++;
   } else {
     issues.push({
-      severity: "critical",
-      rule: "no-test-files",
+      ...fromRule("no-test-files"),
       message: "No test files found (*.spec.ts, *.test.ts)",
       fix: "Create test files alongside your source code",
     });
@@ -132,8 +132,7 @@ export async function analyzeTesting(
     checksPassed++;
   } else {
     issues.push({
-      severity: "warning",
-      rule: "no-test-framework",
+      ...fromRule("no-test-framework"),
       message: "No test framework detected",
       fix: "Install jest or vitest",
     });
@@ -152,15 +151,13 @@ export async function analyzeTesting(
   } else if (ratio > 0) {
     checksPassed += 0.5;
     issues.push({
-      severity: "info",
-      rule: "low-test-ratio",
+      ...fromRule("low-test-ratio"),
       message: `Test ratio: ${Math.round(ratio * 100)}% (${testFiles.length} tests / ${sourceFiles.length} source files)`,
       fix: "Aim for at least 1 test file per 3 source files",
     });
   } else {
     issues.push({
-      severity: "warning",
-      rule: "zero-test-ratio",
+      ...fromRule("zero-test-ratio"),
       message: "No test files relative to source files",
     });
   }
@@ -174,8 +171,7 @@ export async function analyzeTesting(
     checksPassed++;
   } else {
     issues.push({
-      severity: "info",
-      rule: "no-e2e-dir",
+      ...fromRule("no-e2e-dir"),
       message: "No e2e/test directory found",
       fix: "Create a test/ or e2e/ directory for integration tests",
     });
@@ -196,8 +192,7 @@ export async function analyzeTesting(
   } else {
     if (framework !== "none") {
       issues.push({
-        severity: "info",
-        rule: "no-test-config",
+        ...fromRule("no-test-config"),
         message: `No ${framework} config file found`,
         fix: `Create ${framework}.config.ts`,
       });
@@ -232,8 +227,7 @@ export async function analyzeTesting(
   } catch (error) {
     invalidCoverageReport = true;
     issues.push({
-      severity: "warning",
-      rule: "invalid-coverage-report",
+      ...fromRule("invalid-coverage-report"),
       message: `Coverage summary could not be read: ${
         error instanceof Error ? error.message : String(error)
       }`,
@@ -263,8 +257,8 @@ export async function analyzeTesting(
         (name) => coverageReport.metrics[name].pct < 50,
       );
       issues.push({
+        ...fromRule("coverage-below-threshold"),
         severity: isCritical ? "critical" : "warning",
-        rule: "coverage-below-threshold",
         message: `Coverage below recommended thresholds: ${details}`,
         file: coverageReport.file,
         fix: "Add tests for the uncovered code paths and regenerate coverage",
@@ -274,8 +268,7 @@ export async function analyzeTesting(
     checksPassed++;
   } else if (!invalidCoverageReport) {
     issues.push({
-      severity: "info",
-      rule: "no-coverage-config",
+      ...fromRule("no-coverage-config"),
       message: "No coverage threshold configured",
       fix: "Add coverageThreshold to jest/vitest config",
     });

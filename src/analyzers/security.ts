@@ -1,6 +1,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { dirname, join, relative } from "node:path";
 import type { ScanContext } from "../core/scan-context.js";
+import { fromRule } from "../rules/registry.js";
 import type { AnalyzerResult, DiagnosticIssue } from "../types.js";
 import { analyzeSecuritySinks } from "./security-sinks.js";
 
@@ -285,8 +286,7 @@ function passwordIssues(sources: SourceRecord[]): DiagnosticIssue[] {
     const weakMatch = weakHash.exec(source.content);
     if (weakMatch) {
       issues.push({
-        severity: "critical",
-        rule: "weak-password-hash",
+        ...fromRule("weak-password-hash"),
         message: "Password handling uses MD5 or SHA-1",
         file: source.file,
         line: lineNumberAt(source.content, weakMatch.index),
@@ -297,8 +297,7 @@ function passwordIssues(sources: SourceRecord[]): DiagnosticIssue[] {
     const comparisonMatch = directComparison.exec(source.content);
     if (comparisonMatch) {
       issues.push({
-        severity: "critical",
-        rule: "plaintext-password-comparison",
+        ...fromRule("plaintext-password-comparison"),
         message: "Password values appear to be compared directly",
         file: source.file,
         line: lineNumberAt(source.content, comparisonMatch.index),
@@ -309,8 +308,7 @@ function passwordIssues(sources: SourceRecord[]): DiagnosticIssue[] {
     const persistenceMatch = persistence.exec(source.content);
     if (persistenceMatch && !secureHash.test(source.content) && !weakMatch) {
       issues.push({
-        severity: "warning",
-        rule: "password-hashing-not-detected",
+        ...fromRule("password-hashing-not-detected"),
         message:
           "Password data may be persisted without recognizable password hashing",
         file: source.file,
@@ -377,8 +375,7 @@ export async function analyzeSecurity(
           checksPassed++;
         } else {
           issues.push({
-            severity: "critical",
-            rule: "env-not-gitignored",
+            ...fromRule("env-not-gitignored"),
             message:
               ".env is not ignored by .gitignore — secrets may be committed",
             file: relative(projectPath, gitignorePath).replace(/\\/g, "/"),
@@ -393,8 +390,7 @@ export async function analyzeSecurity(
     }
     if (!foundGitignore) {
       issues.push({
-        severity: "critical",
-        rule: "no-gitignore",
+        ...fromRule("no-gitignore"),
         message: "No .gitignore file found",
         fix: "Create .gitignore with .env, node_modules, and dist",
       });
@@ -412,8 +408,7 @@ export async function analyzeSecurity(
       if (!match) continue;
       secretsFound = true;
       issues.push({
-        severity: "critical",
-        rule: "hardcoded-secret",
+        ...fromRule("hardcoded-secret"),
         message: `Possible ${name} found in source code`,
         file: source.file,
         line: lineNumberAt(source.content, match.index),
@@ -444,8 +439,7 @@ export async function analyzeSecurity(
       checksPassed++;
     } else {
       issues.push({
-        severity: "warning",
-        rule: "no-helmet",
+        ...fromRule("no-helmet"),
         message: "Helmet middleware is not invoked in runtime source",
         fix: "Install and invoke Helmet or the framework-specific Helmet plugin",
       });
@@ -457,8 +451,7 @@ export async function analyzeSecurity(
       checksPassed++;
     } else {
       issues.push({
-        severity: "warning",
-        rule: "open-cors",
+        ...fromRule("open-cors"),
         message: "CORS is enabled without an origin allowlist",
         file: openCors.file,
         line: openCors.line,
@@ -471,8 +464,7 @@ export async function analyzeSecurity(
       checksPassed++;
     } else {
       issues.push({
-        severity: "warning",
-        rule: "no-rate-limiting",
+        ...fromRule("no-rate-limiting"),
         message: "Rate limiting is not configured in runtime source",
         fix: "Configure a rate limiter appropriate for the web framework",
       });

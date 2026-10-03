@@ -12,6 +12,9 @@ All notable changes to CodeDiag are documented in this file.
   directories up to the Git root.
 - `maxFileSizeKb` configuration (default 512) and an optional `skipped` summary
   in JSON output for oversized, minified, or unreadable code files.
+- A rule registry (`src/rules/registry.ts`) with titles, descriptions, default
+  severities, CWE and OWASP mappings for all 62 rules, and generated rule
+  documentation in `docs/rules.md`.
 - AST-based security sink detection for runtime code execution, dynamic shell
   commands, dynamic SQL queries, and disabled TLS certificate verification.
 - SARIF 2.1.0 output through `--format sarif`, including stable rule IDs,

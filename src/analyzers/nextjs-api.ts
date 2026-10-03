@@ -1,5 +1,6 @@
 import { Node, type SourceFile } from "ts-morph";
 import type { ScanContext } from "../core/scan-context.js";
+import { fromRule } from "../rules/registry.js";
 import type { AnalyzerResult, DiagnosticIssue } from "../types.js";
 
 const HTTP_METHODS = new Set([
@@ -167,8 +168,7 @@ export async function analyzeNextjsApi(
       score: 0,
       issues: [
         {
-          severity: "critical",
-          rule: "no-nextjs-handlers",
+          ...fromRule("no-nextjs-handlers"),
           message: "Next.js API route files contain no detectable handlers",
         },
       ],
@@ -193,8 +193,7 @@ export async function analyzeNextjsApi(
   for (const endpoint of mutatingEndpoints) {
     if (!hasGlobalAuth && !hasMarker(endpoint.source, AUTH_MARKERS)) {
       issues.push({
-        severity: "warning",
-        rule: "missing-auth-check",
+        ...fromRule("missing-auth-check"),
         message: `${endpoint.method} ${endpoint.path} has no recognizable auth check`,
         file: endpoint.file,
         line: endpoint.line,
@@ -206,8 +205,7 @@ export async function analyzeNextjsApi(
   for (const endpoint of bodyEndpoints) {
     if (!hasMarker(endpoint.source, VALIDATION_MARKERS)) {
       issues.push({
-        severity: "warning",
-        rule: "missing-request-validation",
+        ...fromRule("missing-request-validation"),
         message: `${endpoint.method} ${endpoint.path} has no recognizable request validation`,
         file: endpoint.file,
         line: endpoint.line,
@@ -221,8 +219,7 @@ export async function analyzeNextjsApi(
   );
   for (const endpoint of broadPagesHandlers) {
     issues.push({
-      severity: "info",
-      rule: "implicit-pages-methods",
+      ...fromRule("implicit-pages-methods"),
       message: `${endpoint.path} does not expose explicit HTTP method branches`,
       file: endpoint.file,
       fix: "Reject unsupported request methods explicitly",
@@ -236,8 +233,7 @@ export async function analyzeNextjsApi(
   );
   if (!hasHealthEndpoint) {
     issues.push({
-      severity: "info",
-      rule: "missing-health-endpoint",
+      ...fromRule("missing-health-endpoint"),
       message: "No API health, readiness, or liveness route detected",
       fix: "Add a lightweight route for runtime monitoring",
     });

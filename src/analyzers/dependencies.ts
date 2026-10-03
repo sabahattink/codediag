@@ -2,6 +2,7 @@ import { spawnSync } from "node:child_process";
 import { existsSync } from "node:fs";
 import { dirname, join } from "node:path";
 import type { ScanContext } from "../core/scan-context.js";
+import { fromRule } from "../rules/registry.js";
 import type { AnalyzerResult, DiagnosticIssue, PackageJson } from "../types.js";
 
 interface AuditSummary {
@@ -219,8 +220,7 @@ export async function analyzeDependencies(
       score: 0,
       issues: [
         {
-          severity: "critical",
-          rule: "no-package-json",
+          ...fromRule("no-package-json"),
           message: "No package.json found",
         },
       ],
@@ -235,8 +235,7 @@ export async function analyzeDependencies(
       score: 0,
       issues: [
         {
-          severity: "critical",
-          rule: "invalid-package-json",
+          ...fromRule("invalid-package-json"),
           message: "Cannot parse package.json",
         },
       ],
@@ -256,15 +255,13 @@ export async function analyzeDependencies(
     checksPassed++;
   } else if (lockFile) {
     issues.push({
-      severity: "critical",
-      rule: "lock-file-manager-mismatch",
+      ...fromRule("lock-file-manager-mismatch"),
       message: `packageManager selects ${auditCommand.manager}, but the detected lock file belongs to ${lockFile.manager}`,
       fix: `Generate and commit the ${auditCommand.manager} lock file, then remove conflicting lock files`,
     });
   } else {
     issues.push({
-      severity: "critical",
-      rule: "no-lock-file",
+      ...fromRule("no-lock-file"),
       message: "No lock file — builds not reproducible",
       fix: `Run ${auditCommand.manager} install to generate a lock file`,
     });
@@ -297,36 +294,31 @@ export async function analyzeDependencies(
     } else {
       if (critical > 0)
         issues.push({
-          severity: "critical",
-          rule: "vuln-critical",
+          ...fromRule("vuln-critical"),
           message: `${critical} critical vulnerabilit${critical > 1 ? "ies" : "y"}`,
           fix: `Run ${auditCommand.fixCommand}`,
         });
       if (high > 0)
         issues.push({
-          severity: "warning",
-          rule: "vuln-high",
+          ...fromRule("vuln-high"),
           message: `${high} high severity vulnerabilit${high > 1 ? "ies" : "y"}`,
           fix: `Run ${auditCommand.fixCommand}`,
         });
       if (moderate > 0)
         issues.push({
-          severity: "warning",
-          rule: "vuln-moderate",
+          ...fromRule("vuln-moderate"),
           message: `${moderate} moderate vulnerabilit${moderate > 1 ? "ies" : "y"}`,
           fix: `Review ${auditCommand.manager} audit output`,
         });
       if (low > 0)
         issues.push({
-          severity: "info",
-          rule: "vuln-low",
+          ...fromRule("vuln-low"),
           message: `${low} low severity vulnerabilit${low > 1 ? "ies" : "y"}`,
         });
     }
   } catch (error) {
     issues.push({
-      severity: "warning",
-      rule: "audit-unavailable",
+      ...fromRule("audit-unavailable"),
       message: `${auditCommand.manager} audit could not be evaluated: ${error instanceof Error ? error.message : String(error)}`,
       fix: `Run ${[auditCommand.manager, ...auditCommand.args].join(" ")} and resolve the reported error`,
     });
@@ -338,8 +330,7 @@ export async function analyzeDependencies(
     checksPassed++;
   } else {
     issues.push({
-      severity: "info",
-      rule: "no-engines",
+      ...fromRule("no-engines"),
       message: "No engines.node in package.json",
       fix: 'Add "engines": { "node": ">=18.0.0" }',
     });
@@ -351,8 +342,7 @@ export async function analyzeDependencies(
     checksPassed++;
   } else {
     issues.push({
-      severity: "warning",
-      rule: "missing-scripts",
+      ...fromRule("missing-scripts"),
       message: "Missing essential scripts (build, start/dev)",
       fix: "Add build and start scripts",
     });
@@ -368,8 +358,7 @@ export async function analyzeDependencies(
   } else {
     for (const dependency of found) {
       issues.push({
-        severity: "warning",
-        rule: "deprecated-dep",
+        ...fromRule("deprecated-dep"),
         message: `"${dependency}" is deprecated`,
       });
     }

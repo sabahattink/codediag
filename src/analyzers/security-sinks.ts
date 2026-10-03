@@ -6,6 +6,7 @@ import {
   SyntaxKind,
 } from "ts-morph";
 import type { ScanContext } from "../core/scan-context.js";
+import { fromRule } from "../rules/registry.js";
 import type { DiagnosticIssue } from "../types.js";
 
 const SOURCE_PATTERN = "**/*.{ts,tsx,js,jsx,mjs,cjs}";
@@ -159,8 +160,7 @@ function inspectSourceFile(
 
     if (isEval) {
       issues.push({
-        severity: "critical",
-        rule: "unsafe-dynamic-code",
+        ...fromRule("unsafe-dynamic-code"),
         message: "Runtime code execution uses eval()",
         ...sourceLocation(file, call.getStartLineNumber()),
         fix: "Replace eval() with explicit parsing, dispatch, or a sandbox designed for untrusted code",
@@ -172,8 +172,8 @@ function inspectSourceFile(
       const command = call.getArguments()[0];
       if (command && !isStaticString(command)) {
         issues.push({
+          ...fromRule("dynamic-command-execution"),
           severity: severityForDynamicInput(command.getText()),
-          rule: "dynamic-command-execution",
           message: "Shell execution receives a non-literal command",
           ...sourceLocation(file, call.getStartLineNumber()),
           fix: "Avoid a shell; use execFile or spawn with a fixed executable and validated argument array",
@@ -184,8 +184,8 @@ function inspectSourceFile(
     if (isDynamicSqlCall(call)) {
       const query = call.getArguments()[0];
       issues.push({
+        ...fromRule("dynamic-sql-query"),
         severity: severityForDynamicInput(query?.getText() ?? ""),
-        rule: "dynamic-sql-query",
         message: "SQL execution uses a dynamically constructed query",
         ...sourceLocation(file, call.getStartLineNumber()),
         fix: "Use parameterized queries or the ORM's safe tagged-template API",
@@ -204,8 +204,7 @@ function inspectSourceFile(
       continue;
     }
     issues.push({
-      severity: "critical",
-      rule: "unsafe-dynamic-code",
+      ...fromRule("unsafe-dynamic-code"),
       message: "Runtime code execution uses the Function constructor",
       ...sourceLocation(file, expression.getStartLineNumber()),
       fix: "Replace generated code with explicit parsing or a sandbox designed for untrusted code",
@@ -226,8 +225,7 @@ function inspectSourceFile(
     if (!disablesTls) continue;
 
     issues.push({
-      severity: "critical",
-      rule: "tls-verification-disabled",
+      ...fromRule("tls-verification-disabled"),
       message: "TLS certificate verification is disabled",
       ...sourceLocation(file, property.getStartLineNumber()),
       fix: "Enable certificate verification and configure a trusted CA when a private PKI is required",
@@ -250,8 +248,7 @@ function inspectSourceFile(
     }
 
     issues.push({
-      severity: "critical",
-      rule: "tls-verification-disabled",
+      ...fromRule("tls-verification-disabled"),
       message: "TLS certificate verification is disabled globally",
       ...sourceLocation(file, assignment.getStartLineNumber()),
       fix: "Remove NODE_TLS_REJECT_UNAUTHORIZED=0 and configure a trusted CA instead",

@@ -33,6 +33,9 @@ node dist/index.js scan /path/to/project
 5. Update `CHANGELOG.md` when the change affects users.
 
 Analyzer changes should include fixtures for both positive and negative cases.
+Every finding uses a rule registered in `src/rules/registry.ts` through
+`fromRule()`. After adding or changing a rule, run `npm run docs:rules` to
+regenerate `docs/rules.md`; the test suite fails when it is stale.
 Avoid checks that depend on network access unless the analyzer already owns
 that dependency and the failure mode is covered by tests.
 

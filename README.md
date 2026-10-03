@@ -173,7 +173,8 @@ codediag scan . --format sarif > codediag-report.sarif
 ```
 
 See the [SARIF output documentation](docs/sarif-output.md) for the field
-mapping and GitHub Code Scanning workflow.
+mapping and GitHub Code Scanning workflow. Every rule is described in the
+[rule reference](docs/rules.md).
 
 ## CI/CD
 

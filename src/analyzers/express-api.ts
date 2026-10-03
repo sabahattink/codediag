@@ -5,6 +5,7 @@ import {
   SyntaxKind,
 } from "ts-morph";
 import type { ScanContext } from "../core/scan-context.js";
+import { fromRule } from "../rules/registry.js";
 import type { AnalyzerResult, DiagnosticIssue } from "../types.js";
 
 const HTTP_METHODS = new Set([
@@ -161,8 +162,7 @@ export async function analyzeExpressApi(
       score: 0,
       issues: [
         {
-          severity: "critical",
-          rule: "no-express-routes",
+          ...fromRule("no-express-routes"),
           message: "No Express app or router endpoints were detected",
         },
       ],
@@ -180,8 +180,7 @@ export async function analyzeExpressApi(
   for (const endpoint of mutatingEndpoints) {
     if (!endpoint.hasAuth) {
       issues.push({
-        severity: "warning",
-        rule: "missing-auth-middleware",
+        ...fromRule("missing-auth-middleware"),
         message: `${endpoint.method.toUpperCase()} ${endpoint.path} has no recognizable auth middleware`,
         file: endpoint.file,
         line: endpoint.line,
@@ -193,8 +192,7 @@ export async function analyzeExpressApi(
   for (const endpoint of bodyEndpoints) {
     if (!endpoint.hasValidation) {
       issues.push({
-        severity: "warning",
-        rule: "missing-validation-middleware",
+        ...fromRule("missing-validation-middleware"),
         message: `${endpoint.method.toUpperCase()} ${endpoint.path} has no recognizable validation middleware`,
         file: endpoint.file,
         line: endpoint.line,
@@ -206,8 +204,7 @@ export async function analyzeExpressApi(
   const errorMiddleware = hasErrorMiddleware(sourceFiles);
   if (!errorMiddleware) {
     issues.push({
-      severity: "warning",
-      rule: "missing-error-middleware",
+      ...fromRule("missing-error-middleware"),
       message: "No centralized four-argument Express error middleware detected",
       fix: "Add app.use((error, request, response, next) => { ... })",
     });
@@ -220,8 +217,7 @@ export async function analyzeExpressApi(
   );
   if (!hasHealthEndpoint) {
     issues.push({
-      severity: "info",
-      rule: "missing-health-endpoint",
+      ...fromRule("missing-health-endpoint"),
       message: "No health, readiness, or liveness endpoint detected",
       fix: "Expose a lightweight health endpoint for runtime monitoring",
     });

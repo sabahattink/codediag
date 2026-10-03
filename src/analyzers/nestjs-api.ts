@@ -1,4 +1,5 @@
 import type { ScanContext } from "../core/scan-context.js";
+import { fromRule } from "../rules/registry.js";
 import type { AnalyzerResult, DiagnosticIssue } from "../types.js";
 
 const HTTP_DECORATORS = [
@@ -41,8 +42,7 @@ export async function analyzeNestjsApi(
       score: 0,
       issues: [
         {
-          severity: "critical",
-          rule: "no-controllers",
+          ...fromRule("no-controllers"),
           message: "No controller files found (*.controller.ts)",
         },
       ],
@@ -124,8 +124,7 @@ export async function analyzeNestjsApi(
           ["POST", "PUT", "DELETE", "PATCH"].includes(httpMethod)
         ) {
           issues.push({
-            severity: "warning",
-            rule: "missing-guard",
+            ...fromRule("missing-guard"),
             message: `${httpMethod} ${fullPath} has no auth guard`,
             file: relFile,
             line,
@@ -135,8 +134,7 @@ export async function analyzeNestjsApi(
 
         if (!hasDto && ["POST", "PUT", "PATCH"].includes(httpMethod)) {
           issues.push({
-            severity: "warning",
-            rule: "missing-dto",
+            ...fromRule("missing-dto"),
             message: `${httpMethod} ${fullPath} has no typed DTO for request body`,
             file: relFile,
             line,
@@ -146,8 +144,7 @@ export async function analyzeNestjsApi(
 
         if (!hasSwagger) {
           issues.push({
-            severity: "info",
-            rule: "missing-swagger",
+            ...fromRule("missing-swagger"),
             message: `${httpMethod} ${fullPath} has no Swagger documentation`,
             file: relFile,
             line,
@@ -157,8 +154,7 @@ export async function analyzeNestjsApi(
 
         if (!hasReturnType) {
           issues.push({
-            severity: "info",
-            rule: "missing-return-type",
+            ...fromRule("missing-return-type"),
             message: `${httpMethod} ${fullPath} has no explicit return type`,
             file: relFile,
             line,
@@ -174,8 +170,7 @@ export async function analyzeNestjsApi(
       score: 50,
       issues: [
         {
-          severity: "warning",
-          rule: "no-endpoints",
+          ...fromRule("no-endpoints"),
           message: "Controllers found but no HTTP endpoints detected",
         },
       ],

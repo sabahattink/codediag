@@ -251779,6 +251779,7 @@ var package_default = {
     "bundle:check": "git diff --exit-code -- dist/action.cjs dist/action.cjs.LEGAL.txt",
     dev: "tsup --watch",
     start: "node dist/index.js",
+    "docs:rules": "tsx scripts/generate-rules-doc.ts",
     "extension:build": "node scripts/build-vscode-extension.mjs",
     "extension:typecheck": "tsc --noEmit -p extensions/vscode/tsconfig.json",
     "extension:check": "npm run extension:typecheck && npm run extension:build",
@@ -253417,6 +253418,458 @@ function ora(options) {
 var import_node_child_process = require("child_process");
 var import_node_fs2 = require("fs");
 var import_node_path3 = require("path");
+
+// src/rules/registry.ts
+var OWASP = {
+  accessControl: "A01:2021",
+  cryptographic: "A02:2021",
+  injection: "A03:2021",
+  insecureDesign: "A04:2021",
+  misconfiguration: "A05:2021",
+  vulnerableComponents: "A06:2021",
+  authentication: "A07:2021"
+};
+var RULES = {
+  // API Health: NestJS
+  "no-controllers": {
+    analyzer: "API Health",
+    title: "No NestJS controllers",
+    description: "The project depends on NestJS but no *.controller.ts files were found, so no HTTP endpoints can be analyzed.",
+    defaultSeverity: "critical"
+  },
+  "no-endpoints": {
+    analyzer: "API Health",
+    title: "Controllers without endpoints",
+    description: "Controller classes exist but none of their methods use an HTTP method decorator such as @Get() or @Post().",
+    defaultSeverity: "warning"
+  },
+  "missing-guard": {
+    analyzer: "API Health",
+    title: "Mutating endpoint without auth guard",
+    description: "A POST, PUT, PATCH, or DELETE endpoint has no @UseGuards() on the method or its controller, so it may be reachable without authentication.",
+    defaultSeverity: "warning",
+    cwe: ["CWE-306"],
+    owasp: [OWASP.authentication]
+  },
+  "missing-dto": {
+    analyzer: "API Health",
+    title: "Request body without typed DTO",
+    description: "A POST, PUT, or PATCH endpoint does not declare a typed @Body() parameter, so request input cannot be validated by a DTO class.",
+    defaultSeverity: "warning",
+    cwe: ["CWE-20"],
+    owasp: [OWASP.injection]
+  },
+  "missing-swagger": {
+    analyzer: "API Health",
+    title: "Endpoint without OpenAPI documentation",
+    description: "The endpoint and its controller have no @nestjs/swagger decorators, so it is missing from generated API documentation.",
+    defaultSeverity: "info"
+  },
+  "missing-return-type": {
+    analyzer: "API Health",
+    title: "Endpoint without explicit return type",
+    description: "The handler relies on an inferred return type, which makes accidental response shape changes harder to notice.",
+    defaultSeverity: "info"
+  },
+  // API Health: Express
+  "no-express-routes": {
+    analyzer: "API Health",
+    title: "No Express routes",
+    description: "The project depends on Express but no app or router route registrations with a literal path were detected.",
+    defaultSeverity: "critical"
+  },
+  "missing-auth-middleware": {
+    analyzer: "API Health",
+    title: "Mutating route without auth middleware",
+    description: "A POST, PUT, PATCH, or DELETE route has no recognizable authentication or authorization middleware.",
+    defaultSeverity: "warning",
+    cwe: ["CWE-306"],
+    owasp: [OWASP.authentication]
+  },
+  "missing-validation-middleware": {
+    analyzer: "API Health",
+    title: "Route without validation middleware",
+    description: "A POST, PUT, or PATCH route has no recognizable request validation middleware.",
+    defaultSeverity: "warning",
+    cwe: ["CWE-20"],
+    owasp: [OWASP.injection]
+  },
+  "missing-error-middleware": {
+    analyzer: "API Health",
+    title: "No centralized error middleware",
+    description: "No four-argument Express error handler is registered, so unhandled errors fall back to Express defaults and may leak details.",
+    defaultSeverity: "warning",
+    cwe: ["CWE-209"]
+  },
+  // API Health: Next.js
+  "no-nextjs-handlers": {
+    analyzer: "API Health",
+    title: "API route files without handlers",
+    description: "Next.js API route files exist but export no detectable HTTP method handlers.",
+    defaultSeverity: "critical"
+  },
+  "missing-auth-check": {
+    analyzer: "API Health",
+    title: "Mutating handler without auth check",
+    description: "A POST, PUT, PATCH, or DELETE route handler has no recognizable authentication check, and no middleware applies one globally.",
+    defaultSeverity: "warning",
+    cwe: ["CWE-306"],
+    owasp: [OWASP.authentication]
+  },
+  "missing-request-validation": {
+    analyzer: "API Health",
+    title: "Handler without request validation",
+    description: "A POST, PUT, or PATCH route handler has no recognizable schema validation of its input.",
+    defaultSeverity: "warning",
+    cwe: ["CWE-20"],
+    owasp: [OWASP.injection]
+  },
+  "implicit-pages-methods": {
+    analyzer: "API Health",
+    title: "Pages API route without method branches",
+    description: "A Pages Router API route does not branch on request methods, so it accepts every HTTP method.",
+    defaultSeverity: "info"
+  },
+  // API Health: shared
+  "missing-health-endpoint": {
+    analyzer: "API Health",
+    title: "No health endpoint",
+    description: "No health, readiness, or liveness route was detected for runtime monitoring and orchestration probes.",
+    defaultSeverity: "info"
+  },
+  // Security
+  "no-gitignore": {
+    analyzer: "Security",
+    title: "No .gitignore",
+    description: "No .gitignore was found in the project or up to three parent directories, so local secrets and build output can be committed.",
+    defaultSeverity: "critical",
+    cwe: ["CWE-538"],
+    owasp: [OWASP.misconfiguration]
+  },
+  "env-not-gitignored": {
+    analyzer: "Security",
+    title: ".env is not ignored",
+    description: "The nearest .gitignore does not ignore .env files, so environment secrets can be committed.",
+    defaultSeverity: "critical",
+    cwe: ["CWE-538"],
+    owasp: [OWASP.misconfiguration]
+  },
+  "hardcoded-secret": {
+    analyzer: "Security",
+    title: "Hardcoded secret",
+    description: "Source code contains a value that matches a credential pattern such as an API key, password, or provider token.",
+    defaultSeverity: "critical",
+    cwe: ["CWE-798"],
+    owasp: [OWASP.authentication],
+    sensitiveSource: true
+  },
+  "weak-password-hash": {
+    analyzer: "Security",
+    title: "Weak password hash",
+    description: "Code that handles passwords uses MD5 or SHA-1, which are fast general-purpose hashes unsuitable for password storage.",
+    defaultSeverity: "critical",
+    cwe: ["CWE-916", "CWE-328"],
+    owasp: [OWASP.cryptographic]
+  },
+  "plaintext-password-comparison": {
+    analyzer: "Security",
+    title: "Direct password comparison",
+    description: "Password values are compared with an equality operator, which suggests plaintext storage and is not timing-safe.",
+    defaultSeverity: "critical",
+    cwe: ["CWE-256", "CWE-208"],
+    owasp: [OWASP.authentication]
+  },
+  "password-hashing-not-detected": {
+    analyzer: "Security",
+    title: "Password persisted without hashing",
+    description: "A file handles password data and persists records, but no recognizable password hashing function is used.",
+    defaultSeverity: "warning",
+    cwe: ["CWE-256"],
+    owasp: [OWASP.cryptographic]
+  },
+  "unsafe-dynamic-code": {
+    analyzer: "Security",
+    title: "Dynamic code execution",
+    description: "Runtime code calls eval() or the Function constructor, which executes strings as code.",
+    defaultSeverity: "critical",
+    cwe: ["CWE-95"],
+    owasp: [OWASP.injection]
+  },
+  "dynamic-command-execution": {
+    analyzer: "Security",
+    title: "Dynamic shell command",
+    description: "A shell is invoked through exec or execSync with a non-literal command. The finding is critical when the command visibly includes request data.",
+    defaultSeverity: "warning",
+    cwe: ["CWE-78"],
+    owasp: [OWASP.injection]
+  },
+  "dynamic-sql-query": {
+    analyzer: "Security",
+    title: "Dynamically built SQL query",
+    description: "A raw SQL execution method receives a non-literal query. The finding is critical when the query visibly includes request data.",
+    defaultSeverity: "warning",
+    cwe: ["CWE-89"],
+    owasp: [OWASP.injection]
+  },
+  "tls-verification-disabled": {
+    analyzer: "Security",
+    title: "TLS verification disabled",
+    description: "rejectUnauthorized: false or NODE_TLS_REJECT_UNAUTHORIZED=0 disables certificate verification and enables man-in-the-middle attacks.",
+    defaultSeverity: "critical",
+    cwe: ["CWE-295"],
+    owasp: [OWASP.authentication]
+  },
+  "no-helmet": {
+    analyzer: "Security",
+    title: "No security headers middleware",
+    description: "A web server dependency is present but Helmet or the framework's Helmet plugin is never invoked.",
+    defaultSeverity: "warning",
+    cwe: ["CWE-693"],
+    owasp: [OWASP.misconfiguration]
+  },
+  "open-cors": {
+    analyzer: "Security",
+    title: "CORS without origin allowlist",
+    description: "CORS is enabled with no options, origin: true, or origin: '*', allowing any website to call the API from a browser.",
+    defaultSeverity: "warning",
+    cwe: ["CWE-942"],
+    owasp: [OWASP.misconfiguration]
+  },
+  "no-rate-limiting": {
+    analyzer: "Security",
+    title: "No rate limiting",
+    description: "A web server dependency is present but no supported rate limiter is configured.",
+    defaultSeverity: "warning",
+    cwe: ["CWE-770"],
+    owasp: [OWASP.insecureDesign]
+  },
+  // Dependencies
+  "no-package-json": {
+    analyzer: "Dependencies",
+    title: "No package.json",
+    description: "The scanned directory has no package.json.",
+    defaultSeverity: "critical"
+  },
+  "invalid-package-json": {
+    analyzer: "Dependencies",
+    title: "Invalid package.json",
+    description: "package.json is not valid JSON or is not an object.",
+    defaultSeverity: "critical"
+  },
+  "no-lock-file": {
+    analyzer: "Dependencies",
+    title: "No lock file",
+    description: "No npm, pnpm, or Yarn lock file was found in the project or up to three parent directories, so installs are not reproducible.",
+    defaultSeverity: "critical"
+  },
+  "lock-file-manager-mismatch": {
+    analyzer: "Dependencies",
+    title: "Lock file does not match packageManager",
+    description: "The packageManager field selects a different package manager than the lock file that was found.",
+    defaultSeverity: "critical"
+  },
+  "audit-unavailable": {
+    analyzer: "Dependencies",
+    title: "Dependency audit unavailable",
+    description: "The package manager audit could not be run or its output could not be parsed, so known vulnerabilities were not checked.",
+    defaultSeverity: "warning",
+    rootCause: "no-lock-file"
+  },
+  "vuln-critical": {
+    analyzer: "Dependencies",
+    title: "Critical dependency vulnerabilities",
+    description: "The package manager audit reports dependencies with critical severity advisories.",
+    defaultSeverity: "critical",
+    cwe: ["CWE-1395"],
+    owasp: [OWASP.vulnerableComponents]
+  },
+  "vuln-high": {
+    analyzer: "Dependencies",
+    title: "High severity dependency vulnerabilities",
+    description: "The package manager audit reports dependencies with high severity advisories.",
+    defaultSeverity: "warning",
+    cwe: ["CWE-1395"],
+    owasp: [OWASP.vulnerableComponents]
+  },
+  "vuln-moderate": {
+    analyzer: "Dependencies",
+    title: "Moderate dependency vulnerabilities",
+    description: "The package manager audit reports dependencies with moderate severity advisories.",
+    defaultSeverity: "warning",
+    cwe: ["CWE-1395"],
+    owasp: [OWASP.vulnerableComponents]
+  },
+  "vuln-low": {
+    analyzer: "Dependencies",
+    title: "Low severity dependency vulnerabilities",
+    description: "The package manager audit reports dependencies with low severity advisories.",
+    defaultSeverity: "info",
+    cwe: ["CWE-1395"],
+    owasp: [OWASP.vulnerableComponents]
+  },
+  "no-engines": {
+    analyzer: "Dependencies",
+    title: "No Node.js engine range",
+    description: 'package.json has no "engines.node" field, so supported Node.js versions are undocumented and unenforced.',
+    defaultSeverity: "info"
+  },
+  "missing-scripts": {
+    analyzer: "Dependencies",
+    title: "Missing build or start scripts",
+    description: "package.json does not define a build script and a start or dev script.",
+    defaultSeverity: "warning"
+  },
+  "deprecated-dep": {
+    analyzer: "Dependencies",
+    title: "Deprecated dependency",
+    description: "A dependency is a known deprecated or unmaintained package such as request or node-uuid.",
+    defaultSeverity: "warning",
+    cwe: ["CWE-1104"],
+    owasp: [OWASP.vulnerableComponents]
+  },
+  // Testing
+  "no-test-files": {
+    analyzer: "Testing",
+    title: "No test files",
+    description: "No *.test.* or *.spec.* files were found.",
+    defaultSeverity: "critical"
+  },
+  "no-test-framework": {
+    analyzer: "Testing",
+    title: "No test framework",
+    description: "No Jest, Vitest, Mocha, Ava, or node:test setup was detected in package.json.",
+    defaultSeverity: "warning"
+  },
+  "zero-test-ratio": {
+    analyzer: "Testing",
+    title: "No tests relative to source",
+    description: "Source files exist but there are no test files for them.",
+    defaultSeverity: "warning",
+    rootCause: "no-test-files"
+  },
+  "low-test-ratio": {
+    analyzer: "Testing",
+    title: "Low test-to-source ratio",
+    description: "There is less than one test file per three source files.",
+    defaultSeverity: "info"
+  },
+  "no-e2e-dir": {
+    analyzer: "Testing",
+    title: "No test directory",
+    description: "No test, tests, e2e, or __tests__ directory exists for integration or end-to-end tests.",
+    defaultSeverity: "info",
+    rootCause: "no-test-files"
+  },
+  "no-test-config": {
+    analyzer: "Testing",
+    title: "No test framework config",
+    description: "A test framework is installed but its configuration file was not found.",
+    defaultSeverity: "info"
+  },
+  "no-coverage-config": {
+    analyzer: "Testing",
+    title: "No coverage threshold",
+    description: "No coverage report was found and no coverage threshold is configured.",
+    defaultSeverity: "info",
+    rootCause: "no-test-files"
+  },
+  "invalid-coverage-report": {
+    analyzer: "Testing",
+    title: "Unreadable coverage report",
+    description: "coverage-summary.json exists but does not contain a valid Istanbul total summary.",
+    defaultSeverity: "warning"
+  },
+  "coverage-below-threshold": {
+    analyzer: "Testing",
+    title: "Coverage below threshold",
+    description: "Measured coverage is below 80% for lines or statements, or below 70% for functions or branches. It is critical when any metric is below 50%.",
+    defaultSeverity: "warning"
+  },
+  // Structure
+  "no-readme": {
+    analyzer: "Structure",
+    title: "No README",
+    description: "The project has no README file.",
+    defaultSeverity: "warning"
+  },
+  "short-readme": {
+    analyzer: "Structure",
+    title: "README has little content",
+    description: "The README contains fewer than 100 characters of prose after removing badges and markup.",
+    defaultSeverity: "info"
+  },
+  "no-editorconfig": {
+    analyzer: "Structure",
+    title: "No .editorconfig",
+    description: "No .editorconfig was found in the project or its parent workspace.",
+    defaultSeverity: "info"
+  },
+  "no-linter": {
+    analyzer: "Structure",
+    title: "No linter config",
+    description: "No ESLint or Biome configuration was found in the project, package.json, or parent workspace.",
+    defaultSeverity: "warning"
+  },
+  "no-formatter": {
+    analyzer: "Structure",
+    title: "No formatter config",
+    description: "No Prettier or Biome formatter configuration was found in the project, package.json, or parent workspace.",
+    defaultSeverity: "info"
+  },
+  "no-tsconfig": {
+    analyzer: "Structure",
+    title: "No tsconfig.json",
+    description: "TypeScript is installed but tsconfig.json is missing.",
+    defaultSeverity: "warning"
+  },
+  "invalid-tsconfig": {
+    analyzer: "Structure",
+    title: "Unresolvable tsconfig.json",
+    description: "tsconfig.json is invalid JSONC or extends a configuration that cannot be resolved.",
+    defaultSeverity: "warning"
+  },
+  "no-strict-mode": {
+    analyzer: "Structure",
+    title: "TypeScript strict mode disabled",
+    description: 'The resolved TypeScript configuration does not enable "strict".',
+    defaultSeverity: "warning"
+  },
+  "no-src-dir": {
+    analyzer: "Structure",
+    title: "No src directory",
+    description: "A NestJS project has no src/ directory.",
+    defaultSeverity: "warning"
+  },
+  "no-nest-module": {
+    analyzer: "Structure",
+    title: "No NestJS module",
+    description: "No *.module.* files were found under src/.",
+    defaultSeverity: "warning"
+  },
+  "poor-module-org": {
+    analyzer: "Structure",
+    title: "Feature without colocated module",
+    description: "A directory containing NestJS controllers or services has no module in it or in a parent directory below src/.",
+    defaultSeverity: "info"
+  },
+  "structure-scan-failed": {
+    analyzer: "Structure",
+    title: "Module organization not inspected",
+    description: "NestJS module organization could not be inspected.",
+    defaultSeverity: "warning"
+  },
+  "no-env-example": {
+    analyzer: "Structure",
+    title: "No environment template",
+    description: "Environment files exist without a shareable .env.example, .env.sample, or .env.template.",
+    defaultSeverity: "info"
+  }
+};
+function fromRule(id) {
+  return { severity: RULES[id].defaultSeverity, rule: id };
+}
+
+// src/analyzers/dependencies.ts
 var lockFileNames = {
   npm: ["package-lock.json", "npm-shrinkwrap.json"],
   pnpm: ["pnpm-lock.yaml"],
@@ -253568,8 +254021,7 @@ async function analyzeDependencies(context) {
       score: 0,
       issues: [
         {
-          severity: "critical",
-          rule: "no-package-json",
+          ...fromRule("no-package-json"),
           message: "No package.json found"
         }
       ],
@@ -253583,8 +254035,7 @@ async function analyzeDependencies(context) {
       score: 0,
       issues: [
         {
-          severity: "critical",
-          rule: "invalid-package-json",
+          ...fromRule("invalid-package-json"),
           message: "Cannot parse package.json"
         }
       ],
@@ -253600,15 +254051,13 @@ async function analyzeDependencies(context) {
     checksPassed++;
   } else if (lockFile) {
     issues.push({
-      severity: "critical",
-      rule: "lock-file-manager-mismatch",
+      ...fromRule("lock-file-manager-mismatch"),
       message: `packageManager selects ${auditCommand.manager}, but the detected lock file belongs to ${lockFile.manager}`,
       fix: `Generate and commit the ${auditCommand.manager} lock file, then remove conflicting lock files`
     });
   } else {
     issues.push({
-      severity: "critical",
-      rule: "no-lock-file",
+      ...fromRule("no-lock-file"),
       message: "No lock file \u2014 builds not reproducible",
       fix: `Run ${auditCommand.manager} install to generate a lock file`
     });
@@ -253636,36 +254085,31 @@ async function analyzeDependencies(context) {
     } else {
       if (critical > 0)
         issues.push({
-          severity: "critical",
-          rule: "vuln-critical",
+          ...fromRule("vuln-critical"),
           message: `${critical} critical vulnerabilit${critical > 1 ? "ies" : "y"}`,
           fix: `Run ${auditCommand.fixCommand}`
         });
       if (high > 0)
         issues.push({
-          severity: "warning",
-          rule: "vuln-high",
+          ...fromRule("vuln-high"),
           message: `${high} high severity vulnerabilit${high > 1 ? "ies" : "y"}`,
           fix: `Run ${auditCommand.fixCommand}`
         });
       if (moderate > 0)
         issues.push({
-          severity: "warning",
-          rule: "vuln-moderate",
+          ...fromRule("vuln-moderate"),
           message: `${moderate} moderate vulnerabilit${moderate > 1 ? "ies" : "y"}`,
           fix: `Review ${auditCommand.manager} audit output`
         });
       if (low > 0)
         issues.push({
-          severity: "info",
-          rule: "vuln-low",
+          ...fromRule("vuln-low"),
           message: `${low} low severity vulnerabilit${low > 1 ? "ies" : "y"}`
         });
     }
   } catch (error) {
     issues.push({
-      severity: "warning",
-      rule: "audit-unavailable",
+      ...fromRule("audit-unavailable"),
       message: `${auditCommand.manager} audit could not be evaluated: ${error instanceof Error ? error.message : String(error)}`,
       fix: `Run ${[auditCommand.manager, ...auditCommand.args].join(" ")} and resolve the reported error`
     });
@@ -253675,8 +254119,7 @@ async function analyzeDependencies(context) {
     checksPassed++;
   } else {
     issues.push({
-      severity: "info",
-      rule: "no-engines",
+      ...fromRule("no-engines"),
       message: "No engines.node in package.json",
       fix: 'Add "engines": { "node": ">=18.0.0" }'
     });
@@ -253686,8 +254129,7 @@ async function analyzeDependencies(context) {
     checksPassed++;
   } else {
     issues.push({
-      severity: "warning",
-      rule: "missing-scripts",
+      ...fromRule("missing-scripts"),
       message: "Missing essential scripts (build, start/dev)",
       fix: "Add build and start scripts"
     });
@@ -253701,8 +254143,7 @@ async function analyzeDependencies(context) {
   } else {
     for (const dependency of found) {
       issues.push({
-        severity: "warning",
-        rule: "deprecated-dep",
+        ...fromRule("deprecated-dep"),
         message: `"${dependency}" is deprecated`
       });
     }
@@ -253821,8 +254262,7 @@ async function analyzeExpressApi(context) {
       score: 0,
       issues: [
         {
-          severity: "critical",
-          rule: "no-express-routes",
+          ...fromRule("no-express-routes"),
           message: "No Express app or router endpoints were detected"
         }
       ],
@@ -253838,8 +254278,7 @@ async function analyzeExpressApi(context) {
   for (const endpoint of mutatingEndpoints) {
     if (!endpoint.hasAuth) {
       issues.push({
-        severity: "warning",
-        rule: "missing-auth-middleware",
+        ...fromRule("missing-auth-middleware"),
         message: `${endpoint.method.toUpperCase()} ${endpoint.path} has no recognizable auth middleware`,
         file: endpoint.file,
         line: endpoint.line,
@@ -253850,8 +254289,7 @@ async function analyzeExpressApi(context) {
   for (const endpoint of bodyEndpoints) {
     if (!endpoint.hasValidation) {
       issues.push({
-        severity: "warning",
-        rule: "missing-validation-middleware",
+        ...fromRule("missing-validation-middleware"),
         message: `${endpoint.method.toUpperCase()} ${endpoint.path} has no recognizable validation middleware`,
         file: endpoint.file,
         line: endpoint.line,
@@ -253862,8 +254300,7 @@ async function analyzeExpressApi(context) {
   const errorMiddleware = hasErrorMiddleware(sourceFiles);
   if (!errorMiddleware) {
     issues.push({
-      severity: "warning",
-      rule: "missing-error-middleware",
+      ...fromRule("missing-error-middleware"),
       message: "No centralized four-argument Express error middleware detected",
       fix: "Add app.use((error, request, response, next) => { ... })"
     });
@@ -253875,8 +254312,7 @@ async function analyzeExpressApi(context) {
   );
   if (!hasHealthEndpoint) {
     issues.push({
-      severity: "info",
-      rule: "missing-health-endpoint",
+      ...fromRule("missing-health-endpoint"),
       message: "No health, readiness, or liveness endpoint detected",
       fix: "Expose a lightweight health endpoint for runtime monitoring"
     });
@@ -253920,8 +254356,7 @@ async function analyzeNestjsApi(context) {
       score: 0,
       issues: [
         {
-          severity: "critical",
-          rule: "no-controllers",
+          ...fromRule("no-controllers"),
           message: "No controller files found (*.controller.ts)"
         }
       ],
@@ -253976,8 +254411,7 @@ async function analyzeNestjsApi(context) {
         });
         if (!hasGuard && ["POST", "PUT", "DELETE", "PATCH"].includes(httpMethod)) {
           issues.push({
-            severity: "warning",
-            rule: "missing-guard",
+            ...fromRule("missing-guard"),
             message: `${httpMethod} ${fullPath} has no auth guard`,
             file: relFile,
             line,
@@ -253986,8 +254420,7 @@ async function analyzeNestjsApi(context) {
         }
         if (!hasDto && ["POST", "PUT", "PATCH"].includes(httpMethod)) {
           issues.push({
-            severity: "warning",
-            rule: "missing-dto",
+            ...fromRule("missing-dto"),
             message: `${httpMethod} ${fullPath} has no typed DTO for request body`,
             file: relFile,
             line,
@@ -253996,8 +254429,7 @@ async function analyzeNestjsApi(context) {
         }
         if (!hasSwagger) {
           issues.push({
-            severity: "info",
-            rule: "missing-swagger",
+            ...fromRule("missing-swagger"),
             message: `${httpMethod} ${fullPath} has no Swagger documentation`,
             file: relFile,
             line,
@@ -254006,8 +254438,7 @@ async function analyzeNestjsApi(context) {
         }
         if (!hasReturnType) {
           issues.push({
-            severity: "info",
-            rule: "missing-return-type",
+            ...fromRule("missing-return-type"),
             message: `${httpMethod} ${fullPath} has no explicit return type`,
             file: relFile,
             line
@@ -254022,8 +254453,7 @@ async function analyzeNestjsApi(context) {
       score: 50,
       issues: [
         {
-          severity: "warning",
-          rule: "no-endpoints",
+          ...fromRule("no-endpoints"),
           message: "Controllers found but no HTTP endpoints detected"
         }
       ],
@@ -254162,8 +254592,7 @@ async function analyzeNextjsApi(context) {
       score: 0,
       issues: [
         {
-          severity: "critical",
-          rule: "no-nextjs-handlers",
+          ...fromRule("no-nextjs-handlers"),
           message: "Next.js API route files contain no detectable handlers"
         }
       ],
@@ -254182,8 +254611,7 @@ async function analyzeNextjsApi(context) {
   for (const endpoint of mutatingEndpoints) {
     if (!hasGlobalAuth && !hasMarker(endpoint.source, AUTH_MARKERS)) {
       issues.push({
-        severity: "warning",
-        rule: "missing-auth-check",
+        ...fromRule("missing-auth-check"),
         message: `${endpoint.method} ${endpoint.path} has no recognizable auth check`,
         file: endpoint.file,
         line: endpoint.line,
@@ -254194,8 +254622,7 @@ async function analyzeNextjsApi(context) {
   for (const endpoint of bodyEndpoints) {
     if (!hasMarker(endpoint.source, VALIDATION_MARKERS)) {
       issues.push({
-        severity: "warning",
-        rule: "missing-request-validation",
+        ...fromRule("missing-request-validation"),
         message: `${endpoint.method} ${endpoint.path} has no recognizable request validation`,
         file: endpoint.file,
         line: endpoint.line,
@@ -254208,8 +254635,7 @@ async function analyzeNextjsApi(context) {
   );
   for (const endpoint of broadPagesHandlers) {
     issues.push({
-      severity: "info",
-      rule: "implicit-pages-methods",
+      ...fromRule("implicit-pages-methods"),
       message: `${endpoint.path} does not expose explicit HTTP method branches`,
       file: endpoint.file,
       fix: "Reject unsupported request methods explicitly"
@@ -254222,8 +254648,7 @@ async function analyzeNextjsApi(context) {
   );
   if (!hasHealthEndpoint) {
     issues.push({
-      severity: "info",
-      rule: "missing-health-endpoint",
+      ...fromRule("missing-health-endpoint"),
       message: "No API health, readiness, or liveness route detected",
       fix: "Add a lightweight route for runtime monitoring"
     });
@@ -254354,8 +254779,7 @@ function inspectSourceFile(sourceFile, file) {
     const isEval = import_ts_morph3.Node.isIdentifier(expression) && expression.getText() === "eval" || import_ts_morph3.Node.isPropertyAccessExpression(expression) && expression.getExpression().getText() === "globalThis" && expression.getName() === "eval";
     if (isEval) {
       issues.push({
-        severity: "critical",
-        rule: "unsafe-dynamic-code",
+        ...fromRule("unsafe-dynamic-code"),
         message: "Runtime code execution uses eval()",
         ...sourceLocation(file, call.getStartLineNumber()),
         fix: "Replace eval() with explicit parsing, dispatch, or a sandbox designed for untrusted code"
@@ -254366,8 +254790,8 @@ function inspectSourceFile(sourceFile, file) {
       const command = call.getArguments()[0];
       if (command && !isStaticString(command)) {
         issues.push({
+          ...fromRule("dynamic-command-execution"),
           severity: severityForDynamicInput(command.getText()),
-          rule: "dynamic-command-execution",
           message: "Shell execution receives a non-literal command",
           ...sourceLocation(file, call.getStartLineNumber()),
           fix: "Avoid a shell; use execFile or spawn with a fixed executable and validated argument array"
@@ -254377,8 +254801,8 @@ function inspectSourceFile(sourceFile, file) {
     if (isDynamicSqlCall(call)) {
       const query = call.getArguments()[0];
       issues.push({
+        ...fromRule("dynamic-sql-query"),
         severity: severityForDynamicInput(query?.getText() ?? ""),
-        rule: "dynamic-sql-query",
         message: "SQL execution uses a dynamically constructed query",
         ...sourceLocation(file, call.getStartLineNumber()),
         fix: "Use parameterized queries or the ORM's safe tagged-template API"
@@ -254393,8 +254817,7 @@ function inspectSourceFile(sourceFile, file) {
       continue;
     }
     issues.push({
-      severity: "critical",
-      rule: "unsafe-dynamic-code",
+      ...fromRule("unsafe-dynamic-code"),
       message: "Runtime code execution uses the Function constructor",
       ...sourceLocation(file, expression.getStartLineNumber()),
       fix: "Replace generated code with explicit parsing or a sandbox designed for untrusted code"
@@ -254408,8 +254831,7 @@ function inspectSourceFile(sourceFile, file) {
     const disablesTls = name === "rejectUnauthorized" && initializer?.getKind() === import_ts_morph3.SyntaxKind.FalseKeyword || name === "NODE_TLS_REJECT_UNAUTHORIZED" && import_ts_morph3.Node.isStringLiteral(initializer) && initializer.getLiteralText() === "0";
     if (!disablesTls) continue;
     issues.push({
-      severity: "critical",
-      rule: "tls-verification-disabled",
+      ...fromRule("tls-verification-disabled"),
       message: "TLS certificate verification is disabled",
       ...sourceLocation(file, property.getStartLineNumber()),
       fix: "Enable certificate verification and configure a trusted CA when a private PKI is required"
@@ -254426,8 +254848,7 @@ function inspectSourceFile(sourceFile, file) {
       continue;
     }
     issues.push({
-      severity: "critical",
-      rule: "tls-verification-disabled",
+      ...fromRule("tls-verification-disabled"),
       message: "TLS certificate verification is disabled globally",
       ...sourceLocation(file, assignment.getStartLineNumber()),
       fix: "Remove NODE_TLS_REJECT_UNAUTHORIZED=0 and configure a trusted CA instead"
@@ -254675,8 +255096,7 @@ function passwordIssues(sources) {
     const weakMatch = weakHash.exec(source.content);
     if (weakMatch) {
       issues.push({
-        severity: "critical",
-        rule: "weak-password-hash",
+        ...fromRule("weak-password-hash"),
         message: "Password handling uses MD5 or SHA-1",
         file: source.file,
         line: lineNumberAt(source.content, weakMatch.index),
@@ -254686,8 +255106,7 @@ function passwordIssues(sources) {
     const comparisonMatch = directComparison.exec(source.content);
     if (comparisonMatch) {
       issues.push({
-        severity: "critical",
-        rule: "plaintext-password-comparison",
+        ...fromRule("plaintext-password-comparison"),
         message: "Password values appear to be compared directly",
         file: source.file,
         line: lineNumberAt(source.content, comparisonMatch.index),
@@ -254697,8 +255116,7 @@ function passwordIssues(sources) {
     const persistenceMatch = persistence.exec(source.content);
     if (persistenceMatch && !secureHash.test(source.content) && !weakMatch) {
       issues.push({
-        severity: "warning",
-        rule: "password-hashing-not-detected",
+        ...fromRule("password-hashing-not-detected"),
         message: "Password data may be persisted without recognizable password hashing",
         file: source.file,
         line: lineNumberAt(source.content, persistenceMatch.index),
@@ -254752,8 +255170,7 @@ async function analyzeSecurity(context) {
           checksPassed++;
         } else {
           issues.push({
-            severity: "critical",
-            rule: "env-not-gitignored",
+            ...fromRule("env-not-gitignored"),
             message: ".env is not ignored by .gitignore \u2014 secrets may be committed",
             file: (0, import_node_path4.relative)(projectPath, gitignorePath).replace(/\\/g, "/"),
             fix: "Add .env or .env* to your .gitignore"
@@ -254767,8 +255184,7 @@ async function analyzeSecurity(context) {
     }
     if (!foundGitignore) {
       issues.push({
-        severity: "critical",
-        rule: "no-gitignore",
+        ...fromRule("no-gitignore"),
         message: "No .gitignore file found",
         fix: "Create .gitignore with .env, node_modules, and dist"
       });
@@ -254784,8 +255200,7 @@ async function analyzeSecurity(context) {
       if (!match2) continue;
       secretsFound = true;
       issues.push({
-        severity: "critical",
-        rule: "hardcoded-secret",
+        ...fromRule("hardcoded-secret"),
         message: `Possible ${name} found in source code`,
         file: source.file,
         line: lineNumberAt(source.content, match2.index),
@@ -254810,8 +255225,7 @@ async function analyzeSecurity(context) {
       checksPassed++;
     } else {
       issues.push({
-        severity: "warning",
-        rule: "no-helmet",
+        ...fromRule("no-helmet"),
         message: "Helmet middleware is not invoked in runtime source",
         fix: "Install and invoke Helmet or the framework-specific Helmet plugin"
       });
@@ -254822,8 +255236,7 @@ async function analyzeSecurity(context) {
       checksPassed++;
     } else {
       issues.push({
-        severity: "warning",
-        rule: "open-cors",
+        ...fromRule("open-cors"),
         message: "CORS is enabled without an origin allowlist",
         file: openCors.file,
         line: openCors.line,
@@ -254835,8 +255248,7 @@ async function analyzeSecurity(context) {
       checksPassed++;
     } else {
       issues.push({
-        severity: "warning",
-        rule: "no-rate-limiting",
+        ...fromRule("no-rate-limiting"),
         message: "Rate limiting is not configured in runtime source",
         fix: "Configure a rate limiter appropriate for the web framework"
       });
@@ -254942,8 +255354,7 @@ function analyzeNestOrganization(context, issues) {
   const srcPath = (0, import_node_path5.join)(context.projectPath, "src");
   if (!(0, import_node_fs4.existsSync)(srcPath)) {
     issues.push({
-      severity: "warning",
-      rule: "no-src-dir",
+      ...fromRule("no-src-dir"),
       message: "No src/ directory found",
       fix: "Organize NestJS source code under a src/ directory"
     });
@@ -254966,8 +255377,7 @@ function analyzeNestOrganization(context, issues) {
     );
     if (moduleFiles.length === 0) {
       issues.push({
-        severity: "warning",
-        rule: "no-nest-module",
+        ...fromRule("no-nest-module"),
         message: "No NestJS module files found under src/",
         fix: "Add an application or feature module (*.module.ts)"
       });
@@ -254996,8 +255406,7 @@ function analyzeNestOrganization(context, issues) {
     if (unmodularized.length === 0) return true;
     const organizedCount = featureDirectories.size - unmodularized.length;
     issues.push({
-      severity: "info",
-      rule: "poor-module-org",
+      ...fromRule("poor-module-org"),
       message: `${organizedCount}/${featureDirectories.size} controller/service directories have a colocated module`,
       file: unmodularized.sort()[0],
       fix: "Add a feature module beside each feature controller or service"
@@ -255005,8 +255414,7 @@ function analyzeNestOrganization(context, issues) {
     return false;
   } catch {
     issues.push({
-      severity: "warning",
-      rule: "structure-scan-failed",
+      ...fromRule("structure-scan-failed"),
       message: "Could not inspect NestJS module organization",
       fix: "Check source directory permissions and ignore patterns"
     });
@@ -255031,8 +255439,7 @@ async function analyzeStructure(context) {
       checksPassed++;
     } else {
       issues.push({
-        severity: "info",
-        rule: "short-readme",
+        ...fromRule("short-readme"),
         message: `${displayPath(projectPath, readmePath)} contains little explanatory content`,
         file: displayPath(projectPath, readmePath),
         fix: "Add a project description, installation steps, and usage examples"
@@ -255040,8 +255447,7 @@ async function analyzeStructure(context) {
     }
   } else {
     issues.push({
-      severity: "warning",
-      rule: "no-readme",
+      ...fromRule("no-readme"),
       message: "No README file found",
       fix: "Create a README with project documentation"
     });
@@ -255051,8 +255457,7 @@ async function analyzeStructure(context) {
     checksPassed++;
   } else {
     issues.push({
-      severity: "info",
-      rule: "no-editorconfig",
+      ...fromRule("no-editorconfig"),
       message: "No .editorconfig found in this project or its parent workspace",
       fix: "Create .editorconfig for consistent formatting across editors"
     });
@@ -255062,8 +255467,7 @@ async function analyzeStructure(context) {
     checksPassed++;
   } else {
     issues.push({
-      severity: "warning",
-      rule: "no-linter",
+      ...fromRule("no-linter"),
       message: "No ESLint or Biome config found",
       fix: "Set up ESLint or Biome for code quality enforcement"
     });
@@ -255073,8 +255477,7 @@ async function analyzeStructure(context) {
     checksPassed++;
   } else {
     issues.push({
-      severity: "info",
-      rule: "no-formatter",
+      ...fromRule("no-formatter"),
       message: "No Prettier or Biome formatter config found",
       fix: "Set up Prettier or Biome for consistent code formatting"
     });
@@ -255084,15 +255487,13 @@ async function analyzeStructure(context) {
     const typescriptConfig = context.typescriptConfig();
     if (typescriptConfig.status === "missing") {
       issues.push({
-        severity: "warning",
-        rule: "no-tsconfig",
+        ...fromRule("no-tsconfig"),
         message: "TypeScript is installed but tsconfig.json is missing",
         fix: "Create a tsconfig.json with strict mode enabled"
       });
     } else if (typescriptConfig.status === "invalid") {
       issues.push({
-        severity: "warning",
-        rule: "invalid-tsconfig",
+        ...fromRule("invalid-tsconfig"),
         message: "Cannot resolve tsconfig.json compiler options",
         file: "tsconfig.json",
         fix: "Fix invalid JSONC or an unresolved extends reference"
@@ -255101,8 +255502,7 @@ async function analyzeStructure(context) {
       checksPassed++;
     } else {
       issues.push({
-        severity: "warning",
-        rule: "no-strict-mode",
+        ...fromRule("no-strict-mode"),
         message: "TypeScript strict mode is not enabled",
         file: "tsconfig.json",
         fix: 'Set "strict": true in tsconfig.json compilerOptions'
@@ -255124,8 +255524,7 @@ async function analyzeStructure(context) {
     checksPassed++;
   } else {
     issues.push({
-      severity: "info",
-      rule: "no-env-example",
+      ...fromRule("no-env-example"),
       message: `${envFiles.sort().join(", ")} found without an environment template`,
       file: envFiles.sort()[0],
       fix: "Create .env.example, .env.sample, or .env.template with placeholder values"
@@ -255202,8 +255601,7 @@ async function analyzeTesting(context) {
     checksPassed++;
   } else {
     issues.push({
-      severity: "critical",
-      rule: "no-test-files",
+      ...fromRule("no-test-files"),
       message: "No test files found (*.spec.ts, *.test.ts)",
       fix: "Create test files alongside your source code"
     });
@@ -255223,8 +255621,7 @@ async function analyzeTesting(context) {
     checksPassed++;
   } else {
     issues.push({
-      severity: "warning",
-      rule: "no-test-framework",
+      ...fromRule("no-test-framework"),
       message: "No test framework detected",
       fix: "Install jest or vitest"
     });
@@ -255239,15 +255636,13 @@ async function analyzeTesting(context) {
   } else if (ratio > 0) {
     checksPassed += 0.5;
     issues.push({
-      severity: "info",
-      rule: "low-test-ratio",
+      ...fromRule("low-test-ratio"),
       message: `Test ratio: ${Math.round(ratio * 100)}% (${testFiles.length} tests / ${sourceFiles.length} source files)`,
       fix: "Aim for at least 1 test file per 3 source files"
     });
   } else {
     issues.push({
-      severity: "warning",
-      rule: "zero-test-ratio",
+      ...fromRule("zero-test-ratio"),
       message: "No test files relative to source files"
     });
   }
@@ -255259,8 +255654,7 @@ async function analyzeTesting(context) {
     checksPassed++;
   } else {
     issues.push({
-      severity: "info",
-      rule: "no-e2e-dir",
+      ...fromRule("no-e2e-dir"),
       message: "No e2e/test directory found",
       fix: "Create a test/ or e2e/ directory for integration tests"
     });
@@ -255272,8 +255666,7 @@ async function analyzeTesting(context) {
   } else {
     if (framework !== "none") {
       issues.push({
-        severity: "info",
-        rule: "no-test-config",
+        ...fromRule("no-test-config"),
         message: `No ${framework} config file found`,
         fix: `Create ${framework}.config.ts`
       });
@@ -255300,8 +255693,7 @@ async function analyzeTesting(context) {
   } catch (error) {
     invalidCoverageReport = true;
     issues.push({
-      severity: "warning",
-      rule: "invalid-coverage-report",
+      ...fromRule("invalid-coverage-report"),
       message: `Coverage summary could not be read: ${error instanceof Error ? error.message : String(error)}`,
       file: (0, import_node_fs5.existsSync)((0, import_node_path6.join)(projectPath, "coverage", "coverage-summary.json")) ? "coverage/coverage-summary.json" : "coverage-summary.json",
       fix: "Regenerate coverage-summary.json with Jest, Vitest, or Istanbul"
@@ -255320,8 +255712,8 @@ async function analyzeTesting(context) {
         (name) => coverageReport.metrics[name].pct < 50
       );
       issues.push({
+        ...fromRule("coverage-below-threshold"),
         severity: isCritical ? "critical" : "warning",
-        rule: "coverage-below-threshold",
         message: `Coverage below recommended thresholds: ${details}`,
         file: coverageReport.file,
         fix: "Add tests for the uncovered code paths and regenerate coverage"
@@ -255331,8 +255723,7 @@ async function analyzeTesting(context) {
     checksPassed++;
   } else if (!invalidCoverageReport) {
     issues.push({
-      severity: "info",
-      rule: "no-coverage-config",
+      ...fromRule("no-coverage-config"),
       message: "No coverage threshold configured",
       fix: "Add coverageThreshold to jest/vitest config"
     });

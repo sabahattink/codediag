@@ -1,6 +1,7 @@
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { dirname, join, relative } from "node:path";
 import type { ScanContext } from "../core/scan-context.js";
+import { fromRule } from "../rules/registry.js";
 import type { AnalyzerResult, DiagnosticIssue, PackageJson } from "../types.js";
 
 const LINTER_CONFIGS = [
@@ -119,8 +120,7 @@ function analyzeNestOrganization(
   const srcPath = join(context.projectPath, "src");
   if (!existsSync(srcPath)) {
     issues.push({
-      severity: "warning",
-      rule: "no-src-dir",
+      ...fromRule("no-src-dir"),
       message: "No src/ directory found",
       fix: "Organize NestJS source code under a src/ directory",
     });
@@ -146,8 +146,7 @@ function analyzeNestOrganization(
 
     if (moduleFiles.length === 0) {
       issues.push({
-        severity: "warning",
-        rule: "no-nest-module",
+        ...fromRule("no-nest-module"),
         message: "No NestJS module files found under src/",
         fix: "Add an application or feature module (*.module.ts)",
       });
@@ -180,8 +179,7 @@ function analyzeNestOrganization(
 
     const organizedCount = featureDirectories.size - unmodularized.length;
     issues.push({
-      severity: "info",
-      rule: "poor-module-org",
+      ...fromRule("poor-module-org"),
       message: `${organizedCount}/${featureDirectories.size} controller/service directories have a colocated module`,
       file: unmodularized.sort()[0],
       fix: "Add a feature module beside each feature controller or service",
@@ -189,8 +187,7 @@ function analyzeNestOrganization(
     return false;
   } catch {
     issues.push({
-      severity: "warning",
-      rule: "structure-scan-failed",
+      ...fromRule("structure-scan-failed"),
       message: "Could not inspect NestJS module organization",
       fix: "Check source directory permissions and ignore patterns",
     });
@@ -222,8 +219,7 @@ export async function analyzeStructure(
       checksPassed++;
     } else {
       issues.push({
-        severity: "info",
-        rule: "short-readme",
+        ...fromRule("short-readme"),
         message: `${displayPath(projectPath, readmePath)} contains little explanatory content`,
         file: displayPath(projectPath, readmePath),
         fix: "Add a project description, installation steps, and usage examples",
@@ -231,8 +227,7 @@ export async function analyzeStructure(
     }
   } else {
     issues.push({
-      severity: "warning",
-      rule: "no-readme",
+      ...fromRule("no-readme"),
       message: "No README file found",
       fix: "Create a README with project documentation",
     });
@@ -244,8 +239,7 @@ export async function analyzeStructure(
     checksPassed++;
   } else {
     issues.push({
-      severity: "info",
-      rule: "no-editorconfig",
+      ...fromRule("no-editorconfig"),
       message: "No .editorconfig found in this project or its parent workspace",
       fix: "Create .editorconfig for consistent formatting across editors",
     });
@@ -260,8 +254,7 @@ export async function analyzeStructure(
     checksPassed++;
   } else {
     issues.push({
-      severity: "warning",
-      rule: "no-linter",
+      ...fromRule("no-linter"),
       message: "No ESLint or Biome config found",
       fix: "Set up ESLint or Biome for code quality enforcement",
     });
@@ -276,8 +269,7 @@ export async function analyzeStructure(
     checksPassed++;
   } else {
     issues.push({
-      severity: "info",
-      rule: "no-formatter",
+      ...fromRule("no-formatter"),
       message: "No Prettier or Biome formatter config found",
       fix: "Set up Prettier or Biome for consistent code formatting",
     });
@@ -289,15 +281,13 @@ export async function analyzeStructure(
     const typescriptConfig = context.typescriptConfig();
     if (typescriptConfig.status === "missing") {
       issues.push({
-        severity: "warning",
-        rule: "no-tsconfig",
+        ...fromRule("no-tsconfig"),
         message: "TypeScript is installed but tsconfig.json is missing",
         fix: "Create a tsconfig.json with strict mode enabled",
       });
     } else if (typescriptConfig.status === "invalid") {
       issues.push({
-        severity: "warning",
-        rule: "invalid-tsconfig",
+        ...fromRule("invalid-tsconfig"),
         message: "Cannot resolve tsconfig.json compiler options",
         file: "tsconfig.json",
         fix: "Fix invalid JSONC or an unresolved extends reference",
@@ -306,8 +296,7 @@ export async function analyzeStructure(
       checksPassed++;
     } else {
       issues.push({
-        severity: "warning",
-        rule: "no-strict-mode",
+        ...fromRule("no-strict-mode"),
         message: "TypeScript strict mode is not enabled",
         file: "tsconfig.json",
         fix: 'Set "strict": true in tsconfig.json compilerOptions',
@@ -333,8 +322,7 @@ export async function analyzeStructure(
     checksPassed++;
   } else {
     issues.push({
-      severity: "info",
-      rule: "no-env-example",
+      ...fromRule("no-env-example"),
       message: `${envFiles.sort().join(", ")} found without an environment template`,
       file: envFiles.sort()[0],
       fix: "Create .env.example, .env.sample, or .env.template with placeholder values",
