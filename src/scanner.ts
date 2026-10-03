@@ -10,6 +10,7 @@ import { analyzeSecurity } from "./analyzers/security.js";
 import { analyzeStructure } from "./analyzers/structure.js";
 import { analyzeTesting } from "./analyzers/testing.js";
 import { loadConfig } from "./config.js";
+import { assignFingerprints } from "./core/fingerprint.js";
 import { createScanContext } from "./core/scan-context.js";
 import { detectStack } from "./detectors/stack-detector.js";
 import type {
@@ -150,12 +151,13 @@ export async function scan(
   const totalScore =
     totalWeight > 0 ? Math.round(weightedSum / totalWeight) : 0;
   const grade = calculateGrade(totalScore);
+  const analyzers = assignFingerprints(results, context.readText);
   const skipped = context.skipped();
 
   return {
     project: basename(projectPath),
     stack,
-    analyzers: results,
+    analyzers,
     totalScore,
     grade,
     timestamp: new Date().toISOString(),

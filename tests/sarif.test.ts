@@ -11,7 +11,14 @@ interface SarifView {
       driver: {
         name: string;
         semanticVersion: string;
-        rules: Array<{ id: string }>;
+        rules: Array<{
+          id: string;
+          shortDescription: { text: string };
+          fullDescription: { text: string };
+          helpUri?: string;
+          defaultConfiguration: { level: string };
+          properties: { tags?: string[]; owasp?: string[] };
+        }>;
       };
     };
     invocations: Array<{
@@ -28,7 +35,7 @@ interface SarifView {
           region?: { startLine: number };
         };
       }>;
-      partialFingerprints: { "codediagFinding/v1": string };
+      partialFingerprints: { "codediagFinding/v2": string };
       properties: { recommendation?: string };
     }>;
     properties: {
@@ -129,7 +136,7 @@ test("SARIF reporter emits deterministic SARIF 2.1.0 findings", () => {
     "Move the value to an environment variable.",
   );
   assert.match(
-    run.results[0].partialFingerprints["codediagFinding/v1"],
+    run.results[0].partialFingerprints["codediagFinding/v2"],
     /^[a-f0-9]{64}$/,
   );
   assert.equal(run.results[2].locations, undefined);
@@ -145,4 +152,54 @@ test("SARIF reporter emits deterministic SARIF 2.1.0 findings", () => {
     score: 62,
     grade: "C",
   });
+});
+
+test("SARIF rules describe registered rules instead of the first finding", () => {
+  const result = fixture();
+  result.analyzers = [
+    {
+      name: "Security",
+      score: 50,
+      summary: "One finding",
+      issues: [
+        {
+          severity: "critical",
+          rule: "hardcoded-secret",
+          message: "Possible API Key found in source code",
+          file: "src/config.ts",
+          line: 3,
+          fingerprint: "a".repeat(64),
+        },
+      ],
+    },
+  ];
+
+  const [run] = (JSON.parse(renderSarif(result)) as SarifView).runs;
+
+  assert.deepEqual(run.tool.driver.rules, [
+    {
+      id: "codediag/security/hardcoded-secret",
+      name: "hardcoded-secret",
+      shortDescription: { text: "Hardcoded secret" },
+      fullDescription: {
+        text: "Source code contains a value that matches a credential pattern such as an API key, password, or provider token.",
+      },
+      helpUri:
+        "https://github.com/sabahattink/codediag/blob/main/docs/rules.md#hardcoded-secret",
+      help: {
+        text: "Source code contains a value that matches a credential pattern such as an API key, password, or provider token. See https://github.com/sabahattink/codediag/blob/main/docs/rules.md#hardcoded-secret",
+      },
+      defaultConfiguration: { level: "error" },
+      properties: {
+        analyzer: "Security",
+        severity: "critical",
+        tags: ["security", "external/cwe/cwe-798"],
+        owasp: ["A07:2021"],
+      },
+    },
+  ]);
+  assert.equal(
+    run.results[0].partialFingerprints["codediagFinding/v2"],
+    "a".repeat(64),
+  );
 });

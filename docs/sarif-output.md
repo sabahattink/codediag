@@ -20,9 +20,16 @@ Each CodeDiag issue becomes one SARIF result:
 | `file` and `line` | Physical location and start line |
 | `fix` | `properties.recommendation` |
 
-Rules shared by multiple findings are emitted once in the tool driver. Each
-result contains a SHA-256 partial fingerprint derived from the analyzer, rule,
-location, and message so code-scanning systems can track repeated findings.
+Rules shared by multiple findings are emitted once in the tool driver. Rule
+metadata comes from the [rule registry](rules.md): `shortDescription` is the
+rule title, `fullDescription` and `help` describe the rule, `helpUri` links to
+its section in `docs/rules.md`, and security rules carry `security` and
+`external/cwe/cwe-<id>` tags plus an `owasp` property.
+
+Each result carries a `codediagFinding/v2` partial fingerprint: a SHA-256
+digest of the rule, the file, and the flagged line's whitespace-normalized
+text. It does not include the line number, so alerts keep their identity when
+code above them moves. Only the digest is emitted, never the line text.
 Relative paths remain repository-relative and use forward slashes. Absolute
 paths are represented as `file:` URLs. CodeDiag does not include source file
 contents or credential values in SARIF output.

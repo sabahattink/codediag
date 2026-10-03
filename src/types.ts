@@ -16,6 +16,8 @@ export interface DiagnosticIssue {
   file?: string;
   line?: number;
   fix?: string;
+  /** Line-number-independent identity used by SARIF and baselines. */
+  fingerprint?: string;
 }
 
 export interface AnalyzerResult {

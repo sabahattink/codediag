@@ -179,6 +179,10 @@
         "fix": {
           "type": "string",
           "minLength": 1
+        },
+        "fingerprint": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
         }
       }
     },

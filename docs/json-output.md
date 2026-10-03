@@ -52,4 +52,13 @@ average line length above 500 characters), and `unreadable`. `files` lists up
 to 50 of them as `{ "file", "reason" }`, sorted by path.
 
 Each diagnostic issue always includes `severity`, `rule`, and `message`.
-`file`, `line`, and `fix` are optional.
+`file`, `line`, `fix`, and `fingerprint` are optional. Rule IDs and their
+meaning are listed in [rules.md](rules.md).
+
+`fingerprint` is a SHA-256 hex digest that identifies a finding independently
+of its line number: it is derived from the rule ID, the file, and the flagged
+line's whitespace-normalized text (or the message for findings without a
+source line). For rules that flag credentials, such as `hardcoded-secret`,
+the line text is never hashed and the message is used instead. Identical
+findings in the same file are distinguished by their order. The same value is emitted as the `codediagFinding/v2` SARIF partial
+fingerprint.

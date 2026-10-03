@@ -1,6 +1,7 @@
-import { createHash } from "node:crypto";
 import { isAbsolute } from "node:path";
 import { pathToFileURL } from "node:url";
+import { computeFingerprint, FINGERPRINT_KEY } from "../core/fingerprint.js";
+import { getRule, ruleDocsUrl } from "../rules/registry.js";
 import type { AnalyzerResult, DiagnosticIssue, ScanResult } from "../types.js";
 import { getPackageVersion } from "../version.js";
 
@@ -46,18 +47,40 @@ function artifactUri(file: string): string {
     .join("/");
 }
 
-function fingerprint(analyzer: AnalyzerResult, issue: DiagnosticIssue): string {
-  return createHash("sha256")
-    .update(
-      [
-        analyzer.name,
-        issue.rule,
-        issue.file ?? "",
-        issue.line?.toString() ?? "",
-        issue.message,
-      ].join("\u0000"),
-    )
-    .digest("hex");
+function cweTags(cwe: readonly string[]): string[] {
+  return cwe.map(
+    (id) => `external/cwe/cwe-${id.replace(/^CWE-/i, "").padStart(3, "0")}`,
+  );
+}
+
+function ruleDescriptor(analyzer: AnalyzerResult, issue: DiagnosticIssue) {
+  const definition = getRule(issue.rule);
+  const severity = definition?.defaultSeverity ?? issue.severity;
+  const tags = definition?.cwe?.length
+    ? ["security", ...cweTags(definition.cwe)]
+    : [];
+
+  return {
+    id: ruleId(analyzer, issue),
+    name: issue.rule,
+    shortDescription: { text: definition?.title ?? issue.rule },
+    fullDescription: { text: definition?.description ?? issue.message },
+    ...(definition
+      ? {
+          helpUri: ruleDocsUrl(issue.rule),
+          help: {
+            text: `${definition.description} See ${ruleDocsUrl(issue.rule)}`,
+          },
+        }
+      : {}),
+    defaultConfiguration: { level: sarifLevel(severity) },
+    properties: {
+      analyzer: analyzer.name,
+      severity,
+      ...(tags.length > 0 ? { tags } : {}),
+      ...(definition?.owasp?.length ? { owasp: [...definition.owasp] } : {}),
+    },
+  };
 }
 
 function resultLocation(issue: DiagnosticIssue) {
@@ -86,31 +109,14 @@ export function buildSarif(result: ScanResult) {
     analyzer.issues.map((issue) => ({ analyzer, issue })),
   );
   const ruleIndexes = new Map<string, number>();
-  const rules: Array<{
-    id: string;
-    name: string;
-    shortDescription: { text: string };
-    fullDescription: { text: string };
-    defaultConfiguration: { level: "error" | "warning" | "note" };
-    properties: { analyzer: string; severity: DiagnosticIssue["severity"] };
-  }> = [];
+  const rules: Array<ReturnType<typeof ruleDescriptor>> = [];
 
   for (const { analyzer, issue } of findings) {
     const id = ruleId(analyzer, issue);
     if (ruleIndexes.has(id)) continue;
 
     ruleIndexes.set(id, rules.length);
-    rules.push({
-      id,
-      name: issue.rule,
-      shortDescription: { text: issue.rule },
-      fullDescription: { text: issue.message },
-      defaultConfiguration: { level: sarifLevel(issue.severity) },
-      properties: {
-        analyzer: analyzer.name,
-        severity: issue.severity,
-      },
-    });
+    rules.push(ruleDescriptor(analyzer, issue));
   }
 
   const sarifResults = findings.map(({ analyzer, issue }) => {
@@ -128,7 +134,7 @@ export function buildSarif(result: ScanResult) {
       message: { text: issue.message },
       ...(locations ? { locations } : {}),
       partialFingerprints: {
-        "codediagFinding/v1": fingerprint(analyzer, issue),
+        [FINGERPRINT_KEY]: issue.fingerprint ?? computeFingerprint(issue, null),
       },
       properties: {
         analyzer: analyzer.name,
