@@ -4,6 +4,12 @@ All notable changes to CodeDiag are documented in this file.
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-10-04
+
+The "Reliable Engine" release: faster, gitignore-aware discovery, a rule
+registry, explainable scoring, suppressions and baselines, offline scans, and
+precision fixes for Express, NestJS, and security sinks.
+
 ### Added
 
 - A shared scan context: files are discovered once, read once, and parsed by a
@@ -60,32 +66,6 @@ All notable changes to CodeDiag are documented in this file.
   `no-test-files: info`) replaces its zero score.
 - An optional `confidence` on findings (`high`, `medium`, `low`), also emitted
   as a SARIF result property.
-- AST-based security sink detection for runtime code execution, dynamic shell
-  commands, dynamic SQL queries, and disabled TLS certificate verification.
-- SARIF 2.1.0 output through `--format sarif`, including stable rule IDs,
-  source locations, severity mapping, and deterministic finding fingerprints.
-- JSON and SARIF report outputs from the reusable GitHub Action for optional
-  GitHub Code Scanning uploads.
-- Express API health analysis for route authentication, request validation,
-  centralized error handling, and runtime health endpoints.
-- Express JavaScript and TypeScript integration coverage.
-- Next.js App Router and Pages Router API analysis with frontend-only projects
-  treated as not applicable.
-- Framework-specific Express and Next.js integration fixtures.
-- Dependency-free SVG score badge output through `--format svg`.
-- A packaged JSON Schema and compatibility documentation for machine-readable
-  scan results.
-- Validated `.codediag.yml` loading with analyzer selection and ignore patterns.
-- Regression tests for configuration, threshold handling, package version, and
-  npm audit parsing.
-- A single `npm run check` command for local and CI validation.
-- Enforced Biome linting and formatting plus EditorConfig defaults.
-- Contribution and security policies, structured issue forms, a pull request
-  template, and automated dependency update configuration.
-- A dependency-bundled reusable GitHub Action with quality gates, annotations,
-  JSON reports, outputs, and job summaries.
-- A GitHub-hosted smoke test that executes the checked-in Action bundle on
-  every pull request and main-branch update.
 
 ### Changed
 
@@ -154,6 +134,48 @@ All notable changes to CodeDiag are documented in this file.
   without thresholds no longer counts.
 - `hardcoded-secret` ignores values built with `${...}` interpolation and
   reports the first literal credential in a file instead.
+
+### Security
+
+- `npm audit fix` updated vulnerable transitive development dependencies.
+  Production dependencies report no known vulnerabilities. Six high-severity
+  advisories remain in `braces`, reached only through the development tool
+  `@vscode/vsce` (via `secretlint` and `globby`), for which no patched
+  `braces` release exists yet.
+
+## [0.2.0] - 2026-07-17
+
+### Added
+
+- AST-based security sink detection for runtime code execution, dynamic shell
+  commands, dynamic SQL queries, and disabled TLS certificate verification.
+- SARIF 2.1.0 output through `--format sarif`, including stable rule IDs,
+  source locations, severity mapping, and deterministic finding fingerprints.
+- JSON and SARIF report outputs from the reusable GitHub Action for optional
+  GitHub Code Scanning uploads.
+- Express API health analysis for route authentication, request validation,
+  centralized error handling, and runtime health endpoints.
+- Express JavaScript and TypeScript integration coverage.
+- Next.js App Router and Pages Router API analysis with frontend-only projects
+  treated as not applicable.
+- Framework-specific Express and Next.js integration fixtures.
+- Dependency-free SVG score badge output through `--format svg`.
+- A packaged JSON Schema and compatibility documentation for machine-readable
+  scan results.
+- Validated `.codediag.yml` loading with analyzer selection and ignore patterns.
+- Regression tests for configuration, threshold handling, package version, and
+  npm audit parsing.
+- A single `npm run check` command for local and CI validation.
+- Enforced Biome linting and formatting plus EditorConfig defaults.
+- Contribution and security policies, structured issue forms, a pull request
+  template, and automated dependency update configuration.
+- A dependency-bundled reusable GitHub Action with quality gates, annotations,
+  JSON reports, outputs, and job summaries.
+- A GitHub-hosted smoke test that executes the checked-in Action bundle on
+  every pull request and main-branch update.
+
+### Changed
+
 - Project ownership and links now use the canonical Sabahattin Kalkan identity.
 - CLI version is read from `package.json`.
 - Threshold failures now return exit code 1 in every output mode.
@@ -163,14 +185,6 @@ All notable changes to CodeDiag are documented in this file.
   non-zero.
 - Security and structure checks apply framework-specific expectations only
   when the matching framework is detected.
-
-### Security
-
-- `npm audit fix` updated vulnerable transitive development dependencies.
-  Production dependencies report no known vulnerabilities. Six high-severity
-  advisories remain in `braces`, reached only through the development tool
-  `@vscode/vsce` (via `secretlint` and `globby`), for which no patched
-  `braces` release exists yet.
 
 ### Removed
 

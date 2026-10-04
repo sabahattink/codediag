@@ -2,7 +2,7 @@
   "name": "codediag-vscode",
   "displayName": "CodeDiag",
   "description": "Project health diagnostics for Node.js, NestJS, Express, and Next.js workspaces.",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "publisher": "sabahattink",
   "license": "MIT",
   "engines": {

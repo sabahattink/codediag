@@ -60,6 +60,19 @@ Use a short conventional commit subject where practical:
 Pull requests should explain the problem, the chosen behavior, and the
 verification performed. Keep unrelated refactors in separate pull requests.
 
+## Releasing
+
+1. Move the `[Unreleased]` changelog entries under a new version heading and
+   set `version` in `package.json` (and `extensions/vscode/package.json` when
+   the extension changes) with `npm version <x.y.z> --no-git-tag-version`.
+2. Run `npm run check` and merge to `main`.
+3. Publish a GitHub release tagged `v<x.y.z>`. The Release workflow checks
+   that the tag matches `package.json`, runs `npm run check`, publishes to npm
+   with provenance (requires the `NPM_TOKEN` repository secret), and attaches
+   the VS Code `.vsix` to the release.
+4. Move the Action's major tag (for example `v0`) to the release commit so
+   `uses: sabahattink/codediag@v0` picks it up.
+
 ## Reporting security issues
 
 Do not open a public issue for a suspected vulnerability. Follow the private
