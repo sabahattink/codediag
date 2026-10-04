@@ -1,5 +1,6 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join, relative } from "node:path";
+import { Node, SyntaxKind } from "ts-morph";
 import type { ScanContext } from "../core/scan-context.js";
 import { fromRule } from "../rules/registry.js";
 import type { AnalyzerResult, DiagnosticIssue } from "../types.js";
@@ -7,6 +8,20 @@ import type { AnalyzerResult, DiagnosticIssue } from "../types.js";
 const TEST_CONFIG_FILES = ["jest", "vitest"].flatMap((tool) =>
   ["ts", "js", "mjs", "mts"].map((extension) => `${tool}.config.${extension}`),
 );
+const COVERAGE_CONFIG_FILES = [
+  ...TEST_CONFIG_FILES,
+  ...["ts", "js", "mjs", "mts", "cjs", "cts"].map(
+    (extension) => `vite.config.${extension}`,
+  ),
+  "jest.config.cjs",
+  "jest.config.cts",
+  "vitest.config.cjs",
+  "vitest.config.cts",
+];
+const METRIC_KEYS = new Set(["lines", "statements", "functions", "branches"]);
+const COVERAGE_RC_FILES = [".c8rc", ".c8rc.json", ".nycrc", ".nycrc.json"];
+const COVERAGE_SCRIPT =
+  /--test-coverage-(?:lines|branches|functions)=\d|--check-coverage\b|\bc8\b[^&|;]*--(?:lines|branches|functions|statements)\b/;
 
 const COVERAGE_THRESHOLDS = {
   lines: 80,
@@ -88,6 +103,84 @@ function readCoverageReport(projectPath: string): CoverageReport | null {
     metrics,
     score,
   };
+}
+
+function propertyName(node: Node): string | undefined {
+  return Node.isPropertyAssignment(node) ||
+    Node.isShorthandPropertyAssignment(node)
+    ? node.getName().replace(/["']/g, "")
+    : undefined;
+}
+
+/**
+ * Jest `coverageThreshold`, Vitest `coverage.thresholds`, or Vitest 0.x style
+ * metric keys directly under `coverage` in a test or Vite config file.
+ */
+function configDeclaresThreshold(context: ScanContext, file: string): boolean {
+  const sourceFile = context.getSourceFile(file);
+  if (!sourceFile) return false;
+  for (const property of sourceFile.getDescendantsOfKind(
+    SyntaxKind.PropertyAssignment,
+  )) {
+    const name = propertyName(property);
+    if (name === "coverageThreshold") return true;
+    const parent = property
+      .getParentIfKind(SyntaxKind.ObjectLiteralExpression)
+      ?.getParent();
+    const parentName = parent ? propertyName(parent) : undefined;
+    if (
+      parentName === "coverage" &&
+      (name === "thresholds" || METRIC_KEYS.has(name ?? ""))
+    ) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function coverageRcDeclaresThreshold(projectPath: string): boolean {
+  return COVERAGE_RC_FILES.some((name) => {
+    const path = join(projectPath, name);
+    if (!existsSync(path)) return false;
+    try {
+      const options = JSON.parse(readFileSync(path, "utf-8"));
+      return (
+        options?.["check-coverage"] === true ||
+        Object.keys(options ?? {}).some((key) => METRIC_KEYS.has(key))
+      );
+    } catch {
+      return false;
+    }
+  });
+}
+
+function hasCoverageThreshold(context: ScanContext): boolean {
+  const pkg = context.packageJson as
+    | (Record<string, unknown> & { scripts?: Record<string, string> })
+    | null;
+  const jest = pkg?.jest as { coverageThreshold?: unknown } | undefined;
+  const packageTool = (name: string) => {
+    const options = pkg?.[name] as Record<string, unknown> | undefined;
+    return Boolean(
+      options &&
+        (options["check-coverage"] === true ||
+          Object.keys(options).some((key) => METRIC_KEYS.has(key))),
+    );
+  };
+  return (
+    Boolean(jest?.coverageThreshold) ||
+    packageTool("c8") ||
+    packageTool("nyc") ||
+    Object.values(pkg?.scripts ?? {}).some((script) =>
+      COVERAGE_SCRIPT.test(script),
+    ) ||
+    coverageRcDeclaresThreshold(context.projectPath) ||
+    COVERAGE_CONFIG_FILES.some(
+      (file) =>
+        existsSync(join(context.projectPath, file)) &&
+        configDeclaresThreshold(context, file),
+    )
+  );
 }
 
 export async function analyzeTesting(
@@ -201,24 +294,7 @@ export async function analyzeTesting(
 
   // 6. Coverage report or threshold configuration
   checksRun++;
-  let hasCoverageConfig = Boolean(pkg?.jest?.coverageThreshold);
-
-  const configFiles = TEST_CONFIG_FILES.map((name) =>
-    join(projectPath, name),
-  ).filter((path) => existsSync(path));
-  for (const cf of configFiles) {
-    try {
-      if (
-        readFileSync(cf, "utf-8").includes("coverageThreshold") ||
-        readFileSync(cf, "utf-8").includes("coverage")
-      ) {
-        hasCoverageConfig = true;
-        break;
-      }
-    } catch {
-      /* skip */
-    }
-  }
+  const hasCoverageConfig = hasCoverageThreshold(context);
 
   let coverageReport: CoverageReport | null = null;
   let invalidCoverageReport = false;

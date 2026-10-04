@@ -618,9 +618,9 @@ var require_Alias = __commonJS({
     var anchors = require_anchors();
     var visit = require_visit();
     var identity = require_identity();
-    var Node5 = require_Node();
+    var Node6 = require_Node();
     var toJS = require_toJS();
-    var Alias = class extends Node5.NodeBase {
+    var Alias = class extends Node6.NodeBase {
       constructor(source) {
         super(identity.ALIAS);
         this.source = source;
@@ -732,10 +732,10 @@ var require_Scalar = __commonJS({
   "node_modules/yaml/dist/nodes/Scalar.js"(exports2) {
     "use strict";
     var identity = require_identity();
-    var Node5 = require_Node();
+    var Node6 = require_Node();
     var toJS = require_toJS();
     var isScalarValue = (value) => !value || typeof value !== "function" && typeof value !== "object";
-    var Scalar = class extends Node5.NodeBase {
+    var Scalar = class extends Node6.NodeBase {
       constructor(value) {
         super(identity.SCALAR);
         this.value = value;
@@ -838,7 +838,7 @@ var require_Collection = __commonJS({
     "use strict";
     var createNode = require_createNode();
     var identity = require_identity();
-    var Node5 = require_Node();
+    var Node6 = require_Node();
     function collectionFromPath(schema, path2, value) {
       let v = value;
       for (let i = path2.length - 1; i >= 0; --i) {
@@ -862,7 +862,7 @@ var require_Collection = __commonJS({
       });
     }
     var isEmptyPath = (path2) => path2 == null || typeof path2 === "object" && !!path2[Symbol.iterator]().next().done;
-    var Collection = class extends Node5.NodeBase {
+    var Collection = class extends Node6.NodeBase {
       constructor(type, schema) {
         super(type);
         Object.defineProperty(this, "schema", {
@@ -9170,7 +9170,7 @@ var require_typescript = __commonJS({
         SymbolDisplayPartKind: () => SymbolDisplayPartKind,
         SymbolFlags: () => SymbolFlags,
         SymbolFormatFlags: () => SymbolFormatFlags,
-        SyntaxKind: () => SyntaxKind4,
+        SyntaxKind: () => SyntaxKind5,
         Ternary: () => Ternary,
         ThrottledCancellationToken: () => ThrottledCancellationToken,
         TokenClass: () => TokenClass,
@@ -13061,7 +13061,7 @@ Node ${formatSyntaxKind(node.kind)} was unexpected.`,
         function formatSyntaxKind(kind) {
           return formatEnum(
             kind,
-            SyntaxKind4,
+            SyntaxKind5,
             /*isFlags*/
             false
           );
@@ -14509,513 +14509,513 @@ ${lanes.join("\n")}
       })(tracingEnabled || (tracingEnabled = {}));
       var startTracing = tracingEnabled.startTracing;
       var dumpTracingLegend = tracingEnabled.dumpLegend;
-      var SyntaxKind4 = /* @__PURE__ */ ((SyntaxKind5) => {
-        SyntaxKind5[SyntaxKind5["Unknown"] = 0] = "Unknown";
-        SyntaxKind5[SyntaxKind5["EndOfFileToken"] = 1] = "EndOfFileToken";
-        SyntaxKind5[SyntaxKind5["SingleLineCommentTrivia"] = 2] = "SingleLineCommentTrivia";
-        SyntaxKind5[SyntaxKind5["MultiLineCommentTrivia"] = 3] = "MultiLineCommentTrivia";
-        SyntaxKind5[SyntaxKind5["NewLineTrivia"] = 4] = "NewLineTrivia";
-        SyntaxKind5[SyntaxKind5["WhitespaceTrivia"] = 5] = "WhitespaceTrivia";
-        SyntaxKind5[SyntaxKind5["ShebangTrivia"] = 6] = "ShebangTrivia";
-        SyntaxKind5[SyntaxKind5["ConflictMarkerTrivia"] = 7] = "ConflictMarkerTrivia";
-        SyntaxKind5[SyntaxKind5["NonTextFileMarkerTrivia"] = 8] = "NonTextFileMarkerTrivia";
-        SyntaxKind5[SyntaxKind5["NumericLiteral"] = 9] = "NumericLiteral";
-        SyntaxKind5[SyntaxKind5["BigIntLiteral"] = 10] = "BigIntLiteral";
-        SyntaxKind5[SyntaxKind5["StringLiteral"] = 11] = "StringLiteral";
-        SyntaxKind5[SyntaxKind5["JsxText"] = 12] = "JsxText";
-        SyntaxKind5[SyntaxKind5["JsxTextAllWhiteSpaces"] = 13] = "JsxTextAllWhiteSpaces";
-        SyntaxKind5[SyntaxKind5["RegularExpressionLiteral"] = 14] = "RegularExpressionLiteral";
-        SyntaxKind5[SyntaxKind5["NoSubstitutionTemplateLiteral"] = 15] = "NoSubstitutionTemplateLiteral";
-        SyntaxKind5[SyntaxKind5["TemplateHead"] = 16] = "TemplateHead";
-        SyntaxKind5[SyntaxKind5["TemplateMiddle"] = 17] = "TemplateMiddle";
-        SyntaxKind5[SyntaxKind5["TemplateTail"] = 18] = "TemplateTail";
-        SyntaxKind5[SyntaxKind5["OpenBraceToken"] = 19] = "OpenBraceToken";
-        SyntaxKind5[SyntaxKind5["CloseBraceToken"] = 20] = "CloseBraceToken";
-        SyntaxKind5[SyntaxKind5["OpenParenToken"] = 21] = "OpenParenToken";
-        SyntaxKind5[SyntaxKind5["CloseParenToken"] = 22] = "CloseParenToken";
-        SyntaxKind5[SyntaxKind5["OpenBracketToken"] = 23] = "OpenBracketToken";
-        SyntaxKind5[SyntaxKind5["CloseBracketToken"] = 24] = "CloseBracketToken";
-        SyntaxKind5[SyntaxKind5["DotToken"] = 25] = "DotToken";
-        SyntaxKind5[SyntaxKind5["DotDotDotToken"] = 26] = "DotDotDotToken";
-        SyntaxKind5[SyntaxKind5["SemicolonToken"] = 27] = "SemicolonToken";
-        SyntaxKind5[SyntaxKind5["CommaToken"] = 28] = "CommaToken";
-        SyntaxKind5[SyntaxKind5["QuestionDotToken"] = 29] = "QuestionDotToken";
-        SyntaxKind5[SyntaxKind5["LessThanToken"] = 30] = "LessThanToken";
-        SyntaxKind5[SyntaxKind5["LessThanSlashToken"] = 31] = "LessThanSlashToken";
-        SyntaxKind5[SyntaxKind5["GreaterThanToken"] = 32] = "GreaterThanToken";
-        SyntaxKind5[SyntaxKind5["LessThanEqualsToken"] = 33] = "LessThanEqualsToken";
-        SyntaxKind5[SyntaxKind5["GreaterThanEqualsToken"] = 34] = "GreaterThanEqualsToken";
-        SyntaxKind5[SyntaxKind5["EqualsEqualsToken"] = 35] = "EqualsEqualsToken";
-        SyntaxKind5[SyntaxKind5["ExclamationEqualsToken"] = 36] = "ExclamationEqualsToken";
-        SyntaxKind5[SyntaxKind5["EqualsEqualsEqualsToken"] = 37] = "EqualsEqualsEqualsToken";
-        SyntaxKind5[SyntaxKind5["ExclamationEqualsEqualsToken"] = 38] = "ExclamationEqualsEqualsToken";
-        SyntaxKind5[SyntaxKind5["EqualsGreaterThanToken"] = 39] = "EqualsGreaterThanToken";
-        SyntaxKind5[SyntaxKind5["PlusToken"] = 40] = "PlusToken";
-        SyntaxKind5[SyntaxKind5["MinusToken"] = 41] = "MinusToken";
-        SyntaxKind5[SyntaxKind5["AsteriskToken"] = 42] = "AsteriskToken";
-        SyntaxKind5[SyntaxKind5["AsteriskAsteriskToken"] = 43] = "AsteriskAsteriskToken";
-        SyntaxKind5[SyntaxKind5["SlashToken"] = 44] = "SlashToken";
-        SyntaxKind5[SyntaxKind5["PercentToken"] = 45] = "PercentToken";
-        SyntaxKind5[SyntaxKind5["PlusPlusToken"] = 46] = "PlusPlusToken";
-        SyntaxKind5[SyntaxKind5["MinusMinusToken"] = 47] = "MinusMinusToken";
-        SyntaxKind5[SyntaxKind5["LessThanLessThanToken"] = 48] = "LessThanLessThanToken";
-        SyntaxKind5[SyntaxKind5["GreaterThanGreaterThanToken"] = 49] = "GreaterThanGreaterThanToken";
-        SyntaxKind5[SyntaxKind5["GreaterThanGreaterThanGreaterThanToken"] = 50] = "GreaterThanGreaterThanGreaterThanToken";
-        SyntaxKind5[SyntaxKind5["AmpersandToken"] = 51] = "AmpersandToken";
-        SyntaxKind5[SyntaxKind5["BarToken"] = 52] = "BarToken";
-        SyntaxKind5[SyntaxKind5["CaretToken"] = 53] = "CaretToken";
-        SyntaxKind5[SyntaxKind5["ExclamationToken"] = 54] = "ExclamationToken";
-        SyntaxKind5[SyntaxKind5["TildeToken"] = 55] = "TildeToken";
-        SyntaxKind5[SyntaxKind5["AmpersandAmpersandToken"] = 56] = "AmpersandAmpersandToken";
-        SyntaxKind5[SyntaxKind5["BarBarToken"] = 57] = "BarBarToken";
-        SyntaxKind5[SyntaxKind5["QuestionToken"] = 58] = "QuestionToken";
-        SyntaxKind5[SyntaxKind5["ColonToken"] = 59] = "ColonToken";
-        SyntaxKind5[SyntaxKind5["AtToken"] = 60] = "AtToken";
-        SyntaxKind5[SyntaxKind5["QuestionQuestionToken"] = 61] = "QuestionQuestionToken";
-        SyntaxKind5[SyntaxKind5["BacktickToken"] = 62] = "BacktickToken";
-        SyntaxKind5[SyntaxKind5["HashToken"] = 63] = "HashToken";
-        SyntaxKind5[SyntaxKind5["EqualsToken"] = 64] = "EqualsToken";
-        SyntaxKind5[SyntaxKind5["PlusEqualsToken"] = 65] = "PlusEqualsToken";
-        SyntaxKind5[SyntaxKind5["MinusEqualsToken"] = 66] = "MinusEqualsToken";
-        SyntaxKind5[SyntaxKind5["AsteriskEqualsToken"] = 67] = "AsteriskEqualsToken";
-        SyntaxKind5[SyntaxKind5["AsteriskAsteriskEqualsToken"] = 68] = "AsteriskAsteriskEqualsToken";
-        SyntaxKind5[SyntaxKind5["SlashEqualsToken"] = 69] = "SlashEqualsToken";
-        SyntaxKind5[SyntaxKind5["PercentEqualsToken"] = 70] = "PercentEqualsToken";
-        SyntaxKind5[SyntaxKind5["LessThanLessThanEqualsToken"] = 71] = "LessThanLessThanEqualsToken";
-        SyntaxKind5[SyntaxKind5["GreaterThanGreaterThanEqualsToken"] = 72] = "GreaterThanGreaterThanEqualsToken";
-        SyntaxKind5[SyntaxKind5["GreaterThanGreaterThanGreaterThanEqualsToken"] = 73] = "GreaterThanGreaterThanGreaterThanEqualsToken";
-        SyntaxKind5[SyntaxKind5["AmpersandEqualsToken"] = 74] = "AmpersandEqualsToken";
-        SyntaxKind5[SyntaxKind5["BarEqualsToken"] = 75] = "BarEqualsToken";
-        SyntaxKind5[SyntaxKind5["BarBarEqualsToken"] = 76] = "BarBarEqualsToken";
-        SyntaxKind5[SyntaxKind5["AmpersandAmpersandEqualsToken"] = 77] = "AmpersandAmpersandEqualsToken";
-        SyntaxKind5[SyntaxKind5["QuestionQuestionEqualsToken"] = 78] = "QuestionQuestionEqualsToken";
-        SyntaxKind5[SyntaxKind5["CaretEqualsToken"] = 79] = "CaretEqualsToken";
-        SyntaxKind5[SyntaxKind5["Identifier"] = 80] = "Identifier";
-        SyntaxKind5[SyntaxKind5["PrivateIdentifier"] = 81] = "PrivateIdentifier";
-        SyntaxKind5[SyntaxKind5["JSDocCommentTextToken"] = 82] = "JSDocCommentTextToken";
-        SyntaxKind5[SyntaxKind5["BreakKeyword"] = 83] = "BreakKeyword";
-        SyntaxKind5[SyntaxKind5["CaseKeyword"] = 84] = "CaseKeyword";
-        SyntaxKind5[SyntaxKind5["CatchKeyword"] = 85] = "CatchKeyword";
-        SyntaxKind5[SyntaxKind5["ClassKeyword"] = 86] = "ClassKeyword";
-        SyntaxKind5[SyntaxKind5["ConstKeyword"] = 87] = "ConstKeyword";
-        SyntaxKind5[SyntaxKind5["ContinueKeyword"] = 88] = "ContinueKeyword";
-        SyntaxKind5[SyntaxKind5["DebuggerKeyword"] = 89] = "DebuggerKeyword";
-        SyntaxKind5[SyntaxKind5["DefaultKeyword"] = 90] = "DefaultKeyword";
-        SyntaxKind5[SyntaxKind5["DeleteKeyword"] = 91] = "DeleteKeyword";
-        SyntaxKind5[SyntaxKind5["DoKeyword"] = 92] = "DoKeyword";
-        SyntaxKind5[SyntaxKind5["ElseKeyword"] = 93] = "ElseKeyword";
-        SyntaxKind5[SyntaxKind5["EnumKeyword"] = 94] = "EnumKeyword";
-        SyntaxKind5[SyntaxKind5["ExportKeyword"] = 95] = "ExportKeyword";
-        SyntaxKind5[SyntaxKind5["ExtendsKeyword"] = 96] = "ExtendsKeyword";
-        SyntaxKind5[SyntaxKind5["FalseKeyword"] = 97] = "FalseKeyword";
-        SyntaxKind5[SyntaxKind5["FinallyKeyword"] = 98] = "FinallyKeyword";
-        SyntaxKind5[SyntaxKind5["ForKeyword"] = 99] = "ForKeyword";
-        SyntaxKind5[SyntaxKind5["FunctionKeyword"] = 100] = "FunctionKeyword";
-        SyntaxKind5[SyntaxKind5["IfKeyword"] = 101] = "IfKeyword";
-        SyntaxKind5[SyntaxKind5["ImportKeyword"] = 102] = "ImportKeyword";
-        SyntaxKind5[SyntaxKind5["InKeyword"] = 103] = "InKeyword";
-        SyntaxKind5[SyntaxKind5["InstanceOfKeyword"] = 104] = "InstanceOfKeyword";
-        SyntaxKind5[SyntaxKind5["NewKeyword"] = 105] = "NewKeyword";
-        SyntaxKind5[SyntaxKind5["NullKeyword"] = 106] = "NullKeyword";
-        SyntaxKind5[SyntaxKind5["ReturnKeyword"] = 107] = "ReturnKeyword";
-        SyntaxKind5[SyntaxKind5["SuperKeyword"] = 108] = "SuperKeyword";
-        SyntaxKind5[SyntaxKind5["SwitchKeyword"] = 109] = "SwitchKeyword";
-        SyntaxKind5[SyntaxKind5["ThisKeyword"] = 110] = "ThisKeyword";
-        SyntaxKind5[SyntaxKind5["ThrowKeyword"] = 111] = "ThrowKeyword";
-        SyntaxKind5[SyntaxKind5["TrueKeyword"] = 112] = "TrueKeyword";
-        SyntaxKind5[SyntaxKind5["TryKeyword"] = 113] = "TryKeyword";
-        SyntaxKind5[SyntaxKind5["TypeOfKeyword"] = 114] = "TypeOfKeyword";
-        SyntaxKind5[SyntaxKind5["VarKeyword"] = 115] = "VarKeyword";
-        SyntaxKind5[SyntaxKind5["VoidKeyword"] = 116] = "VoidKeyword";
-        SyntaxKind5[SyntaxKind5["WhileKeyword"] = 117] = "WhileKeyword";
-        SyntaxKind5[SyntaxKind5["WithKeyword"] = 118] = "WithKeyword";
-        SyntaxKind5[SyntaxKind5["ImplementsKeyword"] = 119] = "ImplementsKeyword";
-        SyntaxKind5[SyntaxKind5["InterfaceKeyword"] = 120] = "InterfaceKeyword";
-        SyntaxKind5[SyntaxKind5["LetKeyword"] = 121] = "LetKeyword";
-        SyntaxKind5[SyntaxKind5["PackageKeyword"] = 122] = "PackageKeyword";
-        SyntaxKind5[SyntaxKind5["PrivateKeyword"] = 123] = "PrivateKeyword";
-        SyntaxKind5[SyntaxKind5["ProtectedKeyword"] = 124] = "ProtectedKeyword";
-        SyntaxKind5[SyntaxKind5["PublicKeyword"] = 125] = "PublicKeyword";
-        SyntaxKind5[SyntaxKind5["StaticKeyword"] = 126] = "StaticKeyword";
-        SyntaxKind5[SyntaxKind5["YieldKeyword"] = 127] = "YieldKeyword";
-        SyntaxKind5[SyntaxKind5["AbstractKeyword"] = 128] = "AbstractKeyword";
-        SyntaxKind5[SyntaxKind5["AccessorKeyword"] = 129] = "AccessorKeyword";
-        SyntaxKind5[SyntaxKind5["AsKeyword"] = 130] = "AsKeyword";
-        SyntaxKind5[SyntaxKind5["AssertsKeyword"] = 131] = "AssertsKeyword";
-        SyntaxKind5[SyntaxKind5["AssertKeyword"] = 132] = "AssertKeyword";
-        SyntaxKind5[SyntaxKind5["AnyKeyword"] = 133] = "AnyKeyword";
-        SyntaxKind5[SyntaxKind5["AsyncKeyword"] = 134] = "AsyncKeyword";
-        SyntaxKind5[SyntaxKind5["AwaitKeyword"] = 135] = "AwaitKeyword";
-        SyntaxKind5[SyntaxKind5["BooleanKeyword"] = 136] = "BooleanKeyword";
-        SyntaxKind5[SyntaxKind5["ConstructorKeyword"] = 137] = "ConstructorKeyword";
-        SyntaxKind5[SyntaxKind5["DeclareKeyword"] = 138] = "DeclareKeyword";
-        SyntaxKind5[SyntaxKind5["GetKeyword"] = 139] = "GetKeyword";
-        SyntaxKind5[SyntaxKind5["InferKeyword"] = 140] = "InferKeyword";
-        SyntaxKind5[SyntaxKind5["IntrinsicKeyword"] = 141] = "IntrinsicKeyword";
-        SyntaxKind5[SyntaxKind5["IsKeyword"] = 142] = "IsKeyword";
-        SyntaxKind5[SyntaxKind5["KeyOfKeyword"] = 143] = "KeyOfKeyword";
-        SyntaxKind5[SyntaxKind5["ModuleKeyword"] = 144] = "ModuleKeyword";
-        SyntaxKind5[SyntaxKind5["NamespaceKeyword"] = 145] = "NamespaceKeyword";
-        SyntaxKind5[SyntaxKind5["NeverKeyword"] = 146] = "NeverKeyword";
-        SyntaxKind5[SyntaxKind5["OutKeyword"] = 147] = "OutKeyword";
-        SyntaxKind5[SyntaxKind5["ReadonlyKeyword"] = 148] = "ReadonlyKeyword";
-        SyntaxKind5[SyntaxKind5["RequireKeyword"] = 149] = "RequireKeyword";
-        SyntaxKind5[SyntaxKind5["NumberKeyword"] = 150] = "NumberKeyword";
-        SyntaxKind5[SyntaxKind5["ObjectKeyword"] = 151] = "ObjectKeyword";
-        SyntaxKind5[SyntaxKind5["SatisfiesKeyword"] = 152] = "SatisfiesKeyword";
-        SyntaxKind5[SyntaxKind5["SetKeyword"] = 153] = "SetKeyword";
-        SyntaxKind5[SyntaxKind5["StringKeyword"] = 154] = "StringKeyword";
-        SyntaxKind5[SyntaxKind5["SymbolKeyword"] = 155] = "SymbolKeyword";
-        SyntaxKind5[SyntaxKind5["TypeKeyword"] = 156] = "TypeKeyword";
-        SyntaxKind5[SyntaxKind5["UndefinedKeyword"] = 157] = "UndefinedKeyword";
-        SyntaxKind5[SyntaxKind5["UniqueKeyword"] = 158] = "UniqueKeyword";
-        SyntaxKind5[SyntaxKind5["UnknownKeyword"] = 159] = "UnknownKeyword";
-        SyntaxKind5[SyntaxKind5["UsingKeyword"] = 160] = "UsingKeyword";
-        SyntaxKind5[SyntaxKind5["FromKeyword"] = 161] = "FromKeyword";
-        SyntaxKind5[SyntaxKind5["GlobalKeyword"] = 162] = "GlobalKeyword";
-        SyntaxKind5[SyntaxKind5["BigIntKeyword"] = 163] = "BigIntKeyword";
-        SyntaxKind5[SyntaxKind5["OverrideKeyword"] = 164] = "OverrideKeyword";
-        SyntaxKind5[SyntaxKind5["OfKeyword"] = 165] = "OfKeyword";
-        SyntaxKind5[SyntaxKind5["DeferKeyword"] = 166] = "DeferKeyword";
-        SyntaxKind5[SyntaxKind5["QualifiedName"] = 167] = "QualifiedName";
-        SyntaxKind5[SyntaxKind5["ComputedPropertyName"] = 168] = "ComputedPropertyName";
-        SyntaxKind5[SyntaxKind5["TypeParameter"] = 169] = "TypeParameter";
-        SyntaxKind5[SyntaxKind5["Parameter"] = 170] = "Parameter";
-        SyntaxKind5[SyntaxKind5["Decorator"] = 171] = "Decorator";
-        SyntaxKind5[SyntaxKind5["PropertySignature"] = 172] = "PropertySignature";
-        SyntaxKind5[SyntaxKind5["PropertyDeclaration"] = 173] = "PropertyDeclaration";
-        SyntaxKind5[SyntaxKind5["MethodSignature"] = 174] = "MethodSignature";
-        SyntaxKind5[SyntaxKind5["MethodDeclaration"] = 175] = "MethodDeclaration";
-        SyntaxKind5[SyntaxKind5["ClassStaticBlockDeclaration"] = 176] = "ClassStaticBlockDeclaration";
-        SyntaxKind5[SyntaxKind5["Constructor"] = 177] = "Constructor";
-        SyntaxKind5[SyntaxKind5["GetAccessor"] = 178] = "GetAccessor";
-        SyntaxKind5[SyntaxKind5["SetAccessor"] = 179] = "SetAccessor";
-        SyntaxKind5[SyntaxKind5["CallSignature"] = 180] = "CallSignature";
-        SyntaxKind5[SyntaxKind5["ConstructSignature"] = 181] = "ConstructSignature";
-        SyntaxKind5[SyntaxKind5["IndexSignature"] = 182] = "IndexSignature";
-        SyntaxKind5[SyntaxKind5["TypePredicate"] = 183] = "TypePredicate";
-        SyntaxKind5[SyntaxKind5["TypeReference"] = 184] = "TypeReference";
-        SyntaxKind5[SyntaxKind5["FunctionType"] = 185] = "FunctionType";
-        SyntaxKind5[SyntaxKind5["ConstructorType"] = 186] = "ConstructorType";
-        SyntaxKind5[SyntaxKind5["TypeQuery"] = 187] = "TypeQuery";
-        SyntaxKind5[SyntaxKind5["TypeLiteral"] = 188] = "TypeLiteral";
-        SyntaxKind5[SyntaxKind5["ArrayType"] = 189] = "ArrayType";
-        SyntaxKind5[SyntaxKind5["TupleType"] = 190] = "TupleType";
-        SyntaxKind5[SyntaxKind5["OptionalType"] = 191] = "OptionalType";
-        SyntaxKind5[SyntaxKind5["RestType"] = 192] = "RestType";
-        SyntaxKind5[SyntaxKind5["UnionType"] = 193] = "UnionType";
-        SyntaxKind5[SyntaxKind5["IntersectionType"] = 194] = "IntersectionType";
-        SyntaxKind5[SyntaxKind5["ConditionalType"] = 195] = "ConditionalType";
-        SyntaxKind5[SyntaxKind5["InferType"] = 196] = "InferType";
-        SyntaxKind5[SyntaxKind5["ParenthesizedType"] = 197] = "ParenthesizedType";
-        SyntaxKind5[SyntaxKind5["ThisType"] = 198] = "ThisType";
-        SyntaxKind5[SyntaxKind5["TypeOperator"] = 199] = "TypeOperator";
-        SyntaxKind5[SyntaxKind5["IndexedAccessType"] = 200] = "IndexedAccessType";
-        SyntaxKind5[SyntaxKind5["MappedType"] = 201] = "MappedType";
-        SyntaxKind5[SyntaxKind5["LiteralType"] = 202] = "LiteralType";
-        SyntaxKind5[SyntaxKind5["NamedTupleMember"] = 203] = "NamedTupleMember";
-        SyntaxKind5[SyntaxKind5["TemplateLiteralType"] = 204] = "TemplateLiteralType";
-        SyntaxKind5[SyntaxKind5["TemplateLiteralTypeSpan"] = 205] = "TemplateLiteralTypeSpan";
-        SyntaxKind5[SyntaxKind5["ImportType"] = 206] = "ImportType";
-        SyntaxKind5[SyntaxKind5["ObjectBindingPattern"] = 207] = "ObjectBindingPattern";
-        SyntaxKind5[SyntaxKind5["ArrayBindingPattern"] = 208] = "ArrayBindingPattern";
-        SyntaxKind5[SyntaxKind5["BindingElement"] = 209] = "BindingElement";
-        SyntaxKind5[SyntaxKind5["ArrayLiteralExpression"] = 210] = "ArrayLiteralExpression";
-        SyntaxKind5[SyntaxKind5["ObjectLiteralExpression"] = 211] = "ObjectLiteralExpression";
-        SyntaxKind5[SyntaxKind5["PropertyAccessExpression"] = 212] = "PropertyAccessExpression";
-        SyntaxKind5[SyntaxKind5["ElementAccessExpression"] = 213] = "ElementAccessExpression";
-        SyntaxKind5[SyntaxKind5["CallExpression"] = 214] = "CallExpression";
-        SyntaxKind5[SyntaxKind5["NewExpression"] = 215] = "NewExpression";
-        SyntaxKind5[SyntaxKind5["TaggedTemplateExpression"] = 216] = "TaggedTemplateExpression";
-        SyntaxKind5[SyntaxKind5["TypeAssertionExpression"] = 217] = "TypeAssertionExpression";
-        SyntaxKind5[SyntaxKind5["ParenthesizedExpression"] = 218] = "ParenthesizedExpression";
-        SyntaxKind5[SyntaxKind5["FunctionExpression"] = 219] = "FunctionExpression";
-        SyntaxKind5[SyntaxKind5["ArrowFunction"] = 220] = "ArrowFunction";
-        SyntaxKind5[SyntaxKind5["DeleteExpression"] = 221] = "DeleteExpression";
-        SyntaxKind5[SyntaxKind5["TypeOfExpression"] = 222] = "TypeOfExpression";
-        SyntaxKind5[SyntaxKind5["VoidExpression"] = 223] = "VoidExpression";
-        SyntaxKind5[SyntaxKind5["AwaitExpression"] = 224] = "AwaitExpression";
-        SyntaxKind5[SyntaxKind5["PrefixUnaryExpression"] = 225] = "PrefixUnaryExpression";
-        SyntaxKind5[SyntaxKind5["PostfixUnaryExpression"] = 226] = "PostfixUnaryExpression";
-        SyntaxKind5[SyntaxKind5["BinaryExpression"] = 227] = "BinaryExpression";
-        SyntaxKind5[SyntaxKind5["ConditionalExpression"] = 228] = "ConditionalExpression";
-        SyntaxKind5[SyntaxKind5["TemplateExpression"] = 229] = "TemplateExpression";
-        SyntaxKind5[SyntaxKind5["YieldExpression"] = 230] = "YieldExpression";
-        SyntaxKind5[SyntaxKind5["SpreadElement"] = 231] = "SpreadElement";
-        SyntaxKind5[SyntaxKind5["ClassExpression"] = 232] = "ClassExpression";
-        SyntaxKind5[SyntaxKind5["OmittedExpression"] = 233] = "OmittedExpression";
-        SyntaxKind5[SyntaxKind5["ExpressionWithTypeArguments"] = 234] = "ExpressionWithTypeArguments";
-        SyntaxKind5[SyntaxKind5["AsExpression"] = 235] = "AsExpression";
-        SyntaxKind5[SyntaxKind5["NonNullExpression"] = 236] = "NonNullExpression";
-        SyntaxKind5[SyntaxKind5["MetaProperty"] = 237] = "MetaProperty";
-        SyntaxKind5[SyntaxKind5["SyntheticExpression"] = 238] = "SyntheticExpression";
-        SyntaxKind5[SyntaxKind5["SatisfiesExpression"] = 239] = "SatisfiesExpression";
-        SyntaxKind5[SyntaxKind5["TemplateSpan"] = 240] = "TemplateSpan";
-        SyntaxKind5[SyntaxKind5["SemicolonClassElement"] = 241] = "SemicolonClassElement";
-        SyntaxKind5[SyntaxKind5["Block"] = 242] = "Block";
-        SyntaxKind5[SyntaxKind5["EmptyStatement"] = 243] = "EmptyStatement";
-        SyntaxKind5[SyntaxKind5["VariableStatement"] = 244] = "VariableStatement";
-        SyntaxKind5[SyntaxKind5["ExpressionStatement"] = 245] = "ExpressionStatement";
-        SyntaxKind5[SyntaxKind5["IfStatement"] = 246] = "IfStatement";
-        SyntaxKind5[SyntaxKind5["DoStatement"] = 247] = "DoStatement";
-        SyntaxKind5[SyntaxKind5["WhileStatement"] = 248] = "WhileStatement";
-        SyntaxKind5[SyntaxKind5["ForStatement"] = 249] = "ForStatement";
-        SyntaxKind5[SyntaxKind5["ForInStatement"] = 250] = "ForInStatement";
-        SyntaxKind5[SyntaxKind5["ForOfStatement"] = 251] = "ForOfStatement";
-        SyntaxKind5[SyntaxKind5["ContinueStatement"] = 252] = "ContinueStatement";
-        SyntaxKind5[SyntaxKind5["BreakStatement"] = 253] = "BreakStatement";
-        SyntaxKind5[SyntaxKind5["ReturnStatement"] = 254] = "ReturnStatement";
-        SyntaxKind5[SyntaxKind5["WithStatement"] = 255] = "WithStatement";
-        SyntaxKind5[SyntaxKind5["SwitchStatement"] = 256] = "SwitchStatement";
-        SyntaxKind5[SyntaxKind5["LabeledStatement"] = 257] = "LabeledStatement";
-        SyntaxKind5[SyntaxKind5["ThrowStatement"] = 258] = "ThrowStatement";
-        SyntaxKind5[SyntaxKind5["TryStatement"] = 259] = "TryStatement";
-        SyntaxKind5[SyntaxKind5["DebuggerStatement"] = 260] = "DebuggerStatement";
-        SyntaxKind5[SyntaxKind5["VariableDeclaration"] = 261] = "VariableDeclaration";
-        SyntaxKind5[SyntaxKind5["VariableDeclarationList"] = 262] = "VariableDeclarationList";
-        SyntaxKind5[SyntaxKind5["FunctionDeclaration"] = 263] = "FunctionDeclaration";
-        SyntaxKind5[SyntaxKind5["ClassDeclaration"] = 264] = "ClassDeclaration";
-        SyntaxKind5[SyntaxKind5["InterfaceDeclaration"] = 265] = "InterfaceDeclaration";
-        SyntaxKind5[SyntaxKind5["TypeAliasDeclaration"] = 266] = "TypeAliasDeclaration";
-        SyntaxKind5[SyntaxKind5["EnumDeclaration"] = 267] = "EnumDeclaration";
-        SyntaxKind5[SyntaxKind5["ModuleDeclaration"] = 268] = "ModuleDeclaration";
-        SyntaxKind5[SyntaxKind5["ModuleBlock"] = 269] = "ModuleBlock";
-        SyntaxKind5[SyntaxKind5["CaseBlock"] = 270] = "CaseBlock";
-        SyntaxKind5[SyntaxKind5["NamespaceExportDeclaration"] = 271] = "NamespaceExportDeclaration";
-        SyntaxKind5[SyntaxKind5["ImportEqualsDeclaration"] = 272] = "ImportEqualsDeclaration";
-        SyntaxKind5[SyntaxKind5["ImportDeclaration"] = 273] = "ImportDeclaration";
-        SyntaxKind5[SyntaxKind5["ImportClause"] = 274] = "ImportClause";
-        SyntaxKind5[SyntaxKind5["NamespaceImport"] = 275] = "NamespaceImport";
-        SyntaxKind5[SyntaxKind5["NamedImports"] = 276] = "NamedImports";
-        SyntaxKind5[SyntaxKind5["ImportSpecifier"] = 277] = "ImportSpecifier";
-        SyntaxKind5[SyntaxKind5["ExportAssignment"] = 278] = "ExportAssignment";
-        SyntaxKind5[SyntaxKind5["ExportDeclaration"] = 279] = "ExportDeclaration";
-        SyntaxKind5[SyntaxKind5["NamedExports"] = 280] = "NamedExports";
-        SyntaxKind5[SyntaxKind5["NamespaceExport"] = 281] = "NamespaceExport";
-        SyntaxKind5[SyntaxKind5["ExportSpecifier"] = 282] = "ExportSpecifier";
-        SyntaxKind5[SyntaxKind5["MissingDeclaration"] = 283] = "MissingDeclaration";
-        SyntaxKind5[SyntaxKind5["ExternalModuleReference"] = 284] = "ExternalModuleReference";
-        SyntaxKind5[SyntaxKind5["JsxElement"] = 285] = "JsxElement";
-        SyntaxKind5[SyntaxKind5["JsxSelfClosingElement"] = 286] = "JsxSelfClosingElement";
-        SyntaxKind5[SyntaxKind5["JsxOpeningElement"] = 287] = "JsxOpeningElement";
-        SyntaxKind5[SyntaxKind5["JsxClosingElement"] = 288] = "JsxClosingElement";
-        SyntaxKind5[SyntaxKind5["JsxFragment"] = 289] = "JsxFragment";
-        SyntaxKind5[SyntaxKind5["JsxOpeningFragment"] = 290] = "JsxOpeningFragment";
-        SyntaxKind5[SyntaxKind5["JsxClosingFragment"] = 291] = "JsxClosingFragment";
-        SyntaxKind5[SyntaxKind5["JsxAttribute"] = 292] = "JsxAttribute";
-        SyntaxKind5[SyntaxKind5["JsxAttributes"] = 293] = "JsxAttributes";
-        SyntaxKind5[SyntaxKind5["JsxSpreadAttribute"] = 294] = "JsxSpreadAttribute";
-        SyntaxKind5[SyntaxKind5["JsxExpression"] = 295] = "JsxExpression";
-        SyntaxKind5[SyntaxKind5["JsxNamespacedName"] = 296] = "JsxNamespacedName";
-        SyntaxKind5[SyntaxKind5["CaseClause"] = 297] = "CaseClause";
-        SyntaxKind5[SyntaxKind5["DefaultClause"] = 298] = "DefaultClause";
-        SyntaxKind5[SyntaxKind5["HeritageClause"] = 299] = "HeritageClause";
-        SyntaxKind5[SyntaxKind5["CatchClause"] = 300] = "CatchClause";
-        SyntaxKind5[SyntaxKind5["ImportAttributes"] = 301] = "ImportAttributes";
-        SyntaxKind5[SyntaxKind5["ImportAttribute"] = 302] = "ImportAttribute";
-        SyntaxKind5[
-          SyntaxKind5["AssertClause"] = 301
+      var SyntaxKind5 = /* @__PURE__ */ ((SyntaxKind52) => {
+        SyntaxKind52[SyntaxKind52["Unknown"] = 0] = "Unknown";
+        SyntaxKind52[SyntaxKind52["EndOfFileToken"] = 1] = "EndOfFileToken";
+        SyntaxKind52[SyntaxKind52["SingleLineCommentTrivia"] = 2] = "SingleLineCommentTrivia";
+        SyntaxKind52[SyntaxKind52["MultiLineCommentTrivia"] = 3] = "MultiLineCommentTrivia";
+        SyntaxKind52[SyntaxKind52["NewLineTrivia"] = 4] = "NewLineTrivia";
+        SyntaxKind52[SyntaxKind52["WhitespaceTrivia"] = 5] = "WhitespaceTrivia";
+        SyntaxKind52[SyntaxKind52["ShebangTrivia"] = 6] = "ShebangTrivia";
+        SyntaxKind52[SyntaxKind52["ConflictMarkerTrivia"] = 7] = "ConflictMarkerTrivia";
+        SyntaxKind52[SyntaxKind52["NonTextFileMarkerTrivia"] = 8] = "NonTextFileMarkerTrivia";
+        SyntaxKind52[SyntaxKind52["NumericLiteral"] = 9] = "NumericLiteral";
+        SyntaxKind52[SyntaxKind52["BigIntLiteral"] = 10] = "BigIntLiteral";
+        SyntaxKind52[SyntaxKind52["StringLiteral"] = 11] = "StringLiteral";
+        SyntaxKind52[SyntaxKind52["JsxText"] = 12] = "JsxText";
+        SyntaxKind52[SyntaxKind52["JsxTextAllWhiteSpaces"] = 13] = "JsxTextAllWhiteSpaces";
+        SyntaxKind52[SyntaxKind52["RegularExpressionLiteral"] = 14] = "RegularExpressionLiteral";
+        SyntaxKind52[SyntaxKind52["NoSubstitutionTemplateLiteral"] = 15] = "NoSubstitutionTemplateLiteral";
+        SyntaxKind52[SyntaxKind52["TemplateHead"] = 16] = "TemplateHead";
+        SyntaxKind52[SyntaxKind52["TemplateMiddle"] = 17] = "TemplateMiddle";
+        SyntaxKind52[SyntaxKind52["TemplateTail"] = 18] = "TemplateTail";
+        SyntaxKind52[SyntaxKind52["OpenBraceToken"] = 19] = "OpenBraceToken";
+        SyntaxKind52[SyntaxKind52["CloseBraceToken"] = 20] = "CloseBraceToken";
+        SyntaxKind52[SyntaxKind52["OpenParenToken"] = 21] = "OpenParenToken";
+        SyntaxKind52[SyntaxKind52["CloseParenToken"] = 22] = "CloseParenToken";
+        SyntaxKind52[SyntaxKind52["OpenBracketToken"] = 23] = "OpenBracketToken";
+        SyntaxKind52[SyntaxKind52["CloseBracketToken"] = 24] = "CloseBracketToken";
+        SyntaxKind52[SyntaxKind52["DotToken"] = 25] = "DotToken";
+        SyntaxKind52[SyntaxKind52["DotDotDotToken"] = 26] = "DotDotDotToken";
+        SyntaxKind52[SyntaxKind52["SemicolonToken"] = 27] = "SemicolonToken";
+        SyntaxKind52[SyntaxKind52["CommaToken"] = 28] = "CommaToken";
+        SyntaxKind52[SyntaxKind52["QuestionDotToken"] = 29] = "QuestionDotToken";
+        SyntaxKind52[SyntaxKind52["LessThanToken"] = 30] = "LessThanToken";
+        SyntaxKind52[SyntaxKind52["LessThanSlashToken"] = 31] = "LessThanSlashToken";
+        SyntaxKind52[SyntaxKind52["GreaterThanToken"] = 32] = "GreaterThanToken";
+        SyntaxKind52[SyntaxKind52["LessThanEqualsToken"] = 33] = "LessThanEqualsToken";
+        SyntaxKind52[SyntaxKind52["GreaterThanEqualsToken"] = 34] = "GreaterThanEqualsToken";
+        SyntaxKind52[SyntaxKind52["EqualsEqualsToken"] = 35] = "EqualsEqualsToken";
+        SyntaxKind52[SyntaxKind52["ExclamationEqualsToken"] = 36] = "ExclamationEqualsToken";
+        SyntaxKind52[SyntaxKind52["EqualsEqualsEqualsToken"] = 37] = "EqualsEqualsEqualsToken";
+        SyntaxKind52[SyntaxKind52["ExclamationEqualsEqualsToken"] = 38] = "ExclamationEqualsEqualsToken";
+        SyntaxKind52[SyntaxKind52["EqualsGreaterThanToken"] = 39] = "EqualsGreaterThanToken";
+        SyntaxKind52[SyntaxKind52["PlusToken"] = 40] = "PlusToken";
+        SyntaxKind52[SyntaxKind52["MinusToken"] = 41] = "MinusToken";
+        SyntaxKind52[SyntaxKind52["AsteriskToken"] = 42] = "AsteriskToken";
+        SyntaxKind52[SyntaxKind52["AsteriskAsteriskToken"] = 43] = "AsteriskAsteriskToken";
+        SyntaxKind52[SyntaxKind52["SlashToken"] = 44] = "SlashToken";
+        SyntaxKind52[SyntaxKind52["PercentToken"] = 45] = "PercentToken";
+        SyntaxKind52[SyntaxKind52["PlusPlusToken"] = 46] = "PlusPlusToken";
+        SyntaxKind52[SyntaxKind52["MinusMinusToken"] = 47] = "MinusMinusToken";
+        SyntaxKind52[SyntaxKind52["LessThanLessThanToken"] = 48] = "LessThanLessThanToken";
+        SyntaxKind52[SyntaxKind52["GreaterThanGreaterThanToken"] = 49] = "GreaterThanGreaterThanToken";
+        SyntaxKind52[SyntaxKind52["GreaterThanGreaterThanGreaterThanToken"] = 50] = "GreaterThanGreaterThanGreaterThanToken";
+        SyntaxKind52[SyntaxKind52["AmpersandToken"] = 51] = "AmpersandToken";
+        SyntaxKind52[SyntaxKind52["BarToken"] = 52] = "BarToken";
+        SyntaxKind52[SyntaxKind52["CaretToken"] = 53] = "CaretToken";
+        SyntaxKind52[SyntaxKind52["ExclamationToken"] = 54] = "ExclamationToken";
+        SyntaxKind52[SyntaxKind52["TildeToken"] = 55] = "TildeToken";
+        SyntaxKind52[SyntaxKind52["AmpersandAmpersandToken"] = 56] = "AmpersandAmpersandToken";
+        SyntaxKind52[SyntaxKind52["BarBarToken"] = 57] = "BarBarToken";
+        SyntaxKind52[SyntaxKind52["QuestionToken"] = 58] = "QuestionToken";
+        SyntaxKind52[SyntaxKind52["ColonToken"] = 59] = "ColonToken";
+        SyntaxKind52[SyntaxKind52["AtToken"] = 60] = "AtToken";
+        SyntaxKind52[SyntaxKind52["QuestionQuestionToken"] = 61] = "QuestionQuestionToken";
+        SyntaxKind52[SyntaxKind52["BacktickToken"] = 62] = "BacktickToken";
+        SyntaxKind52[SyntaxKind52["HashToken"] = 63] = "HashToken";
+        SyntaxKind52[SyntaxKind52["EqualsToken"] = 64] = "EqualsToken";
+        SyntaxKind52[SyntaxKind52["PlusEqualsToken"] = 65] = "PlusEqualsToken";
+        SyntaxKind52[SyntaxKind52["MinusEqualsToken"] = 66] = "MinusEqualsToken";
+        SyntaxKind52[SyntaxKind52["AsteriskEqualsToken"] = 67] = "AsteriskEqualsToken";
+        SyntaxKind52[SyntaxKind52["AsteriskAsteriskEqualsToken"] = 68] = "AsteriskAsteriskEqualsToken";
+        SyntaxKind52[SyntaxKind52["SlashEqualsToken"] = 69] = "SlashEqualsToken";
+        SyntaxKind52[SyntaxKind52["PercentEqualsToken"] = 70] = "PercentEqualsToken";
+        SyntaxKind52[SyntaxKind52["LessThanLessThanEqualsToken"] = 71] = "LessThanLessThanEqualsToken";
+        SyntaxKind52[SyntaxKind52["GreaterThanGreaterThanEqualsToken"] = 72] = "GreaterThanGreaterThanEqualsToken";
+        SyntaxKind52[SyntaxKind52["GreaterThanGreaterThanGreaterThanEqualsToken"] = 73] = "GreaterThanGreaterThanGreaterThanEqualsToken";
+        SyntaxKind52[SyntaxKind52["AmpersandEqualsToken"] = 74] = "AmpersandEqualsToken";
+        SyntaxKind52[SyntaxKind52["BarEqualsToken"] = 75] = "BarEqualsToken";
+        SyntaxKind52[SyntaxKind52["BarBarEqualsToken"] = 76] = "BarBarEqualsToken";
+        SyntaxKind52[SyntaxKind52["AmpersandAmpersandEqualsToken"] = 77] = "AmpersandAmpersandEqualsToken";
+        SyntaxKind52[SyntaxKind52["QuestionQuestionEqualsToken"] = 78] = "QuestionQuestionEqualsToken";
+        SyntaxKind52[SyntaxKind52["CaretEqualsToken"] = 79] = "CaretEqualsToken";
+        SyntaxKind52[SyntaxKind52["Identifier"] = 80] = "Identifier";
+        SyntaxKind52[SyntaxKind52["PrivateIdentifier"] = 81] = "PrivateIdentifier";
+        SyntaxKind52[SyntaxKind52["JSDocCommentTextToken"] = 82] = "JSDocCommentTextToken";
+        SyntaxKind52[SyntaxKind52["BreakKeyword"] = 83] = "BreakKeyword";
+        SyntaxKind52[SyntaxKind52["CaseKeyword"] = 84] = "CaseKeyword";
+        SyntaxKind52[SyntaxKind52["CatchKeyword"] = 85] = "CatchKeyword";
+        SyntaxKind52[SyntaxKind52["ClassKeyword"] = 86] = "ClassKeyword";
+        SyntaxKind52[SyntaxKind52["ConstKeyword"] = 87] = "ConstKeyword";
+        SyntaxKind52[SyntaxKind52["ContinueKeyword"] = 88] = "ContinueKeyword";
+        SyntaxKind52[SyntaxKind52["DebuggerKeyword"] = 89] = "DebuggerKeyword";
+        SyntaxKind52[SyntaxKind52["DefaultKeyword"] = 90] = "DefaultKeyword";
+        SyntaxKind52[SyntaxKind52["DeleteKeyword"] = 91] = "DeleteKeyword";
+        SyntaxKind52[SyntaxKind52["DoKeyword"] = 92] = "DoKeyword";
+        SyntaxKind52[SyntaxKind52["ElseKeyword"] = 93] = "ElseKeyword";
+        SyntaxKind52[SyntaxKind52["EnumKeyword"] = 94] = "EnumKeyword";
+        SyntaxKind52[SyntaxKind52["ExportKeyword"] = 95] = "ExportKeyword";
+        SyntaxKind52[SyntaxKind52["ExtendsKeyword"] = 96] = "ExtendsKeyword";
+        SyntaxKind52[SyntaxKind52["FalseKeyword"] = 97] = "FalseKeyword";
+        SyntaxKind52[SyntaxKind52["FinallyKeyword"] = 98] = "FinallyKeyword";
+        SyntaxKind52[SyntaxKind52["ForKeyword"] = 99] = "ForKeyword";
+        SyntaxKind52[SyntaxKind52["FunctionKeyword"] = 100] = "FunctionKeyword";
+        SyntaxKind52[SyntaxKind52["IfKeyword"] = 101] = "IfKeyword";
+        SyntaxKind52[SyntaxKind52["ImportKeyword"] = 102] = "ImportKeyword";
+        SyntaxKind52[SyntaxKind52["InKeyword"] = 103] = "InKeyword";
+        SyntaxKind52[SyntaxKind52["InstanceOfKeyword"] = 104] = "InstanceOfKeyword";
+        SyntaxKind52[SyntaxKind52["NewKeyword"] = 105] = "NewKeyword";
+        SyntaxKind52[SyntaxKind52["NullKeyword"] = 106] = "NullKeyword";
+        SyntaxKind52[SyntaxKind52["ReturnKeyword"] = 107] = "ReturnKeyword";
+        SyntaxKind52[SyntaxKind52["SuperKeyword"] = 108] = "SuperKeyword";
+        SyntaxKind52[SyntaxKind52["SwitchKeyword"] = 109] = "SwitchKeyword";
+        SyntaxKind52[SyntaxKind52["ThisKeyword"] = 110] = "ThisKeyword";
+        SyntaxKind52[SyntaxKind52["ThrowKeyword"] = 111] = "ThrowKeyword";
+        SyntaxKind52[SyntaxKind52["TrueKeyword"] = 112] = "TrueKeyword";
+        SyntaxKind52[SyntaxKind52["TryKeyword"] = 113] = "TryKeyword";
+        SyntaxKind52[SyntaxKind52["TypeOfKeyword"] = 114] = "TypeOfKeyword";
+        SyntaxKind52[SyntaxKind52["VarKeyword"] = 115] = "VarKeyword";
+        SyntaxKind52[SyntaxKind52["VoidKeyword"] = 116] = "VoidKeyword";
+        SyntaxKind52[SyntaxKind52["WhileKeyword"] = 117] = "WhileKeyword";
+        SyntaxKind52[SyntaxKind52["WithKeyword"] = 118] = "WithKeyword";
+        SyntaxKind52[SyntaxKind52["ImplementsKeyword"] = 119] = "ImplementsKeyword";
+        SyntaxKind52[SyntaxKind52["InterfaceKeyword"] = 120] = "InterfaceKeyword";
+        SyntaxKind52[SyntaxKind52["LetKeyword"] = 121] = "LetKeyword";
+        SyntaxKind52[SyntaxKind52["PackageKeyword"] = 122] = "PackageKeyword";
+        SyntaxKind52[SyntaxKind52["PrivateKeyword"] = 123] = "PrivateKeyword";
+        SyntaxKind52[SyntaxKind52["ProtectedKeyword"] = 124] = "ProtectedKeyword";
+        SyntaxKind52[SyntaxKind52["PublicKeyword"] = 125] = "PublicKeyword";
+        SyntaxKind52[SyntaxKind52["StaticKeyword"] = 126] = "StaticKeyword";
+        SyntaxKind52[SyntaxKind52["YieldKeyword"] = 127] = "YieldKeyword";
+        SyntaxKind52[SyntaxKind52["AbstractKeyword"] = 128] = "AbstractKeyword";
+        SyntaxKind52[SyntaxKind52["AccessorKeyword"] = 129] = "AccessorKeyword";
+        SyntaxKind52[SyntaxKind52["AsKeyword"] = 130] = "AsKeyword";
+        SyntaxKind52[SyntaxKind52["AssertsKeyword"] = 131] = "AssertsKeyword";
+        SyntaxKind52[SyntaxKind52["AssertKeyword"] = 132] = "AssertKeyword";
+        SyntaxKind52[SyntaxKind52["AnyKeyword"] = 133] = "AnyKeyword";
+        SyntaxKind52[SyntaxKind52["AsyncKeyword"] = 134] = "AsyncKeyword";
+        SyntaxKind52[SyntaxKind52["AwaitKeyword"] = 135] = "AwaitKeyword";
+        SyntaxKind52[SyntaxKind52["BooleanKeyword"] = 136] = "BooleanKeyword";
+        SyntaxKind52[SyntaxKind52["ConstructorKeyword"] = 137] = "ConstructorKeyword";
+        SyntaxKind52[SyntaxKind52["DeclareKeyword"] = 138] = "DeclareKeyword";
+        SyntaxKind52[SyntaxKind52["GetKeyword"] = 139] = "GetKeyword";
+        SyntaxKind52[SyntaxKind52["InferKeyword"] = 140] = "InferKeyword";
+        SyntaxKind52[SyntaxKind52["IntrinsicKeyword"] = 141] = "IntrinsicKeyword";
+        SyntaxKind52[SyntaxKind52["IsKeyword"] = 142] = "IsKeyword";
+        SyntaxKind52[SyntaxKind52["KeyOfKeyword"] = 143] = "KeyOfKeyword";
+        SyntaxKind52[SyntaxKind52["ModuleKeyword"] = 144] = "ModuleKeyword";
+        SyntaxKind52[SyntaxKind52["NamespaceKeyword"] = 145] = "NamespaceKeyword";
+        SyntaxKind52[SyntaxKind52["NeverKeyword"] = 146] = "NeverKeyword";
+        SyntaxKind52[SyntaxKind52["OutKeyword"] = 147] = "OutKeyword";
+        SyntaxKind52[SyntaxKind52["ReadonlyKeyword"] = 148] = "ReadonlyKeyword";
+        SyntaxKind52[SyntaxKind52["RequireKeyword"] = 149] = "RequireKeyword";
+        SyntaxKind52[SyntaxKind52["NumberKeyword"] = 150] = "NumberKeyword";
+        SyntaxKind52[SyntaxKind52["ObjectKeyword"] = 151] = "ObjectKeyword";
+        SyntaxKind52[SyntaxKind52["SatisfiesKeyword"] = 152] = "SatisfiesKeyword";
+        SyntaxKind52[SyntaxKind52["SetKeyword"] = 153] = "SetKeyword";
+        SyntaxKind52[SyntaxKind52["StringKeyword"] = 154] = "StringKeyword";
+        SyntaxKind52[SyntaxKind52["SymbolKeyword"] = 155] = "SymbolKeyword";
+        SyntaxKind52[SyntaxKind52["TypeKeyword"] = 156] = "TypeKeyword";
+        SyntaxKind52[SyntaxKind52["UndefinedKeyword"] = 157] = "UndefinedKeyword";
+        SyntaxKind52[SyntaxKind52["UniqueKeyword"] = 158] = "UniqueKeyword";
+        SyntaxKind52[SyntaxKind52["UnknownKeyword"] = 159] = "UnknownKeyword";
+        SyntaxKind52[SyntaxKind52["UsingKeyword"] = 160] = "UsingKeyword";
+        SyntaxKind52[SyntaxKind52["FromKeyword"] = 161] = "FromKeyword";
+        SyntaxKind52[SyntaxKind52["GlobalKeyword"] = 162] = "GlobalKeyword";
+        SyntaxKind52[SyntaxKind52["BigIntKeyword"] = 163] = "BigIntKeyword";
+        SyntaxKind52[SyntaxKind52["OverrideKeyword"] = 164] = "OverrideKeyword";
+        SyntaxKind52[SyntaxKind52["OfKeyword"] = 165] = "OfKeyword";
+        SyntaxKind52[SyntaxKind52["DeferKeyword"] = 166] = "DeferKeyword";
+        SyntaxKind52[SyntaxKind52["QualifiedName"] = 167] = "QualifiedName";
+        SyntaxKind52[SyntaxKind52["ComputedPropertyName"] = 168] = "ComputedPropertyName";
+        SyntaxKind52[SyntaxKind52["TypeParameter"] = 169] = "TypeParameter";
+        SyntaxKind52[SyntaxKind52["Parameter"] = 170] = "Parameter";
+        SyntaxKind52[SyntaxKind52["Decorator"] = 171] = "Decorator";
+        SyntaxKind52[SyntaxKind52["PropertySignature"] = 172] = "PropertySignature";
+        SyntaxKind52[SyntaxKind52["PropertyDeclaration"] = 173] = "PropertyDeclaration";
+        SyntaxKind52[SyntaxKind52["MethodSignature"] = 174] = "MethodSignature";
+        SyntaxKind52[SyntaxKind52["MethodDeclaration"] = 175] = "MethodDeclaration";
+        SyntaxKind52[SyntaxKind52["ClassStaticBlockDeclaration"] = 176] = "ClassStaticBlockDeclaration";
+        SyntaxKind52[SyntaxKind52["Constructor"] = 177] = "Constructor";
+        SyntaxKind52[SyntaxKind52["GetAccessor"] = 178] = "GetAccessor";
+        SyntaxKind52[SyntaxKind52["SetAccessor"] = 179] = "SetAccessor";
+        SyntaxKind52[SyntaxKind52["CallSignature"] = 180] = "CallSignature";
+        SyntaxKind52[SyntaxKind52["ConstructSignature"] = 181] = "ConstructSignature";
+        SyntaxKind52[SyntaxKind52["IndexSignature"] = 182] = "IndexSignature";
+        SyntaxKind52[SyntaxKind52["TypePredicate"] = 183] = "TypePredicate";
+        SyntaxKind52[SyntaxKind52["TypeReference"] = 184] = "TypeReference";
+        SyntaxKind52[SyntaxKind52["FunctionType"] = 185] = "FunctionType";
+        SyntaxKind52[SyntaxKind52["ConstructorType"] = 186] = "ConstructorType";
+        SyntaxKind52[SyntaxKind52["TypeQuery"] = 187] = "TypeQuery";
+        SyntaxKind52[SyntaxKind52["TypeLiteral"] = 188] = "TypeLiteral";
+        SyntaxKind52[SyntaxKind52["ArrayType"] = 189] = "ArrayType";
+        SyntaxKind52[SyntaxKind52["TupleType"] = 190] = "TupleType";
+        SyntaxKind52[SyntaxKind52["OptionalType"] = 191] = "OptionalType";
+        SyntaxKind52[SyntaxKind52["RestType"] = 192] = "RestType";
+        SyntaxKind52[SyntaxKind52["UnionType"] = 193] = "UnionType";
+        SyntaxKind52[SyntaxKind52["IntersectionType"] = 194] = "IntersectionType";
+        SyntaxKind52[SyntaxKind52["ConditionalType"] = 195] = "ConditionalType";
+        SyntaxKind52[SyntaxKind52["InferType"] = 196] = "InferType";
+        SyntaxKind52[SyntaxKind52["ParenthesizedType"] = 197] = "ParenthesizedType";
+        SyntaxKind52[SyntaxKind52["ThisType"] = 198] = "ThisType";
+        SyntaxKind52[SyntaxKind52["TypeOperator"] = 199] = "TypeOperator";
+        SyntaxKind52[SyntaxKind52["IndexedAccessType"] = 200] = "IndexedAccessType";
+        SyntaxKind52[SyntaxKind52["MappedType"] = 201] = "MappedType";
+        SyntaxKind52[SyntaxKind52["LiteralType"] = 202] = "LiteralType";
+        SyntaxKind52[SyntaxKind52["NamedTupleMember"] = 203] = "NamedTupleMember";
+        SyntaxKind52[SyntaxKind52["TemplateLiteralType"] = 204] = "TemplateLiteralType";
+        SyntaxKind52[SyntaxKind52["TemplateLiteralTypeSpan"] = 205] = "TemplateLiteralTypeSpan";
+        SyntaxKind52[SyntaxKind52["ImportType"] = 206] = "ImportType";
+        SyntaxKind52[SyntaxKind52["ObjectBindingPattern"] = 207] = "ObjectBindingPattern";
+        SyntaxKind52[SyntaxKind52["ArrayBindingPattern"] = 208] = "ArrayBindingPattern";
+        SyntaxKind52[SyntaxKind52["BindingElement"] = 209] = "BindingElement";
+        SyntaxKind52[SyntaxKind52["ArrayLiteralExpression"] = 210] = "ArrayLiteralExpression";
+        SyntaxKind52[SyntaxKind52["ObjectLiteralExpression"] = 211] = "ObjectLiteralExpression";
+        SyntaxKind52[SyntaxKind52["PropertyAccessExpression"] = 212] = "PropertyAccessExpression";
+        SyntaxKind52[SyntaxKind52["ElementAccessExpression"] = 213] = "ElementAccessExpression";
+        SyntaxKind52[SyntaxKind52["CallExpression"] = 214] = "CallExpression";
+        SyntaxKind52[SyntaxKind52["NewExpression"] = 215] = "NewExpression";
+        SyntaxKind52[SyntaxKind52["TaggedTemplateExpression"] = 216] = "TaggedTemplateExpression";
+        SyntaxKind52[SyntaxKind52["TypeAssertionExpression"] = 217] = "TypeAssertionExpression";
+        SyntaxKind52[SyntaxKind52["ParenthesizedExpression"] = 218] = "ParenthesizedExpression";
+        SyntaxKind52[SyntaxKind52["FunctionExpression"] = 219] = "FunctionExpression";
+        SyntaxKind52[SyntaxKind52["ArrowFunction"] = 220] = "ArrowFunction";
+        SyntaxKind52[SyntaxKind52["DeleteExpression"] = 221] = "DeleteExpression";
+        SyntaxKind52[SyntaxKind52["TypeOfExpression"] = 222] = "TypeOfExpression";
+        SyntaxKind52[SyntaxKind52["VoidExpression"] = 223] = "VoidExpression";
+        SyntaxKind52[SyntaxKind52["AwaitExpression"] = 224] = "AwaitExpression";
+        SyntaxKind52[SyntaxKind52["PrefixUnaryExpression"] = 225] = "PrefixUnaryExpression";
+        SyntaxKind52[SyntaxKind52["PostfixUnaryExpression"] = 226] = "PostfixUnaryExpression";
+        SyntaxKind52[SyntaxKind52["BinaryExpression"] = 227] = "BinaryExpression";
+        SyntaxKind52[SyntaxKind52["ConditionalExpression"] = 228] = "ConditionalExpression";
+        SyntaxKind52[SyntaxKind52["TemplateExpression"] = 229] = "TemplateExpression";
+        SyntaxKind52[SyntaxKind52["YieldExpression"] = 230] = "YieldExpression";
+        SyntaxKind52[SyntaxKind52["SpreadElement"] = 231] = "SpreadElement";
+        SyntaxKind52[SyntaxKind52["ClassExpression"] = 232] = "ClassExpression";
+        SyntaxKind52[SyntaxKind52["OmittedExpression"] = 233] = "OmittedExpression";
+        SyntaxKind52[SyntaxKind52["ExpressionWithTypeArguments"] = 234] = "ExpressionWithTypeArguments";
+        SyntaxKind52[SyntaxKind52["AsExpression"] = 235] = "AsExpression";
+        SyntaxKind52[SyntaxKind52["NonNullExpression"] = 236] = "NonNullExpression";
+        SyntaxKind52[SyntaxKind52["MetaProperty"] = 237] = "MetaProperty";
+        SyntaxKind52[SyntaxKind52["SyntheticExpression"] = 238] = "SyntheticExpression";
+        SyntaxKind52[SyntaxKind52["SatisfiesExpression"] = 239] = "SatisfiesExpression";
+        SyntaxKind52[SyntaxKind52["TemplateSpan"] = 240] = "TemplateSpan";
+        SyntaxKind52[SyntaxKind52["SemicolonClassElement"] = 241] = "SemicolonClassElement";
+        SyntaxKind52[SyntaxKind52["Block"] = 242] = "Block";
+        SyntaxKind52[SyntaxKind52["EmptyStatement"] = 243] = "EmptyStatement";
+        SyntaxKind52[SyntaxKind52["VariableStatement"] = 244] = "VariableStatement";
+        SyntaxKind52[SyntaxKind52["ExpressionStatement"] = 245] = "ExpressionStatement";
+        SyntaxKind52[SyntaxKind52["IfStatement"] = 246] = "IfStatement";
+        SyntaxKind52[SyntaxKind52["DoStatement"] = 247] = "DoStatement";
+        SyntaxKind52[SyntaxKind52["WhileStatement"] = 248] = "WhileStatement";
+        SyntaxKind52[SyntaxKind52["ForStatement"] = 249] = "ForStatement";
+        SyntaxKind52[SyntaxKind52["ForInStatement"] = 250] = "ForInStatement";
+        SyntaxKind52[SyntaxKind52["ForOfStatement"] = 251] = "ForOfStatement";
+        SyntaxKind52[SyntaxKind52["ContinueStatement"] = 252] = "ContinueStatement";
+        SyntaxKind52[SyntaxKind52["BreakStatement"] = 253] = "BreakStatement";
+        SyntaxKind52[SyntaxKind52["ReturnStatement"] = 254] = "ReturnStatement";
+        SyntaxKind52[SyntaxKind52["WithStatement"] = 255] = "WithStatement";
+        SyntaxKind52[SyntaxKind52["SwitchStatement"] = 256] = "SwitchStatement";
+        SyntaxKind52[SyntaxKind52["LabeledStatement"] = 257] = "LabeledStatement";
+        SyntaxKind52[SyntaxKind52["ThrowStatement"] = 258] = "ThrowStatement";
+        SyntaxKind52[SyntaxKind52["TryStatement"] = 259] = "TryStatement";
+        SyntaxKind52[SyntaxKind52["DebuggerStatement"] = 260] = "DebuggerStatement";
+        SyntaxKind52[SyntaxKind52["VariableDeclaration"] = 261] = "VariableDeclaration";
+        SyntaxKind52[SyntaxKind52["VariableDeclarationList"] = 262] = "VariableDeclarationList";
+        SyntaxKind52[SyntaxKind52["FunctionDeclaration"] = 263] = "FunctionDeclaration";
+        SyntaxKind52[SyntaxKind52["ClassDeclaration"] = 264] = "ClassDeclaration";
+        SyntaxKind52[SyntaxKind52["InterfaceDeclaration"] = 265] = "InterfaceDeclaration";
+        SyntaxKind52[SyntaxKind52["TypeAliasDeclaration"] = 266] = "TypeAliasDeclaration";
+        SyntaxKind52[SyntaxKind52["EnumDeclaration"] = 267] = "EnumDeclaration";
+        SyntaxKind52[SyntaxKind52["ModuleDeclaration"] = 268] = "ModuleDeclaration";
+        SyntaxKind52[SyntaxKind52["ModuleBlock"] = 269] = "ModuleBlock";
+        SyntaxKind52[SyntaxKind52["CaseBlock"] = 270] = "CaseBlock";
+        SyntaxKind52[SyntaxKind52["NamespaceExportDeclaration"] = 271] = "NamespaceExportDeclaration";
+        SyntaxKind52[SyntaxKind52["ImportEqualsDeclaration"] = 272] = "ImportEqualsDeclaration";
+        SyntaxKind52[SyntaxKind52["ImportDeclaration"] = 273] = "ImportDeclaration";
+        SyntaxKind52[SyntaxKind52["ImportClause"] = 274] = "ImportClause";
+        SyntaxKind52[SyntaxKind52["NamespaceImport"] = 275] = "NamespaceImport";
+        SyntaxKind52[SyntaxKind52["NamedImports"] = 276] = "NamedImports";
+        SyntaxKind52[SyntaxKind52["ImportSpecifier"] = 277] = "ImportSpecifier";
+        SyntaxKind52[SyntaxKind52["ExportAssignment"] = 278] = "ExportAssignment";
+        SyntaxKind52[SyntaxKind52["ExportDeclaration"] = 279] = "ExportDeclaration";
+        SyntaxKind52[SyntaxKind52["NamedExports"] = 280] = "NamedExports";
+        SyntaxKind52[SyntaxKind52["NamespaceExport"] = 281] = "NamespaceExport";
+        SyntaxKind52[SyntaxKind52["ExportSpecifier"] = 282] = "ExportSpecifier";
+        SyntaxKind52[SyntaxKind52["MissingDeclaration"] = 283] = "MissingDeclaration";
+        SyntaxKind52[SyntaxKind52["ExternalModuleReference"] = 284] = "ExternalModuleReference";
+        SyntaxKind52[SyntaxKind52["JsxElement"] = 285] = "JsxElement";
+        SyntaxKind52[SyntaxKind52["JsxSelfClosingElement"] = 286] = "JsxSelfClosingElement";
+        SyntaxKind52[SyntaxKind52["JsxOpeningElement"] = 287] = "JsxOpeningElement";
+        SyntaxKind52[SyntaxKind52["JsxClosingElement"] = 288] = "JsxClosingElement";
+        SyntaxKind52[SyntaxKind52["JsxFragment"] = 289] = "JsxFragment";
+        SyntaxKind52[SyntaxKind52["JsxOpeningFragment"] = 290] = "JsxOpeningFragment";
+        SyntaxKind52[SyntaxKind52["JsxClosingFragment"] = 291] = "JsxClosingFragment";
+        SyntaxKind52[SyntaxKind52["JsxAttribute"] = 292] = "JsxAttribute";
+        SyntaxKind52[SyntaxKind52["JsxAttributes"] = 293] = "JsxAttributes";
+        SyntaxKind52[SyntaxKind52["JsxSpreadAttribute"] = 294] = "JsxSpreadAttribute";
+        SyntaxKind52[SyntaxKind52["JsxExpression"] = 295] = "JsxExpression";
+        SyntaxKind52[SyntaxKind52["JsxNamespacedName"] = 296] = "JsxNamespacedName";
+        SyntaxKind52[SyntaxKind52["CaseClause"] = 297] = "CaseClause";
+        SyntaxKind52[SyntaxKind52["DefaultClause"] = 298] = "DefaultClause";
+        SyntaxKind52[SyntaxKind52["HeritageClause"] = 299] = "HeritageClause";
+        SyntaxKind52[SyntaxKind52["CatchClause"] = 300] = "CatchClause";
+        SyntaxKind52[SyntaxKind52["ImportAttributes"] = 301] = "ImportAttributes";
+        SyntaxKind52[SyntaxKind52["ImportAttribute"] = 302] = "ImportAttribute";
+        SyntaxKind52[
+          SyntaxKind52["AssertClause"] = 301
           /* ImportAttributes */
         ] = "AssertClause";
-        SyntaxKind5[
-          SyntaxKind5["AssertEntry"] = 302
+        SyntaxKind52[
+          SyntaxKind52["AssertEntry"] = 302
           /* ImportAttribute */
         ] = "AssertEntry";
-        SyntaxKind5[SyntaxKind5["ImportTypeAssertionContainer"] = 303] = "ImportTypeAssertionContainer";
-        SyntaxKind5[SyntaxKind5["PropertyAssignment"] = 304] = "PropertyAssignment";
-        SyntaxKind5[SyntaxKind5["ShorthandPropertyAssignment"] = 305] = "ShorthandPropertyAssignment";
-        SyntaxKind5[SyntaxKind5["SpreadAssignment"] = 306] = "SpreadAssignment";
-        SyntaxKind5[SyntaxKind5["EnumMember"] = 307] = "EnumMember";
-        SyntaxKind5[SyntaxKind5["SourceFile"] = 308] = "SourceFile";
-        SyntaxKind5[SyntaxKind5["Bundle"] = 309] = "Bundle";
-        SyntaxKind5[SyntaxKind5["JSDocTypeExpression"] = 310] = "JSDocTypeExpression";
-        SyntaxKind5[SyntaxKind5["JSDocNameReference"] = 311] = "JSDocNameReference";
-        SyntaxKind5[SyntaxKind5["JSDocMemberName"] = 312] = "JSDocMemberName";
-        SyntaxKind5[SyntaxKind5["JSDocAllType"] = 313] = "JSDocAllType";
-        SyntaxKind5[SyntaxKind5["JSDocUnknownType"] = 314] = "JSDocUnknownType";
-        SyntaxKind5[SyntaxKind5["JSDocNullableType"] = 315] = "JSDocNullableType";
-        SyntaxKind5[SyntaxKind5["JSDocNonNullableType"] = 316] = "JSDocNonNullableType";
-        SyntaxKind5[SyntaxKind5["JSDocOptionalType"] = 317] = "JSDocOptionalType";
-        SyntaxKind5[SyntaxKind5["JSDocFunctionType"] = 318] = "JSDocFunctionType";
-        SyntaxKind5[SyntaxKind5["JSDocVariadicType"] = 319] = "JSDocVariadicType";
-        SyntaxKind5[SyntaxKind5["JSDocNamepathType"] = 320] = "JSDocNamepathType";
-        SyntaxKind5[SyntaxKind5["JSDoc"] = 321] = "JSDoc";
-        SyntaxKind5[
-          SyntaxKind5["JSDocComment"] = 321
+        SyntaxKind52[SyntaxKind52["ImportTypeAssertionContainer"] = 303] = "ImportTypeAssertionContainer";
+        SyntaxKind52[SyntaxKind52["PropertyAssignment"] = 304] = "PropertyAssignment";
+        SyntaxKind52[SyntaxKind52["ShorthandPropertyAssignment"] = 305] = "ShorthandPropertyAssignment";
+        SyntaxKind52[SyntaxKind52["SpreadAssignment"] = 306] = "SpreadAssignment";
+        SyntaxKind52[SyntaxKind52["EnumMember"] = 307] = "EnumMember";
+        SyntaxKind52[SyntaxKind52["SourceFile"] = 308] = "SourceFile";
+        SyntaxKind52[SyntaxKind52["Bundle"] = 309] = "Bundle";
+        SyntaxKind52[SyntaxKind52["JSDocTypeExpression"] = 310] = "JSDocTypeExpression";
+        SyntaxKind52[SyntaxKind52["JSDocNameReference"] = 311] = "JSDocNameReference";
+        SyntaxKind52[SyntaxKind52["JSDocMemberName"] = 312] = "JSDocMemberName";
+        SyntaxKind52[SyntaxKind52["JSDocAllType"] = 313] = "JSDocAllType";
+        SyntaxKind52[SyntaxKind52["JSDocUnknownType"] = 314] = "JSDocUnknownType";
+        SyntaxKind52[SyntaxKind52["JSDocNullableType"] = 315] = "JSDocNullableType";
+        SyntaxKind52[SyntaxKind52["JSDocNonNullableType"] = 316] = "JSDocNonNullableType";
+        SyntaxKind52[SyntaxKind52["JSDocOptionalType"] = 317] = "JSDocOptionalType";
+        SyntaxKind52[SyntaxKind52["JSDocFunctionType"] = 318] = "JSDocFunctionType";
+        SyntaxKind52[SyntaxKind52["JSDocVariadicType"] = 319] = "JSDocVariadicType";
+        SyntaxKind52[SyntaxKind52["JSDocNamepathType"] = 320] = "JSDocNamepathType";
+        SyntaxKind52[SyntaxKind52["JSDoc"] = 321] = "JSDoc";
+        SyntaxKind52[
+          SyntaxKind52["JSDocComment"] = 321
           /* JSDoc */
         ] = "JSDocComment";
-        SyntaxKind5[SyntaxKind5["JSDocText"] = 322] = "JSDocText";
-        SyntaxKind5[SyntaxKind5["JSDocTypeLiteral"] = 323] = "JSDocTypeLiteral";
-        SyntaxKind5[SyntaxKind5["JSDocSignature"] = 324] = "JSDocSignature";
-        SyntaxKind5[SyntaxKind5["JSDocLink"] = 325] = "JSDocLink";
-        SyntaxKind5[SyntaxKind5["JSDocLinkCode"] = 326] = "JSDocLinkCode";
-        SyntaxKind5[SyntaxKind5["JSDocLinkPlain"] = 327] = "JSDocLinkPlain";
-        SyntaxKind5[SyntaxKind5["JSDocTag"] = 328] = "JSDocTag";
-        SyntaxKind5[SyntaxKind5["JSDocAugmentsTag"] = 329] = "JSDocAugmentsTag";
-        SyntaxKind5[SyntaxKind5["JSDocImplementsTag"] = 330] = "JSDocImplementsTag";
-        SyntaxKind5[SyntaxKind5["JSDocAuthorTag"] = 331] = "JSDocAuthorTag";
-        SyntaxKind5[SyntaxKind5["JSDocDeprecatedTag"] = 332] = "JSDocDeprecatedTag";
-        SyntaxKind5[SyntaxKind5["JSDocClassTag"] = 333] = "JSDocClassTag";
-        SyntaxKind5[SyntaxKind5["JSDocPublicTag"] = 334] = "JSDocPublicTag";
-        SyntaxKind5[SyntaxKind5["JSDocPrivateTag"] = 335] = "JSDocPrivateTag";
-        SyntaxKind5[SyntaxKind5["JSDocProtectedTag"] = 336] = "JSDocProtectedTag";
-        SyntaxKind5[SyntaxKind5["JSDocReadonlyTag"] = 337] = "JSDocReadonlyTag";
-        SyntaxKind5[SyntaxKind5["JSDocOverrideTag"] = 338] = "JSDocOverrideTag";
-        SyntaxKind5[SyntaxKind5["JSDocCallbackTag"] = 339] = "JSDocCallbackTag";
-        SyntaxKind5[SyntaxKind5["JSDocOverloadTag"] = 340] = "JSDocOverloadTag";
-        SyntaxKind5[SyntaxKind5["JSDocEnumTag"] = 341] = "JSDocEnumTag";
-        SyntaxKind5[SyntaxKind5["JSDocParameterTag"] = 342] = "JSDocParameterTag";
-        SyntaxKind5[SyntaxKind5["JSDocReturnTag"] = 343] = "JSDocReturnTag";
-        SyntaxKind5[SyntaxKind5["JSDocThisTag"] = 344] = "JSDocThisTag";
-        SyntaxKind5[SyntaxKind5["JSDocTypeTag"] = 345] = "JSDocTypeTag";
-        SyntaxKind5[SyntaxKind5["JSDocTemplateTag"] = 346] = "JSDocTemplateTag";
-        SyntaxKind5[SyntaxKind5["JSDocTypedefTag"] = 347] = "JSDocTypedefTag";
-        SyntaxKind5[SyntaxKind5["JSDocSeeTag"] = 348] = "JSDocSeeTag";
-        SyntaxKind5[SyntaxKind5["JSDocPropertyTag"] = 349] = "JSDocPropertyTag";
-        SyntaxKind5[SyntaxKind5["JSDocThrowsTag"] = 350] = "JSDocThrowsTag";
-        SyntaxKind5[SyntaxKind5["JSDocSatisfiesTag"] = 351] = "JSDocSatisfiesTag";
-        SyntaxKind5[SyntaxKind5["JSDocImportTag"] = 352] = "JSDocImportTag";
-        SyntaxKind5[SyntaxKind5["SyntaxList"] = 353] = "SyntaxList";
-        SyntaxKind5[SyntaxKind5["NotEmittedStatement"] = 354] = "NotEmittedStatement";
-        SyntaxKind5[SyntaxKind5["NotEmittedTypeElement"] = 355] = "NotEmittedTypeElement";
-        SyntaxKind5[SyntaxKind5["PartiallyEmittedExpression"] = 356] = "PartiallyEmittedExpression";
-        SyntaxKind5[SyntaxKind5["CommaListExpression"] = 357] = "CommaListExpression";
-        SyntaxKind5[SyntaxKind5["SyntheticReferenceExpression"] = 358] = "SyntheticReferenceExpression";
-        SyntaxKind5[SyntaxKind5["Count"] = 359] = "Count";
-        SyntaxKind5[
-          SyntaxKind5["FirstAssignment"] = 64
+        SyntaxKind52[SyntaxKind52["JSDocText"] = 322] = "JSDocText";
+        SyntaxKind52[SyntaxKind52["JSDocTypeLiteral"] = 323] = "JSDocTypeLiteral";
+        SyntaxKind52[SyntaxKind52["JSDocSignature"] = 324] = "JSDocSignature";
+        SyntaxKind52[SyntaxKind52["JSDocLink"] = 325] = "JSDocLink";
+        SyntaxKind52[SyntaxKind52["JSDocLinkCode"] = 326] = "JSDocLinkCode";
+        SyntaxKind52[SyntaxKind52["JSDocLinkPlain"] = 327] = "JSDocLinkPlain";
+        SyntaxKind52[SyntaxKind52["JSDocTag"] = 328] = "JSDocTag";
+        SyntaxKind52[SyntaxKind52["JSDocAugmentsTag"] = 329] = "JSDocAugmentsTag";
+        SyntaxKind52[SyntaxKind52["JSDocImplementsTag"] = 330] = "JSDocImplementsTag";
+        SyntaxKind52[SyntaxKind52["JSDocAuthorTag"] = 331] = "JSDocAuthorTag";
+        SyntaxKind52[SyntaxKind52["JSDocDeprecatedTag"] = 332] = "JSDocDeprecatedTag";
+        SyntaxKind52[SyntaxKind52["JSDocClassTag"] = 333] = "JSDocClassTag";
+        SyntaxKind52[SyntaxKind52["JSDocPublicTag"] = 334] = "JSDocPublicTag";
+        SyntaxKind52[SyntaxKind52["JSDocPrivateTag"] = 335] = "JSDocPrivateTag";
+        SyntaxKind52[SyntaxKind52["JSDocProtectedTag"] = 336] = "JSDocProtectedTag";
+        SyntaxKind52[SyntaxKind52["JSDocReadonlyTag"] = 337] = "JSDocReadonlyTag";
+        SyntaxKind52[SyntaxKind52["JSDocOverrideTag"] = 338] = "JSDocOverrideTag";
+        SyntaxKind52[SyntaxKind52["JSDocCallbackTag"] = 339] = "JSDocCallbackTag";
+        SyntaxKind52[SyntaxKind52["JSDocOverloadTag"] = 340] = "JSDocOverloadTag";
+        SyntaxKind52[SyntaxKind52["JSDocEnumTag"] = 341] = "JSDocEnumTag";
+        SyntaxKind52[SyntaxKind52["JSDocParameterTag"] = 342] = "JSDocParameterTag";
+        SyntaxKind52[SyntaxKind52["JSDocReturnTag"] = 343] = "JSDocReturnTag";
+        SyntaxKind52[SyntaxKind52["JSDocThisTag"] = 344] = "JSDocThisTag";
+        SyntaxKind52[SyntaxKind52["JSDocTypeTag"] = 345] = "JSDocTypeTag";
+        SyntaxKind52[SyntaxKind52["JSDocTemplateTag"] = 346] = "JSDocTemplateTag";
+        SyntaxKind52[SyntaxKind52["JSDocTypedefTag"] = 347] = "JSDocTypedefTag";
+        SyntaxKind52[SyntaxKind52["JSDocSeeTag"] = 348] = "JSDocSeeTag";
+        SyntaxKind52[SyntaxKind52["JSDocPropertyTag"] = 349] = "JSDocPropertyTag";
+        SyntaxKind52[SyntaxKind52["JSDocThrowsTag"] = 350] = "JSDocThrowsTag";
+        SyntaxKind52[SyntaxKind52["JSDocSatisfiesTag"] = 351] = "JSDocSatisfiesTag";
+        SyntaxKind52[SyntaxKind52["JSDocImportTag"] = 352] = "JSDocImportTag";
+        SyntaxKind52[SyntaxKind52["SyntaxList"] = 353] = "SyntaxList";
+        SyntaxKind52[SyntaxKind52["NotEmittedStatement"] = 354] = "NotEmittedStatement";
+        SyntaxKind52[SyntaxKind52["NotEmittedTypeElement"] = 355] = "NotEmittedTypeElement";
+        SyntaxKind52[SyntaxKind52["PartiallyEmittedExpression"] = 356] = "PartiallyEmittedExpression";
+        SyntaxKind52[SyntaxKind52["CommaListExpression"] = 357] = "CommaListExpression";
+        SyntaxKind52[SyntaxKind52["SyntheticReferenceExpression"] = 358] = "SyntheticReferenceExpression";
+        SyntaxKind52[SyntaxKind52["Count"] = 359] = "Count";
+        SyntaxKind52[
+          SyntaxKind52["FirstAssignment"] = 64
           /* EqualsToken */
         ] = "FirstAssignment";
-        SyntaxKind5[
-          SyntaxKind5["LastAssignment"] = 79
+        SyntaxKind52[
+          SyntaxKind52["LastAssignment"] = 79
           /* CaretEqualsToken */
         ] = "LastAssignment";
-        SyntaxKind5[
-          SyntaxKind5["FirstCompoundAssignment"] = 65
+        SyntaxKind52[
+          SyntaxKind52["FirstCompoundAssignment"] = 65
           /* PlusEqualsToken */
         ] = "FirstCompoundAssignment";
-        SyntaxKind5[
-          SyntaxKind5["LastCompoundAssignment"] = 79
+        SyntaxKind52[
+          SyntaxKind52["LastCompoundAssignment"] = 79
           /* CaretEqualsToken */
         ] = "LastCompoundAssignment";
-        SyntaxKind5[
-          SyntaxKind5["FirstReservedWord"] = 83
+        SyntaxKind52[
+          SyntaxKind52["FirstReservedWord"] = 83
           /* BreakKeyword */
         ] = "FirstReservedWord";
-        SyntaxKind5[
-          SyntaxKind5["LastReservedWord"] = 118
+        SyntaxKind52[
+          SyntaxKind52["LastReservedWord"] = 118
           /* WithKeyword */
         ] = "LastReservedWord";
-        SyntaxKind5[
-          SyntaxKind5["FirstKeyword"] = 83
+        SyntaxKind52[
+          SyntaxKind52["FirstKeyword"] = 83
           /* BreakKeyword */
         ] = "FirstKeyword";
-        SyntaxKind5[
-          SyntaxKind5["LastKeyword"] = 166
+        SyntaxKind52[
+          SyntaxKind52["LastKeyword"] = 166
           /* DeferKeyword */
         ] = "LastKeyword";
-        SyntaxKind5[
-          SyntaxKind5["FirstFutureReservedWord"] = 119
+        SyntaxKind52[
+          SyntaxKind52["FirstFutureReservedWord"] = 119
           /* ImplementsKeyword */
         ] = "FirstFutureReservedWord";
-        SyntaxKind5[
-          SyntaxKind5["LastFutureReservedWord"] = 127
+        SyntaxKind52[
+          SyntaxKind52["LastFutureReservedWord"] = 127
           /* YieldKeyword */
         ] = "LastFutureReservedWord";
-        SyntaxKind5[
-          SyntaxKind5["FirstTypeNode"] = 183
+        SyntaxKind52[
+          SyntaxKind52["FirstTypeNode"] = 183
           /* TypePredicate */
         ] = "FirstTypeNode";
-        SyntaxKind5[
-          SyntaxKind5["LastTypeNode"] = 206
+        SyntaxKind52[
+          SyntaxKind52["LastTypeNode"] = 206
           /* ImportType */
         ] = "LastTypeNode";
-        SyntaxKind5[
-          SyntaxKind5["FirstPunctuation"] = 19
+        SyntaxKind52[
+          SyntaxKind52["FirstPunctuation"] = 19
           /* OpenBraceToken */
         ] = "FirstPunctuation";
-        SyntaxKind5[
-          SyntaxKind5["LastPunctuation"] = 79
+        SyntaxKind52[
+          SyntaxKind52["LastPunctuation"] = 79
           /* CaretEqualsToken */
         ] = "LastPunctuation";
-        SyntaxKind5[
-          SyntaxKind5["FirstToken"] = 0
+        SyntaxKind52[
+          SyntaxKind52["FirstToken"] = 0
           /* Unknown */
         ] = "FirstToken";
-        SyntaxKind5[
-          SyntaxKind5["LastToken"] = 166
+        SyntaxKind52[
+          SyntaxKind52["LastToken"] = 166
           /* LastKeyword */
         ] = "LastToken";
-        SyntaxKind5[
-          SyntaxKind5["FirstTriviaToken"] = 2
+        SyntaxKind52[
+          SyntaxKind52["FirstTriviaToken"] = 2
           /* SingleLineCommentTrivia */
         ] = "FirstTriviaToken";
-        SyntaxKind5[
-          SyntaxKind5["LastTriviaToken"] = 7
+        SyntaxKind52[
+          SyntaxKind52["LastTriviaToken"] = 7
           /* ConflictMarkerTrivia */
         ] = "LastTriviaToken";
-        SyntaxKind5[
-          SyntaxKind5["FirstLiteralToken"] = 9
+        SyntaxKind52[
+          SyntaxKind52["FirstLiteralToken"] = 9
           /* NumericLiteral */
         ] = "FirstLiteralToken";
-        SyntaxKind5[
-          SyntaxKind5["LastLiteralToken"] = 15
+        SyntaxKind52[
+          SyntaxKind52["LastLiteralToken"] = 15
           /* NoSubstitutionTemplateLiteral */
         ] = "LastLiteralToken";
-        SyntaxKind5[
-          SyntaxKind5["FirstTemplateToken"] = 15
+        SyntaxKind52[
+          SyntaxKind52["FirstTemplateToken"] = 15
           /* NoSubstitutionTemplateLiteral */
         ] = "FirstTemplateToken";
-        SyntaxKind5[
-          SyntaxKind5["LastTemplateToken"] = 18
+        SyntaxKind52[
+          SyntaxKind52["LastTemplateToken"] = 18
           /* TemplateTail */
         ] = "LastTemplateToken";
-        SyntaxKind5[
-          SyntaxKind5["FirstBinaryOperator"] = 30
+        SyntaxKind52[
+          SyntaxKind52["FirstBinaryOperator"] = 30
           /* LessThanToken */
         ] = "FirstBinaryOperator";
-        SyntaxKind5[
-          SyntaxKind5["LastBinaryOperator"] = 79
+        SyntaxKind52[
+          SyntaxKind52["LastBinaryOperator"] = 79
           /* CaretEqualsToken */
         ] = "LastBinaryOperator";
-        SyntaxKind5[
-          SyntaxKind5["FirstStatement"] = 244
+        SyntaxKind52[
+          SyntaxKind52["FirstStatement"] = 244
           /* VariableStatement */
         ] = "FirstStatement";
-        SyntaxKind5[
-          SyntaxKind5["LastStatement"] = 260
+        SyntaxKind52[
+          SyntaxKind52["LastStatement"] = 260
           /* DebuggerStatement */
         ] = "LastStatement";
-        SyntaxKind5[
-          SyntaxKind5["FirstNode"] = 167
+        SyntaxKind52[
+          SyntaxKind52["FirstNode"] = 167
           /* QualifiedName */
         ] = "FirstNode";
-        SyntaxKind5[
-          SyntaxKind5["FirstJSDocNode"] = 310
+        SyntaxKind52[
+          SyntaxKind52["FirstJSDocNode"] = 310
           /* JSDocTypeExpression */
         ] = "FirstJSDocNode";
-        SyntaxKind5[
-          SyntaxKind5["LastJSDocNode"] = 352
+        SyntaxKind52[
+          SyntaxKind52["LastJSDocNode"] = 352
           /* JSDocImportTag */
         ] = "LastJSDocNode";
-        SyntaxKind5[
-          SyntaxKind5["FirstJSDocTagNode"] = 328
+        SyntaxKind52[
+          SyntaxKind52["FirstJSDocTagNode"] = 328
           /* JSDocTag */
         ] = "FirstJSDocTagNode";
-        SyntaxKind5[
-          SyntaxKind5["LastJSDocTagNode"] = 352
+        SyntaxKind52[
+          SyntaxKind52["LastJSDocTagNode"] = 352
           /* JSDocImportTag */
         ] = "LastJSDocTagNode";
-        SyntaxKind5[
-          SyntaxKind5["FirstContextualKeyword"] = 128
+        SyntaxKind52[
+          SyntaxKind52["FirstContextualKeyword"] = 128
           /* AbstractKeyword */
         ] = "FirstContextualKeyword";
-        SyntaxKind5[
-          SyntaxKind5["LastContextualKeyword"] = 166
+        SyntaxKind52[
+          SyntaxKind52["LastContextualKeyword"] = 166
           /* LastKeyword */
         ] = "LastContextualKeyword";
-        return SyntaxKind5;
-      })(SyntaxKind4 || {});
+        return SyntaxKind52;
+      })(SyntaxKind5 || {});
       var NodeFlags = /* @__PURE__ */ ((NodeFlags3) => {
         NodeFlags3[NodeFlags3["None"] = 0] = "None";
         NodeFlags3[NodeFlags3["Let"] = 1] = "Let";
@@ -23568,10 +23568,10 @@ ${lanes.join("\n")}
                   const propertyNameOrValueStart = pos;
                   const propertyNameOrValue = scanWordCharacters();
                   if (charCodeChecked(pos) === 61) {
-                    const propertyName = nonBinaryUnicodeProperties.get(propertyNameOrValue);
+                    const propertyName2 = nonBinaryUnicodeProperties.get(propertyNameOrValue);
                     if (pos === propertyNameOrValueStart) {
                       error2(Diagnostics.Expected_a_Unicode_property_name);
-                    } else if (propertyName === void 0) {
+                    } else if (propertyName2 === void 0) {
                       error2(Diagnostics.Unknown_Unicode_property_name, propertyNameOrValueStart, pos - propertyNameOrValueStart);
                       const suggestion = getSpellingSuggestion(propertyNameOrValue, nonBinaryUnicodeProperties.keys(), identity);
                       if (suggestion) {
@@ -23583,9 +23583,9 @@ ${lanes.join("\n")}
                     const propertyValue = scanWordCharacters();
                     if (pos === propertyValueStart) {
                       error2(Diagnostics.Expected_a_Unicode_property_value);
-                    } else if (propertyName !== void 0 && !valuesOfNonBinaryUnicodeProperties[propertyName].has(propertyValue)) {
+                    } else if (propertyName2 !== void 0 && !valuesOfNonBinaryUnicodeProperties[propertyName2].has(propertyValue)) {
                       error2(Diagnostics.Unknown_Unicode_property_value, propertyValueStart, pos - propertyValueStart);
-                      const suggestion = getSpellingSuggestion(propertyValue, valuesOfNonBinaryUnicodeProperties[propertyName], identity);
+                      const suggestion = getSpellingSuggestion(propertyValue, valuesOfNonBinaryUnicodeProperties[propertyName2], identity);
                       if (suggestion) {
                         error2(Diagnostics.Did_you_mean_0, propertyValueStart, pos - propertyValueStart, suggestion);
                       }
@@ -36693,21 +36693,21 @@ ${lanes.join("\n")}
         function updateArrayBindingPattern(node, elements) {
           return node.elements !== elements ? update(createArrayBindingPattern(elements), node) : node;
         }
-        function createBindingElement(dotDotDotToken, propertyName, name, initializer) {
+        function createBindingElement(dotDotDotToken, propertyName2, name, initializer) {
           const node = createBaseDeclaration(
             209
             /* BindingElement */
           );
           node.dotDotDotToken = dotDotDotToken;
-          node.propertyName = asName(propertyName);
+          node.propertyName = asName(propertyName2);
           node.name = asName(name);
           node.initializer = asInitializer(initializer);
           node.transformFlags |= propagateChildFlags(node.dotDotDotToken) | propagateNameFlags(node.propertyName) | propagateNameFlags(node.name) | propagateChildFlags(node.initializer) | (node.dotDotDotToken ? 32768 : 0) | 1024;
           node.flowNode = void 0;
           return node;
         }
-        function updateBindingElement(node, dotDotDotToken, propertyName, name, initializer) {
-          return node.propertyName !== propertyName || node.dotDotDotToken !== dotDotDotToken || node.name !== name || node.initializer !== initializer ? update(createBindingElement(dotDotDotToken, propertyName, name, initializer), node) : node;
+        function updateBindingElement(node, dotDotDotToken, propertyName2, name, initializer) {
+          return node.propertyName !== propertyName2 || node.dotDotDotToken !== dotDotDotToken || node.name !== name || node.initializer !== initializer ? update(createBindingElement(dotDotDotToken, propertyName2, name, initializer), node) : node;
         }
         function createArrayLiteralExpression(elements, multiLine) {
           const node = createBaseNode(
@@ -38090,20 +38090,20 @@ ${lanes.join("\n")}
         function updateNamedImports(node, elements) {
           return node.elements !== elements ? update(createNamedImports(elements), node) : node;
         }
-        function createImportSpecifier(isTypeOnly, propertyName, name) {
+        function createImportSpecifier(isTypeOnly, propertyName2, name) {
           const node = createBaseDeclaration(
             277
             /* ImportSpecifier */
           );
           node.isTypeOnly = isTypeOnly;
-          node.propertyName = propertyName;
+          node.propertyName = propertyName2;
           node.name = name;
           node.transformFlags |= propagateChildFlags(node.propertyName) | propagateChildFlags(node.name);
           node.transformFlags &= ~67108864;
           return node;
         }
-        function updateImportSpecifier(node, isTypeOnly, propertyName, name) {
-          return node.isTypeOnly !== isTypeOnly || node.propertyName !== propertyName || node.name !== name ? update(createImportSpecifier(isTypeOnly, propertyName, name), node) : node;
+        function updateImportSpecifier(node, isTypeOnly, propertyName2, name) {
+          return node.isTypeOnly !== isTypeOnly || node.propertyName !== propertyName2 || node.name !== name ? update(createImportSpecifier(isTypeOnly, propertyName2, name), node) : node;
         }
         function createExportAssignment2(modifiers, isExportEquals, expression) {
           const node = createBaseDeclaration(
@@ -38165,21 +38165,21 @@ ${lanes.join("\n")}
         function updateNamedExports(node, elements) {
           return node.elements !== elements ? update(createNamedExports(elements), node) : node;
         }
-        function createExportSpecifier(isTypeOnly, propertyName, name) {
+        function createExportSpecifier(isTypeOnly, propertyName2, name) {
           const node = createBaseNode(
             282
             /* ExportSpecifier */
           );
           node.isTypeOnly = isTypeOnly;
-          node.propertyName = asName(propertyName);
+          node.propertyName = asName(propertyName2);
           node.name = asName(name);
           node.transformFlags |= propagateChildFlags(node.propertyName) | propagateChildFlags(node.name);
           node.transformFlags &= ~67108864;
           node.jsDoc = void 0;
           return node;
         }
-        function updateExportSpecifier(node, isTypeOnly, propertyName, name) {
-          return node.isTypeOnly !== isTypeOnly || node.propertyName !== propertyName || node.name !== name ? update(createExportSpecifier(isTypeOnly, propertyName, name), node) : node;
+        function updateExportSpecifier(node, isTypeOnly, propertyName2, name) {
+          return node.isTypeOnly !== isTypeOnly || node.propertyName !== propertyName2 || node.name !== name ? update(createExportSpecifier(isTypeOnly, propertyName2, name), node) : node;
         }
         function createMissingDeclaration() {
           const node = createBaseDeclaration(
@@ -39241,11 +39241,11 @@ ${lanes.join("\n")}
         function createArrayConcatCall(array, argumentsList) {
           return createMethodCall(array, "concat", argumentsList);
         }
-        function createObjectDefinePropertyCall(target, propertyName, attributes) {
-          return createGlobalMethodCall("Object", "defineProperty", [target, asExpression(propertyName), attributes]);
+        function createObjectDefinePropertyCall(target, propertyName2, attributes) {
+          return createGlobalMethodCall("Object", "defineProperty", [target, asExpression(propertyName2), attributes]);
         }
-        function createObjectGetOwnPropertyDescriptorCall(target, propertyName) {
-          return createGlobalMethodCall("Object", "getOwnPropertyDescriptor", [target, asExpression(propertyName)]);
+        function createObjectGetOwnPropertyDescriptorCall(target, propertyName2) {
+          return createGlobalMethodCall("Object", "getOwnPropertyDescriptor", [target, asExpression(propertyName2)]);
         }
         function createReflectGetCall(target, propertyKey, receiver) {
           return createGlobalMethodCall("Reflect", "get", receiver ? [target, propertyKey, receiver] : [target, propertyKey]);
@@ -39253,9 +39253,9 @@ ${lanes.join("\n")}
         function createReflectSetCall(target, propertyKey, value, receiver) {
           return createGlobalMethodCall("Reflect", "set", receiver ? [target, propertyKey, value, receiver] : [target, propertyKey, value]);
         }
-        function tryAddPropertyAssignment(properties, propertyName, expression) {
+        function tryAddPropertyAssignment(properties, propertyName2, expression) {
           if (expression) {
-            properties.push(createPropertyAssignment(propertyName, expression));
+            properties.push(createPropertyAssignment(propertyName2, expression));
             return true;
           }
           return false;
@@ -40361,7 +40361,7 @@ ${lanes.join("\n")}
           );
         }
         function createESDecorateClassElementAccessHasMethod(elementName) {
-          const propertyName = elementName.computed ? elementName.name : isIdentifier(elementName.name) ? factory2.createStringLiteralFromNode(elementName.name) : elementName.name;
+          const propertyName2 = elementName.computed ? elementName.name : isIdentifier(elementName.name) ? factory2.createStringLiteralFromNode(elementName.name) : elementName.name;
           return factory2.createPropertyAssignment(
             "has",
             factory2.createArrowFunction(
@@ -40381,7 +40381,7 @@ ${lanes.join("\n")}
               /*equalsGreaterThanToken*/
               void 0,
               factory2.createBinaryExpression(
-                propertyName,
+                propertyName2,
                 103,
                 factory2.createIdentifier("obj")
               )
@@ -40499,9 +40499,9 @@ ${lanes.join("\n")}
           const propertyNames = [];
           let computedTempVariableOffset = 0;
           for (let i = 0; i < elements.length - 1; i++) {
-            const propertyName = getPropertyNameOfBindingOrAssignmentElement(elements[i]);
-            if (propertyName) {
-              if (isComputedPropertyName(propertyName)) {
+            const propertyName2 = getPropertyNameOfBindingOrAssignmentElement(elements[i]);
+            if (propertyName2) {
+              if (isComputedPropertyName(propertyName2)) {
                 Debug.assertIsDefined(computedTempVariables, "Encountered computed property name but 'computedTempVariables' argument was not provided.");
                 const temp = computedTempVariables[computedTempVariableOffset];
                 computedTempVariableOffset++;
@@ -40517,7 +40517,7 @@ ${lanes.join("\n")}
                   )
                 );
               } else {
-                propertyNames.push(factory2.createStringLiteralFromNode(propertyName));
+                propertyNames.push(factory2.createStringLiteralFromNode(propertyName2));
               }
             }
           }
@@ -42626,28 +42626,28 @@ ${lanes.join("\n")}
         return void 0;
       }
       function getPropertyNameOfBindingOrAssignmentElement(bindingElement) {
-        const propertyName = tryGetPropertyNameOfBindingOrAssignmentElement(bindingElement);
-        Debug.assert(!!propertyName || isSpreadAssignment(bindingElement), "Invalid property name for binding element.");
-        return propertyName;
+        const propertyName2 = tryGetPropertyNameOfBindingOrAssignmentElement(bindingElement);
+        Debug.assert(!!propertyName2 || isSpreadAssignment(bindingElement), "Invalid property name for binding element.");
+        return propertyName2;
       }
       function tryGetPropertyNameOfBindingOrAssignmentElement(bindingElement) {
         switch (bindingElement.kind) {
           case 209:
             if (bindingElement.propertyName) {
-              const propertyName = bindingElement.propertyName;
-              if (isPrivateIdentifier(propertyName)) {
-                return Debug.failBadSyntaxKind(propertyName);
+              const propertyName2 = bindingElement.propertyName;
+              if (isPrivateIdentifier(propertyName2)) {
+                return Debug.failBadSyntaxKind(propertyName2);
               }
-              return isComputedPropertyName(propertyName) && isStringOrNumericLiteral(propertyName.expression) ? propertyName.expression : propertyName;
+              return isComputedPropertyName(propertyName2) && isStringOrNumericLiteral(propertyName2.expression) ? propertyName2.expression : propertyName2;
             }
             break;
           case 304:
             if (bindingElement.name) {
-              const propertyName = bindingElement.name;
-              if (isPrivateIdentifier(propertyName)) {
-                return Debug.failBadSyntaxKind(propertyName);
+              const propertyName2 = bindingElement.name;
+              if (isPrivateIdentifier(propertyName2)) {
+                return Debug.failBadSyntaxKind(propertyName2);
               }
-              return isComputedPropertyName(propertyName) && isStringOrNumericLiteral(propertyName.expression) ? propertyName.expression : propertyName;
+              return isComputedPropertyName(propertyName2) && isStringOrNumericLiteral(propertyName2.expression) ? propertyName2.expression : propertyName2;
             }
             break;
           case 306:
@@ -49816,11 +49816,11 @@ ${lanes.join("\n")}
             /* DotDotDotToken */
           );
           const tokenIsIdentifier = isBindingIdentifier();
-          let propertyName = parsePropertyName();
+          let propertyName2 = parsePropertyName();
           let name;
           if (tokenIsIdentifier && token() !== 59) {
-            name = propertyName;
-            propertyName = void 0;
+            name = propertyName2;
+            propertyName2 = void 0;
           } else {
             parseExpected(
               59
@@ -49829,7 +49829,7 @@ ${lanes.join("\n")}
             name = parseIdentifierOrPattern();
           }
           const initializer = parseInitializer();
-          return finishNode(factory2.createBindingElement(dotDotDotToken, propertyName, name, initializer), pos);
+          return finishNode(factory2.createBindingElement(dotDotDotToken, propertyName2, name, initializer), pos);
         }
         function parseObjectBindingPattern() {
           const pos = getNodePos();
@@ -50852,7 +50852,7 @@ ${lanes.join("\n")}
           let checkIdentifierStart = scanner2.getTokenStart();
           let checkIdentifierEnd = scanner2.getTokenEnd();
           let isTypeOnly = false;
-          let propertyName;
+          let propertyName2;
           let canParseAsKeyword = true;
           let name = parseModuleExportName(parseIdentifierName);
           if (name.kind === 80 && name.escapedText === "type") {
@@ -50862,16 +50862,16 @@ ${lanes.join("\n")}
                 const secondAs = parseIdentifierName();
                 if (canParseModuleExportName()) {
                   isTypeOnly = true;
-                  propertyName = firstAs;
+                  propertyName2 = firstAs;
                   name = parseModuleExportName(parseNameWithKeywordCheck);
                   canParseAsKeyword = false;
                 } else {
-                  propertyName = name;
+                  propertyName2 = name;
                   name = secondAs;
                   canParseAsKeyword = false;
                 }
               } else if (canParseModuleExportName()) {
-                propertyName = name;
+                propertyName2 = name;
                 canParseAsKeyword = false;
                 name = parseModuleExportName(parseNameWithKeywordCheck);
               } else {
@@ -50884,7 +50884,7 @@ ${lanes.join("\n")}
             }
           }
           if (canParseAsKeyword && token() === 130) {
-            propertyName = name;
+            propertyName2 = name;
             parseExpected(
               130
               /* AsKeyword */
@@ -50903,7 +50903,7 @@ ${lanes.join("\n")}
               parseErrorAt(checkIdentifierStart, checkIdentifierEnd, Diagnostics.Identifier_expected);
             }
           }
-          const node = kind === 277 ? factory2.createImportSpecifier(isTypeOnly, propertyName, name) : factory2.createExportSpecifier(isTypeOnly, propertyName, name);
+          const node = kind === 277 ? factory2.createImportSpecifier(isTypeOnly, propertyName2, name) : factory2.createExportSpecifier(isTypeOnly, propertyName2, name);
           return finishNode(node, pos);
           function parseNameWithKeywordCheck() {
             checkIdentifierIsKeyword = isKeyword(token()) && !isIdentifier2();
@@ -55745,10 +55745,10 @@ ${lanes.join("\n")}
           if (extendedConfig && isSuccessfulParsedTsconfig(extendedConfig)) {
             const extendsRaw = extendedConfig.raw;
             let relativeDifference;
-            const setPropertyInResultIfNotUndefined = (propertyName) => {
-              if (ownConfig.raw[propertyName]) return;
-              if (extendsRaw[propertyName]) {
-                result[propertyName] = map(extendsRaw[propertyName], (path2) => startsWithConfigDirTemplate(path2) || isRootedDiskPath(path2) ? path2 : combinePaths(
+            const setPropertyInResultIfNotUndefined = (propertyName2) => {
+              if (ownConfig.raw[propertyName2]) return;
+              if (extendsRaw[propertyName2]) {
+                result[propertyName2] = map(extendsRaw[propertyName2], (path2) => startsWithConfigDirTemplate(path2) || isRootedDiskPath(path2) ? path2 : combinePaths(
                   relativeDifference || (relativeDifference = convertToRelativePath(getDirectoryPath(extendedConfigPath), basePath, createGetCanonicalFileName(host.useCaseSensitiveFileNames))),
                   path2
                 ));
@@ -64080,9 +64080,9 @@ ${lanes.join("\n")}
             const node = getParseTreeNode(nodeIn, canHaveConstantValue);
             return node ? getConstantValue2(node) : void 0;
           },
-          isValidPropertyAccess: (nodeIn, propertyName) => {
+          isValidPropertyAccess: (nodeIn, propertyName2) => {
             const node = getParseTreeNode(nodeIn, isPropertyAccessOrQualifiedNameOrImportTypeNode);
-            return !!node && isValidPropertyAccess(node, escapeLeadingUnderscores(propertyName));
+            return !!node && isValidPropertyAccess(node, escapeLeadingUnderscores(propertyName2));
           },
           isValidPropertyAccessForCompletions: (nodeIn, type, property) => {
             const node = getParseTreeNode(nodeIn, isPropertyAccessExpression);
@@ -69947,7 +69947,7 @@ ${lanes.join("\n")}
               }
             }
             context.enclosingDeclaration = propertySymbol.valueDeclaration || ((_a2 = propertySymbol.declarations) == null ? void 0 : _a2[0]) || saveEnclosingDeclaration;
-            const propertyName = getPropertyNameNodeForSymbol(propertySymbol, context);
+            const propertyName2 = getPropertyNameNodeForSymbol(propertySymbol, context);
             context.enclosingDeclaration = saveEnclosingDeclaration;
             context.approximateLength += symbolName(propertySymbol).length + 1;
             if (propertySymbol.flags & 98304) {
@@ -69970,7 +69970,7 @@ ${lanes.join("\n")}
                     typeElements.push(
                       setCommentRange2(
                         context,
-                        signatureToSignatureDeclarationHelper(symbolMapper ? instantiateSignature(getterSignature, symbolMapper) : getterSignature, 178, context, { name: propertyName }),
+                        signatureToSignatureDeclarationHelper(symbolMapper ? instantiateSignature(getterSignature, symbolMapper) : getterSignature, 178, context, { name: propertyName2 }),
                         getterDeclaration
                       )
                     );
@@ -69985,7 +69985,7 @@ ${lanes.join("\n")}
                     typeElements.push(
                       setCommentRange2(
                         context,
-                        signatureToSignatureDeclarationHelper(symbolMapper ? instantiateSignature(setterSignature, symbolMapper) : setterSignature, 179, context, { name: propertyName }),
+                        signatureToSignatureDeclarationHelper(symbolMapper ? instantiateSignature(setterSignature, symbolMapper) : setterSignature, 179, context, { name: propertyName2 }),
                         setterDeclaration
                       )
                     );
@@ -70011,7 +70011,7 @@ ${lanes.join("\n")}
                   typeElements.push(
                     setCommentRange2(
                       context,
-                      signatureToSignatureDeclarationHelper(fakeGetterSignature, 178, context, { name: propertyName }),
+                      signatureToSignatureDeclarationHelper(fakeGetterSignature, 178, context, { name: propertyName2 }),
                       propDeclaration
                     )
                   );
@@ -70033,7 +70033,7 @@ ${lanes.join("\n")}
                     /* None */
                   );
                   typeElements.push(
-                    signatureToSignatureDeclarationHelper(fakeSetterSignature, 179, context, { name: propertyName })
+                    signatureToSignatureDeclarationHelper(fakeSetterSignature, 179, context, { name: propertyName2 })
                   );
                   return;
                 }
@@ -70050,7 +70050,7 @@ ${lanes.join("\n")}
                 /* Call */
               );
               for (const signature of signatures) {
-                const methodDeclaration = signatureToSignatureDeclarationHelper(signature, 174, context, { name: propertyName, questionToken: optionalToken });
+                const methodDeclaration = signatureToSignatureDeclarationHelper(signature, 174, context, { name: propertyName2, questionToken: optionalToken });
                 typeElements.push(preserveCommentsOn(methodDeclaration, signature.declaration || propertySymbol.valueDeclaration));
               }
               if (signatures.length || !optionalToken) {
@@ -70088,7 +70088,7 @@ ${lanes.join("\n")}
             }
             const propertySignature = factory.createPropertySignature(
               modifiers,
-              propertyName,
+              propertyName2,
               optionalToken,
               propertyTypeNode
             );
@@ -70372,8 +70372,8 @@ ${lanes.join("\n")}
               reportNonSerializableProperty(name) {
                 markError(() => oldTracker.reportNonSerializableProperty(name));
               },
-              reportPrivateInBaseOfClassExpression(propertyName) {
-                markError(() => oldTracker.reportPrivateInBaseOfClassExpression(propertyName));
+              reportPrivateInBaseOfClassExpression(propertyName2) {
+                markError(() => oldTracker.reportPrivateInBaseOfClassExpression(propertyName2));
               },
               trackSymbol(sym, decl, meaning) {
                 (trackedSymbols ?? (trackedSymbols = [])).push([sym, decl, meaning]);
@@ -72647,8 +72647,8 @@ ${lanes.join("\n")}
                 case 209:
                   if (((_b = (_a22 = node.parent) == null ? void 0 : _a22.parent) == null ? void 0 : _b.kind) === 261) {
                     const specifier2 = getSpecifierForModuleSymbol(target.parent || target, context);
-                    const { propertyName } = node;
-                    const propertyNameText = propertyName && isIdentifier(propertyName) ? idText(propertyName) : void 0;
+                    const { propertyName: propertyName2 } = node;
+                    const propertyNameText = propertyName2 && isIdentifier(propertyName2) ? idText(propertyName2) : void 0;
                     context.approximateLength += 24 + localName.length + specifier2.length + ((propertyNameText == null ? void 0 : propertyNameText.length) ?? 0);
                     addResult(
                       factory.createImportDeclaration(
@@ -72849,8 +72849,8 @@ ${lanes.join("\n")}
                 case 282:
                   const specifier = node.parent.parent.moduleSpecifier;
                   if (specifier) {
-                    const propertyName = node.propertyName;
-                    if (propertyName && moduleExportNameIsDefault(propertyName)) {
+                    const propertyName2 = node.propertyName;
+                    if (propertyName2 && moduleExportNameIsDefault(propertyName2)) {
                       verbatimTargetName = "default";
                     }
                   }
@@ -73743,8 +73743,8 @@ ${lanes.join("\n")}
             });
           }
         }
-        function pushTypeResolution(target, propertyName) {
-          const resolutionCycleStartIndex = findResolutionCycleStartIndex(target, propertyName);
+        function pushTypeResolution(target, propertyName2) {
+          const resolutionCycleStartIndex = findResolutionCycleStartIndex(target, propertyName2);
           if (resolutionCycleStartIndex >= 0) {
             const { length: length2 } = resolutionTargets;
             for (let i = resolutionCycleStartIndex; i < length2; i++) {
@@ -73757,22 +73757,22 @@ ${lanes.join("\n")}
             /*items*/
             true
           );
-          resolutionPropertyNames.push(propertyName);
+          resolutionPropertyNames.push(propertyName2);
           return true;
         }
-        function findResolutionCycleStartIndex(target, propertyName) {
+        function findResolutionCycleStartIndex(target, propertyName2) {
           for (let i = resolutionTargets.length - 1; i >= resolutionStart; i--) {
             if (resolutionTargetHasProperty(resolutionTargets[i], resolutionPropertyNames[i])) {
               return -1;
             }
-            if (resolutionTargets[i] === target && resolutionPropertyNames[i] === propertyName) {
+            if (resolutionTargets[i] === target && resolutionPropertyNames[i] === propertyName2) {
               return i;
             }
           }
           return -1;
         }
-        function resolutionTargetHasProperty(target, propertyName) {
-          switch (propertyName) {
+        function resolutionTargetHasProperty(target, propertyName2) {
+          switch (propertyName2) {
             case 0:
               return !!getSymbolLinks(target).type;
             case 2:
@@ -73792,7 +73792,7 @@ ${lanes.join("\n")}
             case 8:
               return getNodeLinks(target).parameterInitializerContainsUndefined !== void 0;
           }
-          return Debug.assertNever(propertyName);
+          return Debug.assertNever(propertyName2);
         }
         function popTypeResolution() {
           resolutionTargets.pop();
@@ -80387,9 +80387,9 @@ ${lanes.join("\n")}
           if (isComputedPropertyName(name)) {
             return getRegularTypeOfLiteralType(checkComputedPropertyName(name));
           }
-          const propertyName = getPropertyNameForPropertyNameNode(name);
-          if (propertyName !== void 0) {
-            return getStringLiteralType(unescapeLeadingUnderscores(propertyName));
+          const propertyName2 = getPropertyNameForPropertyNameNode(name);
+          if (propertyName2 !== void 0) {
+            return getStringLiteralType(unescapeLeadingUnderscores(propertyName2));
           }
           if (isExpression(name)) {
             return getRegularTypeOfLiteralType(checkExpression(name));
@@ -82678,8 +82678,8 @@ ${lanes.join("\n")}
                 }
                 if (resultObj.errors) {
                   const reportedDiag = resultObj.errors[resultObj.errors.length - 1];
-                  const propertyName = isTypeUsableAsPropertyName(nameType) ? getPropertyNameFromType(nameType) : void 0;
-                  const targetProp = propertyName !== void 0 ? getPropertyOfType(target, propertyName) : void 0;
+                  const propertyName2 = isTypeUsableAsPropertyName(nameType) ? getPropertyNameFromType(nameType) : void 0;
+                  const targetProp = propertyName2 !== void 0 ? getPropertyOfType(target, propertyName2) : void 0;
                   let issuedElaboration = false;
                   if (!targetProp) {
                     const indexInfo = getApplicableIndexInfo(target, nameType);
@@ -82696,7 +82696,7 @@ ${lanes.join("\n")}
                         createDiagnosticForNode(
                           targetNode,
                           Diagnostics.The_expected_type_comes_from_property_0_which_is_declared_here_on_type_1,
-                          propertyName && !(nameType.flags & 16384) ? unescapeLeadingUnderscores(propertyName) : typeToString(nameType),
+                          propertyName2 && !(nameType.flags & 16384) ? unescapeLeadingUnderscores(propertyName2) : typeToString(nameType),
                           typeToString(target)
                         )
                       );
@@ -85940,11 +85940,11 @@ ${lanes.join("\n")}
             (t) => t.flags & 12713980 || getReducedType(t).flags & 262144 ? 0 : -1
             /* True */
           );
-          for (const [getDiscriminatingType, propertyName] of discriminators) {
+          for (const [getDiscriminatingType, propertyName2] of discriminators) {
             let matched = false;
             for (let i = 0; i < types2.length; i++) {
               if (include[i]) {
-                const targetType = getTypeOfPropertyOrIndexSignatureOfType(types2[i], propertyName);
+                const targetType = getTypeOfPropertyOrIndexSignatureOfType(types2[i], propertyName2);
                 if (targetType) {
                   if (someType(getDiscriminatingType(), (t) => !!related(t, targetType))) {
                     matched = true;
@@ -86655,8 +86655,8 @@ ${lanes.join("\n")}
           type.regularType = regularNew;
           return regularNew;
         }
-        function createWideningContext(parent2, propertyName, siblings) {
-          return { parent: parent2, propertyName, siblings, resolvedProperties: void 0 };
+        function createWideningContext(parent2, propertyName2, siblings) {
+          return { parent: parent2, propertyName: propertyName2, siblings, resolvedProperties: void 0 };
         }
         function getSiblingsOfContext(context) {
           if (!context.siblings) {
@@ -94905,16 +94905,16 @@ ${lanes.join("\n")}
         function isSelfTypeAccess(name, parent2) {
           return name.kind === 110 || !!parent2 && isEntityNameExpression(name) && parent2 === getResolvedSymbol(getFirstIdentifier(name));
         }
-        function isValidPropertyAccess(node, propertyName) {
+        function isValidPropertyAccess(node, propertyName2) {
           switch (node.kind) {
             case 212:
-              return isValidPropertyAccessWithType(node, node.expression.kind === 108, propertyName, getWidenedType(checkExpression(node.expression)));
+              return isValidPropertyAccessWithType(node, node.expression.kind === 108, propertyName2, getWidenedType(checkExpression(node.expression)));
             case 167:
               return isValidPropertyAccessWithType(
                 node,
                 /*isSuper*/
                 false,
-                propertyName,
+                propertyName2,
                 getWidenedType(checkExpression(node.left))
               );
             case 206:
@@ -94922,7 +94922,7 @@ ${lanes.join("\n")}
                 node,
                 /*isSuper*/
                 false,
-                propertyName,
+                propertyName2,
                 getTypeFromTypeNode(node)
               );
           }
@@ -94937,11 +94937,11 @@ ${lanes.join("\n")}
             property
           );
         }
-        function isValidPropertyAccessWithType(node, isSuper, propertyName, type) {
+        function isValidPropertyAccessWithType(node, isSuper, propertyName2, type) {
           if (isTypeAny(type)) {
             return true;
           }
-          const prop = getPropertyOfType(type, propertyName);
+          const prop = getPropertyOfType(type, propertyName2);
           return !!prop && isPropertyAccessible(
             node,
             isSuper,
@@ -101816,11 +101816,11 @@ ${lanes.join("\n")}
             return type;
           }
           if (isGenericObjectType(objectType)) {
-            const propertyName = getPropertyNameFromIndex(indexType, accessNode);
-            if (propertyName) {
-              const propertySymbol = forEachType(getApparentType(objectType), (t) => getPropertyOfType(t, propertyName));
+            const propertyName2 = getPropertyNameFromIndex(indexType, accessNode);
+            if (propertyName2) {
+              const propertySymbol = forEachType(getApparentType(objectType), (t) => getPropertyOfType(t, propertyName2));
               if (propertySymbol && getDeclarationModifierFlagsFromSymbol(propertySymbol) & 6) {
-                error2(accessNode, Diagnostics.Private_or_protected_member_0_cannot_be_accessed_on_a_type_parameter, unescapeLeadingUnderscores(propertyName));
+                error2(accessNode, Diagnostics.Private_or_protected_member_0_cannot_be_accessed_on_a_type_parameter, unescapeLeadingUnderscores(propertyName2));
                 return errorType;
               }
             }
@@ -111437,11 +111437,11 @@ ${lanes.join("\n")}
             this.inner.reportInaccessibleThisError();
           }
         }
-        reportPrivateInBaseOfClassExpression(propertyName) {
+        reportPrivateInBaseOfClassExpression(propertyName2) {
           var _a2;
           if ((_a2 = this.inner) == null ? void 0 : _a2.reportPrivateInBaseOfClassExpression) {
             this.onDiagnosticReported();
-            this.inner.reportPrivateInBaseOfClassExpression(propertyName);
+            this.inner.reportPrivateInBaseOfClassExpression(propertyName2);
           }
         }
         reportInaccessibleUniqueSymbolError() {
@@ -111479,11 +111479,11 @@ ${lanes.join("\n")}
             this.inner.reportNonlocalAugmentation(containingFile, parentSymbol, augmentingSymbol);
           }
         }
-        reportNonSerializableProperty(propertyName) {
+        reportNonSerializableProperty(propertyName2) {
           var _a2;
           if ((_a2 = this.inner) == null ? void 0 : _a2.reportNonSerializableProperty) {
             this.onDiagnosticReported();
-            this.inner.reportNonSerializableProperty(propertyName);
+            this.inner.reportNonSerializableProperty(propertyName2);
           }
         }
         onDiagnosticReported() {
@@ -114394,8 +114394,8 @@ ${lanes.join("\n")}
         return false;
       }
       function bindingOrAssignmentElementContainsNonLiteralComputedName(element) {
-        const propertyName = tryGetPropertyNameOfBindingOrAssignmentElement(element);
-        if (propertyName && isComputedPropertyName(propertyName) && !isLiteralExpression(propertyName.expression)) {
+        const propertyName2 = tryGetPropertyNameOfBindingOrAssignmentElement(element);
+        if (propertyName2 && isComputedPropertyName(propertyName2) && !isLiteralExpression(propertyName2.expression)) {
           return true;
         }
         const target = getTargetOfBindingOrAssignmentElement(element);
@@ -114544,16 +114544,16 @@ ${lanes.join("\n")}
         for (let i = 0; i < numElements; i++) {
           const element = elements[i];
           if (!getRestIndicatorOfBindingOrAssignmentElement(element)) {
-            const propertyName = getPropertyNameOfBindingOrAssignmentElement(element);
-            if (flattenContext.level >= 1 && !(element.transformFlags & (32768 | 65536)) && !(getTargetOfBindingOrAssignmentElement(element).transformFlags & (32768 | 65536)) && !isComputedPropertyName(propertyName)) {
+            const propertyName2 = getPropertyNameOfBindingOrAssignmentElement(element);
+            if (flattenContext.level >= 1 && !(element.transformFlags & (32768 | 65536)) && !(getTargetOfBindingOrAssignmentElement(element).transformFlags & (32768 | 65536)) && !isComputedPropertyName(propertyName2)) {
               bindingElements = append(bindingElements, visitNode(element, flattenContext.visitor, isBindingOrAssignmentElement));
             } else {
               if (bindingElements) {
                 flattenContext.emitBindingOrAssignment(flattenContext.createObjectBindingOrAssignmentPattern(bindingElements), value, location, pattern);
                 bindingElements = void 0;
               }
-              const rhsValue = createDestructuringPropertyAccess(flattenContext, value, propertyName);
-              if (isComputedPropertyName(propertyName)) {
+              const rhsValue = createDestructuringPropertyAccess(flattenContext, value, propertyName2);
+              if (isComputedPropertyName(propertyName2)) {
                 computedTempVariables = append(computedTempVariables, rhsValue.argumentExpression);
               }
               flattenBindingOrAssignmentElement(
@@ -114651,8 +114651,8 @@ ${lanes.join("\n")}
       function isSimpleBindingOrAssignmentElement(element) {
         const target = getTargetOfBindingOrAssignmentElement(element);
         if (!target || isOmittedExpression(target)) return true;
-        const propertyName = tryGetPropertyNameOfBindingOrAssignmentElement(element);
-        if (propertyName && !isPropertyNameLiteral(propertyName)) return false;
+        const propertyName2 = tryGetPropertyNameOfBindingOrAssignmentElement(element);
+        if (propertyName2 && !isPropertyNameLiteral(propertyName2)) return false;
         const initializer = getInitializerOfBindingOrAssignmentElement(element);
         if (initializer && !isSimpleInlineableExpression(initializer)) return false;
         if (isBindingOrAssignmentPattern(target)) return every(getElementsOfBindingOrAssignmentPattern(target), isSimpleBindingOrAssignmentElement);
@@ -114676,23 +114676,23 @@ ${lanes.join("\n")}
           value
         );
       }
-      function createDestructuringPropertyAccess(flattenContext, value, propertyName) {
+      function createDestructuringPropertyAccess(flattenContext, value, propertyName2) {
         const { factory: factory2 } = flattenContext.context;
-        if (isComputedPropertyName(propertyName)) {
+        if (isComputedPropertyName(propertyName2)) {
           const argumentExpression = ensureIdentifier(
             flattenContext,
-            Debug.checkDefined(visitNode(propertyName.expression, flattenContext.visitor, isExpression)),
+            Debug.checkDefined(visitNode(propertyName2.expression, flattenContext.visitor, isExpression)),
             /*reuseIdentifierExpressions*/
             false,
             /*location*/
-            propertyName
+            propertyName2
           );
           return flattenContext.context.factory.createElementAccessExpression(value, argumentExpression);
-        } else if (isStringOrNumericLiteralLike(propertyName) || isBigIntLiteral(propertyName)) {
-          const argumentExpression = factory2.cloneNode(propertyName);
+        } else if (isStringOrNumericLiteralLike(propertyName2) || isBigIntLiteral(propertyName2)) {
+          const argumentExpression = factory2.cloneNode(propertyName2);
           return flattenContext.context.factory.createElementAccessExpression(value, argumentExpression);
         } else {
-          const name = flattenContext.context.factory.createIdentifier(idText(propertyName));
+          const name = flattenContext.context.factory.createIdentifier(idText(propertyName2));
           return flattenContext.context.factory.createPropertyAccessExpression(value, name);
         }
       }
@@ -115989,9 +115989,9 @@ ${lanes.join("\n")}
           if (!isIdentifier(name)) {
             return void 0;
           }
-          const propertyName = setParent(setTextRange(factory2.cloneNode(name), name), name.parent);
+          const propertyName2 = setParent(setTextRange(factory2.cloneNode(name), name), name.parent);
           setEmitFlags(
-            propertyName,
+            propertyName2,
             3072 | 96
             /* NoSourceMap */
           );
@@ -116010,7 +116010,7 @@ ${lanes.join("\n")}
                       setTextRange(
                         factory2.createPropertyAccessExpression(
                           factory2.createThis(),
-                          propertyName
+                          propertyName2
                         ),
                         node.name
                       ),
@@ -118729,12 +118729,12 @@ ${lanes.join("\n")}
           if (isNamedEvaluation(property, isAnonymousClassNeedingAssignedName)) {
             property = transformNamedEvaluation(context, property);
           }
-          const propertyName = hasAccessorModifier(property) ? factory2.getGeneratedPrivateNameForNode(property.name) : isComputedPropertyName(property.name) && !isSimpleInlineableExpression(property.name.expression) ? factory2.updateComputedPropertyName(property.name, factory2.getGeneratedNameForNode(property.name)) : property.name;
+          const propertyName2 = hasAccessorModifier(property) ? factory2.getGeneratedPrivateNameForNode(property.name) : isComputedPropertyName(property.name) && !isSimpleInlineableExpression(property.name.expression) ? factory2.updateComputedPropertyName(property.name, factory2.getGeneratedNameForNode(property.name)) : property.name;
           if (hasStaticModifier(property)) {
             currentClassElement = property;
           }
-          if (isPrivateIdentifier(propertyName) && shouldTransformClassElementToWeakMap(property)) {
-            const privateIdentifierInfo = accessPrivateIdentifier2(propertyName);
+          if (isPrivateIdentifier(propertyName2) && shouldTransformClassElementToWeakMap(property)) {
+            const privateIdentifierInfo = accessPrivateIdentifier2(propertyName2);
             if (privateIdentifierInfo) {
               if (privateIdentifierInfo.kind === "f") {
                 if (!privateIdentifierInfo.isStatic) {
@@ -118758,7 +118758,7 @@ ${lanes.join("\n")}
               Debug.fail("Undeclared private name for property declaration.");
             }
           }
-          if ((isPrivateIdentifier(propertyName) || hasStaticModifier(property)) && !property.initializer) {
+          if ((isPrivateIdentifier(propertyName2) || hasStaticModifier(property)) && !property.initializer) {
             return void 0;
           }
           const propertyOriginalNode = getOriginalNode(property);
@@ -118770,8 +118770,8 @@ ${lanes.join("\n")}
             return void 0;
           }
           let initializer = visitNode(property.initializer, visitor, isExpression);
-          if (isParameterPropertyDeclaration(propertyOriginalNode, propertyOriginalNode.parent) && isIdentifier(propertyName)) {
-            const localName = factory2.cloneNode(propertyName);
+          if (isParameterPropertyDeclaration(propertyOriginalNode, propertyOriginalNode.parent) && isIdentifier(propertyName2)) {
+            const localName = factory2.cloneNode(propertyName2);
             if (initializer) {
               if (isParenthesizedExpression(initializer) && isCommaExpression(initializer.expression) && isCallToHelper(initializer.expression.left, "___runInitializers") && isVoidExpression(initializer.expression.right) && isNumericLiteral(initializer.expression.right.expression)) {
                 initializer = initializer.expression.left;
@@ -118781,7 +118781,7 @@ ${lanes.join("\n")}
               initializer = localName;
             }
             setEmitFlags(
-              propertyName,
+              propertyName2,
               3072 | 96
               /* NoSourceMap */
             );
@@ -118794,13 +118794,13 @@ ${lanes.join("\n")}
           } else {
             initializer ?? (initializer = factory2.createVoidZero());
           }
-          if (emitAssignment || isPrivateIdentifier(propertyName)) {
+          if (emitAssignment || isPrivateIdentifier(propertyName2)) {
             const memberAccess = createMemberAccessForPropertyName(
               factory2,
               receiver,
-              propertyName,
+              propertyName2,
               /*location*/
-              propertyName
+              propertyName2
             );
             addEmitFlags(
               memberAccess,
@@ -118810,7 +118810,7 @@ ${lanes.join("\n")}
             const expression = factory2.createAssignment(memberAccess, initializer);
             return expression;
           } else {
-            const name = isComputedPropertyName(propertyName) ? propertyName.expression : isIdentifier(propertyName) ? factory2.createStringLiteral(unescapeLeadingUnderscores(propertyName.escapedText)) : propertyName;
+            const name = isComputedPropertyName(propertyName2) ? propertyName2.expression : isIdentifier(propertyName2) ? factory2.createStringLiteral(unescapeLeadingUnderscores(propertyName2.escapedText)) : propertyName2;
             const descriptor = factory2.createPropertyDescriptor({ value: initializer, configurable: true, writable: true, enumerable: true });
             return factory2.createObjectDefinePropertyCall(receiver, name, descriptor);
           }
@@ -121295,25 +121295,25 @@ ${lanes.join("\n")}
             pendingExpressions.push(memberDecoratorsAssignment);
             const statements = isMethodOrAccessor(member) || isAutoAccessorPropertyDeclaration(member) ? isStatic(member) ? classInfo2.staticNonFieldDecorationStatements ?? (classInfo2.staticNonFieldDecorationStatements = []) : classInfo2.nonStaticNonFieldDecorationStatements ?? (classInfo2.nonStaticNonFieldDecorationStatements = []) : isPropertyDeclaration(member) && !isAutoAccessorPropertyDeclaration(member) ? isStatic(member) ? classInfo2.staticFieldDecorationStatements ?? (classInfo2.staticFieldDecorationStatements = []) : classInfo2.nonStaticFieldDecorationStatements ?? (classInfo2.nonStaticFieldDecorationStatements = []) : Debug.fail();
             const kind = isGetAccessorDeclaration(member) ? "getter" : isSetAccessorDeclaration(member) ? "setter" : isMethodDeclaration(member) ? "method" : isAutoAccessorPropertyDeclaration(member) ? "accessor" : isPropertyDeclaration(member) ? "field" : Debug.fail();
-            let propertyName;
+            let propertyName2;
             if (isIdentifier(member.name) || isPrivateIdentifier(member.name)) {
-              propertyName = { computed: false, name: member.name };
+              propertyName2 = { computed: false, name: member.name };
             } else if (isPropertyNameLiteral(member.name)) {
-              propertyName = { computed: true, name: factory2.createStringLiteralFromNode(member.name) };
+              propertyName2 = { computed: true, name: factory2.createStringLiteralFromNode(member.name) };
             } else {
               const expression = member.name.expression;
               if (isPropertyNameLiteral(expression) && !isIdentifier(expression)) {
-                propertyName = { computed: true, name: factory2.createStringLiteralFromNode(expression) };
+                propertyName2 = { computed: true, name: factory2.createStringLiteralFromNode(expression) };
               } else {
                 enterName();
                 ({ referencedName, name } = visitReferencedPropertyName(member.name));
-                propertyName = { computed: true, name: referencedName };
+                propertyName2 = { computed: true, name: referencedName };
                 exitName();
               }
             }
             const context2 = {
               kind,
-              name: propertyName,
+              name: propertyName2,
               static: isStatic(member),
               private: isPrivateIdentifier(member.name),
               access: {
@@ -121628,8 +121628,8 @@ ${lanes.join("\n")}
         }
         function visitPropertyAccessExpression(node) {
           if (isSuperProperty(node) && isIdentifier(node.name) && classThis && classSuper) {
-            const propertyName = factory2.createStringLiteralFromNode(node.name);
-            const superProperty = factory2.createReflectGetCall(classSuper, propertyName, classThis);
+            const propertyName2 = factory2.createStringLiteralFromNode(node.name);
+            const superProperty = factory2.createReflectGetCall(classSuper, propertyName2, classThis);
             setOriginalNode(superProperty, node.expression);
             setTextRange(superProperty, node.expression);
             return superProperty;
@@ -121638,8 +121638,8 @@ ${lanes.join("\n")}
         }
         function visitElementAccessExpression(node) {
           if (isSuperProperty(node) && classThis && classSuper) {
-            const propertyName = visitNode(node.argumentExpression, visitor, isExpression);
-            const superProperty = factory2.createReflectGetCall(classSuper, propertyName, classThis);
+            const propertyName2 = visitNode(node.argumentExpression, visitor, isExpression);
+            const superProperty = factory2.createReflectGetCall(classSuper, propertyName2, classThis);
             setOriginalNode(superProperty, node.expression);
             setTextRange(superProperty, node.expression);
             return superProperty;
@@ -121847,8 +121847,8 @@ ${lanes.join("\n")}
             return visitAssignmentPattern(node);
           }
           if (isSuperProperty(node) && classThis && classSuper) {
-            const propertyName = isElementAccessExpression(node) ? visitNode(node.argumentExpression, visitor, isExpression) : isIdentifier(node.name) ? factory2.createStringLiteralFromNode(node.name) : void 0;
-            if (propertyName) {
+            const propertyName2 = isElementAccessExpression(node) ? visitNode(node.argumentExpression, visitor, isExpression) : isIdentifier(node.name) ? factory2.createStringLiteralFromNode(node.name) : void 0;
+            if (propertyName2) {
               const paramName = factory2.createTempVariable(
                 /*recordTempVariable*/
                 void 0
@@ -121857,7 +121857,7 @@ ${lanes.join("\n")}
                 paramName,
                 factory2.createReflectSetCall(
                   classSuper,
-                  propertyName,
+                  propertyName2,
                   paramName,
                   classThis
                 )
@@ -127974,17 +127974,17 @@ ${lanes.join("\n")}
             void 0,
             container
           );
-          const propertyName = visitNode(member.name, visitor, isPropertyName2);
-          Debug.assert(propertyName);
+          const propertyName2 = visitNode(member.name, visitor, isPropertyName2);
+          Debug.assert(propertyName2);
           let e;
-          if (!isPrivateIdentifier(propertyName) && getUseDefineForClassFields(context.getCompilerOptions())) {
-            const name = isComputedPropertyName(propertyName) ? propertyName.expression : isIdentifier(propertyName) ? factory2.createStringLiteral(unescapeLeadingUnderscores(propertyName.escapedText)) : propertyName;
+          if (!isPrivateIdentifier(propertyName2) && getUseDefineForClassFields(context.getCompilerOptions())) {
+            const name = isComputedPropertyName(propertyName2) ? propertyName2.expression : isIdentifier(propertyName2) ? factory2.createStringLiteral(unescapeLeadingUnderscores(propertyName2.escapedText)) : propertyName2;
             e = factory2.createObjectDefinePropertyCall(receiver, name, factory2.createPropertyDescriptor({ value: memberFunction, enumerable: false, writable: true, configurable: true }));
           } else {
             const memberName = createMemberAccessForPropertyName(
               factory2,
               receiver,
-              propertyName,
+              propertyName2,
               /*location*/
               member.name
             );
@@ -128039,13 +128039,13 @@ ${lanes.join("\n")}
           if (isPrivateIdentifier(visitedAccessorName)) {
             return Debug.failBadSyntaxKind(visitedAccessorName, "Encountered unhandled private identifier while transforming ES2015.");
           }
-          const propertyName = createExpressionForPropertyName(factory2, visitedAccessorName);
+          const propertyName2 = createExpressionForPropertyName(factory2, visitedAccessorName);
           setEmitFlags(
-            propertyName,
+            propertyName2,
             3072 | 32
             /* NoLeadingSourceMap */
           );
-          setSourceMapRange(propertyName, firstAccessor.name);
+          setSourceMapRange(propertyName2, firstAccessor.name);
           const properties = [];
           if (getAccessor) {
             const getterFunction = transformFunctionLikeToExpression(
@@ -128095,7 +128095,7 @@ ${lanes.join("\n")}
             void 0,
             [
               target,
-              propertyName,
+              propertyName2,
               factory2.createObjectLiteralExpression(
                 properties,
                 /*multiLine*/
@@ -136874,11 +136874,11 @@ ${lanes.join("\n")}
           ));
           return issuedDiagnostic;
         }
-        function reportPrivateInBaseOfClassExpression(propertyName) {
+        function reportPrivateInBaseOfClassExpression(propertyName2) {
           if (errorNameNode || errorFallbackNode) {
             context.addDiagnostic(
               addRelatedInfo(
-                createDiagnosticForNode(errorNameNode || errorFallbackNode, Diagnostics.Property_0_of_exported_anonymous_class_type_may_not_be_private_or_protected, propertyName),
+                createDiagnosticForNode(errorNameNode || errorFallbackNode, Diagnostics.Property_0_of_exported_anonymous_class_type_may_not_be_private_or_protected, propertyName2),
                 ...isVariableDeclaration((errorNameNode || errorFallbackNode).parent) ? [createDiagnosticForNode(errorNameNode || errorFallbackNode, Diagnostics.Add_a_type_annotation_to_the_variable_0, errorDeclarationNameWithFallback())] : []
               )
             );
@@ -136929,9 +136929,9 @@ ${lanes.join("\n")}
             }
           }
         }
-        function reportNonSerializableProperty(propertyName) {
+        function reportNonSerializableProperty(propertyName2) {
           if (errorNameNode || errorFallbackNode) {
-            context.addDiagnostic(createDiagnosticForNode(errorNameNode || errorFallbackNode, Diagnostics.The_type_of_this_node_cannot_be_serialized_because_its_property_0_cannot_be_serialized, propertyName));
+            context.addDiagnostic(createDiagnosticForNode(errorNameNode || errorFallbackNode, Diagnostics.The_type_of_this_node_cannot_be_serialized_because_its_property_0_cannot_be_serialized, propertyName2));
           }
         }
         function transformDeclarationsForJS(sourceFile) {
@@ -163566,13 +163566,13 @@ ${lanes.join("\n")}
         const configDir = getDirectoryPath(configFile.fileName);
         const jsonObjectLiteral = getTsConfigObjectLiteralExpression(configFile);
         if (!jsonObjectLiteral) return;
-        forEachProperty(jsonObjectLiteral, (property, propertyName) => {
-          switch (propertyName) {
+        forEachProperty(jsonObjectLiteral, (property, propertyName2) => {
+          switch (propertyName2) {
             case "files":
             case "include":
             case "exclude": {
               const foundExactMatch = updatePaths(property);
-              if (foundExactMatch || propertyName !== "include" || !isArrayLiteralExpression(property.initializer)) return;
+              if (foundExactMatch || propertyName2 !== "include" || !isArrayLiteralExpression(property.initializer)) return;
               const includes = mapDefined(property.initializer.elements, (e) => isStringLiteral(e) ? e.text : void 0);
               if (includes.length === 0) return;
               const matchers = getFileMatcherPatterns(
@@ -163589,12 +163589,12 @@ ${lanes.join("\n")}
               return;
             }
             case "compilerOptions":
-              forEachProperty(property.initializer, (property2, propertyName2) => {
-                const option = getOptionFromName(propertyName2);
+              forEachProperty(property.initializer, (property2, propertyName22) => {
+                const option = getOptionFromName(propertyName22);
                 Debug.assert((option == null ? void 0 : option.type) !== "listOrElement");
                 if (option && (option.isFilePath || option.type === "list" && option.element.isFilePath)) {
                   updatePaths(property2);
-                } else if (propertyName2 === "paths") {
+                } else if (propertyName22 === "paths") {
                   forEachProperty(property2.initializer, (pathsProperty) => {
                     if (!isArrayLiteralExpression(pathsProperty.initializer)) return;
                     for (const e of pathsProperty.initializer.elements) {
@@ -165618,8 +165618,8 @@ interface Symbol {
         }
         const declName = getNameOfDeclaration(node);
         if (declName && isPropertyName2(declName)) {
-          const propertyName = getPropertyNameForPropertyNameNode(declName);
-          return propertyName && unescapeLeadingUnderscores(propertyName);
+          const propertyName2 = getPropertyNameForPropertyNameNode(declName);
+          return propertyName2 && unescapeLeadingUnderscores(propertyName2);
         }
         switch (node.kind) {
           case 219:
@@ -166117,19 +166117,19 @@ interface Symbol {
             Debug.assertNever(parent2, `Unexpected parent kind ${parent2.kind}`);
         }
       }
-      function makeImportSpecifier(propertyName, name) {
+      function makeImportSpecifier(propertyName2, name) {
         return factory.createImportSpecifier(
           /*isTypeOnly*/
           false,
-          propertyName === name ? void 0 : factory.createIdentifier(propertyName),
+          propertyName2 === name ? void 0 : factory.createIdentifier(propertyName2),
           factory.createIdentifier(name)
         );
       }
-      function makeExportSpecifier(propertyName, name) {
+      function makeExportSpecifier(propertyName2, name) {
         return factory.createExportSpecifier(
           /*isTypeOnly*/
           false,
-          propertyName === name ? void 0 : factory.createIdentifier(propertyName),
+          propertyName2 === name ? void 0 : factory.createIdentifier(propertyName2),
           factory.createIdentifier(name)
         );
       }
@@ -166268,11 +166268,11 @@ interface Symbol {
           changes.replaceNode(sourceFile, propertyAccessOrQualifiedName, factory.createIdentifier(importName));
         }
         const importSpecifiers = [];
-        exportNameToImportName.forEach((name, propertyName) => {
+        exportNameToImportName.forEach((name, propertyName2) => {
           importSpecifiers.push(factory.createImportSpecifier(
             /*isTypeOnly*/
             false,
-            name === propertyName ? void 0 : factory.createIdentifier(propertyName),
+            name === propertyName2 ? void 0 : factory.createIdentifier(propertyName2),
             factory.createIdentifier(name)
           ));
         });
@@ -166333,9 +166333,9 @@ interface Symbol {
         const namespaceImportName = namespaceNameConflicts ? getUniqueName(preferredName, sourceFile) : preferredName;
         const neededNamedImports = /* @__PURE__ */ new Set();
         for (const element of toConvert.elements) {
-          const propertyName = element.propertyName || element.name;
+          const propertyName2 = element.propertyName || element.name;
           ts_FindAllReferences_exports.Core.eachSymbolReferenceInFile(element.name, checker, sourceFile, (id) => {
-            const access = propertyName.kind === 11 ? factory.createElementAccessExpression(factory.createIdentifier(namespaceImportName), factory.cloneNode(propertyName)) : factory.createPropertyAccessExpression(factory.createIdentifier(namespaceImportName), factory.cloneNode(propertyName));
+            const access = propertyName2.kind === 11 ? factory.createElementAccessExpression(factory.createIdentifier(namespaceImportName), factory.cloneNode(propertyName2)) : factory.createPropertyAccessExpression(factory.createIdentifier(namespaceImportName), factory.cloneNode(propertyName2));
             if (isShorthandPropertyAssignment(id.parent)) {
               changes.replaceNode(sourceFile, id.parent, factory.createPropertyAssignment(id.text, access));
             } else if (isExportSpecifier(id.parent)) {
@@ -171897,8 +171897,8 @@ ${newComment.split("\n").map((c) => ` * ${c}`).join("\n")}
         getProperties() {
           return this.checker.getPropertiesOfType(this);
         }
-        getProperty(propertyName) {
-          return this.checker.getPropertyOfType(this, propertyName);
+        getProperty(propertyName2) {
+          return this.checker.getPropertyOfType(this, propertyName2);
         }
         getApparentProperties() {
           return this.checker.getAugmentedPropertiesOfType(this);
@@ -177172,13 +177172,13 @@ ${newComment.split("\n").map((c) => ` * ${c}`).join("\n")}
           return combinedUseSites;
         }
       }
-      function convertPropertyAccessImport(name, propertyName, moduleSpecifier, identifiers, quotePreference) {
+      function convertPropertyAccessImport(name, propertyName2, moduleSpecifier, identifiers, quotePreference) {
         switch (name.kind) {
           case 207:
           case 208: {
-            const tmp = makeUniqueName(propertyName, identifiers);
+            const tmp = makeUniqueName(propertyName2, identifiers);
             return convertedImports([
-              makeSingleImport(tmp, propertyName, moduleSpecifier, quotePreference),
+              makeSingleImport(tmp, propertyName2, moduleSpecifier, quotePreference),
               makeConst(
                 /*modifiers*/
                 void 0,
@@ -177188,7 +177188,7 @@ ${newComment.split("\n").map((c) => ` * ${c}`).join("\n")}
             ]);
           }
           case 80:
-            return convertedImports([makeSingleImport(name.text, propertyName, moduleSpecifier, quotePreference)]);
+            return convertedImports([makeSingleImport(name.text, propertyName2, moduleSpecifier, quotePreference)]);
           default:
             return Debug.assertNever(name, `Convert to ES module got invalid syntax form ${name.kind}`);
         }
@@ -177414,17 +177414,17 @@ ${newComment.split("\n").map((c) => ` * ${c}`).join("\n")}
           }
           const { parent: parent2 } = use;
           if (isPropertyAccessExpression(parent2)) {
-            const { name: { text: propertyName } } = parent2;
-            if (propertyName === "default") {
+            const { name: { text: propertyName2 } } = parent2;
+            if (propertyName2 === "default") {
               needDefaultImport = true;
               const importDefaultName = use.getText();
               (useSitesToUnqualify ?? (useSitesToUnqualify = /* @__PURE__ */ new Map())).set(parent2, factory.createIdentifier(importDefaultName));
             } else {
               Debug.assert(parent2.expression === use, "Didn't expect expression === use");
-              let idName = namedBindingsNames.get(propertyName);
+              let idName = namedBindingsNames.get(propertyName2);
               if (idName === void 0) {
-                idName = makeUniqueName(propertyName, identifiers);
-                namedBindingsNames.set(propertyName, idName);
+                idName = makeUniqueName(propertyName2, identifiers);
+                namedBindingsNames.set(propertyName2, idName);
               }
               (useSitesToUnqualify ?? (useSitesToUnqualify = /* @__PURE__ */ new Map())).set(parent2, factory.createIdentifier(idName));
             }
@@ -177432,10 +177432,10 @@ ${newComment.split("\n").map((c) => ` * ${c}`).join("\n")}
             needDefaultImport = true;
           }
         }
-        const namedBindings = namedBindingsNames.size === 0 ? void 0 : arrayFrom(mapIterator(namedBindingsNames.entries(), ([propertyName, idName]) => factory.createImportSpecifier(
+        const namedBindings = namedBindingsNames.size === 0 ? void 0 : arrayFrom(mapIterator(namedBindingsNames.entries(), ([propertyName2, idName]) => factory.createImportSpecifier(
           /*isTypeOnly*/
           false,
-          propertyName === idName ? void 0 : factory.createIdentifier(propertyName),
+          propertyName2 === idName ? void 0 : factory.createIdentifier(propertyName2),
           factory.createIdentifier(idName)
         )));
         if (!namedBindings) {
@@ -177495,8 +177495,8 @@ ${newComment.split("\n").map((c) => ` * ${c}`).join("\n")}
           replaceImportUseSites(cls.members, useSitesToUnqualify)
         );
       }
-      function makeSingleImport(localName, propertyName, moduleSpecifier, quotePreference) {
-        return propertyName === "default" ? makeImport(
+      function makeSingleImport(localName, propertyName2, moduleSpecifier, quotePreference) {
+        return propertyName2 === "default" ? makeImport(
           factory.createIdentifier(localName),
           /*namedImports*/
           void 0,
@@ -177505,16 +177505,16 @@ ${newComment.split("\n").map((c) => ` * ${c}`).join("\n")}
         ) : makeImport(
           /*defaultImport*/
           void 0,
-          [makeImportSpecifier2(propertyName, localName)],
+          [makeImportSpecifier2(propertyName2, localName)],
           moduleSpecifier,
           quotePreference
         );
       }
-      function makeImportSpecifier2(propertyName, name) {
+      function makeImportSpecifier2(propertyName2, name) {
         return factory.createImportSpecifier(
           /*isTypeOnly*/
           false,
-          propertyName !== void 0 && propertyName !== name ? factory.createIdentifier(propertyName) : void 0,
+          propertyName2 !== void 0 && propertyName2 !== name ? factory.createIdentifier(propertyName2) : void 0,
           factory.createIdentifier(name)
         );
       }
@@ -178015,12 +178015,12 @@ ${newComment.split("\n").map((c) => ` * ${c}`).join("\n")}
         const token = getTokenAtPosition(sourceFile, pos);
         if (isIdentifier(token)) {
           const propertySignature = cast(token.parent.parent, isPropertySignature);
-          const propertyName = token.getText(sourceFile);
+          const propertyName2 = token.getText(sourceFile);
           return {
             container: cast(propertySignature.parent, isTypeLiteralNode),
             typeNode: propertySignature.type,
-            constraint: propertyName,
-            name: propertyName === "K" ? "P" : "K"
+            constraint: propertyName2,
+            name: propertyName2 === "K" ? "P" : "K"
           };
         }
         return void 0;
@@ -178272,17 +178272,17 @@ ${newComment.split("\n").map((c) => ` * ${c}`).join("\n")}
           if (fix) {
             const localName = ((_b = tryCast(referenceImport == null ? void 0 : referenceImport.name, isIdentifier)) == null ? void 0 : _b.text) ?? symbolName2;
             let addAsTypeOnly;
-            let propertyName;
+            let propertyName2;
             if (referenceImport && isTypeOnlyImportDeclaration(referenceImport) && (fix.kind === 3 || fix.kind === 2) && fix.addAsTypeOnly === 1) {
               addAsTypeOnly = 2;
             }
             if (exportedSymbol.name !== localName) {
-              propertyName = exportedSymbol.name;
+              propertyName2 = exportedSymbol.name;
             }
             fix = {
               ...fix,
               ...addAsTypeOnly === void 0 ? {} : { addAsTypeOnly },
-              ...propertyName === void 0 ? {} : { propertyName }
+              ...propertyName2 === void 0 ? {} : { propertyName: propertyName2 }
             };
             addImport({ fix, symbolName: localName ?? symbolName2, errorIdentifierText: void 0 });
           }
@@ -178428,14 +178428,14 @@ ${newComment.split("\n").map((c) => ` * ${c}`).join("\n")}
               importType.push(fix);
               break;
             case 2: {
-              const { importClauseOrBindingPattern, importKind, addAsTypeOnly, propertyName } = fix;
+              const { importClauseOrBindingPattern, importKind, addAsTypeOnly, propertyName: propertyName2 } = fix;
               let entry = addToExisting.get(importClauseOrBindingPattern);
               if (!entry) {
                 addToExisting.set(importClauseOrBindingPattern, entry = { importClauseOrBindingPattern, defaultImport: void 0, namedImports: /* @__PURE__ */ new Map() });
               }
               if (importKind === 0) {
                 const prevTypeOnly = (_a2 = entry == null ? void 0 : entry.namedImports.get(symbolName2)) == null ? void 0 : _a2.addAsTypeOnly;
-                entry.namedImports.set(symbolName2, { addAsTypeOnly: reduceAddAsTypeOnlyValues(prevTypeOnly, addAsTypeOnly), propertyName });
+                entry.namedImports.set(symbolName2, { addAsTypeOnly: reduceAddAsTypeOnlyValues(prevTypeOnly, addAsTypeOnly), propertyName: propertyName2 });
               } else {
                 Debug.assert(entry.defaultImport === void 0 || entry.defaultImport.name === symbolName2, "(Add to Existing) Default import should be missing or match symbolName");
                 entry.defaultImport = {
@@ -178446,7 +178446,7 @@ ${newComment.split("\n").map((c) => ` * ${c}`).join("\n")}
               break;
             }
             case 3: {
-              const { moduleSpecifier, importKind, useRequire, addAsTypeOnly, propertyName } = fix;
+              const { moduleSpecifier, importKind, useRequire, addAsTypeOnly, propertyName: propertyName2 } = fix;
               const entry = getNewImportEntry(moduleSpecifier, importKind, useRequire, addAsTypeOnly);
               Debug.assert(entry.useRequire === useRequire, "(Add new) Tried to add an `import` and a `require` for the same module");
               switch (importKind) {
@@ -178456,12 +178456,12 @@ ${newComment.split("\n").map((c) => ` * ${c}`).join("\n")}
                   break;
                 case 0:
                   const prevValue = (entry.namedImports || (entry.namedImports = /* @__PURE__ */ new Map())).get(symbolName2);
-                  entry.namedImports.set(symbolName2, [reduceAddAsTypeOnlyValues(prevValue, addAsTypeOnly), propertyName]);
+                  entry.namedImports.set(symbolName2, [reduceAddAsTypeOnlyValues(prevValue, addAsTypeOnly), propertyName2]);
                   break;
                 case 3:
                   if (compilerOptions.verbatimModuleSyntax) {
                     const prevValue2 = (entry.namedImports || (entry.namedImports = /* @__PURE__ */ new Map())).get(symbolName2);
-                    entry.namedImports.set(symbolName2, [reduceAddAsTypeOnlyValues(prevValue2, addAsTypeOnly), propertyName]);
+                    entry.namedImports.set(symbolName2, [reduceAddAsTypeOnlyValues(prevValue2, addAsTypeOnly), propertyName2]);
                   } else {
                     Debug.assert(entry.namespaceLikeImport === void 0 || entry.namespaceLikeImport.name === symbolName2, "Namespacelike import shoudl be missing or match symbolName");
                     entry.namespaceLikeImport = { importKind, name: symbolName2, addAsTypeOnly };
@@ -178615,7 +178615,7 @@ ${newComment.split("\n").map((c) => ` * ${c}`).join("\n")}
               sourceFile,
               importClauseOrBindingPattern,
               defaultImport,
-              arrayFrom(namedImports.entries(), ([name, { addAsTypeOnly, propertyName }]) => ({ addAsTypeOnly, propertyName, name })),
+              arrayFrom(namedImports.entries(), ([name, { addAsTypeOnly, propertyName: propertyName2 }]) => ({ addAsTypeOnly, propertyName: propertyName2, name })),
               importSpecifiersToRemoveWhileAdding,
               preferences
             );
@@ -178628,7 +178628,7 @@ ${newComment.split("\n").map((c) => ` * ${c}`).join("\n")}
               moduleSpecifier,
               quotePreference,
               defaultImport,
-              namedImports && arrayFrom(namedImports.entries(), ([name, [addAsTypeOnly, propertyName]]) => ({ addAsTypeOnly, propertyName, name })),
+              namedImports && arrayFrom(namedImports.entries(), ([name, [addAsTypeOnly, propertyName2]]) => ({ addAsTypeOnly, propertyName: propertyName2, name })),
               namespaceLikeImport,
               compilerOptions,
               preferences
@@ -179629,11 +179629,11 @@ ${newComment.split("\n").map((c) => ` * ${c}`).join("\n")}
             }
           }
         }
-        function addElementToBindingPattern(bindingPattern, name, propertyName) {
+        function addElementToBindingPattern(bindingPattern, name, propertyName2) {
           const element = factory.createBindingElement(
             /*dotDotDotToken*/
             void 0,
-            propertyName,
+            propertyName2,
             name
           );
           if (bindingPattern.elements.length) {
@@ -179713,10 +179713,10 @@ ${newComment.split("\n").map((c) => ` * ${c}`).join("\n")}
         const quotedModuleSpecifier = makeStringLiteral(moduleSpecifier, quotePreference);
         let statements;
         if (defaultImport || (namedImports == null ? void 0 : namedImports.length)) {
-          const bindingElements = (namedImports == null ? void 0 : namedImports.map(({ name, propertyName }) => factory.createBindingElement(
+          const bindingElements = (namedImports == null ? void 0 : namedImports.map(({ name, propertyName: propertyName2 }) => factory.createBindingElement(
             /*dotDotDotToken*/
             void 0,
-            propertyName,
+            propertyName2,
             name
           ))) || [];
           if (defaultImport) {
@@ -180951,8 +180951,8 @@ ${newComment.split("\n").map((c) => ` * ${c}`).join("\n")}
           changeTracker.insertNodeAtConstructorEnd(sourceFile, classConstructor, propertyInitialization);
         }
       }
-      function initializePropertyToUndefined(obj, propertyName) {
-        return factory.createExpressionStatement(factory.createAssignment(factory.createPropertyAccessExpression(obj, propertyName), createUndefined()));
+      function initializePropertyToUndefined(obj, propertyName2) {
+        return factory.createExpressionStatement(factory.createAssignment(factory.createPropertyAccessExpression(obj, propertyName2), createUndefined()));
       }
       function createActionsForAddMissingMemberInTypeScriptFile(context, { parentDeclaration, declSourceFile, modifierFlags, token }) {
         const memberName = token.text;
@@ -183329,9 +183329,9 @@ ${newComment.split("\n").map((c) => ` * ${c}`).join("\n")}
               const { typeNode } = inferType(name);
               let variableInitializer = createChainedExpression(bindingElement, expressionToVar);
               if (bindingElement.element.initializer) {
-                const propertyName = (_a2 = bindingElement.element) == null ? void 0 : _a2.propertyName;
+                const propertyName2 = (_a2 = bindingElement.element) == null ? void 0 : _a2.propertyName;
                 const tempName = factory.createUniqueName(
-                  propertyName && isIdentifier(propertyName) ? propertyName.text : "temp",
+                  propertyName2 && isIdentifier(propertyName2) ? propertyName2.text : "temp",
                   16
                   /* Optimistic */
                 );
@@ -187373,11 +187373,11 @@ ${newComment.split("\n").map((c) => ` * ${c}`).join("\n")}
         }
         function elementWorker(path22, element, counter) {
           if (!element.propertyName && isIdentifier(element.name) || isIdentifier(element.name)) {
-            const propertyName = element.propertyName ? tryGetTextOfPropertyName(element.propertyName) : element.name.text;
-            if (!propertyName) {
+            const propertyName2 = element.propertyName ? tryGetTextOfPropertyName(element.propertyName) : element.name.text;
+            if (!propertyName2) {
               return void 0;
             }
-            const paramName = `${path22}.${propertyName}`;
+            const paramName = `${path22}.${propertyName2}`;
             return [
               getJSDocParamAnnotation(
                 paramName,
@@ -187394,8 +187394,8 @@ ${newComment.split("\n").map((c) => ` * ${c}`).join("\n")}
               )
             ];
           } else if (element.propertyName) {
-            const propertyName = tryGetTextOfPropertyName(element.propertyName);
-            return propertyName && patternWorker(`${path22}.${propertyName}`, element.name, element.initializer, element.dotDotDotToken, counter);
+            const propertyName2 = tryGetTextOfPropertyName(element.propertyName);
+            return propertyName2 && patternWorker(`${path22}.${propertyName2}`, element.name, element.initializer, element.dotDotDotToken, counter);
           }
           return void 0;
         }
@@ -192507,12 +192507,12 @@ ${newComment.split("\n").map((c) => ` * ${c}`).join("\n")}
             return;
           }
           for (const element of namedBindings.elements) {
-            const { name, propertyName } = element;
-            if (!isNameMatch(moduleExportNameTextEscaped(propertyName || name))) {
+            const { name, propertyName: propertyName2 } = element;
+            if (!isNameMatch(moduleExportNameTextEscaped(propertyName2 || name))) {
               continue;
             }
-            if (propertyName) {
-              singleReferences.push(propertyName);
+            if (propertyName2) {
+              singleReferences.push(propertyName2);
               if (!isForRename || moduleExportNameTextEscaped(name) === exportSymbol.escapedName) {
                 addSearch(name, checker.getSymbolAtLocation(name));
               }
@@ -192856,8 +192856,8 @@ ${newComment.split("\n").map((c) => ` * ${c}`).join("\n")}
               return isDeclaration(declOrStatement) ? getContextNode(declOrStatement) : declOrStatement;
             }
           }
-          const propertyName = findAncestor(node, isComputedPropertyName);
-          return propertyName ? getContextNode(propertyName.parent) : void 0;
+          const propertyName2 = findAncestor(node, isComputedPropertyName);
+          return propertyName2 ? getContextNode(propertyName2.parent) : void 0;
         }
         if (node.parent.name === node || // node is name of declaration, use parent
         isConstructorDeclaration(node.parent) || isExportAssignment(node.parent) || // Property name of the import export specifier or binding pattern, use parent
@@ -194136,17 +194136,17 @@ ${newComment.split("\n").map((c) => ` * ${c}`).join("\n")}
         }
         function getReferencesAtExportSpecifier(referenceLocation, referenceSymbol, exportSpecifier, search, state, addReferencesHere, alwaysGetReferences) {
           Debug.assert(!alwaysGetReferences || !!state.options.providePrefixAndSuffixTextForRename, "If alwaysGetReferences is true, then prefix/suffix text must be enabled");
-          const { parent: parent2, propertyName, name } = exportSpecifier;
+          const { parent: parent2, propertyName: propertyName2, name } = exportSpecifier;
           const exportDeclaration = parent2.parent;
           const localSymbol = getLocalSymbolForExportSpecifier(referenceLocation, referenceSymbol, exportSpecifier, state.checker);
           if (!alwaysGetReferences && !search.includes(localSymbol)) {
             return;
           }
-          if (!propertyName) {
+          if (!propertyName2) {
             if (!(state.options.use === 2 && moduleExportNameIsDefault(name))) {
               addRef();
             }
-          } else if (referenceLocation === propertyName) {
+          } else if (referenceLocation === propertyName2) {
             if (!exportDeclaration.moduleSpecifier) {
               addRef();
             }
@@ -194167,7 +194167,7 @@ ${newComment.split("\n").map((c) => ` * ${c}`).join("\n")}
               searchForImportsOfExport(referenceLocation, exportSymbol, exportInfo, state);
             }
           }
-          if (search.comingFrom !== 1 && exportDeclaration.moduleSpecifier && !propertyName && !isForRenameWithPrefixAndSuffixText(state.options)) {
+          if (search.comingFrom !== 1 && exportDeclaration.moduleSpecifier && !propertyName2 && !isForRenameWithPrefixAndSuffixText(state.options)) {
             const imported = state.checker.getExportSpecifierLocalTargetSymbol(exportSpecifier);
             if (imported) searchForImportedSymbol(imported, state);
           }
@@ -194179,10 +194179,10 @@ ${newComment.split("\n").map((c) => ` * ${c}`).join("\n")}
           return isExportSpecifierAlias(referenceLocation, exportSpecifier) && checker.getExportSpecifierLocalTargetSymbol(exportSpecifier) || referenceSymbol;
         }
         function isExportSpecifierAlias(referenceLocation, exportSpecifier) {
-          const { parent: parent2, propertyName, name } = exportSpecifier;
-          Debug.assert(propertyName === referenceLocation || name === referenceLocation);
-          if (propertyName) {
-            return propertyName === referenceLocation;
+          const { parent: parent2, propertyName: propertyName2, name } = exportSpecifier;
+          Debug.assert(propertyName2 === referenceLocation || name === referenceLocation);
+          if (propertyName2) {
+            return propertyName2 === referenceLocation;
           } else {
             return !parent2.parent.moduleSpecifier;
           }
@@ -194710,14 +194710,14 @@ ${newComment.split("\n").map((c) => ` * ${c}`).join("\n")}
             }
           }
         }
-        function getPropertySymbolsFromBaseTypes(symbol, propertyName, checker, cb) {
+        function getPropertySymbolsFromBaseTypes(symbol, propertyName2, checker, cb) {
           const seen = /* @__PURE__ */ new Set();
           return recur(symbol);
           function recur(symbol2) {
             if (!(symbol2.flags & (32 | 64)) || !addToSeen(seen, symbol2)) return;
             return firstDefined(symbol2.declarations, (declaration) => firstDefined(getAllSuperTypeNodes(declaration), (typeReference) => {
               const type = checker.getTypeAtLocation(typeReference);
-              const propertySymbol = type.symbol && checker.getPropertyOfType(type, propertyName);
+              const propertySymbol = type.symbol && checker.getPropertyOfType(type, propertyName2);
               return propertySymbol && firstDefined(checker.getRootSymbols(propertySymbol), cb) || type.symbol && recur(type.symbol);
             }));
           }
@@ -199553,10 +199553,10 @@ ${content}
           const parent2 = declaration.parent;
           const name = declaration.propertyName || declaration.name;
           if (isIdentifier(name) && isObjectBindingPattern(parent2)) {
-            const propertyName = getTextOfIdentifierOrLiteral(name);
+            const propertyName2 = getTextOfIdentifierOrLiteral(name);
             const objectType = typeChecker.getTypeAtLocation(parent2);
             documentation = firstDefined(objectType.isUnion() ? objectType.types : [objectType], (t) => {
-              const prop = t.getProperty(propertyName);
+              const prop = t.getProperty(propertyName2);
               return prop ? prop.getDocumentationComment(typeChecker) : void 0;
             }) || emptyArray;
           }
@@ -205421,7 +205421,7 @@ ${options.prefix}` : "\n" : options.prefix
         SymbolDisplayPartKind: () => SymbolDisplayPartKind,
         SymbolFlags: () => SymbolFlags,
         SymbolFormatFlags: () => SymbolFormatFlags,
-        SyntaxKind: () => SyntaxKind4,
+        SyntaxKind: () => SyntaxKind5,
         Ternary: () => Ternary,
         ThrottledCancellationToken: () => ThrottledCancellationToken,
         TokenClass: () => TokenClass,
@@ -229709,7 +229709,7 @@ var require_ts_morph = __commonJS({
       const nameNode = node.getNameNode();
       if (nameNode == null)
         return false;
-      if (Node5.isArrayBindingPattern(nameNode) || Node5.isObjectBindingPattern(nameNode))
+      if (Node6.isArrayBindingPattern(nameNode) || Node6.isObjectBindingPattern(nameNode))
         return nameNode.getElements().some((element) => nodeHasName(element, name));
       const nodeName = node.getName != null ? node.getName() : nameNode.getText();
       return nodeName === name;
@@ -230139,7 +230139,7 @@ var require_ts_morph = __commonJS({
     }
     function checkNodeIsAmbient(node) {
       const isThisAmbient = (node.getCombinedModifierFlags() & common.ts.ModifierFlags.Ambient) === common.ts.ModifierFlags.Ambient;
-      return isThisAmbient || Node5.isInterfaceDeclaration(node) || Node5.isTypeAliasDeclaration(node);
+      return isThisAmbient || Node6.isInterfaceDeclaration(node) || Node6.isTypeAliasDeclaration(node);
     }
     function isStringKind(kind) {
       switch (kind) {
@@ -230295,9 +230295,9 @@ var require_ts_morph = __commonJS({
         }
       }
     };
-    function setValueIfUndefined(obj, propertyName, defaultValue) {
-      if (typeof obj[propertyName] === "undefined")
-        obj[propertyName] = defaultValue;
+    function setValueIfUndefined(obj, propertyName2, defaultValue) {
+      if (typeof obj[propertyName2] === "undefined")
+        obj[propertyName2] = defaultValue;
     }
     function fillDefaultEditorSettings(settings, manipulationSettings) {
       setValueIfUndefined(settings, "convertTabsToSpaces", manipulationSettings.getIndentationText() !== exports2.IndentationText.Tab);
@@ -230540,15 +230540,15 @@ var require_ts_morph = __commonJS({
       #getSourceFileForLiteral(literal) {
         const parent = literal.getParentOrThrow();
         const grandParent = parent.getParent();
-        if (Node5.isImportDeclaration(parent) || Node5.isExportDeclaration(parent))
+        if (Node6.isImportDeclaration(parent) || Node6.isExportDeclaration(parent))
           return parent.getModuleSpecifierSourceFile();
-        else if (grandParent != null && Node5.isImportEqualsDeclaration(grandParent))
+        else if (grandParent != null && Node6.isImportEqualsDeclaration(grandParent))
           return grandParent.getExternalModuleReferenceSourceFile();
-        else if (grandParent != null && Node5.isImportTypeNode(grandParent)) {
+        else if (grandParent != null && Node6.isImportTypeNode(grandParent)) {
           const importTypeSymbol = grandParent.getSymbol();
           if (importTypeSymbol != null)
             return ModuleUtils.getReferencedSourceFileFromSymbol(importTypeSymbol);
-        } else if (Node5.isCallExpression(parent)) {
+        } else if (Node6.isCallExpression(parent)) {
           const literalSymbol = literal.getSymbol();
           if (literalSymbol != null)
             return ModuleUtils.getReferencedSourceFileFromSymbol(literalSymbol);
@@ -230640,16 +230640,16 @@ var require_ts_morph = __commonJS({
       FormattingKind2[FormattingKind2["None"] = 3] = "None";
     })(FormattingKind || (FormattingKind = {}));
     function getClassMemberFormatting(parent, member) {
-      if (Node5.isAmbientable(parent) && parent.isAmbient())
+      if (Node6.isAmbientable(parent) && parent.isAmbient())
         return FormattingKind.Newline;
       if (hasBody$1(member))
         return FormattingKind.Blankline;
       return FormattingKind.Newline;
     }
     function hasBody$1(node) {
-      if (Node5.isBodyable(node) && node.getBody() != null)
+      if (Node6.isBodyable(node) && node.getBody() != null)
         return true;
-      if (Node5.isBodied(node))
+      if (Node6.isBodied(node))
         return true;
       return false;
     }
@@ -230671,11 +230671,11 @@ var require_ts_morph = __commonJS({
       return FormattingKind.Newline;
     }
     function hasBody(node) {
-      if (Node5.isBodyable(node) && node.hasBody())
+      if (Node6.isBodyable(node) && node.hasBody())
         return true;
-      if (Node5.isBodied(node))
+      if (Node6.isBodied(node))
         return true;
-      return Node5.isInterfaceDeclaration(node) || Node5.isClassDeclaration(node) || Node5.isEnumDeclaration(node);
+      return Node6.isInterfaceDeclaration(node) || Node6.isClassDeclaration(node) || Node6.isEnumDeclaration(node);
     }
     function getStatementedNodeChildFormatting(parent, member) {
       if (hasBody(member))
@@ -230686,9 +230686,9 @@ var require_ts_morph = __commonJS({
       return FormattingKind.Newline;
     }
     function getGeneralFormatting(parent, child) {
-      if (Node5.isClassDeclaration(parent))
+      if (Node6.isClassDeclaration(parent))
         return getClassMemberFormatting(parent, child);
-      if (Node5.isInterfaceDeclaration(parent))
+      if (Node6.isInterfaceDeclaration(parent))
         return getInterfaceMemberFormatting();
       return getStatementedNodeChildFormatting(parent, child);
     }
@@ -230862,9 +230862,9 @@ var require_ts_morph = __commonJS({
     function getInsertPosFromIndex(index, syntaxList, children) {
       if (index === 0) {
         const parent = syntaxList.getParentOrThrow();
-        if (Node5.isSourceFile(parent))
+        if (Node6.isSourceFile(parent))
           return 0;
-        else if (Node5.isCaseClause(parent) || Node5.isDefaultClause(parent)) {
+        else if (Node6.isCaseClause(parent) || Node6.isDefaultClause(parent)) {
           const colonToken = parent.getFirstChildByKindOrThrow(common.SyntaxKind.ColonToken);
           return colonToken.getEnd();
         }
@@ -230881,9 +230881,9 @@ var require_ts_morph = __commonJS({
     function getEndPosFromIndex(index, parent, children, fullText) {
       let endPos;
       if (index === children.length) {
-        if (Node5.isSourceFile(parent))
+        if (Node6.isSourceFile(parent))
           endPos = parent.getEnd();
-        else if (Node5.isCaseClause(parent) || Node5.isDefaultClause(parent))
+        else if (Node6.isCaseClause(parent) || Node6.isDefaultClause(parent))
           endPos = parent.getEnd();
         else {
           const parentContainer = getParentContainerOrThrow(parent);
@@ -230899,14 +230899,14 @@ var require_ts_morph = __commonJS({
       return getPosAtStartOfLineOrNonWhitespace(fullText, endPos);
     }
     function getParentContainerOrThrow(parent) {
-      if (Node5.isModuleDeclaration(parent)) {
+      if (Node6.isModuleDeclaration(parent)) {
         const innerBody = parent._getInnerBody();
         if (innerBody == null)
           throw new common.errors.InvalidOperationError("This operation requires the module to have a body.");
         return innerBody;
-      } else if (Node5.isBodied(parent))
+      } else if (Node6.isBodied(parent))
         return parent.getBody();
-      else if (Node5.isBodyable(parent))
+      else if (Node6.isBodyable(parent))
         return parent.getBodyOrThrow();
       else
         return parent;
@@ -230953,7 +230953,7 @@ var require_ts_morph = __commonJS({
       const result = [];
       for (let i = 0; i < newLength; i++) {
         const currentChild = newChildren[index + i];
-        if (allowCommentNodes || !Node5.isCommentNode(currentChild))
+        if (allowCommentNodes || !Node6.isCommentNode(currentChild))
           result.push(currentChild);
       }
       return result;
@@ -231406,7 +231406,7 @@ var require_ts_morph = __commonJS({
         this.#handler = handler;
       }
       handleNode(currentNode, newNode, newSourceFile) {
-        if (!Node5.isSourceFile(currentNode))
+        if (!Node6.isSourceFile(currentNode))
           throw new common.errors.InvalidOperationError(`Can only use a TryOrForgetNodeHandler with a source file.`);
         try {
           this.#handler.handleNode(currentNode, newNode, newSourceFile);
@@ -231562,7 +231562,7 @@ var require_ts_morph = __commonJS({
         const lowerIndex = Math.min(newIndex, oldIndex);
         const upperIndex = Math.max(newIndex, oldIndex);
         const childrenInNewOrder = getChildrenInNewOrder();
-        const isParentSourceFile = Node5.isSourceFile(parent.getParentOrThrow());
+        const isParentSourceFile = Node6.isSourceFile(parent.getParentOrThrow());
         let finalText = "";
         fillPrefixText();
         fillTextForIndex(lowerIndex);
@@ -231889,14 +231889,14 @@ var require_ts_morph = __commonJS({
         const bodyNode = getBodyNodeOrThrow();
         return [bodyNode.getStart() + 1, bodyNode.getEnd() - 1];
         function getBodyNodeOrThrow() {
-          if (Node5.isModuleDeclaration(node)) {
+          if (Node6.isModuleDeclaration(node)) {
             const bodyNode2 = node._getInnerBody();
             if (bodyNode2 == null)
               throw new common.errors.InvalidOperationError("This operation requires the module to have a body.");
             return bodyNode2;
-          } else if (Node5.isBodied(node))
+          } else if (Node6.isBodied(node))
             return node.getBody();
-          else if (Node5.isBodyable(node))
+          else if (Node6.isBodyable(node))
             return node.getBodyOrThrow();
           else
             common.errors.throwNotImplementedForSyntaxKindError(node.getKind(), node);
@@ -232071,14 +232071,14 @@ Path: ` + sourceFile.getFilePath() + "\nText: " + JSON.stringify(textManipulator
       }
       function getPreviousNonCommentNode() {
         for (let i = insertIndex - 1; i >= 0; i--) {
-          if (!Node5.isCommentNode(currentNodes[i]))
+          if (!Node6.isCommentNode(currentNodes[i]))
             return currentNodes[i];
         }
         return void 0;
       }
       function getNextNonCommentNode() {
         for (let i = insertIndex; i < currentNodes.length; i++) {
-          if (!Node5.isCommentNode(currentNodes[i]))
+          if (!Node6.isCommentNode(currentNodes[i]))
             return currentNodes[i];
         }
         return void 0;
@@ -232130,7 +232130,7 @@ Path: ` + sourceFile.getFilePath() + "\nText: " + JSON.stringify(textManipulator
         function getChild(child) {
           if (child == null)
             return child;
-          else if (Node5.isOverloadable(child))
+          else if (Node6.isOverloadable(child))
             return child.getImplementation() || child;
           else
             return child;
@@ -232161,7 +232161,7 @@ Path: ` + sourceFile.getFilePath() + "\nText: " + JSON.stringify(textManipulator
         let count = 0;
         for (let i = index - 1; i >= 0; i--) {
           const node = startChildren[i];
-          if (Node5.isCommentNode(node)) {
+          if (Node6.isCommentNode(node)) {
             commentCount++;
             if (node.getText().startsWith("/**"))
               count = commentCount;
@@ -232231,12 +232231,12 @@ Path: ` + sourceFile.getFilePath() + "\nText: " + JSON.stringify(textManipulator
       }));
     }
     function removeClassMember(classMember) {
-      if (Node5.isOverloadable(classMember)) {
+      if (Node6.isOverloadable(classMember)) {
         if (classMember.isImplementation())
           removeClassMembers([...classMember.getOverloads(), classMember]);
         else {
           const parent = classMember.getParentOrThrow();
-          if (Node5.isAmbientable(parent) && parent.isAmbient())
+          if (Node6.isAmbientable(parent) && parent.isAmbient())
             removeClassMembers([classMember]);
           else
             removeChildren({ children: [classMember], removeFollowingSpaces: true, removeFollowingNewLines: true });
@@ -232557,7 +232557,7 @@ Path: ` + sourceFile.getFilePath() + "\nText: " + JSON.stringify(textManipulator
         return this.compilerObject.kind;
       }
     };
-    var Node5 = class _Node {
+    var Node6 = class _Node {
       #compilerNode;
       #forgottenText;
       #childStringRanges;
@@ -233110,8 +233110,8 @@ Node text: ${this.#forgottenText}`;
       getProject() {
         return this._context.project;
       }
-      getNodeProperty(propertyName) {
-        const property = this.compilerNode[propertyName];
+      getNodeProperty(propertyName2) {
+        const property = this.compilerNode[propertyName2];
         if (property == null)
           return void 0;
         else if (property instanceof Array)
@@ -235256,7 +235256,7 @@ Node text: ${this.#forgottenText}`;
       return condition == null ? void 0 : ((c) => condition(thisNode._getNodeFromCompilerNode(c)));
     }
     function insertWhiteSpaceTextAtPos(node, insertPos, textOrWriterFunction, methodName) {
-      const parent = Node5.isSourceFile(node) ? node.getChildSyntaxListOrThrow() : node.getParentSyntaxList() || node.getParentOrThrow();
+      const parent = Node6.isSourceFile(node) ? node.getChildSyntaxListOrThrow() : node.getParentSyntaxList() || node.getParentOrThrow();
       const newText = getTextFromStringOrWriter(node._getWriterWithQueuedIndentation(), textOrWriterFunction);
       if (!/^[\s\r\n]*$/.test(newText))
         throw new common.errors.InvalidOperationError(`Cannot insert non-whitespace into ${methodName}.`);
@@ -235299,7 +235299,7 @@ Node text: ${this.#forgottenText}`;
       Scope["Protected"] = "protected";
       Scope["Private"] = "private";
     })(exports2.Scope || (exports2.Scope = {}));
-    var SyntaxList = class extends Node5 {
+    var SyntaxList = class extends Node6 {
       addChildText(textOrWriterFunction) {
         return this.insertChildText(this.getChildCount(), textOrWriterFunction);
       }
@@ -235318,12 +235318,12 @@ Node text: ${this.#forgottenText}`;
           else
             insertText = " " + insertText;
         } else {
-          if (index === 0 && Node5.isSourceFile(parent)) {
+          if (index === 0 && Node6.isSourceFile(parent)) {
             if (!insertText.endsWith("\n"))
               insertText += newLineKind;
           } else {
             insertText = newLineKind + insertText;
-            if (!Node5.isSourceFile(parent) && index === initialChildCount && insertText.endsWith("\n"))
+            if (!Node6.isSourceFile(parent) && index === initialChildCount && insertText.endsWith("\n"))
               insertText = insertText.replace(/\r?\n$/, "");
           }
         }
@@ -235572,7 +235572,7 @@ Node text: ${this.#forgottenText}`;
           if (value === hasExclamationToken)
             return this;
           if (value) {
-            if (Node5.isQuestionTokenable(this))
+            if (Node6.isQuestionTokenable(this))
               this.setHasQuestionToken(false);
             const colonNode = this.getFirstChildByKind(common.SyntaxKind.ColonToken);
             if (colonNode == null)
@@ -235606,11 +235606,11 @@ Node text: ${this.#forgottenText}`;
           return this.getExportKeyword() != null;
         }
         getExportKeyword() {
-          if (Node5.isVariableDeclaration(this)) {
+          if (Node6.isVariableDeclaration(this)) {
             const variableStatement = this.getVariableStatement();
             return variableStatement?.getExportKeyword();
           }
-          if (!Node5.isModifierable(this))
+          if (!Node6.isModifierable(this))
             return throwForNotModifierableNode();
           return this.getFirstModifierByKind(common.SyntaxKind.ExportKeyword);
         }
@@ -235621,11 +235621,11 @@ Node text: ${this.#forgottenText}`;
           return this.getDefaultKeyword() != null;
         }
         getDefaultKeyword() {
-          if (Node5.isVariableDeclaration(this)) {
+          if (Node6.isVariableDeclaration(this)) {
             const variableStatement = this.getVariableStatement();
             return variableStatement?.getDefaultKeyword();
           }
-          if (!Node5.isModifierable(this))
+          if (!Node6.isModifierable(this))
             return throwForNotModifierableNode();
           return this.getFirstModifierByKind(common.SyntaxKind.DefaultKeyword);
         }
@@ -235681,7 +235681,7 @@ Node text: ${this.#forgottenText}`;
         setIsDefaultExport(value) {
           if (value === this.isDefaultExport())
             return this;
-          if (value && !Node5.isSourceFile(this.getParentOrThrow()))
+          if (value && !Node6.isSourceFile(this.getParentOrThrow()))
             throw new common.errors.InvalidOperationError("The parent must be a source file in order to set this node as a default export.");
           const sourceFile = this.getSourceFile();
           const fileDefaultExportSymbol = sourceFile.getDefaultExportSymbol();
@@ -235689,7 +235689,7 @@ Node text: ${this.#forgottenText}`;
             sourceFile.removeDefaultExport(fileDefaultExportSymbol);
           if (!value)
             return this;
-          if (Node5.hasName(this) && shouldWriteAsSeparateStatement.call(this)) {
+          if (Node6.hasName(this) && shouldWriteAsSeparateStatement.call(this)) {
             const parentSyntaxList = this.getFirstAncestorByKindOrThrow(common.SyntaxKind.SyntaxList);
             const name = this.getName();
             parentSyntaxList.insertChildText(this.getChildIndex() + 1, (writer) => {
@@ -235701,15 +235701,15 @@ Node text: ${this.#forgottenText}`;
           }
           return this;
           function shouldWriteAsSeparateStatement() {
-            if (Node5.isEnumDeclaration(this) || Node5.isModuleDeclaration(this) || Node5.isTypeAliasDeclaration(this))
+            if (Node6.isEnumDeclaration(this) || Node6.isModuleDeclaration(this) || Node6.isTypeAliasDeclaration(this))
               return true;
-            if (Node5.isAmbientable(this) && this.isAmbient())
+            if (Node6.isAmbientable(this) && this.isAmbient())
               return true;
             return false;
           }
         }
         setIsExported(value) {
-          if (Node5.isSourceFile(this.getParentOrThrow()))
+          if (Node6.isSourceFile(this.getParentOrThrow()))
             this.toggleModifier("default", false);
           this.toggleModifier("export", value);
           return this;
@@ -239165,8 +239165,8 @@ Node text: ${this.#forgottenText}`;
               this._standardWrite(writer, info, () => {
                 this._context.structurePrinterFactory.forImportDeclaration().printTexts(writer, structures);
               }, {
-                previousNewLine: (previousMember) => Node5.isImportDeclaration(previousMember) || isComment(previousMember.compilerNode),
-                nextNewLine: (nextMember) => Node5.isImportDeclaration(nextMember)
+                previousNewLine: (previousMember) => Node6.isImportDeclaration(previousMember) || isComment(previousMember.compilerNode),
+                nextNewLine: (nextMember) => Node6.isImportDeclaration(nextMember)
               });
             }
           });
@@ -239184,7 +239184,7 @@ Node text: ${this.#forgottenText}`;
           return common.errors.throwIfNullOrUndefined(this.getImportDeclaration(conditionOrModuleSpecifier), message ?? "Expected to find an import with the provided condition.", this);
         }
         getImportDeclarations() {
-          return this.getStatements().filter(Node5.isImportDeclaration);
+          return this.getStatements().filter(Node6.isImportDeclaration);
         }
         addExportDeclaration(structure) {
           return this.addExportDeclarations([structure])[0];
@@ -239204,8 +239204,8 @@ Node text: ${this.#forgottenText}`;
               this._standardWrite(writer, info, () => {
                 this._context.structurePrinterFactory.forExportDeclaration().printTexts(writer, structures);
               }, {
-                previousNewLine: (previousMember) => Node5.isExportDeclaration(previousMember) || isComment(previousMember.compilerNode),
-                nextNewLine: (nextMember) => Node5.isExportDeclaration(nextMember)
+                previousNewLine: (previousMember) => Node6.isExportDeclaration(previousMember) || isComment(previousMember.compilerNode),
+                nextNewLine: (nextMember) => Node6.isExportDeclaration(nextMember)
               });
             }
           });
@@ -239223,7 +239223,7 @@ Node text: ${this.#forgottenText}`;
           return common.errors.throwIfNullOrUndefined(this.getExportDeclaration(conditionOrModuleSpecifier), message ?? "Expected to find an export declaration with the provided condition.", this);
         }
         getExportDeclarations() {
-          return this.getStatements().filter(Node5.isExportDeclaration);
+          return this.getStatements().filter(Node6.isExportDeclaration);
         }
         addExportAssignment(structure) {
           return this.addExportAssignments([structure])[0];
@@ -239243,8 +239243,8 @@ Node text: ${this.#forgottenText}`;
               this._standardWrite(writer, info, () => {
                 this._context.structurePrinterFactory.forExportAssignment().printTexts(writer, structures);
               }, {
-                previousNewLine: (previousMember) => Node5.isExportAssignment(previousMember) || isComment(previousMember.compilerNode),
-                nextNewLine: (nextMember) => Node5.isExportAssignment(nextMember)
+                previousNewLine: (previousMember) => Node6.isExportAssignment(previousMember) || isComment(previousMember.compilerNode),
+                nextNewLine: (nextMember) => Node6.isExportAssignment(nextMember)
               });
             }
           });
@@ -239256,7 +239256,7 @@ Node text: ${this.#forgottenText}`;
           return common.errors.throwIfNullOrUndefined(this.getExportAssignment(condition), message ?? "Expected to find an export assignment with the provided condition.", this);
         }
         getExportAssignments() {
-          return this.getStatements().filter(Node5.isExportAssignment);
+          return this.getStatements().filter(Node6.isExportAssignment);
         }
         getDefaultExportSymbol() {
           const sourceFileSymbol = this.getSymbol();
@@ -239287,23 +239287,23 @@ Node text: ${this.#forgottenText}`;
           }
           return result;
           function* getDeclarationHandlingImportsAndExports(declaration) {
-            if (Node5.isExportSpecifier(declaration)) {
+            if (Node6.isExportSpecifier(declaration)) {
               for (const d of declaration.getLocalTargetDeclarations())
                 yield* getDeclarationHandlingImportsAndExports(d);
-            } else if (Node5.isExportAssignment(declaration)) {
+            } else if (Node6.isExportAssignment(declaration)) {
               const expression = declaration.getExpression();
               if (expression == null || expression.getKind() !== common.SyntaxKind.Identifier) {
                 yield expression;
                 return;
               }
               yield* getDeclarationsForSymbol(expression.getSymbol());
-            } else if (Node5.isImportSpecifier(declaration)) {
+            } else if (Node6.isImportSpecifier(declaration)) {
               const identifier = declaration.getNameNode();
               const symbol = identifier.getSymbol();
               if (symbol == null)
                 return;
               yield* getDeclarationsForSymbol(symbol.getAliasedSymbol() || symbol);
-            } else if (Node5.isImportClause(declaration)) {
+            } else if (Node6.isImportClause(declaration)) {
               const identifier = declaration.getDefaultImport();
               if (identifier == null)
                 return;
@@ -239311,7 +239311,7 @@ Node text: ${this.#forgottenText}`;
               if (symbol == null)
                 return;
               yield* getDeclarationsForSymbol(symbol.getAliasedSymbol() || symbol);
-            } else if (Node5.isNamespaceImport(declaration) || Node5.isNamespaceExport(declaration)) {
+            } else if (Node6.isNamespaceImport(declaration) || Node6.isNamespaceExport(declaration)) {
               const symbol = declaration.getNameNode().getSymbol();
               if (symbol == null)
                 return;
@@ -239334,7 +239334,7 @@ Node text: ${this.#forgottenText}`;
           const declaration = defaultExportSymbol.getDeclarations()[0];
           if (declaration.compilerNode.kind === common.SyntaxKind.ExportAssignment)
             removeChildrenWithFormatting({ children: [declaration], getSiblingFormatting: () => FormattingKind.Newline });
-          else if (Node5.isModifierable(declaration)) {
+          else if (Node6.isModifierable(declaration)) {
             declaration.toggleModifier("default", false);
             declaration.toggleModifier("export", false);
           }
@@ -239374,12 +239374,12 @@ Node text: ${this.#forgottenText}`;
       };
     }
     function getNodeForReferences(node) {
-      if (Node5.isIdentifier(node) || Node5.isStringLiteral(node))
+      if (Node6.isIdentifier(node) || Node6.isStringLiteral(node))
         return node;
       const nameNode = node.getNodeProperty("name");
       if (nameNode != null)
         return nameNode;
-      if (Node5.isExportable(node))
+      if (Node6.isExportable(node))
         return node.getDefaultKeyword() || node;
       return node;
     }
@@ -239389,12 +239389,12 @@ Node text: ${this.#forgottenText}`;
           renameNode(getNodeToRename(this), newName, options);
           return this;
           function getNodeToRename(thisNode) {
-            if (Node5.isIdentifier(thisNode) || Node5.isPrivateIdentifier(thisNode) || Node5.isStringLiteral(thisNode))
+            if (Node6.isIdentifier(thisNode) || Node6.isPrivateIdentifier(thisNode) || Node6.isStringLiteral(thisNode))
               return thisNode;
             else if (thisNode.getNameNode != null) {
               const node = thisNode.getNameNode();
               common.errors.throwIfNullOrUndefined(node, "Expected to find a name node when renaming.");
-              if (Node5.isArrayBindingPattern(node) || Node5.isObjectBindingPattern(node))
+              if (Node6.isArrayBindingPattern(node) || Node6.isObjectBindingPattern(node))
                 throw new common.errors.NotImplementedError(`Not implemented renameable scenario for ${node.getKindName()}.`);
               return node;
             } else {
@@ -239476,7 +239476,7 @@ Node text: ${this.#forgottenText}`;
       };
     }
     function addNameNode(node, newName) {
-      if (Node5.isClassDeclaration(node) || Node5.isClassExpression(node)) {
+      if (Node6.isClassDeclaration(node) || Node6.isClassExpression(node)) {
         const classKeyword = node.getFirstChildByKindOrThrow(common.SyntaxKind.ClassKeyword);
         insertIntoParentTextRange({
           insertPos: classKeyword.getEnd(),
@@ -239598,7 +239598,7 @@ Node text: ${this.#forgottenText}`;
           if (value === hasQuestionDotToken)
             return this;
           if (value) {
-            if (Node5.isPropertyAccessExpression(this))
+            if (Node6.isPropertyAccessExpression(this))
               this.getFirstChildByKindOrThrow(common.SyntaxKind.DotToken).replaceWithText("?.");
             else {
               insertIntoParentTextRange({
@@ -239608,16 +239608,16 @@ Node text: ${this.#forgottenText}`;
               });
             }
           } else {
-            if (Node5.isPropertyAccessExpression(this))
+            if (Node6.isPropertyAccessExpression(this))
               questionDotTokenNode.replaceWithText(".");
             else
               removeChildren({ children: [questionDotTokenNode] });
           }
           return this;
           function getInsertPos2() {
-            if (Node5.isCallExpression(this))
+            if (Node6.isCallExpression(this))
               return this.getFirstChildByKindOrThrow(common.SyntaxKind.OpenParenToken).getStart();
-            if (Node5.isElementAccessExpression(this))
+            if (Node6.isElementAccessExpression(this))
               return this.getFirstChildByKindOrThrow(common.SyntaxKind.OpenBracketToken).getStart();
             common.errors.throwNotImplementedForSyntaxKindError(this.compilerNode.kind);
           }
@@ -239652,7 +239652,7 @@ Node text: ${this.#forgottenText}`;
           if (value === hasQuestionToken)
             return this;
           if (value) {
-            if (Node5.isExclamationTokenable(this))
+            if (Node6.isExclamationTokenable(this))
               this.setHasExclamationToken(false);
             insertIntoParentTextRange({
               insertPos: getInsertPos2.call(this),
@@ -239664,7 +239664,7 @@ Node text: ${this.#forgottenText}`;
           }
           return this;
           function getInsertPos2() {
-            if (Node5.hasName(this))
+            if (Node6.hasName(this))
               return this.getNameNode().getEnd();
             const colonNode = this.getFirstChildByKind(common.SyntaxKind.ColonToken);
             if (colonNode != null)
@@ -239785,7 +239785,7 @@ Node text: ${this.#forgottenText}`;
           const scope = getScopeForNode(this);
           if (scope != null)
             return scope;
-          if (Node5.isParameterDeclaration(this) && this.isReadonly())
+          if (Node6.isParameterDeclaration(this) && this.isReadonly())
             return exports2.Scope.Public;
           return void 0;
         }
@@ -239932,14 +239932,14 @@ Node text: ${this.#forgottenText}`;
     }
     function getValidRange(thisNode) {
       const rangeNode = getRangeNode();
-      const openBrace = Node5.isSourceFile(rangeNode) ? void 0 : rangeNode.getPreviousSiblingIfKind(common.SyntaxKind.OpenBraceToken);
+      const openBrace = Node6.isSourceFile(rangeNode) ? void 0 : rangeNode.getPreviousSiblingIfKind(common.SyntaxKind.OpenBraceToken);
       const closeBrace = openBrace == null ? void 0 : rangeNode.getNextSiblingIfKind(common.SyntaxKind.CloseBraceToken);
       if (openBrace != null && closeBrace != null)
         return [openBrace.getEnd(), closeBrace.getStart()];
       else
         return [rangeNode.getPos(), rangeNode.getEnd()];
       function getRangeNode() {
-        if (Node5.isSourceFile(thisNode))
+        if (Node6.isSourceFile(thisNode))
           return thisNode;
         return thisNode.getChildSyntaxListOrThrow();
       }
@@ -239966,8 +239966,8 @@ Node text: ${this.#forgottenText}`;
           const typeArguments = this.getTypeArguments();
           index = verifyAndGetIndex(index, typeArguments.length);
           if (typeArguments.length === 0) {
-            const expression = Node5.hasExpression(this) ? this.getExpression() : void 0;
-            const identifier = Node5.isPropertyAccessExpression(expression) ? expression.getLastChildByKindOrThrow(common.SyntaxKind.Identifier) : this.getFirstChildByKindOrThrow(common.SyntaxKind.Identifier);
+            const expression = Node6.hasExpression(this) ? this.getExpression() : void 0;
+            const identifier = Node6.isPropertyAccessExpression(expression) ? expression.getLastChildByKindOrThrow(common.SyntaxKind.Identifier) : this.getFirstChildByKindOrThrow(common.SyntaxKind.Identifier);
             insertIntoParentTextRange({
               insertPos: identifier.getEnd(),
               parent: this,
@@ -240454,7 +240454,7 @@ Node text: ${this.#forgottenText}`;
       const namedNode = node;
       if (namedNode.getNameNode != null)
         return namedNode.getNameNode().getEnd();
-      else if (Node5.isCallSignatureDeclaration(node) || Node5.isFunctionTypeNode(node))
+      else if (Node6.isCallSignatureDeclaration(node) || Node6.isFunctionTypeNode(node))
         return node.getFirstChildByKindOrThrow(common.SyntaxKind.OpenParenToken).getStart();
       else
         throw new common.errors.NotImplementedError(`Not implemented scenario inserting type parameters for node with kind ${node.getKindName()}.`);
@@ -240466,13 +240466,13 @@ Node text: ${this.#forgottenText}`;
         }
       };
     }
-    var ArrayBindingPattern = class extends Node5 {
+    var ArrayBindingPattern = class extends Node6 {
       getElements() {
         return this.compilerNode.elements.map((e) => this._getNodeFromCompilerNode(e));
       }
     };
     var createBase$F = (ctor) => DotDotDotTokenableNode(InitializerExpressionableNode(BindingNamedNode(ctor)));
-    var BindingElementBase = createBase$F(Node5);
+    var BindingElementBase = createBase$F(Node6);
     var BindingElement = class extends BindingElementBase {
       getPropertyNameNodeOrThrow(message) {
         return common.errors.throwIfNullOrUndefined(this.getPropertyNameNode(), message ?? "Expected to find a property name node.", this);
@@ -240481,7 +240481,7 @@ Node text: ${this.#forgottenText}`;
         return this._getNodeFromCompilerNodeIfExists(this.compilerNode.propertyName);
       }
     };
-    var ObjectBindingPattern = class extends Node5 {
+    var ObjectBindingPattern = class extends Node6 {
       getElements() {
         return this.compilerNode.elements.map((e) => this._getNodeFromCompilerNode(e));
       }
@@ -240514,7 +240514,7 @@ Node text: ${this.#forgottenText}`;
         }
       };
     }
-    var Expression = class extends Node5 {
+    var Expression = class extends Node6 {
       getContextualType() {
         return this._context.typeChecker.getContextualType(this);
       }
@@ -240742,7 +240742,7 @@ Node text: ${this.#forgottenText}`;
     var NonNullExpressionBase = ExpressionedNode(LeftHandSideExpression);
     var NonNullExpression = class extends NonNullExpressionBase {
     };
-    var ObjectLiteralElement = class extends Node5 {
+    var ObjectLiteralElement = class extends Node6 {
       remove() {
         removeCommaSeparatedChild(this);
       }
@@ -241086,7 +241086,7 @@ Node text: ${this.#forgottenText}`;
     var YieldExpressionBase = ExpressionableNode(GeneratorableNode(Expression));
     var YieldExpression = class extends YieldExpressionBase {
     };
-    var StatementBase = ChildOrderableNode(Node5);
+    var StatementBase = ChildOrderableNode(Node6);
     var Statement = class extends StatementBase {
       remove() {
         removeStatementedNodeChild(this);
@@ -241127,7 +241127,7 @@ Node text: ${this.#forgottenText}`;
           return getChildSyntaxList.call(this).insertChildText(index, writerFunction);
           function getChildSyntaxList() {
             const childSyntaxList = this.getChildSyntaxListOrThrow();
-            if (Node5.isCaseClause(this) || Node5.isDefaultClause(this)) {
+            if (Node6.isCaseClause(this) || Node6.isDefaultClause(this)) {
               const block = childSyntaxList.getFirstChildIfKind(common.SyntaxKind.Block);
               if (block != null)
                 return block.getChildSyntaxListOrThrow();
@@ -241167,7 +241167,7 @@ Node text: ${this.#forgottenText}`;
           });
         }
         getClasses() {
-          return this.getStatements().filter(Node5.isClassDeclaration);
+          return this.getStatements().filter(Node6.isClassDeclaration);
         }
         getClass(nameOrFindFunction) {
           return getNodeByNameOrFindFunction(this.getClasses(), nameOrFindFunction);
@@ -241197,7 +241197,7 @@ Node text: ${this.#forgottenText}`;
           });
         }
         getEnums() {
-          return this.getStatements().filter(Node5.isEnumDeclaration);
+          return this.getStatements().filter(Node6.isEnumDeclaration);
         }
         getEnum(nameOrFindFunction) {
           return getNodeByNameOrFindFunction(this.getEnums(), nameOrFindFunction);
@@ -241225,14 +241225,14 @@ Node text: ${this.#forgottenText}`;
                   isAmbient: isNodeAmbientOrInAmbientContext(this)
                 }).printTexts(writer, structures);
               }, {
-                previousNewLine: (previousMember) => structures[0].hasDeclareKeyword === true && Node5.isFunctionDeclaration(previousMember) && previousMember.getBody() == null,
-                nextNewLine: (nextMember) => structures[structures.length - 1].hasDeclareKeyword === true && Node5.isFunctionDeclaration(nextMember) && nextMember.getBody() == null
+                previousNewLine: (previousMember) => structures[0].hasDeclareKeyword === true && Node6.isFunctionDeclaration(previousMember) && previousMember.getBody() == null,
+                nextNewLine: (nextMember) => structures[structures.length - 1].hasDeclareKeyword === true && Node6.isFunctionDeclaration(nextMember) && nextMember.getBody() == null
               });
             }
           });
         }
         getFunctions() {
-          return this.getStatements().filter(Node5.isFunctionDeclaration).filter((f) => f.isAmbient() || f.isImplementation());
+          return this.getStatements().filter(Node6.isFunctionDeclaration).filter((f) => f.isAmbient() || f.isImplementation());
         }
         getFunction(nameOrFindFunction) {
           return getNodeByNameOrFindFunction(this.getFunctions(), nameOrFindFunction);
@@ -241262,7 +241262,7 @@ Node text: ${this.#forgottenText}`;
           });
         }
         getInterfaces() {
-          return this.getStatements().filter(Node5.isInterfaceDeclaration);
+          return this.getStatements().filter(Node6.isInterfaceDeclaration);
         }
         getInterface(nameOrFindFunction) {
           return getNodeByNameOrFindFunction(this.getInterfaces(), nameOrFindFunction);
@@ -241292,7 +241292,7 @@ Node text: ${this.#forgottenText}`;
           });
         }
         getModules() {
-          return this.getStatements().filter(Node5.isModuleDeclaration);
+          return this.getStatements().filter(Node6.isModuleDeclaration);
         }
         getModule(nameOrFindFunction) {
           return getNodeByNameOrFindFunction(this.getModules(), nameOrFindFunction);
@@ -241318,14 +241318,14 @@ Node text: ${this.#forgottenText}`;
               this._standardWrite(writer, info, () => {
                 this._context.structurePrinterFactory.forTypeAliasDeclaration().printTexts(writer, structures);
               }, {
-                previousNewLine: (previousMember) => Node5.isTypeAliasDeclaration(previousMember),
-                nextNewLine: (nextMember) => Node5.isTypeAliasDeclaration(nextMember)
+                previousNewLine: (previousMember) => Node6.isTypeAliasDeclaration(previousMember),
+                nextNewLine: (nextMember) => Node6.isTypeAliasDeclaration(nextMember)
               });
             }
           });
         }
         getTypeAliases() {
-          return this.getStatements().filter(Node5.isTypeAliasDeclaration);
+          return this.getStatements().filter(Node6.isTypeAliasDeclaration);
         }
         getTypeAlias(nameOrFindFunction) {
           return getNodeByNameOrFindFunction(this.getTypeAliases(), nameOrFindFunction);
@@ -241334,7 +241334,7 @@ Node text: ${this.#forgottenText}`;
           return common.errors.throwIfNullOrUndefined(this.getTypeAlias(nameOrFindFunction), () => getNotFoundErrorMessageForNameOrFindFunction("type alias", nameOrFindFunction));
         }
         getVariableStatements() {
-          return this.getStatements().filter(Node5.isVariableStatement);
+          return this.getStatements().filter(Node6.isVariableStatement);
         }
         getVariableStatement(nameOrFindFunction) {
           return this.getVariableStatements().find(getFindFunction());
@@ -241365,8 +241365,8 @@ Node text: ${this.#forgottenText}`;
               this._standardWrite(writer, info, () => {
                 this._context.structurePrinterFactory.forVariableStatement().printTexts(writer, structures);
               }, {
-                previousNewLine: (previousMember) => Node5.isVariableStatement(previousMember),
-                nextNewLine: (nextMember) => Node5.isVariableStatement(nextMember)
+                previousNewLine: (previousMember) => Node6.isVariableStatement(previousMember),
+                nextNewLine: (nextMember) => Node6.isVariableStatement(nextMember)
               });
             }
           });
@@ -241385,11 +241385,11 @@ Node text: ${this.#forgottenText}`;
         }
         getStructure() {
           const structure = {};
-          if (Node5.isBodyable(this) && !this.hasBody())
+          if (Node6.isBodyable(this) && !this.hasBody())
             structure.statements = void 0;
           else {
             structure.statements = this.getStatements().map((s) => {
-              if (Node5._hasStructure(s))
+              if (Node6._hasStructure(s))
                 return s.getStructure();
               return s.getText({ trimLeadingIndentation: true });
             });
@@ -241397,7 +241397,7 @@ Node text: ${this.#forgottenText}`;
           return callBaseGetStructure(Base.prototype, this, structure);
         }
         set(structure) {
-          if (Node5.isBodyable(this) && structure.statements == null && structure.hasOwnProperty(common.nameof(structure, "statements")))
+          if (Node6.isBodyable(this) && structure.statements == null && structure.hasOwnProperty(common.nameof(structure, "statements")))
             this.removeBody();
           else if (structure.statements != null) {
             const statementCount = this._getCompilerStatementsWithComments().length;
@@ -241418,17 +241418,17 @@ Node text: ${this.#forgottenText}`;
           }
         }
         _getCompilerStatementsContainer() {
-          if (Node5.isSourceFile(this) || Node5.isCaseClause(this) || Node5.isDefaultClause(this))
+          if (Node6.isSourceFile(this) || Node6.isCaseClause(this) || Node6.isDefaultClause(this))
             return this.compilerNode;
-          else if (Node5.isModuleDeclaration(this)) {
+          else if (Node6.isModuleDeclaration(this)) {
             const body = this._getInnerBody();
             if (body == null)
               return void 0;
             else
               return body.compilerNode;
-          } else if (Node5.isBodyable(this) || Node5.isBodied(this))
+          } else if (Node6.isBodyable(this) || Node6.isBodied(this))
             return this.getBody()?.compilerNode;
-          else if (Node5.isBlock(this) || Node5.isModuleBlock(this))
+          else if (Node6.isBlock(this) || Node6.isModuleBlock(this))
             return this.compilerNode;
           else
             throw new common.errors.NotImplementedError(`Could not find the statements for node kind: ${this.getKindName()}, text: ${this.getText()}`);
@@ -241445,7 +241445,7 @@ Node text: ${this.#forgottenText}`;
           });
         }
         _standardWrite(writer, info, writeStructures, opts = {}) {
-          if (info.previousMember != null && (opts.previousNewLine == null || !opts.previousNewLine(info.previousMember)) && !Node5.isCommentNode(info.previousMember)) {
+          if (info.previousMember != null && (opts.previousNewLine == null || !opts.previousNewLine(info.previousMember)) && !Node6.isCommentNode(info.previousMember)) {
             writer.blankLine();
           } else if (!info.isStartOfFile) {
             writer.newLineIfLastNot();
@@ -241459,7 +241459,7 @@ Node text: ${this.#forgottenText}`;
       };
     }
     function addBodyIfNotExists(node) {
-      if (Node5.isBodyable(node) && !node.hasBody())
+      if (Node6.isBodyable(node) && !node.hasBody())
         node.addBody();
     }
     var createBase$v = (ctor) => TextInsertableNode(StatementedNode(ctor));
@@ -241474,7 +241474,7 @@ Node text: ${this.#forgottenText}`;
         return common.errors.throwIfNullOrUndefined(this.getLabel(), message ?? "Expected to find a label.", this);
       }
     };
-    var CaseBlockBase = TextInsertableNode(Node5);
+    var CaseBlockBase = TextInsertableNode(Node6);
     var CaseBlock = class extends CaseBlockBase {
       getClauses() {
         const clauses = this.compilerNode.clauses || [];
@@ -241492,13 +241492,13 @@ Node text: ${this.#forgottenText}`;
       }
     };
     var createBase$u = (ctor) => JSDocableNode(ExpressionedNode(TextInsertableNode(StatementedNode(ctor))));
-    var CaseClauseBase = createBase$u(Node5);
+    var CaseClauseBase = createBase$u(Node6);
     var CaseClause = class extends CaseClauseBase {
       remove() {
         removeClausedNodeChild(this);
       }
     };
-    var CatchClauseBase = Node5;
+    var CatchClauseBase = Node6;
     var CatchClause = class extends CatchClauseBase {
       getBlock() {
         return this._getNodeFromCompilerNode(this.compilerNode.block);
@@ -241524,7 +241524,7 @@ Node text: ${this.#forgottenText}`;
     var DebuggerStatement = class extends DebuggerStatementBase {
     };
     var createBase$t = (ctor) => TextInsertableNode(StatementedNode(ctor));
-    var DefaultClauseBase = createBase$t(Node5);
+    var DefaultClauseBase = createBase$t(Node6);
     var DefaultClause = class extends DefaultClauseBase {
       remove() {
         removeClausedNodeChild(this);
@@ -241587,7 +241587,7 @@ Node text: ${this.#forgottenText}`;
       }
       remove() {
         const nodes = [];
-        if (Node5.isIfStatement(this.getParentOrThrow()))
+        if (Node6.isIfStatement(this.getParentOrThrow()))
           nodes.push(this.getPreviousSiblingIfKindOrThrow(common.SyntaxKind.ElseKeyword));
         nodes.push(this);
         removeStatementedNodeChildren(nodes);
@@ -241701,7 +241701,7 @@ Node text: ${this.#forgottenText}`;
       }
       getNamespaceExport() {
         const exportClause = this.getNodeProperty("exportClause");
-        return exportClause != null && Node5.isNamespaceExport(exportClause) ? exportClause : void 0;
+        return exportClause != null && Node6.isNamespaceExport(exportClause) ? exportClause : void 0;
       }
       getNamespaceExportOrThrow(message) {
         return common.errors.throwIfNullOrUndefined(this.getNamespaceExport(), message ?? "Expected to find a namespace export.", this);
@@ -241719,7 +241719,7 @@ Node text: ${this.#forgottenText}`;
               textLength: 1
             }
           });
-        } else if (Node5.isNamespaceExport(exportClause))
+        } else if (Node6.isNamespaceExport(exportClause))
           exportClause.getNameNode().replaceWithText(name);
         else {
           insertIntoParentTextRange({
@@ -241757,7 +241757,7 @@ Node text: ${this.#forgottenText}`;
         const moduleSpecifier = this._getNodeFromCompilerNodeIfExists(this.compilerNode.moduleSpecifier);
         if (moduleSpecifier == null)
           return void 0;
-        if (!Node5.isStringLiteral(moduleSpecifier))
+        if (!Node6.isStringLiteral(moduleSpecifier))
           throw new common.errors.InvalidOperationError("Expected the module specifier to be a string literal.");
         return moduleSpecifier;
       }
@@ -241776,7 +241776,7 @@ Node text: ${this.#forgottenText}`;
         if (symbol == null)
           return void 0;
         const declaration = symbol.getDeclarations()[0];
-        return declaration != null && Node5.isSourceFile(declaration) ? declaration : void 0;
+        return declaration != null && Node6.isSourceFile(declaration) ? declaration : void 0;
       }
       isModuleSpecifierRelative() {
         const moduleSpecifierValue = this.getModuleSpecifierValue();
@@ -241957,7 +241957,7 @@ Node text: ${this.#forgottenText}`;
         }
       });
     }
-    var ExportSpecifierBase = Node5;
+    var ExportSpecifierBase = Node6;
     var ExportSpecifier = class extends ExportSpecifierBase {
       setName(name) {
         const nameNode = this.getNameNode();
@@ -242090,7 +242090,7 @@ Node text: ${this.#forgottenText}`;
       }
       getStructure() {
         const alias = this.getAliasNode();
-        return callBaseGetStructure(Node5.prototype, this, {
+        return callBaseGetStructure(Node6.prototype, this, {
           kind: exports2.StructureKind.ExportSpecifier,
           alias: alias ? alias.getText() : void 0,
           name: this.getNameNode().getText(),
@@ -242098,14 +242098,14 @@ Node text: ${this.#forgottenText}`;
         });
       }
     };
-    var ExternalModuleReferenceBase = ExpressionableNode(Node5);
+    var ExternalModuleReferenceBase = ExpressionableNode(Node6);
     var ExternalModuleReference = class extends ExternalModuleReferenceBase {
       getReferencedSourceFileOrThrow(message) {
         return common.errors.throwIfNullOrUndefined(this.getReferencedSourceFile(), message ?? "Expected to find the referenced source file.", this);
       }
       isRelative() {
         const expression = this.getExpression();
-        if (expression == null || !Node5.isStringLiteral(expression))
+        if (expression == null || !Node6.isStringLiteral(expression))
           return false;
         return ModuleUtils.isModuleSpecifierRelative(expression.getLiteralText());
       }
@@ -242119,7 +242119,7 @@ Node text: ${this.#forgottenText}`;
         return ModuleUtils.getReferencedSourceFileFromSymbol(symbol);
       }
     };
-    var ImportAttributeBase = ImportAttributeNamedNode(Node5);
+    var ImportAttributeBase = ImportAttributeNamedNode(Node6);
     var ImportAttribute = class extends ImportAttributeBase {
       getValue() {
         return this._getNodeFromCompilerNode(this.compilerNode.value);
@@ -242137,7 +242137,7 @@ Node text: ${this.#forgottenText}`;
         });
       }
     };
-    var ImportAttributesBase = Node5;
+    var ImportAttributesBase = Node6;
     var ImportAttributes = class extends ImportAttributesBase {
       setElements(elements) {
         this.replaceWithText((writer) => {
@@ -242157,7 +242157,7 @@ Node text: ${this.#forgottenText}`;
         });
       }
     };
-    var ImportClauseBase = Node5;
+    var ImportClauseBase = Node6;
     var ImportClause = class extends ImportClauseBase {
       getPhaseModifier() {
         return this.compilerNode.phaseModifier;
@@ -242223,13 +242223,13 @@ Node text: ${this.#forgottenText}`;
       }
       getNamespaceImport() {
         const namedBindings = this.getNamedBindings();
-        if (namedBindings == null || !Node5.isNamespaceImport(namedBindings))
+        if (namedBindings == null || !Node6.isNamespaceImport(namedBindings))
           return void 0;
         return namedBindings.getNameNode();
       }
       getNamedImports() {
         const namedBindings = this.getNamedBindings();
-        if (namedBindings == null || !Node5.isNamedImports(namedBindings))
+        if (namedBindings == null || !Node6.isNamedImports(namedBindings))
           return [];
         return namedBindings.getElements();
       }
@@ -242274,7 +242274,7 @@ Node text: ${this.#forgottenText}`;
       }
       getModuleSpecifier() {
         const moduleSpecifier = this._getNodeFromCompilerNode(this.compilerNode.moduleSpecifier);
-        if (!Node5.isStringLiteral(moduleSpecifier))
+        if (!Node6.isStringLiteral(moduleSpecifier))
           throw new common.errors.InvalidOperationError("Expected the module specifier to be a string literal.");
         return moduleSpecifier;
       }
@@ -242637,14 +242637,14 @@ Node text: ${this.#forgottenText}`;
       }
       isExternalModuleReferenceRelative() {
         const moduleReference = this.getModuleReference();
-        if (!Node5.isExternalModuleReference(moduleReference))
+        if (!Node6.isExternalModuleReference(moduleReference))
           return false;
         return moduleReference.isRelative();
       }
       setExternalModuleReference(textOrSourceFile) {
         const text = typeof textOrSourceFile === "string" ? textOrSourceFile : this._sourceFile.getRelativePathAsModuleSpecifierTo(textOrSourceFile);
         const moduleReference = this.getModuleReference();
-        if (Node5.isExternalModuleReference(moduleReference) && moduleReference.getExpression() != null)
+        if (Node6.isExternalModuleReference(moduleReference) && moduleReference.getExpression() != null)
           moduleReference.getExpressionOrThrow().replaceWithText((writer) => writer.quote(text));
         else
           moduleReference.replaceWithText((writer) => writer.write("require(").quote(text).write(")"));
@@ -242655,12 +242655,12 @@ Node text: ${this.#forgottenText}`;
       }
       getExternalModuleReferenceSourceFile() {
         const moduleReference = this.getModuleReference();
-        if (!Node5.isExternalModuleReference(moduleReference))
+        if (!Node6.isExternalModuleReference(moduleReference))
           return void 0;
         return moduleReference.getReferencedSourceFile();
       }
     };
-    var ImportSpecifierBase = Node5;
+    var ImportSpecifierBase = Node6;
     var ImportSpecifier = class extends ImportSpecifierBase {
       setName(name) {
         const nameNode = this.getNameNode();
@@ -242799,7 +242799,7 @@ Node text: ${this.#forgottenText}`;
         }
         getParentModule() {
           let parent = this.getParentOrThrow();
-          if (!Node5.isModuleBlock(parent))
+          if (!Node6.isModuleBlock(parent))
             return void 0;
           while (parent.getParentOrThrow().getKind() === common.SyntaxKind.ModuleDeclaration)
             parent = parent.getParentOrThrow();
@@ -242858,7 +242858,7 @@ Node text: ${this.#forgottenText}`;
       }
       getNameNodes() {
         const name = this.getNameNode();
-        if (Node5.isStringLiteral(name))
+        if (Node6.isStringLiteral(name))
           return name;
         else {
           const nodes = [];
@@ -242930,7 +242930,7 @@ Node text: ${this.#forgottenText}`;
       }
       _getInnerBody() {
         let node = this.getBody();
-        while (node != null && Node5.isBodyable(node) && node.compilerNode.statements == null)
+        while (node != null && Node6.isBodyable(node) && node.compilerNode.statements == null)
           node = node.getBody();
         return node;
       }
@@ -242945,19 +242945,19 @@ Node text: ${this.#forgottenText}`;
       if (!namespaceDec.hasDeclareKeyword())
         namespaceDec.setHasDeclareKeyword(true);
     }
-    var NamedExportsBase = Node5;
+    var NamedExportsBase = Node6;
     var NamedExports = class extends NamedExportsBase {
       getElements() {
         return this.compilerNode.elements.map((e) => this._getNodeFromCompilerNode(e));
       }
     };
-    var NamedImportsBase = Node5;
+    var NamedImportsBase = Node6;
     var NamedImports = class extends NamedImportsBase {
       getElements() {
         return this.compilerNode.elements.map((e) => this._getNodeFromCompilerNode(e));
       }
     };
-    var NamespaceExportBase = RenameableNode(Node5);
+    var NamespaceExportBase = RenameableNode(Node6);
     var NamespaceExport = class extends NamespaceExportBase {
       setName(name) {
         const nameNode = this.getNameNode();
@@ -242980,7 +242980,7 @@ Node text: ${this.#forgottenText}`;
         return this._getNodeFromCompilerNode(this.compilerNode.name);
       }
     };
-    var NamespaceImportBase = RenameableNode(Node5);
+    var NamespaceImportBase = RenameableNode(Node6);
     var NamespaceImport = class extends NamespaceImportBase {
       setName(name) {
         const nameNode = this.getNameNode();
@@ -243010,7 +243010,7 @@ Node text: ${this.#forgottenText}`;
       FileSystemRefreshResult[FileSystemRefreshResult["Updated"] = 1] = "Updated";
       FileSystemRefreshResult[FileSystemRefreshResult["Deleted"] = 2] = "Deleted";
     })(exports2.FileSystemRefreshResult || (exports2.FileSystemRefreshResult = {}));
-    var SourceFileBase = ModuledNode(TextInsertableNode(StatementedNode(Node5)));
+    var SourceFileBase = ModuledNode(TextInsertableNode(StatementedNode(Node6)));
     var SourceFile = (() => {
       let _classSuper = SourceFileBase;
       let _instanceExtraInitializers = [];
@@ -243515,7 +243515,7 @@ Node text: ${this.#forgottenText}`;
     function getReferencingNodeFromStringLiteral(literal) {
       const parent = literal.getParentOrThrow();
       const grandParent = parent.getParent();
-      if (grandParent != null && Node5.isImportEqualsDeclaration(grandParent))
+      if (grandParent != null && Node6.isImportEqualsDeclaration(grandParent))
         return grandParent;
       else
         return parent;
@@ -243728,7 +243728,7 @@ Node text: ${this.#forgottenText}`;
     var FunctionExpression = class extends FunctionExpressionBase {
     };
     var createBase$m = (ctor) => OverrideableNode(QuestionTokenableNode(DecoratableNode(ScopeableNode(ReadonlyableNode(ModifierableNode(DotDotDotTokenableNode(TypedNode(InitializerExpressionableNode(BindingNamedNode(ctor))))))))));
-    var ParameterDeclarationBase = createBase$m(Node5);
+    var ParameterDeclarationBase = createBase$m(Node6);
     var ParameterDeclaration = class extends ParameterDeclarationBase {
       isRestParameter() {
         return this.compilerNode.dotDotDotToken != null;
@@ -243791,7 +243791,7 @@ Node text: ${this.#forgottenText}`;
       if (isParameterWithoutParens())
         addParens();
       function isParameterWithoutParens() {
-        return Node5.isArrowFunction(parent) && parent.compilerNode.parameters.length === 1 && parameter.getParentSyntaxListOrThrow().getPreviousSiblingIfKind(common.SyntaxKind.OpenParenToken) == null;
+        return Node6.isArrowFunction(parent) && parent.compilerNode.parameters.length === 1 && parameter.getParentSyntaxListOrThrow().getPreviousSiblingIfKind(common.SyntaxKind.OpenParenToken) == null;
       }
       function addParens() {
         const paramText = parameter.getText();
@@ -243808,14 +243808,14 @@ Node text: ${this.#forgottenText}`;
         });
       }
     }
-    var ClassElement = class extends Node5 {
+    var ClassElement = class extends Node6 {
       remove() {
         const parent = this.getParentOrThrow();
-        if (Node5.isClassDeclaration(parent) || Node5.isClassExpression(parent))
+        if (Node6.isClassDeclaration(parent) || Node6.isClassExpression(parent))
           removeClassMember(this);
-        else if (Node5.isObjectLiteralExpression(parent))
+        else if (Node6.isObjectLiteralExpression(parent))
           removeCommaSeparatedChild(this);
-        else if (Node5.isInterfaceDeclaration(parent))
+        else if (Node6.isInterfaceDeclaration(parent))
           removeInterfaceMember(this);
         else
           common.errors.throwNotImplementedForSyntaxKindError(parent.getKind());
@@ -243957,7 +243957,7 @@ Node text: ${this.#forgottenText}`;
             index,
             parent: this,
             write: (writer, info) => {
-              const previousMemberHasBody = !isAmbient && info.previousMember != null && Node5.isBodyable(info.previousMember) && info.previousMember.hasBody();
+              const previousMemberHasBody = !isAmbient && info.previousMember != null && Node6.isBodyable(info.previousMember) && info.previousMember.hasBody();
               const firstStructureHasBody = !isAmbient && members instanceof Array && structureHasBody(members[0]);
               if (previousMemberHasBody || info.previousMember != null && firstStructureHasBody)
                 writer.blankLineIfLastNot();
@@ -243968,7 +243968,7 @@ Node text: ${this.#forgottenText}`;
               memberPrinter.printTexts(memberWriter, members);
               writer.write(memberWriter.toString());
               const lastStructureHasBody = !isAmbient && members instanceof Array && structureHasBody(members[members.length - 1]);
-              const nextMemberHasBody = !isAmbient && info.nextMember != null && Node5.isBodyable(info.nextMember) && info.nextMember.hasBody();
+              const nextMemberHasBody = !isAmbient && info.nextMember != null && Node6.isBodyable(info.nextMember) && info.nextMember.hasBody();
               if (info.nextMember != null && lastStructureHasBody || nextMemberHasBody)
                 writer.blankLineIfLastNot();
               else
@@ -243998,7 +243998,7 @@ Node text: ${this.#forgottenText}`;
             structures,
             expectedKind: common.SyntaxKind.Constructor,
             write: (writer, info) => {
-              if (!isAmbient && info.previousMember != null && !Node5.isCommentNode(info.previousMember))
+              if (!isAmbient && info.previousMember != null && !Node6.isCommentNode(info.previousMember))
                 writer.blankLineIfLastNot();
               else
                 writer.newLineIfLastNot();
@@ -244011,7 +244011,7 @@ Node text: ${this.#forgottenText}`;
           });
         }
         getConstructors() {
-          return this.getMembers().filter((m) => Node5.isConstructorDeclaration(m));
+          return this.getMembers().filter((m) => Node6.isConstructorDeclaration(m));
         }
         addStaticBlock(structure = {}) {
           return this.insertStaticBlock(getEndIndexFromArray(this.getMembersWithComments()), structure);
@@ -244029,7 +244029,7 @@ Node text: ${this.#forgottenText}`;
             structures,
             expectedKind: common.SyntaxKind.ClassStaticBlockDeclaration,
             write: (writer, info) => {
-              if (!isAmbient && info.previousMember != null && !Node5.isCommentNode(info.previousMember))
+              if (!isAmbient && info.previousMember != null && !Node6.isCommentNode(info.previousMember))
                 writer.blankLineIfLastNot();
               else
                 writer.newLineIfLastNot();
@@ -244042,7 +244042,7 @@ Node text: ${this.#forgottenText}`;
           });
         }
         getStaticBlocks() {
-          return this.getMembers().filter((m) => Node5.isClassStaticBlockDeclaration(m));
+          return this.getMembers().filter((m) => Node6.isClassStaticBlockDeclaration(m));
         }
         addGetAccessor(structure) {
           return this.addGetAccessors([structure])[0];
@@ -244059,7 +244059,7 @@ Node text: ${this.#forgottenText}`;
             structures,
             expectedKind: common.SyntaxKind.GetAccessor,
             write: (writer, info) => {
-              if (info.previousMember != null && !Node5.isCommentNode(info.previousMember))
+              if (info.previousMember != null && !Node6.isCommentNode(info.previousMember))
                 writer.blankLineIfLastNot();
               else
                 writer.newLineIfLastNot();
@@ -244088,7 +244088,7 @@ Node text: ${this.#forgottenText}`;
             structures,
             expectedKind: common.SyntaxKind.SetAccessor,
             write: (writer, info) => {
-              if (info.previousMember != null && !Node5.isCommentNode(info.previousMember))
+              if (info.previousMember != null && !Node6.isCommentNode(info.previousMember))
                 writer.blankLineIfLastNot();
               else
                 writer.newLineIfLastNot();
@@ -244117,12 +244117,12 @@ Node text: ${this.#forgottenText}`;
             structures,
             expectedKind: common.SyntaxKind.PropertyDeclaration,
             write: (writer, info) => {
-              if (info.previousMember != null && Node5.hasBody(info.previousMember))
+              if (info.previousMember != null && Node6.hasBody(info.previousMember))
                 writer.blankLineIfLastNot();
               else
                 writer.newLineIfLastNot();
               this._context.structurePrinterFactory.forPropertyDeclaration().printTexts(writer, structures);
-              if (info.nextMember != null && Node5.hasBody(info.nextMember))
+              if (info.nextMember != null && Node6.hasBody(info.nextMember))
                 writer.blankLineIfLastNot();
               else
                 writer.newLineIfLastNot();
@@ -244144,7 +244144,7 @@ Node text: ${this.#forgottenText}`;
           return insertChildren(this, {
             index,
             write: (writer, info) => {
-              if (!isAmbient && info.previousMember != null && !Node5.isCommentNode(info.previousMember))
+              if (!isAmbient && info.previousMember != null && !Node6.isCommentNode(info.previousMember))
                 writer.blankLineIfLastNot();
               else
                 writer.newLineIfLastNot();
@@ -244183,7 +244183,7 @@ Node text: ${this.#forgottenText}`;
           return common.errors.throwIfNullOrUndefined(this.getProperty(nameOrFindFunction), () => getNotFoundErrorMessageForNameOrFindFunction("class property declaration", nameOrFindFunction));
         }
         getProperties() {
-          return this.getMembers().filter((m) => Node5.isPropertyDeclaration(m));
+          return this.getMembers().filter((m) => Node6.isPropertyDeclaration(m));
         }
         getGetAccessor(nameOrFindFunction) {
           return getNodeByNameOrFindFunction(this.getGetAccessors(), nameOrFindFunction);
@@ -244192,7 +244192,7 @@ Node text: ${this.#forgottenText}`;
           return common.errors.throwIfNullOrUndefined(this.getGetAccessor(nameOrFindFunction), () => getNotFoundErrorMessageForNameOrFindFunction("class getAccessor declaration", nameOrFindFunction));
         }
         getGetAccessors() {
-          return this.getMembers().filter((m) => Node5.isGetAccessorDeclaration(m));
+          return this.getMembers().filter((m) => Node6.isGetAccessorDeclaration(m));
         }
         getSetAccessor(nameOrFindFunction) {
           return getNodeByNameOrFindFunction(this.getSetAccessors(), nameOrFindFunction);
@@ -244201,7 +244201,7 @@ Node text: ${this.#forgottenText}`;
           return common.errors.throwIfNullOrUndefined(this.getSetAccessor(nameOrFindFunction), () => getNotFoundErrorMessageForNameOrFindFunction("class setAccessor declaration", nameOrFindFunction));
         }
         getSetAccessors() {
-          return this.getMembers().filter((m) => Node5.isSetAccessorDeclaration(m));
+          return this.getMembers().filter((m) => Node6.isSetAccessorDeclaration(m));
         }
         getMethod(nameOrFindFunction) {
           return getNodeByNameOrFindFunction(this.getMethods(), nameOrFindFunction);
@@ -244210,7 +244210,7 @@ Node text: ${this.#forgottenText}`;
           return common.errors.throwIfNullOrUndefined(this.getMethod(nameOrFindFunction), () => getNotFoundErrorMessageForNameOrFindFunction("class method declaration", nameOrFindFunction));
         }
         getMethods() {
-          return this.getMembers().filter((m) => Node5.isMethodDeclaration(m));
+          return this.getMembers().filter((m) => Node6.isMethodDeclaration(m));
         }
         getInstanceMethod(nameOrFindFunction) {
           return getNodeByNameOrFindFunction(this.getInstanceMethods(), nameOrFindFunction);
@@ -244238,9 +244238,9 @@ Node text: ${this.#forgottenText}`;
         }
         getInstanceMembers() {
           return this.getMembersWithParameterProperties().filter((m) => {
-            if (Node5.isConstructorDeclaration(m))
+            if (Node6.isConstructorDeclaration(m))
               return false;
-            return Node5.isParameterDeclaration(m) || !m.isStatic();
+            return Node6.isParameterDeclaration(m) || !m.isStatic();
           });
         }
         getStaticMember(nameOrFindFunction) {
@@ -244251,14 +244251,14 @@ Node text: ${this.#forgottenText}`;
         }
         getStaticMembers() {
           return this.getMembers().filter((m) => {
-            if (Node5.isConstructorDeclaration(m))
+            if (Node6.isConstructorDeclaration(m))
               return false;
-            return !Node5.isParameterDeclaration(m) && m.isStatic();
+            return !Node6.isParameterDeclaration(m) && m.isStatic();
           });
         }
         getMembersWithParameterProperties() {
           const members = this.getMembers();
-          const implementationCtors = members.filter((c) => Node5.isConstructorDeclaration(c) && c.isImplementation());
+          const implementationCtors = members.filter((c) => Node6.isConstructorDeclaration(c) && c.isImplementation());
           for (const ctor of implementationCtors) {
             let insertIndex = members.indexOf(ctor) + 1;
             for (const param of ctor.getParameters()) {
@@ -244276,7 +244276,7 @@ Node text: ${this.#forgottenText}`;
         getMembersWithComments() {
           const compilerNode = this.compilerNode;
           const members = ExtendedParser.getContainerArray(compilerNode, this.getSourceFile().compilerNode);
-          return getAllMembers(this, members).filter((m) => isSupportedClassMember(m) || Node5.isCommentClassElement(m));
+          return getAllMembers(this, members).filter((m) => isSupportedClassMember(m) || Node6.isCommentClassElement(m));
         }
         getMember(nameOrFindFunction) {
           return getNodeByNameOrFindFunction(this.getMembers(), nameOrFindFunction);
@@ -244314,9 +244314,9 @@ Node text: ${this.#forgottenText}`;
       const isAmbient = isNodeAmbientOrInAmbientContext(classDec);
       const members = compilerMembers.map((m) => classDec._getNodeFromCompilerNode(m));
       return isAmbient ? members : members.filter((m) => {
-        if (!(Node5.isConstructorDeclaration(m) || Node5.isMethodDeclaration(m)))
+        if (!(Node6.isConstructorDeclaration(m) || Node6.isMethodDeclaration(m)))
           return true;
-        if (Node5.isMethodDeclaration(m) && m.isAbstract())
+        if (Node6.isMethodDeclaration(m) && m.isAbstract())
           return true;
         return m.isImplementation();
       });
@@ -244342,10 +244342,10 @@ Node text: ${this.#forgottenText}`;
       return classes;
     }
     function isClassPropertyType(m) {
-      return Node5.isPropertyDeclaration(m) || Node5.isSetAccessorDeclaration(m) || Node5.isGetAccessorDeclaration(m) || Node5.isParameterDeclaration(m);
+      return Node6.isPropertyDeclaration(m) || Node6.isSetAccessorDeclaration(m) || Node6.isGetAccessorDeclaration(m) || Node6.isParameterDeclaration(m);
     }
     function isSupportedClassMember(m) {
-      return Node5.isMethodDeclaration(m) || Node5.isPropertyDeclaration(m) || Node5.isGetAccessorDeclaration(m) || Node5.isSetAccessorDeclaration(m) || Node5.isConstructorDeclaration(m) || Node5.isClassStaticBlockDeclaration(m);
+      return Node6.isMethodDeclaration(m) || Node6.isPropertyDeclaration(m) || Node6.isGetAccessorDeclaration(m) || Node6.isSetAccessorDeclaration(m) || Node6.isConstructorDeclaration(m) || Node6.isClassStaticBlockDeclaration(m);
     }
     function insertChildren(classDeclaration, opts) {
       return insertIntoBracesOrSourceFileWithGetChildren({
@@ -244413,7 +244413,7 @@ Node text: ${this.#forgottenText}`;
           typeParameters: this.getTypeParameters().map((p) => p.getStructure()),
           properties: [
             ...parameterProperties.map((p) => {
-              const jsDocComment = p.getParentOrThrow().getJsDocs().map((j) => j.getTags()).flat().filter(Node5.isJSDocParameterTag).filter((t) => t.getTagName() === "param" && t.getName() === p.getName() && t.getComment() != null).map((t) => t.getCommentText().trim())[0];
+              const jsDocComment = p.getParentOrThrow().getJsDocs().map((j) => j.getTags()).flat().filter(Node6.isJSDocParameterTag).filter((t) => t.getTagName() === "param" && t.getName() === p.getName() && t.getComment() != null).map((t) => t.getCommentText().trim())[0];
               return {
                 kind: exports2.StructureKind.PropertySignature,
                 docs: jsDocComment == null ? [] : [{ kind: exports2.StructureKind.JSDoc, description: jsDocComment }],
@@ -244488,7 +244488,7 @@ Node text: ${this.#forgottenText}`;
         name: getAndSet[0].getName(),
         type: getAndSet[0].getType().getText(getAndSet[0]),
         hasQuestionToken: false,
-        isReadonly: getAndSet.every(Node5.isGetAccessorDeclaration)
+        isReadonly: getAndSet.every(Node6.isGetAccessorDeclaration)
       };
     }
     function getExtractedInterfaceMethodStructure(method) {
@@ -244605,7 +244605,7 @@ Node text: ${this.#forgottenText}`;
         const thisName = this.getName();
         const isStatic = this.isStatic();
         return this.getParentOrThrow().forEachChild((sibling) => {
-          if (Node5.isSetAccessorDeclaration(sibling) && sibling.getName() === thisName && sibling.isStatic() === isStatic)
+          if (Node6.isSetAccessorDeclaration(sibling) && sibling.getName() === thisName && sibling.isStatic() === isStatic)
             return sibling;
           return void 0;
         });
@@ -244662,7 +244662,7 @@ Node text: ${this.#forgottenText}`;
         const thisName = this.getName();
         const isStatic = this.isStatic();
         return this.getParentOrThrow().forEachChild((sibling) => {
-          if (Node5.isGetAccessorDeclaration(sibling) && sibling.getName() === thisName && sibling.isStatic() === isStatic)
+          if (Node6.isGetAccessorDeclaration(sibling) && sibling.getName() === thisName && sibling.isStatic() === isStatic)
             return sibling;
           return void 0;
         });
@@ -244676,7 +244676,7 @@ Node text: ${this.#forgottenText}`;
         });
       }
     };
-    var DecoratorBase = LeftHandSideExpressionedNode(Node5);
+    var DecoratorBase = LeftHandSideExpressionedNode(Node6);
     var Decorator = class extends DecoratorBase {
       getName() {
         return this.getNameNode().getText();
@@ -244689,13 +244689,13 @@ Node text: ${this.#forgottenText}`;
           return getIdentifierFromName(this._getInnerExpression());
         function getIdentifierFromName(expression) {
           const identifier = getNameFromExpression(expression);
-          if (!Node5.isIdentifier(identifier)) {
+          if (!Node6.isIdentifier(identifier)) {
             throw new common.errors.NotImplementedError(`Expected the decorator expression '${identifier.getText()}' to be an identifier. Please deal directly with 'getExpression()' on the decorator to handle more complex scenarios.`);
           }
           return identifier;
         }
         function getNameFromExpression(expression) {
-          if (Node5.isPropertyAccessExpression(expression))
+          if (Node6.isPropertyAccessExpression(expression))
             return expression.getNameNode();
           return expression;
         }
@@ -244707,7 +244707,7 @@ Node text: ${this.#forgottenText}`;
         return this.compilerNode.expression.getText(sourceFile.compilerNode);
       }
       isDecoratorFactory() {
-        return Node5.isCallExpression(this._getInnerExpression());
+        return Node6.isCallExpression(this._getInnerExpression());
       }
       setIsDecoratorFactory(isDecoratorFactory) {
         if (this.isDecoratorFactory() === isDecoratorFactory)
@@ -244749,7 +244749,7 @@ Node text: ${this.#forgottenText}`;
       }
       getCallExpression() {
         const expression = this._getInnerExpression();
-        return Node5.isCallExpression(expression) ? expression : void 0;
+        return Node6.isCallExpression(expression) ? expression : void 0;
       }
       getArguments() {
         return this.getCallExpression()?.getArguments() ?? [];
@@ -244813,7 +244813,7 @@ Node text: ${this.#forgottenText}`;
       }
       _getInnerExpression() {
         let expr = this.getExpression();
-        while (Node5.isParenthesizedExpression(expr))
+        while (Node6.isParenthesizedExpression(expr))
           expr = expr.getExpression();
         return expr;
       }
@@ -244902,7 +244902,7 @@ Node text: ${this.#forgottenText}`;
         return -1;
       }
     }
-    var JSDocBase = Node5;
+    var JSDocBase = Node6;
     var JSDoc = class extends JSDocBase {
       isMultiLine() {
         return this.getText().includes("\n");
@@ -245043,7 +245043,7 @@ Node text: ${this.#forgottenText}`;
         });
       }
     };
-    var TypeNode = class extends Node5 {
+    var TypeNode = class extends Node6 {
     };
     var NodeWithTypeArgumentsBase = TypeArgumentedNode(TypeNode);
     var NodeWithTypeArguments = class extends NodeWithTypeArgumentsBase {
@@ -245082,9 +245082,9 @@ Node text: ${this.#forgottenText}`;
     var ImportTypeNode = class extends NodeWithTypeArguments {
       setArgument(text) {
         const arg = this.getArgument();
-        if (Node5.isLiteralTypeNode(arg)) {
+        if (Node6.isLiteralTypeNode(arg)) {
           const literal = arg.getLiteral();
-          if (Node5.isStringLiteral(literal)) {
+          if (Node6.isStringLiteral(literal)) {
             literal.setLiteralValue(text);
             return this;
           }
@@ -245263,7 +245263,7 @@ Node text: ${this.#forgottenText}`;
       TypeParameterVariance[TypeParameterVariance["InOut"] = 3] = "InOut";
     })(exports2.TypeParameterVariance || (exports2.TypeParameterVariance = {}));
     var createBase$c = (ctor) => ModifierableNode(NamedNode(ctor));
-    var TypeParameterDeclarationBase = createBase$c(Node5);
+    var TypeParameterDeclarationBase = createBase$c(Node6);
     var TypeParameterDeclaration = class extends TypeParameterDeclarationBase {
       isConst() {
         return this.hasModifier(common.SyntaxKind.ConstKeyword);
@@ -245433,7 +245433,7 @@ Node text: ${this.#forgottenText}`;
     };
     var JSDocAllType = class extends JSDocType {
     };
-    var JSDocTagBase = Node5;
+    var JSDocTagBase = Node6;
     var JSDocTag = class extends JSDocTagBase {
       getTagName() {
         return this.getTagNameNode().getText();
@@ -245559,20 +245559,20 @@ Node text: ${this.#forgottenText}`;
     };
     var JSDocImportTag = class extends JSDocTag {
     };
-    var JSDocLink = class extends Node5 {
+    var JSDocLink = class extends Node6 {
     };
-    var JSDocLinkCode = class extends Node5 {
+    var JSDocLinkCode = class extends Node6 {
     };
-    var JSDocLinkPlain = class extends Node5 {
+    var JSDocLinkPlain = class extends Node6 {
     };
-    var JSDocMemberName = class extends Node5 {
+    var JSDocMemberName = class extends Node6 {
     };
     var JSDocNamepathType = class extends JSDocType {
       getTypeNode() {
         return this._getNodeFromCompilerNode(this.compilerNode.type);
       }
     };
-    var JSDocNameReference = class extends Node5 {
+    var JSDocNameReference = class extends Node6 {
       getName() {
         return this._getNodeFromCompilerNode(this.compilerNode.name);
       }
@@ -245655,7 +245655,7 @@ Node text: ${this.#forgottenText}`;
         return common.errors.throwIfNullOrUndefined(this.getConstraint(), message ?? "Expected to find the JS doc template tag's constraint.", this);
       }
     };
-    var JSDocText = class extends Node5 {
+    var JSDocText = class extends Node6 {
     };
     var JSDocThisTagBase = JSDocTypeExpressionableTag(JSDocTag);
     var JSDocThisTag = class extends JSDocThisTagBase {
@@ -245695,7 +245695,7 @@ Node text: ${this.#forgottenText}`;
         return this._getNodeFromCompilerNode(this.compilerNode.type);
       }
     };
-    var CommentEnumMember = class extends Node5 {
+    var CommentEnumMember = class extends Node6 {
       remove() {
         removeChildrenWithFormatting({
           children: [this],
@@ -245779,7 +245779,7 @@ Node text: ${this.#forgottenText}`;
       }
     };
     var createBase$a = (ctor) => JSDocableNode(InitializerExpressionableNode(PropertyNamedNode(ctor)));
-    var EnumMemberBase = createBase$a(Node5);
+    var EnumMemberBase = createBase$a(Node6);
     var EnumMember = class extends EnumMemberBase {
       getValue() {
         return this._context.typeChecker.getConstantValue(this);
@@ -245820,7 +245820,7 @@ Node text: ${this.#forgottenText}`;
         });
       }
     };
-    var HeritageClause = class extends Node5 {
+    var HeritageClause = class extends Node6 {
       getTypeNodes() {
         return this.compilerNode.types?.map((t) => this._getNodeFromCompilerNode(t)) ?? [];
       }
@@ -245845,7 +245845,7 @@ Node text: ${this.#forgottenText}`;
         }
       }
     };
-    var TypeElement = class extends Node5 {
+    var TypeElement = class extends Node6 {
       remove() {
         removeInterfaceMember(this);
       }
@@ -246058,7 +246058,7 @@ Node text: ${this.#forgottenText}`;
         }
       };
     }
-    var ComputedPropertyNameBase = ExpressionedNode(Node5);
+    var ComputedPropertyNameBase = ExpressionedNode(Node6);
     var ComputedPropertyName = class extends ComputedPropertyNameBase {
     };
     var IdentifierBase = CommonIdentifierBase(ReferenceFindableNode(RenameableNode(PrimaryExpression)));
@@ -246067,10 +246067,10 @@ Node text: ${this.#forgottenText}`;
         return this._context.languageService.getImplementations(this);
       }
     };
-    var PrivateIdentifierBase = CommonIdentifierBase(ReferenceFindableNode(RenameableNode(Node5)));
+    var PrivateIdentifierBase = CommonIdentifierBase(ReferenceFindableNode(RenameableNode(Node6)));
     var PrivateIdentifier = class extends PrivateIdentifierBase {
     };
-    var QualifiedName = class extends Node5 {
+    var QualifiedName = class extends Node6 {
       getLeft() {
         return this._getNodeFromCompilerNode(this.compilerNode.left);
       }
@@ -246078,7 +246078,7 @@ Node text: ${this.#forgottenText}`;
         return this._getNodeFromCompilerNode(this.compilerNode.right);
       }
     };
-    var JsxAttributeBase = Node5;
+    var JsxAttributeBase = Node6;
     var JsxAttribute = class extends JsxAttributeBase {
       getNameNode() {
         return this._getNodeFromCompilerNode(this.compilerNode.name);
@@ -246155,7 +246155,7 @@ Node text: ${this.#forgottenText}`;
       }
     };
     var createBase$3 = (ctor) => JsxTagNamedNode(ctor);
-    var JsxClosingElementBase = createBase$3(Node5);
+    var JsxClosingElementBase = createBase$3(Node6);
     var JsxClosingElement = class extends JsxClosingElementBase {
     };
     var JsxClosingFragment = class extends Expression {
@@ -246244,7 +246244,7 @@ Node text: ${this.#forgottenText}`;
         return this._getNodeFromCompilerNode(this.compilerNode.closingFragment);
       }
     };
-    var JsxNamespacedNameBase = Node5;
+    var JsxNamespacedNameBase = Node6;
     var JsxNamespacedName = class extends JsxNamespacedNameBase {
       getNamespaceNode() {
         return this._getNodeFromCompilerNode(this.compilerNode.namespace);
@@ -246283,7 +246283,7 @@ Node text: ${this.#forgottenText}`;
         });
       }
     };
-    var JsxSpreadAttributeBase = ExpressionedNode(Node5);
+    var JsxSpreadAttributeBase = ExpressionedNode(Node6);
     var JsxSpreadAttribute = class extends JsxSpreadAttributeBase {
       remove() {
         removeChildren({
@@ -246305,7 +246305,7 @@ Node text: ${this.#forgottenText}`;
         });
       }
     };
-    var JsxTextBase = LiteralLikeNode(Node5);
+    var JsxTextBase = LiteralLikeNode(Node6);
     var JsxText = class extends JsxTextBase {
       containsOnlyTriviaWhiteSpaces() {
         const oldCompilerNode = this.compilerNode;
@@ -246494,23 +246494,23 @@ Node text: ${this.#forgottenText}`;
         return parent.getChildAtIndex(childIndex);
       }
     };
-    var TemplateHeadBase = LiteralLikeNode(Node5);
+    var TemplateHeadBase = LiteralLikeNode(Node6);
     var TemplateHead = class extends TemplateHeadBase {
     };
-    var TemplateMiddleBase = LiteralLikeNode(Node5);
+    var TemplateMiddleBase = LiteralLikeNode(Node6);
     var TemplateMiddle = class extends TemplateMiddleBase {
     };
-    var TemplateSpanBase = ExpressionedNode(Node5);
+    var TemplateSpanBase = ExpressionedNode(Node6);
     var TemplateSpan = class extends TemplateSpanBase {
       getLiteral() {
         return this._getNodeFromCompilerNode(this.compilerNode.literal);
       }
     };
-    var TemplateTailBase = LiteralLikeNode(Node5);
+    var TemplateTailBase = LiteralLikeNode(Node6);
     var TemplateTail = class extends TemplateTailBase {
     };
     var createBase = (ctor) => ExportGetableNode(ExclamationTokenableNode(TypedNode(InitializerExpressionableNode(BindingNamedNode(ctor)))));
-    var VariableDeclarationBase = createBase(Node5);
+    var VariableDeclarationBase = createBase(Node6);
     var VariableDeclaration = class extends VariableDeclarationBase {
       remove() {
         const parent = this.getParentOrThrow();
@@ -246548,7 +246548,7 @@ Node text: ${this.#forgottenText}`;
       }
       getVariableStatement() {
         const grandParent = this.getParentOrThrow().getParentOrThrow();
-        return Node5.isVariableStatement(grandParent) ? grandParent : void 0;
+        return Node6.isVariableStatement(grandParent) ? grandParent : void 0;
       }
       set(structure) {
         callBaseSet(VariableDeclarationBase.prototype, this, structure);
@@ -246560,7 +246560,7 @@ Node text: ${this.#forgottenText}`;
         });
       }
     };
-    var VariableDeclarationListBase = ModifierableNode(Node5);
+    var VariableDeclarationListBase = ModifierableNode(Node6);
     var VariableDeclarationList = class extends VariableDeclarationListBase {
       getDeclarations() {
         return this.compilerNode.declarations.map((d) => this._getNodeFromCompilerNode(d));
@@ -248021,7 +248021,7 @@ Node text: ${this.#forgottenText}`;
         if (symbol == null)
           return false;
         const valueDeclaration = symbol.getValueDeclaration();
-        return valueDeclaration != null && Node5.isEnumDeclaration(valueDeclaration);
+        return valueDeclaration != null && Node6.isEnumDeclaration(valueDeclaration);
       }
       isInterface() {
         return this.#hasObjectFlag(common.ObjectFlags.Interface);
@@ -248106,7 +248106,7 @@ Node text: ${this.#forgottenText}`;
         const declaration = symbol.getDeclarations()[0];
         if (declaration == null)
           return void 0;
-        if (!Node5.isTypeParameterDeclaration(declaration))
+        if (!Node6.isTypeParameterDeclaration(declaration))
           return void 0;
         return declaration;
       }
@@ -249090,13 +249090,13 @@ Node text: ${this.#forgottenText}`;
       [common.SyntaxKind.WhileStatement]: WhileStatement,
       [common.SyntaxKind.WithStatement]: WithStatement,
       [common.SyntaxKind.YieldExpression]: YieldExpression,
-      [common.SyntaxKind.SemicolonToken]: Node5,
+      [common.SyntaxKind.SemicolonToken]: Node6,
       [common.SyntaxKind.AnyKeyword]: Expression,
       [common.SyntaxKind.BooleanKeyword]: Expression,
       [common.SyntaxKind.FalseKeyword]: FalseLiteral,
       [common.SyntaxKind.ImportKeyword]: ImportExpression,
-      [common.SyntaxKind.InferKeyword]: Node5,
-      [common.SyntaxKind.NeverKeyword]: Node5,
+      [common.SyntaxKind.InferKeyword]: Node6,
+      [common.SyntaxKind.NeverKeyword]: Node6,
       [common.SyntaxKind.NullKeyword]: NullLiteral,
       [common.SyntaxKind.NumberKeyword]: Expression,
       [common.SyntaxKind.ObjectKeyword]: Expression,
@@ -249260,7 +249260,7 @@ Node text: ${this.#forgottenText}`;
               return new CommentEnumMember(this.#context, compilerNode, sourceFile);
             return common.errors.throwNotImplementedForNeverValueError(compilerNode);
           }
-          const ctor = kindToWrapperMappings[compilerNode.kind] || Node5;
+          const ctor = kindToWrapperMappings[compilerNode.kind] || Node6;
           return new ctor(this.#context, compilerNode, sourceFile);
         }
         function isCommentNode(node) {
@@ -249391,8 +249391,8 @@ Node text: ${this.#forgottenText}`;
         return this.#jsDocTagInfoCache.getOrCreate(jsDocTagInfo, () => new JSDocTagInfo(jsDocTagInfo));
       }
       replaceCompilerNode(oldNode, newNode) {
-        const nodeToReplace = oldNode instanceof Node5 ? oldNode.compilerNode : oldNode;
-        const node = oldNode instanceof Node5 ? oldNode : this.#nodeCache.get(oldNode);
+        const nodeToReplace = oldNode instanceof Node6 ? oldNode.compilerNode : oldNode;
+        const node = oldNode instanceof Node6 ? oldNode : this.#nodeCache.get(oldNode);
         if (nodeToReplace.kind === common.SyntaxKind.SourceFile && nodeToReplace.fileName !== newNode.fileName) {
           const sourceFile = node;
           this.#removeCompilerNodeFromCache(nodeToReplace);
@@ -249437,12 +249437,12 @@ Node text: ${this.#forgottenText}`;
             for (const node of nodes)
               this.#nodeCache.rememberNode(node);
           });
-          if (Node5.isNode(result))
+          if (Node6.isNode(result))
             this.#nodeCache.rememberNode(result);
           if (isPromise(result)) {
             wasPromise = true;
             return result.then((value) => {
-              if (Node5.isNode(value))
+              if (Node6.isNode(value))
                 this.#nodeCache.rememberNode(value);
               this.#nodeCache.forgetLastPoint();
               return value;
@@ -250570,7 +250570,7 @@ Node text: ${this.#forgottenText}`;
     exports2.NewExpressionBase = NewExpressionBase;
     exports2.NoSubstitutionTemplateLiteral = NoSubstitutionTemplateLiteral;
     exports2.NoSubstitutionTemplateLiteralBase = NoSubstitutionTemplateLiteralBase;
-    exports2.Node = Node5;
+    exports2.Node = Node6;
     exports2.NodeWithTypeArguments = NodeWithTypeArguments;
     exports2.NodeWithTypeArgumentsBase = NodeWithTypeArgumentsBase;
     exports2.NonNullExpression = NonNullExpression;
@@ -256281,9 +256281,23 @@ async function analyzeStructure(context) {
 // src/analyzers/testing.ts
 var import_node_fs6 = require("fs");
 var import_node_path7 = require("path");
+var import_ts_morph5 = __toESM(require_ts_morph(), 1);
 var TEST_CONFIG_FILES = ["jest", "vitest"].flatMap(
   (tool) => ["ts", "js", "mjs", "mts"].map((extension) => `${tool}.config.${extension}`)
 );
+var COVERAGE_CONFIG_FILES = [
+  ...TEST_CONFIG_FILES,
+  ...["ts", "js", "mjs", "mts", "cjs", "cts"].map(
+    (extension) => `vite.config.${extension}`
+  ),
+  "jest.config.cjs",
+  "jest.config.cts",
+  "vitest.config.cjs",
+  "vitest.config.cts"
+];
+var METRIC_KEYS = /* @__PURE__ */ new Set(["lines", "statements", "functions", "branches"]);
+var COVERAGE_RC_FILES = [".c8rc", ".c8rc.json", ".nycrc", ".nycrc.json"];
+var COVERAGE_SCRIPT = /--test-coverage-(?:lines|branches|functions)=\d|--check-coverage\b|\bc8\b[^&|;]*--(?:lines|branches|functions|statements)\b/;
 var COVERAGE_THRESHOLDS = {
   lines: 80,
   statements: 80,
@@ -256328,6 +256342,52 @@ function readCoverageReport(projectPath) {
     metrics,
     score
   };
+}
+function propertyName(node) {
+  return import_ts_morph5.Node.isPropertyAssignment(node) || import_ts_morph5.Node.isShorthandPropertyAssignment(node) ? node.getName().replace(/["']/g, "") : void 0;
+}
+function configDeclaresThreshold(context, file) {
+  const sourceFile = context.getSourceFile(file);
+  if (!sourceFile) return false;
+  for (const property of sourceFile.getDescendantsOfKind(
+    import_ts_morph5.SyntaxKind.PropertyAssignment
+  )) {
+    const name = propertyName(property);
+    if (name === "coverageThreshold") return true;
+    const parent = property.getParentIfKind(import_ts_morph5.SyntaxKind.ObjectLiteralExpression)?.getParent();
+    const parentName = parent ? propertyName(parent) : void 0;
+    if (parentName === "coverage" && (name === "thresholds" || METRIC_KEYS.has(name ?? ""))) {
+      return true;
+    }
+  }
+  return false;
+}
+function coverageRcDeclaresThreshold(projectPath) {
+  return COVERAGE_RC_FILES.some((name) => {
+    const path2 = (0, import_node_path7.join)(projectPath, name);
+    if (!(0, import_node_fs6.existsSync)(path2)) return false;
+    try {
+      const options = JSON.parse((0, import_node_fs6.readFileSync)(path2, "utf-8"));
+      return options?.["check-coverage"] === true || Object.keys(options ?? {}).some((key) => METRIC_KEYS.has(key));
+    } catch {
+      return false;
+    }
+  });
+}
+function hasCoverageThreshold(context) {
+  const pkg = context.packageJson;
+  const jest = pkg?.jest;
+  const packageTool = (name) => {
+    const options = pkg?.[name];
+    return Boolean(
+      options && (options["check-coverage"] === true || Object.keys(options).some((key) => METRIC_KEYS.has(key)))
+    );
+  };
+  return Boolean(jest?.coverageThreshold) || packageTool("c8") || packageTool("nyc") || Object.values(pkg?.scripts ?? {}).some(
+    (script) => COVERAGE_SCRIPT.test(script)
+  ) || coverageRcDeclaresThreshold(context.projectPath) || COVERAGE_CONFIG_FILES.some(
+    (file) => (0, import_node_fs6.existsSync)((0, import_node_path7.join)(context.projectPath, file)) && configDeclaresThreshold(context, file)
+  );
 }
 async function analyzeTesting(context) {
   const { projectPath, packageJson: pkg } = context;
@@ -256412,19 +256472,7 @@ async function analyzeTesting(context) {
     }
   }
   checksRun++;
-  let hasCoverageConfig = Boolean(pkg?.jest?.coverageThreshold);
-  const configFiles = TEST_CONFIG_FILES.map(
-    (name) => (0, import_node_path7.join)(projectPath, name)
-  ).filter((path2) => (0, import_node_fs6.existsSync)(path2));
-  for (const cf of configFiles) {
-    try {
-      if ((0, import_node_fs6.readFileSync)(cf, "utf-8").includes("coverageThreshold") || (0, import_node_fs6.readFileSync)(cf, "utf-8").includes("coverage")) {
-        hasCoverageConfig = true;
-        break;
-      }
-    } catch {
-    }
-  }
+  const hasCoverageConfig = hasCoverageThreshold(context);
   let coverageReport = null;
   let invalidCoverageReport = false;
   try {
@@ -258366,7 +258414,7 @@ minimatch.escape = escape;
 minimatch.unescape = unescape;
 
 // src/core/scan-context.ts
-var import_ts_morph5 = __toESM(require_ts_morph(), 1);
+var import_ts_morph6 = __toESM(require_ts_morph(), 1);
 
 // src/detectors/stack-detector.ts
 var import_node_fs7 = require("fs");
@@ -258657,7 +258705,7 @@ function createScanContext(projectPath, config = loadConfig(projectPath), option
     const content = readText(file);
     if (content !== null) {
       try {
-        project ??= new import_ts_morph5.Project({
+        project ??= new import_ts_morph6.Project({
           compilerOptions: { allowJs: true, checkJs: false, noEmit: true },
           skipAddingFilesFromTsConfig: true,
           skipFileDependencyResolution: true
@@ -258679,7 +258727,7 @@ function createScanContext(projectPath, config = loadConfig(projectPath), option
       typescriptConfig = { status: "missing" };
     } else {
       try {
-        const options2 = new import_ts_morph5.Project({
+        const options2 = new import_ts_morph6.Project({
           tsConfigFilePath: tsconfigPath,
           skipAddingFilesFromTsConfig: true
         }).getCompilerOptions();
