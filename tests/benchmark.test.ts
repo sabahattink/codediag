@@ -54,7 +54,7 @@ for (const [name, framework] of [
   });
 }
 
-test("defects/express keeps its routing and injection findings", async () => {
+test("defects/express keeps its routing, injection, and web sink findings", async () => {
   const result = await scanFixture("defects/express");
   const located = findings(result)
     .filter((issue) => issue.file === "src/app.js")
@@ -83,6 +83,30 @@ test("defects/express keeps its routing and injection findings", async () => {
       severity: "critical",
       line: 17,
       message: "SQL execution uses a dynamically constructed query",
+    },
+    {
+      rule: "path-traversal",
+      severity: "critical",
+      line: 23,
+      message: "A file path is built from request data",
+    },
+    {
+      rule: "server-side-request-forgery",
+      severity: "warning",
+      line: 27,
+      message: "An outgoing HTTP request uses a URL chosen by request data",
+    },
+    {
+      rule: "open-redirect",
+      severity: "warning",
+      line: 32,
+      message: "A redirect target comes from request data",
+    },
+    {
+      rule: "reflected-xss",
+      severity: "critical",
+      line: 36,
+      message: "Request data is written into an HTML response without escaping",
     },
   ]);
 });

@@ -251621,7 +251621,8 @@ var OWASP = {
   insecureDesign: "A04:2021",
   misconfiguration: "A05:2021",
   vulnerableComponents: "A06:2021",
-  authentication: "A07:2021"
+  authentication: "A07:2021",
+  requestForgery: "A10:2021"
 };
 var RULES = {
   // API Health: NestJS
@@ -251806,6 +251807,38 @@ var RULES = {
     description: "A shell is invoked through exec or execSync with a non-literal command. The finding is critical when the command comes from request data, directly or through up to three variable assignments.",
     defaultSeverity: "warning",
     cwe: ["CWE-78"],
+    owasp: [OWASP.injection]
+  },
+  "path-traversal": {
+    analyzer: "Security",
+    title: "File path from request data",
+    description: "A file system call (fs, fs/promises, fs-extra) or res.sendFile()/res.download() without a root option receives a path that comes from request data, so `../` segments can reach files outside the intended directory. Values passed through path.basename() or checked with startsWith() in the same function are not reported.",
+    defaultSeverity: "critical",
+    cwe: ["CWE-22"],
+    owasp: [OWASP.accessControl]
+  },
+  "server-side-request-forgery": {
+    analyzer: "Security",
+    title: "Outgoing request to a URL from request data",
+    description: "fetch, axios, got, ky, needle, http(s), superagent, undici, or NestJS HttpService sends a request whose scheme or host comes from request data, so callers can make the server reach internal services. URLs whose origin is fixed before the request data, such as `'https://api.example.com/users/' + id` or `baseUrl + '/users/' + id`, are not reported.",
+    defaultSeverity: "warning",
+    cwe: ["CWE-918"],
+    owasp: [OWASP.requestForgery]
+  },
+  "open-redirect": {
+    analyzer: "Security",
+    title: "Redirect to a URL from request data",
+    description: "res.redirect(), reply.redirect(), or NextResponse.redirect() sends users to a target taken from request data, so a link on your domain can forward them to a phishing site. Same-site paths such as `'/orders/' + id` are not reported.",
+    defaultSeverity: "warning",
+    cwe: ["CWE-601"],
+    owasp: [OWASP.accessControl]
+  },
+  "reflected-xss": {
+    analyzer: "Security",
+    title: "Request data in an HTML response",
+    description: "res.send(), res.write(), or res.end(), or a Response with a text/html content type, writes a string that contains request data without HTML escaping. Express serves strings as text/html, so the browser runs any markup in the value. Values passed through an escaping function are not reported.",
+    defaultSeverity: "critical",
+    cwe: ["CWE-79"],
     owasp: [OWASP.injection]
   },
   "dynamic-sql-query": {
@@ -255426,6 +255459,56 @@ var RUNTIME_IGNORES = [
 ];
 var CHILD_PROCESS_MODULES = /* @__PURE__ */ new Set(["child_process", "node:child_process"]);
 var COMMAND_FUNCTIONS = /* @__PURE__ */ new Set(["exec", "execSync"]);
+var FS_MODULES = /* @__PURE__ */ new Set([
+  "fs",
+  "node:fs",
+  "fs/promises",
+  "node:fs/promises",
+  "fs-extra"
+]);
+var FILE_FUNCTIONS = /* @__PURE__ */ new Set([
+  "appendFile",
+  "appendFileSync",
+  "copyFile",
+  "copyFileSync",
+  "createReadStream",
+  "createWriteStream",
+  "open",
+  "openSync",
+  "readFile",
+  "readFileSync",
+  "readdir",
+  "readdirSync",
+  "rename",
+  "renameSync",
+  "rm",
+  "rmSync",
+  "unlink",
+  "unlinkSync",
+  "writeFile",
+  "writeFileSync"
+]);
+var HTTP_CLIENT_FUNCTIONS = /* @__PURE__ */ new Set([
+  "axios",
+  "fetch",
+  "got",
+  "ky",
+  "needle"
+]);
+var HTTP_CLIENT_RECEIVER = /(?:^|\.)(?:axios|got|ky|http|https|httpService|needle|superagent|undici)$/;
+var HTTP_CLIENT_METHODS = /* @__PURE__ */ new Set([
+  "delete",
+  "fetch",
+  "get",
+  "head",
+  "options",
+  "patch",
+  "post",
+  "put",
+  "request",
+  "stream"
+]);
+var RESPONSE_OBJECT = /^(?:res|response|reply)$/;
 var SQL_METHODS = /* @__PURE__ */ new Set([
   "$executeRawUnsafe",
   "$queryRawUnsafe",
@@ -255446,27 +255529,24 @@ function isModuleCall(expression, modules) {
   const moduleArgument = expression.getArguments()[0];
   return import_ts_morph4.Node.isStringLiteral(moduleArgument) && modules.has(moduleArgument.getLiteralText());
 }
-function commandBindings(sourceFile) {
+function moduleBindings(sourceFile, modules, sinkFunctions) {
   const functions = /* @__PURE__ */ new Set();
   const namespaces = /* @__PURE__ */ new Set();
   for (const declaration of sourceFile.getImportDeclarations()) {
-    if (!CHILD_PROCESS_MODULES.has(declaration.getModuleSpecifierValue())) {
-      continue;
-    }
+    if (!modules.has(declaration.getModuleSpecifierValue())) continue;
     const namespace = declaration.getNamespaceImport();
     if (namespace) namespaces.add(namespace.getText());
+    const defaultImport = declaration.getDefaultImport();
+    if (defaultImport) namespaces.add(defaultImport.getText());
     for (const namedImport of declaration.getNamedImports()) {
-      if (!COMMAND_FUNCTIONS.has(namedImport.getName())) continue;
-      functions.add(
-        namedImport.getAliasNode()?.getText() ?? namedImport.getName()
-      );
+      const local = namedImport.getAliasNode()?.getText() ?? namedImport.getName();
+      if (sinkFunctions.has(namedImport.getName())) functions.add(local);
+      if (namedImport.getName() === "promises") namespaces.add(local);
     }
   }
   for (const declaration of sourceFile.getVariableDeclarations()) {
     const initializer = declaration.getInitializer();
-    if (!initializer || !isModuleCall(initializer, CHILD_PROCESS_MODULES)) {
-      continue;
-    }
+    if (!initializer || !isModuleCall(initializer, modules)) continue;
     const nameNode = declaration.getNameNode();
     if (import_ts_morph4.Node.isIdentifier(nameNode)) {
       namespaces.add(nameNode.getText());
@@ -255475,21 +255555,22 @@ function commandBindings(sourceFile) {
     if (!import_ts_morph4.Node.isObjectBindingPattern(nameNode)) continue;
     for (const element of nameNode.getElements()) {
       const importedName = element.getPropertyNameNode()?.getText() ?? element.getName();
-      if (COMMAND_FUNCTIONS.has(importedName)) functions.add(element.getName());
+      if (sinkFunctions.has(importedName)) functions.add(element.getName());
+      if (importedName === "promises") namespaces.add(element.getName());
     }
   }
   return { functions, namespaces };
 }
-function commandCall(call, bindings) {
+function moduleCall(call, bindings, modules, sinkFunctions) {
   const expression = call.getExpression();
   if (import_ts_morph4.Node.isIdentifier(expression)) {
     return bindings.functions.has(expression.getText());
   }
   if (!import_ts_morph4.Node.isPropertyAccessExpression(expression)) return false;
-  if (bindings.namespaces.has(expression.getExpression().getText()) && COMMAND_FUNCTIONS.has(expression.getName())) {
-    return true;
-  }
-  return COMMAND_FUNCTIONS.has(expression.getName()) && isModuleCall(expression.getExpression(), CHILD_PROCESS_MODULES);
+  if (!sinkFunctions.has(expression.getName())) return false;
+  const receiver = expression.getExpression();
+  const namespace = receiver.getText().replace(/\.promises$/, "");
+  return bindings.namespaces.has(namespace) || isModuleCall(receiver, modules) || import_ts_morph4.Node.isPropertyAccessExpression(receiver) && receiver.getName() === "promises" && isModuleCall(receiver.getExpression(), modules);
 }
 function isStaticString(node) {
   return Boolean(
@@ -255607,12 +255688,231 @@ function isDynamicSqlCall(call) {
     shape && SQL_KEYWORDS.test(shape.getText()) && isTainted(query)
   );
 }
+var REQUEST_VALUE_METHODS = /* @__PURE__ */ new Set([
+  "at",
+  "formData",
+  "get",
+  "getAll",
+  "json",
+  "replace",
+  "replaceAll",
+  "slice",
+  "substring",
+  "text",
+  "toLowerCase",
+  "toString",
+  "toUpperCase",
+  "trim",
+  "trimEnd",
+  "trimStart"
+]);
+var REQUEST_VALUE_FUNCTIONS = /* @__PURE__ */ new Set([
+  "String",
+  "decodeURI",
+  "decodeURIComponent",
+  "join",
+  "normalize",
+  "resolve"
+]);
+var SERVER_SET_REQUEST_DATA = /\b(?:req(?:uest)?|ctx)\s*\.\s*(?:app|auth|file|files|ip|ips|method|protocol|secure|session|state|user)\b/;
+var REQUEST_OBJECT = /^(?:req|request|ctx)$/;
+function unwrap(node) {
+  let current = node;
+  while (import_ts_morph4.Node.isAwaitExpression(current) || import_ts_morph4.Node.isParenthesizedExpression(current) || import_ts_morph4.Node.isAsExpression(current) || import_ts_morph4.Node.isNonNullExpression(current)) {
+    current = current.getExpression();
+  }
+  return current;
+}
+function isRequestValue(node, hops = 0) {
+  const value = unwrap(node);
+  if (import_ts_morph4.Node.isIdentifier(value)) {
+    if (hops >= MAX_TAINT_HOPS) return false;
+    return valueSources(value).some(
+      (source) => isRequestValue(source, hops + 1)
+    );
+  }
+  if (import_ts_morph4.Node.isPropertyAccessExpression(value) || import_ts_morph4.Node.isElementAccessExpression(value)) {
+    const text = value.getText();
+    if (SERVER_SET_REQUEST_DATA.test(text)) return false;
+    if (REQUEST_DATA.test(text) && !hasCallInside(value)) return true;
+    return isRequestValue(value.getExpression(), hops);
+  }
+  if (import_ts_morph4.Node.isCallExpression(value)) {
+    const callee = value.getExpression();
+    if (import_ts_morph4.Node.isPropertyAccessExpression(callee) && REQUEST_VALUE_METHODS.has(callee.getName())) {
+      const receiver = unwrap(callee.getExpression());
+      if (import_ts_morph4.Node.isIdentifier(receiver) && REQUEST_OBJECT.test(receiver.getText())) {
+        return true;
+      }
+      return isRequestValue(receiver, hops);
+    }
+    return REQUEST_VALUE_FUNCTIONS.has(calleeName(value)) && value.getArguments().some((argument) => isRequestValue(argument, hops));
+  }
+  if (import_ts_morph4.Node.isNewExpression(value)) {
+    return value.getExpression().getText() === "URL" && isRequestValue(value.getArguments()[0] ?? value, hops);
+  }
+  if (import_ts_morph4.Node.isConditionalExpression(value)) {
+    return isRequestValue(value.getWhenTrue(), hops) || isRequestValue(value.getWhenFalse(), hops);
+  }
+  if (import_ts_morph4.Node.isTemplateExpression(value) || import_ts_morph4.Node.isBinaryExpression(value) && value.getOperatorToken().getKind() === import_ts_morph4.SyntaxKind.PlusToken) {
+    return stringParts(value).some(
+      (part) => typeof part !== "string" && isRequestValue(part, hops)
+    );
+  }
+  return false;
+}
+function hasCallInside(node) {
+  return node.getDescendantsOfKind(import_ts_morph4.SyntaxKind.CallExpression).length > 0;
+}
+function calleeName(call) {
+  const expression = call.getExpression();
+  return import_ts_morph4.Node.isPropertyAccessExpression(expression) ? expression.getName() : expression.getText();
+}
+function stringParts(node, hops = 0) {
+  const value = unwrap(node);
+  if (import_ts_morph4.Node.isStringLiteral(value) || import_ts_morph4.Node.isNoSubstitutionTemplateLiteral(value)) {
+    return [value.getLiteralText()];
+  }
+  if (import_ts_morph4.Node.isTemplateExpression(value)) {
+    const parts = [value.getHead().getLiteralText()];
+    for (const span of value.getTemplateSpans()) {
+      parts.push(...stringParts(span.getExpression(), hops));
+      parts.push(span.getLiteral().getLiteralText());
+    }
+    return parts;
+  }
+  if (import_ts_morph4.Node.isBinaryExpression(value) && value.getOperatorToken().getKind() === import_ts_morph4.SyntaxKind.PlusToken) {
+    return [
+      ...stringParts(value.getLeft(), hops),
+      ...stringParts(value.getRight(), hops)
+    ];
+  }
+  if (import_ts_morph4.Node.isIdentifier(value) && hops < MAX_TAINT_HOPS) {
+    const sources = valueSources(value);
+    if (sources.length === 1) return stringParts(sources[0], hops + 1);
+  }
+  return [value];
+}
+var FIXED_ORIGIN = /^(?:[a-z][a-z\d+.-]*:\/\/[^/?#\\]+[/?#]|[^:/?#\\]+[/?#]|\/[^/\\])/i;
+function requestControlsTarget(node) {
+  let prefix = "";
+  for (const part of stringParts(node)) {
+    if (typeof part === "string") prefix += part;
+    else if (isRequestValue(part)) return !FIXED_ORIGIN.test(prefix);
+    else prefix += "X";
+  }
+  return false;
+}
+function responseCall(call) {
+  const expression = call.getExpression();
+  if (!import_ts_morph4.Node.isPropertyAccessExpression(expression)) return null;
+  const chain = [];
+  let receiver = expression.getExpression();
+  while (import_ts_morph4.Node.isCallExpression(receiver) && import_ts_morph4.Node.isPropertyAccessExpression(receiver.getExpression())) {
+    chain.push(receiver);
+    receiver = receiver.getExpression().getExpression();
+  }
+  if (!import_ts_morph4.Node.isIdentifier(receiver) || !RESPONSE_OBJECT.test(receiver.getText())) {
+    return null;
+  }
+  return { method: expression.getName(), chain };
+}
+function objectProperty(node, names) {
+  if (!node || !import_ts_morph4.Node.isObjectLiteralExpression(node)) return null;
+  for (const name of names) {
+    const property = node.getProperty(name);
+    if (import_ts_morph4.Node.isPropertyAssignment(property)) {
+      return property.getInitializer() ?? null;
+    }
+    if (import_ts_morph4.Node.isShorthandPropertyAssignment(property)) {
+      return property.getNameNode();
+    }
+  }
+  return null;
+}
+function isPrefixChecked(argument) {
+  const scopeText = enclosingScope(argument).getText();
+  const value = unwrap(argument);
+  const identifiers = import_ts_morph4.Node.isIdentifier(value) ? [value] : value.getDescendantsOfKind(import_ts_morph4.SyntaxKind.Identifier);
+  return identifiers.some(
+    (identifier) => new RegExp(
+      `\\b${identifier.getText().replace(/\$/g, "\\$")}\\s*\\.\\s*startsWith\\s*\\(`
+    ).test(scopeText)
+  );
+}
+function traversalPath(call, files) {
+  if (moduleCall(call, files, FS_MODULES, FILE_FUNCTIONS)) {
+    const paths = call.getArguments().slice(0, 1);
+    if (/^(?:copyFile|rename)/.test(calleeName(call))) {
+      paths.push(...call.getArguments().slice(1, 2));
+    }
+    return paths.find((path3) => isRequestValue(path3) && !isPrefixChecked(path3)) ?? null;
+  }
+  const response = responseCall(call);
+  if (!response || !["download", "sendFile"].includes(response.method)) {
+    return null;
+  }
+  const [path2, ...options] = call.getArguments();
+  if (options.some((option) => objectProperty(option, ["root"]))) return null;
+  return path2 && isRequestValue(path2) && !isPrefixChecked(path2) ? path2 : null;
+}
+function forgedRequestUrl(call) {
+  const expression = call.getExpression();
+  const isClient = import_ts_morph4.Node.isIdentifier(expression) ? HTTP_CLIENT_FUNCTIONS.has(expression.getText()) : import_ts_morph4.Node.isPropertyAccessExpression(expression) && HTTP_CLIENT_METHODS.has(expression.getName()) && HTTP_CLIENT_RECEIVER.test(expression.getExpression().getText());
+  if (!isClient) return null;
+  const [first] = call.getArguments();
+  const url = objectProperty(first, ["url", "baseURL", "host", "hostname"]) ?? first;
+  return url && requestControlsTarget(url) ? url : null;
+}
+var REDIRECT_RECEIVER = /^(?:NextResponse|Response)$/;
+function openRedirectTarget(call) {
+  const expression = call.getExpression();
+  let target;
+  if (import_ts_morph4.Node.isPropertyAccessExpression(expression) && expression.getName() === "redirect" && REDIRECT_RECEIVER.test(expression.getExpression().getText())) {
+    target = call.getArguments()[0];
+  } else if (responseCall(call)?.method === "redirect") {
+    target = call.getArguments().at(-1);
+  }
+  return target && requestControlsTarget(target) ? target : null;
+}
+var NON_HTML_TYPE = /json|text\/(?:plain|csv|event-stream)|octet-stream|application\/xml/i;
+var DECLARED_NON_HTML_TYPE = /(?:content-type["'`]?\s*[,:]\s*|\.(?:type|contentType)\(\s*)["'`](?:json|text\/(?:plain|csv|event-stream)|application\/(?:json|xml|octet-stream))/i;
+var REQUEST_OBJECT_VALUE = /(?:^|\.)(?:body|cookies|headers|params|query)$|\.(?:formData|json)\(\)$/;
+function reflectsRequestData(body) {
+  if (!body) return false;
+  const value = unwrap(body);
+  if (import_ts_morph4.Node.isIdentifier(value) && value.getSymbol()?.getDeclarations().some((declaration) => import_ts_morph4.Node.isBindingElement(declaration))) {
+    return isRequestValue(value);
+  }
+  const parts = stringParts(value);
+  if (parts.length === 1) {
+    const [part] = parts;
+    return typeof part !== "string" && !REQUEST_OBJECT_VALUE.test(unwrap(part).getText()) && isRequestValue(part);
+  }
+  return parts.some((part) => typeof part !== "string" && isRequestValue(part));
+}
+function reflectedResponseBody(call) {
+  const response = responseCall(call);
+  if (!response || !["end", "send", "write"].includes(response.method) || /^reply\b/.test(call.getExpression().getText())) {
+    return null;
+  }
+  if (response.chain.some((link) => NON_HTML_TYPE.test(link.getText())) || DECLARED_NON_HTML_TYPE.test(enclosingScope(call).getText())) {
+    return null;
+  }
+  const [body] = call.getArguments();
+  return body && reflectsRequestData(body) ? body : null;
+}
 function severityForDynamicInput(node) {
   return node && isTainted(node) ? "critical" : "warning";
 }
 function inspectSourceFile(sourceFile, file) {
   const issues = [];
-  const bindings = commandBindings(sourceFile);
+  const commands = moduleBindings(
+    sourceFile,
+    CHILD_PROCESS_MODULES,
+    COMMAND_FUNCTIONS
+  );
+  const files = moduleBindings(sourceFile, FS_MODULES, FILE_FUNCTIONS);
   for (const call of sourceFile.getDescendantsOfKind(
     import_ts_morph4.SyntaxKind.CallExpression
   )) {
@@ -255627,7 +255927,7 @@ function inspectSourceFile(sourceFile, file) {
       });
       continue;
     }
-    if (commandCall(call, bindings)) {
+    if (moduleCall(call, commands, CHILD_PROCESS_MODULES, COMMAND_FUNCTIONS)) {
       const command = call.getArguments()[0];
       if (command && !isStaticString(command)) {
         issues.push({
@@ -255649,11 +255949,53 @@ function inspectSourceFile(sourceFile, file) {
         fix: "Use parameterized queries or the ORM's safe tagged-template API"
       });
     }
+    if (traversalPath(call, files)) {
+      issues.push({
+        ...fromRule("path-traversal"),
+        message: "A file path is built from request data",
+        ...sourceLocation(file, call.getStartLineNumber()),
+        fix: "Resolve the path against a fixed base directory and reject it unless it stays inside, or use path.basename() for plain file names"
+      });
+    }
+    if (forgedRequestUrl(call)) {
+      issues.push({
+        ...fromRule("server-side-request-forgery"),
+        message: "An outgoing HTTP request uses a URL chosen by request data",
+        ...sourceLocation(file, call.getStartLineNumber()),
+        fix: "Fix the scheme and host in code, or check the parsed URL's host against an allowlist before sending the request"
+      });
+    }
+    if (openRedirectTarget(call)) {
+      issues.push({
+        ...fromRule("open-redirect"),
+        message: "A redirect target comes from request data",
+        ...sourceLocation(file, call.getStartLineNumber()),
+        fix: "Redirect only to same-site paths (one leading slash) or to hosts on an allowlist"
+      });
+    }
+    if (reflectedResponseBody(call)) {
+      issues.push({
+        ...fromRule("reflected-xss"),
+        message: "Request data is written into an HTML response without escaping",
+        ...sourceLocation(file, call.getStartLineNumber()),
+        fix: "Render through an escaping template engine, escape the value for HTML, or send JSON with res.json()"
+      });
+    }
   }
   for (const expression of sourceFile.getDescendantsOfKind(
     import_ts_morph4.SyntaxKind.NewExpression
   )) {
     const constructorName = expression.getExpression().getText();
+    const [body, init] = expression.getArguments();
+    if (REDIRECT_RECEIVER.test(constructorName) && init && /text\/html/i.test(init.getText()) && reflectsRequestData(body)) {
+      issues.push({
+        ...fromRule("reflected-xss"),
+        message: "Request data is written into an HTML response without escaping",
+        ...sourceLocation(file, expression.getStartLineNumber()),
+        fix: "Render through an escaping template engine, escape the value for HTML, or return JSON"
+      });
+      continue;
+    }
     if (constructorName !== "Function" && constructorName !== "globalThis.Function") {
       continue;
     }

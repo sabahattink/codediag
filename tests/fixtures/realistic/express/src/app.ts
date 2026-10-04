@@ -3,6 +3,7 @@ import express from 'express';
 import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
 import { errorHandler } from './middleware/errors.js';
+import docs from './routes/docs.js';
 import products from './routes/products.js';
 
 export const app = express();
@@ -15,5 +16,6 @@ app.use(express.json());
 app.get('/healthz', (_req, res) => {
   res.json({ status: 'ok' });
 });
+app.use('/docs', docs);
 app.use('/products', products);
 app.use(errorHandler);

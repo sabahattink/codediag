@@ -74,7 +74,10 @@ limiting, open CORS, weak password hashing, and direct password comparisons.
 Runtime sinks (`eval`, `new Function`, shell commands, raw SQL, disabled TLS
 verification) are found in the AST, and request data is traced through
 variables, destructuring, and reassignments, so `const cmd = req.query.cmd;
-exec(cmd)` is critical. See [Security analysis](docs/security-analysis.md).
+exec(cmd)` is critical. Request data that reaches a file path, an outgoing
+request's host, a redirect, or an HTML response is reported as path
+traversal, SSRF, an open redirect, or reflected XSS. See
+[Security analysis](docs/security-analysis.md).
 
 ### Dependencies
 

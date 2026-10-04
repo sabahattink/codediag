@@ -8,11 +8,10 @@ benchmark tests green.
 
 ## Precision and depth
 
-- **More security sinks with taint tracking:** path traversal
-  (`fs.readFile(req.params.file)`), server-side request forgery
-  (`fetch(req.query.url)`), reflected XSS (`res.send(req.query.x)`), open
-  redirects, prototype pollution through deep merges, and
-  `child_process.spawn(..., { shell: true })`.
+- **More security sinks with taint tracking:** prototype pollution through
+  deep merges, `child_process.spawn(..., { shell: true })`, and server-side
+  template injection. (Path traversal, SSRF, open redirects, and reflected
+  XSS shipped in 0.4.)
 - **JWT and session misconfiguration:** `algorithms: ['none']`,
   `ignoreExpiration: true`, missing `httpOnly`/`secure` cookie flags.
 - **Cross-file taint:** follow request data through helper functions and

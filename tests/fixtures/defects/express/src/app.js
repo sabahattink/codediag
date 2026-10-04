@@ -18,3 +18,20 @@ app.get('/users/:id', async (req, res) => {
 });
 
 app.use('/admin', userRoutes);
+
+app.get('/download', (req, res) => {
+  res.sendFile(req.query.file);
+});
+
+app.get('/preview', async (req, res) => {
+  const page = await fetch(req.query.url);
+  res.json({ status: page.status });
+});
+
+app.get('/login', (req, res) => {
+  res.redirect(req.query.next);
+});
+
+app.get('/search', (req, res) => {
+  res.send(`<h1>Results for ${req.query.q}</h1>`);
+});

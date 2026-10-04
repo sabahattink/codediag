@@ -20,7 +20,18 @@ The analyzer currently reports:
   `execSync()` bindings;
 - dynamic SQL passed to common query methods or explicitly unsafe ORM methods,
   and SQL built from request data passed to a query method on any client;
-- local or global TLS certificate verification bypasses.
+- local or global TLS certificate verification bypasses;
+- path traversal: request data used as a path for `fs`, `fs/promises`, or
+  `fs-extra` calls, or for `res.sendFile()`/`res.download()` without a
+  `root` option;
+- server-side request forgery: request data that decides the scheme or host
+  of a `fetch`, axios, got, ky, needle, `http(s)`, superagent, undici, or
+  NestJS `HttpService` request;
+- open redirects: request data used as the target of `res.redirect()`,
+  `reply.redirect()`, or `NextResponse.redirect()`;
+- reflected XSS: request data written into `res.send()`, `res.write()`, or
+  `res.end()` (Express serves strings as HTML), or into a `Response` with a
+  `text/html` content type.
 
 Runtime sink checks use the TypeScript syntax tree and recognize aliased ESM
 imports, namespace imports, and CommonJS `require()` bindings.
@@ -37,7 +48,34 @@ const sql = "SELECT * FROM users WHERE id = " + id;
 await myDb.query(sql);
 ```
 
-Other non-literal values are warnings. Dynamic code execution and disabled
+Other non-literal values are warnings.
+
+The path traversal, SSRF, open redirect, and XSS checks report only values
+that are request data themselves, followed through the same variables. A
+function's result is not request data, so `db.find(req.params.id)` and
+`await repo.pathFor(req.params.id)` are not reported, and neither are values
+wrapped in `path.basename()`, `encodeURIComponent()`, `Number()`, or an
+escaping function. Values the server sets on the request (`req.user`,
+`req.session`, multer's `req.file`) are not request data. These are also not
+reported:
+
+```ts
+// The origin is fixed before the request data.
+await fetch(`${API_BASE}/users/${req.params.id}`);
+// A same-site path: one leading slash and a fixed first segment.
+res.redirect(`/orders/${req.params.id}`);
+// Express rejects `..` segments when a root directory is given.
+res.sendFile(req.params.name, { root: PUBLIC_DIR });
+// The resolved path is checked against its base directory.
+const file = path.resolve(ROOT, req.query.file);
+if (!file.startsWith(ROOT + path.sep)) throw new Forbidden();
+await readFile(file);
+```
+
+Path traversal and reflected XSS are critical. SSRF and open redirects are
+warnings, because fetching or redirecting to a user-supplied URL is
+sometimes the feature (webhooks, link previews, sign-in return URLs); add an
+allowlist and suppress the finding with the reason. Dynamic code execution and disabled
 TLS verification are always critical. Taint tracking stays within a function
 and its enclosing scopes; values passed through helper functions are not
 followed yet (see the [roadmap](roadmap.md)).

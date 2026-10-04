@@ -209,6 +209,15 @@ CORS is enabled with no options, origin: true, or origin: '*', allowing any webs
 - CWE: [CWE-942](https://cwe.mitre.org/data/definitions/942.html)
 - OWASP Top 10: A05:2021
 
+### open-redirect
+
+**Redirect to a URL from request data** · default severity: `warning`
+
+res.redirect(), reply.redirect(), or NextResponse.redirect() sends users to a target taken from request data, so a link on your domain can forward them to a phishing site. Same-site paths such as `'/orders/' + id` are not reported.
+
+- CWE: [CWE-601](https://cwe.mitre.org/data/definitions/601.html)
+- OWASP Top 10: A01:2021
+
 ### password-hashing-not-detected
 
 **Password persisted without hashing** · default severity: `warning`
@@ -218,6 +227,15 @@ A file handles password data and persists records, but no recognizable password 
 - CWE: [CWE-256](https://cwe.mitre.org/data/definitions/256.html)
 - OWASP Top 10: A02:2021
 
+### path-traversal
+
+**File path from request data** · default severity: `critical`
+
+A file system call (fs, fs/promises, fs-extra) or res.sendFile()/res.download() without a root option receives a path that comes from request data, so `../` segments can reach files outside the intended directory. Values passed through path.basename() or checked with startsWith() in the same function are not reported.
+
+- CWE: [CWE-22](https://cwe.mitre.org/data/definitions/22.html)
+- OWASP Top 10: A01:2021
+
 ### plaintext-password-comparison
 
 **Direct password comparison** · default severity: `critical`
@@ -226,6 +244,24 @@ Password values are compared with an equality operator, which suggests plaintext
 
 - CWE: [CWE-256](https://cwe.mitre.org/data/definitions/256.html), [CWE-208](https://cwe.mitre.org/data/definitions/208.html)
 - OWASP Top 10: A07:2021
+
+### reflected-xss
+
+**Request data in an HTML response** · default severity: `critical`
+
+res.send(), res.write(), or res.end(), or a Response with a text/html content type, writes a string that contains request data without HTML escaping. Express serves strings as text/html, so the browser runs any markup in the value. Values passed through an escaping function are not reported.
+
+- CWE: [CWE-79](https://cwe.mitre.org/data/definitions/79.html)
+- OWASP Top 10: A03:2021
+
+### server-side-request-forgery
+
+**Outgoing request to a URL from request data** · default severity: `warning`
+
+fetch, axios, got, ky, needle, http(s), superagent, undici, or NestJS HttpService sends a request whose scheme or host comes from request data, so callers can make the server reach internal services. URLs whose origin is fixed before the request data, such as `'https://api.example.com/users/' + id` or `baseUrl + '/users/' + id`, are not reported.
+
+- CWE: [CWE-918](https://cwe.mitre.org/data/definitions/918.html)
+- OWASP Top 10: A10:2021
 
 ### tls-verification-disabled
 

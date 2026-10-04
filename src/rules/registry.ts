@@ -47,6 +47,7 @@ const OWASP = {
   misconfiguration: "A05:2021",
   vulnerableComponents: "A06:2021",
   authentication: "A07:2021",
+  requestForgery: "A10:2021",
 } as const;
 
 export const RULES = {
@@ -257,6 +258,42 @@ export const RULES = {
       "A shell is invoked through exec or execSync with a non-literal command. The finding is critical when the command comes from request data, directly or through up to three variable assignments.",
     defaultSeverity: "warning",
     cwe: ["CWE-78"],
+    owasp: [OWASP.injection],
+  },
+  "path-traversal": {
+    analyzer: "Security",
+    title: "File path from request data",
+    description:
+      "A file system call (fs, fs/promises, fs-extra) or res.sendFile()/res.download() without a root option receives a path that comes from request data, so `../` segments can reach files outside the intended directory. Values passed through path.basename() or checked with startsWith() in the same function are not reported.",
+    defaultSeverity: "critical",
+    cwe: ["CWE-22"],
+    owasp: [OWASP.accessControl],
+  },
+  "server-side-request-forgery": {
+    analyzer: "Security",
+    title: "Outgoing request to a URL from request data",
+    description:
+      "fetch, axios, got, ky, needle, http(s), superagent, undici, or NestJS HttpService sends a request whose scheme or host comes from request data, so callers can make the server reach internal services. URLs whose origin is fixed before the request data, such as `'https://api.example.com/users/' + id` or `baseUrl + '/users/' + id`, are not reported.",
+    defaultSeverity: "warning",
+    cwe: ["CWE-918"],
+    owasp: [OWASP.requestForgery],
+  },
+  "open-redirect": {
+    analyzer: "Security",
+    title: "Redirect to a URL from request data",
+    description:
+      "res.redirect(), reply.redirect(), or NextResponse.redirect() sends users to a target taken from request data, so a link on your domain can forward them to a phishing site. Same-site paths such as `'/orders/' + id` are not reported.",
+    defaultSeverity: "warning",
+    cwe: ["CWE-601"],
+    owasp: [OWASP.accessControl],
+  },
+  "reflected-xss": {
+    analyzer: "Security",
+    title: "Request data in an HTML response",
+    description:
+      "res.send(), res.write(), or res.end(), or a Response with a text/html content type, writes a string that contains request data without HTML escaping. Express serves strings as text/html, so the browser runs any markup in the value. Values passed through an escaping function are not reported.",
+    defaultSeverity: "critical",
+    cwe: ["CWE-79"],
     owasp: [OWASP.injection],
   },
   "dynamic-sql-query": {
