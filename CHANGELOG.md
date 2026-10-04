@@ -87,6 +87,14 @@ All notable changes to CodeDiag are documented in this file.
   finding now says that dependencies cannot be audited instead of a separate
   misleading `audit-unavailable` warning.
 - Scan progress lines report finding counts instead of preliminary scores.
+- `--ci` keeps an explicitly chosen `--format` (for example `--ci --format
+  sarif`) and only defaults to JSON when no format is given.
+- `codediag init [path]` writes `.codediag.yml` into the given project
+  directory, and the template documents `scoring`, `rules`, and
+  `maxFileSizeKb`.
+- Markdown reports moved to `src/reporters/markdown.ts`, are dated from the
+  scan timestamp instead of the local clock, escape table cells, and list
+  active finding counts.
 - Express routes are found on routers resolved from `express()`,
   `express.Router()`, `Router()`, and `Express`/`Router`-typed parameters
   instead of only on receivers named `app`, `api`, or `router`, including

@@ -1,6 +1,12 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import {
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import test from "node:test";
@@ -316,6 +322,69 @@ test("baselines accept existing findings and fail only on new ones", () => {
     );
     assert.equal(missing.status, 1);
     assert.match(missing.stderr, /Cannot read baseline/);
+  } finally {
+    rmSync(directory, { recursive: true, force: true });
+  }
+});
+
+test("--ci keeps an explicitly chosen output format", () => {
+  const directory = mkdtempSync(join(tmpdir(), "codediag-cli-"));
+  try {
+    writeFileSync(join(directory, "package.json"), "{}");
+    writeFileSync(
+      join(directory, ".codediag.yml"),
+      "threshold: 0\nanalyzers:\n  dependencies: false\n",
+    );
+
+    const sarif = runCli(["scan", ".", "--ci", "--format", "sarif"], directory);
+    assert.equal(sarif.status, 0, sarif.stderr);
+    assert.equal(JSON.parse(sarif.stdout).version, "2.1.0");
+
+    const json = runCli(["scan", ".", "--ci"], directory);
+    assert.equal(json.status, 0, json.stderr);
+    assert.equal(validateScanResult(JSON.parse(json.stdout)), true);
+  } finally {
+    rmSync(directory, { recursive: true, force: true });
+  }
+});
+
+test("init writes the config into the given project directory", () => {
+  const directory = mkdtempSync(join(tmpdir(), "codediag-cli-"));
+  try {
+    const project = join(directory, "service");
+    mkdirSync(project);
+
+    const result = runCli(["init", "service"], directory);
+
+    assert.equal(result.status, 0, result.stderr);
+    const config = readFileSync(join(project, ".codediag.yml"), "utf-8");
+    assert.match(config, /^threshold: 70$/m);
+    assert.equal(
+      runCli(["scan", "service", "--quiet", "--threshold", "0"], directory)
+        .status,
+      0,
+      "the generated config must load",
+    );
+    assert.equal(runCli(["init", "missing"], directory).status, 1);
+  } finally {
+    rmSync(directory, { recursive: true, force: true });
+  }
+});
+
+test("Markdown output dates the report from the scan timestamp", () => {
+  const directory = mkdtempSync(join(tmpdir(), "codediag-cli-"));
+  try {
+    writeFileSync(join(directory, "package.json"), "{}");
+    writeFileSync(
+      join(directory, ".codediag.yml"),
+      "threshold: 0\nanalyzers:\n  dependencies: false\n",
+    );
+
+    const result = runCli(["scan", ".", "--format", "md"], directory);
+
+    assert.equal(result.status, 0, result.stderr);
+    assert.match(result.stdout, / on \d{4}-\d{2}-\d{2}$/m);
+    assert.match(result.stdout, /^\*\*Findings:\*\* \d+ critical/m);
   } finally {
     rmSync(directory, { recursive: true, force: true });
   }
