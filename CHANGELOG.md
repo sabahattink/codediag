@@ -23,7 +23,8 @@ All notable changes to CodeDiag are documented in this file.
   root cause are downgraded to `info` with `causedBy` and cost nothing. Each
   analyzer reports a `scoreBreakdown`, shown in JSON, HTML, Markdown, and
   `--verbose` terminal output, and results include `scoringVersion`.
-- `scoring.version` configuration.
+- `scoring.version` configuration. With version 2, analyzer summaries that
+  counted passed checks report finding counts instead.
 - Inline suppressions: `codediag-ignore-next-line` and `codediag-ignore-file`
   comments with a required reason. Directives without a reason are not applied
   (`suppression-missing-reason`) and stale ones are reported

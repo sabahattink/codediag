@@ -258776,6 +258776,15 @@ var SEVERITY_WEIGHTS = {
   info: 2
 };
 var REPEAT_DECAY = 0.5;
+var CHECKS_SUMMARY = /^[\d.]+\/\d+ checks passed$/;
+function findingSummary(issues) {
+  const counted = issues.filter((issue) => isActive(issue) && !issue.causedBy);
+  if (counted.length === 0) return "No findings";
+  const counts = { critical: 0, warning: 0, info: 0 };
+  for (const issue of counted) counts[issue.severity] += 1;
+  const parts = ["critical", "warning", "info"].filter((severity) => counts[severity] > 0).map((severity) => `${counts[severity]} ${severity}`);
+  return `${counted.length} finding${counted.length === 1 ? "" : "s"}: ${parts.join(", ")}`;
+}
 function roundPenalty(value) {
   return Math.round(value * 10) / 10;
 }
@@ -258824,6 +258833,7 @@ function applyScoring(results, version) {
   if (version === 1) return results;
   return linkRootCauses(results).map((result) => ({
     ...result,
+    summary: CHECKS_SUMMARY.test(result.summary) ? findingSummary(result.issues) : result.summary,
     ...scoreIssues(result.issues)
   }));
 }

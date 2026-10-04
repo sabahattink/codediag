@@ -232,3 +232,18 @@ test("scan defaults to version 2 and reports a score breakdown", async () => {
     },
   );
 });
+
+test("version 2 replaces checks-passed summaries with finding counts", () => {
+  const input = analyzer("Security", [
+    issue("no-helmet", "warning"),
+    issue("hardcoded-secret", "critical", "a.ts"),
+  ]);
+  input.summary = "5/7 checks passed";
+  const testing = analyzer("Testing", []);
+  testing.summary = "3 test files, framework: vitest";
+
+  const [security, unchanged] = applyScoring([input, testing], 2);
+
+  assert.equal(security.summary, "2 findings: 1 critical, 1 warning");
+  assert.equal(unchanged.summary, "3 test files, framework: vitest");
+});

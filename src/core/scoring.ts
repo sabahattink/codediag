@@ -24,6 +24,20 @@ export function formatPenalty(penalty: number): string {
   return `-${penalty}`;
 }
 
+/** Version 1 summaries describe checks, which version 2 scores do not use. */
+const CHECKS_SUMMARY = /^[\d.]+\/\d+ checks passed$/;
+
+function findingSummary(issues: DiagnosticIssue[]): string {
+  const counted = issues.filter((issue) => isActive(issue) && !issue.causedBy);
+  if (counted.length === 0) return "No findings";
+  const counts = { critical: 0, warning: 0, info: 0 };
+  for (const issue of counted) counts[issue.severity] += 1;
+  const parts = (["critical", "warning", "info"] as const)
+    .filter((severity) => counts[severity] > 0)
+    .map((severity) => `${counts[severity]} ${severity}`);
+  return `${counted.length} finding${counted.length === 1 ? "" : "s"}: ${parts.join(", ")}`;
+}
+
 function roundPenalty(value: number): number {
   return Math.round(value * 10) / 10;
 }
@@ -100,6 +114,9 @@ export function applyScoring(
 
   return linkRootCauses(results).map((result) => ({
     ...result,
+    summary: CHECKS_SUMMARY.test(result.summary)
+      ? findingSummary(result.issues)
+      : result.summary,
     ...scoreIssues(result.issues),
   }));
 }
