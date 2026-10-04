@@ -85,7 +85,7 @@ or `"new"`.
 The GitHub Action accepts the same file:
 
 ```yaml
-- uses: sabahattink/codediag@main
+- uses: sabahattink/codediag@v0
   with:
     threshold: 80
     baseline: .codediag-baseline.json

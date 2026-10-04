@@ -21,7 +21,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: sabahattink/codediag@main
+      - uses: sabahattink/codediag@v0
         id: codediag
         with:
           threshold: 80
@@ -32,9 +32,9 @@ jobs:
           echo "Grade: ${{ steps.codediag.outputs.grade }}"
 ```
 
-Use a full commit SHA instead of `main` when a workflow requires immutable
-third-party dependencies. Versioned Action tags will be documented after the
-first Action release is cut.
+`@v0` follows the latest 0.x release. Pin an exact release such as
+`@v0.3.0`, or a full commit SHA, when a workflow requires immutable
+third-party dependencies.
 
 ## Inputs
 
@@ -82,7 +82,7 @@ The action exits with:
 ## Monorepo example
 
 ```yaml
-- uses: sabahattink/codediag@main
+- uses: sabahattink/codediag@v0
   id: api-health
   with:
     path: apps/api

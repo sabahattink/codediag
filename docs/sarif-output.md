@@ -54,7 +54,7 @@ permissions:
 steps:
   - uses: actions/checkout@v7
 
-  - uses: sabahattink/codediag@main
+  - uses: sabahattink/codediag@v0
     id: codediag
     continue-on-error: true
     with:

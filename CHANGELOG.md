@@ -7,6 +7,7 @@ All notable changes to CodeDiag are documented in this file.
 ### Changed
 
 - Updated commander to 14, TypeScript to 6, and Biome to 2.5.15.
+- Documentation uses the `v0` Action tag instead of `main`.
 
 ## [0.3.0] - 2026-10-04
 

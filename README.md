@@ -211,7 +211,7 @@ mapping and GitHub Code Scanning workflow. Every rule is described in the
 
 ```yaml
 # GitHub Actions (no npm install required)
-- uses: sabahattink/codediag@main
+- uses: sabahattink/codediag@v0
   id: codediag
   with:
     threshold: 80
@@ -227,7 +227,7 @@ Adopting CodeDiag on an existing codebase? Commit a baseline so the gate only
 fails on new findings:
 
 ```yaml
-- uses: sabahattink/codediag@main
+- uses: sabahattink/codediag@v0
   with:
     threshold: 80
     baseline: .codediag-baseline.json   # created with --update-baseline
