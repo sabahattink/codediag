@@ -35,9 +35,11 @@ editor identifies one.
 ## Scan on save
 
 `codediag.scanOnSave` is off by default. Enabling it starts a debounced scan
-after saves. Scans started by saving a file always skip the dependency audit,
-so they never access the network or wait for the package manager. Commands
-run from the Command Palette follow the project's `audit` setting.
+after saves. Scans started by saving a file never run the package manager:
+they reuse the dependency audit from the last command-triggered scan of the
+same lock file, so scores stay consistent, and report `audit-skipped` until
+one has run. Commands run from the Command Palette follow the project's
+`audit` setting.
 
 ## Trust and data boundaries
 

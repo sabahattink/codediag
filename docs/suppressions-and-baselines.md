@@ -94,6 +94,7 @@ The GitHub Action accepts the same file:
 Refresh the baseline with `--update-baseline` after you fix findings, so
 fixed problems cannot quietly return.
 
-Findings without a source line, such as `vuln-high`, are identified by their
-message. A change in the reported count therefore counts as a new finding,
-which is usually what you want for new vulnerabilities.
+Project-level findings are identified by their message with numbers masked,
+so a test ratio that moves from 25% to 23% stays in the baseline. Vulnerability
+totals (`vuln-*`) are the exception: a changed count is a new finding, so new
+vulnerabilities fail the gate.

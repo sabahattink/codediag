@@ -85,7 +85,7 @@
           "type": "boolean",
           "default": false,
           "scope": "resource",
-          "description": "Run CodeDiag after a file is saved. Scans triggered by saving skip the dependency audit, so they never access the network."
+          "description": "Run CodeDiag after a file is saved. Scans triggered by saving never run the package manager; they reuse the dependency audit from the last command-triggered scan of the same lock file."
         }
       }
     }

@@ -3,6 +3,7 @@ import { isActive } from "./issues.js";
 import type {
   AnalyzerResult,
   DiagnosticIssue,
+  RuleSetting,
   ScoreBreakdownEntry,
   ScoringVersion,
 } from "../types.js";
@@ -47,8 +48,12 @@ function roundPenalty(value: number): number {
  * and links them with `causedBy`, so one problem is penalized once.
  */
 function linkRootCauses(results: AnalyzerResult[]): AnalyzerResult[] {
+  // Only active root causes explain other findings: a suppressed or baselined
+  // cause has been accepted, so its consequences must be judged on their own.
   const reported = new Set(
-    results.flatMap((result) => result.issues.map((issue) => issue.rule)),
+    results.flatMap((result) =>
+      result.issues.filter(isActive).map((issue) => issue.rule),
+    ),
   );
 
   return results.map((result) => ({
@@ -61,7 +66,10 @@ function linkRootCauses(results: AnalyzerResult[]): AnalyzerResult[] {
   }));
 }
 
-function scoreIssues(issues: DiagnosticIssue[]): {
+function scoreIssues(
+  issues: DiagnosticIssue[],
+  rules: Readonly<Record<string, RuleSetting>>,
+): {
   score: number;
   scoreBreakdown: ScoreBreakdownEntry[];
 } {
@@ -74,15 +82,17 @@ function scoreIssues(issues: DiagnosticIssue[]): {
   let total = 0;
   const scoreBreakdown: ScoreBreakdownEntry[] = [];
   for (const [rule, findings] of byRule) {
-    const penalty = getRule(rule)?.failsAnalyzer
-      ? 100
-      : findings
-          .map((finding) => SEVERITY_WEIGHTS[finding.severity])
-          .sort((left, right) => right - left)
-          .reduce(
-            (sum, weight, index) => sum + weight * REPEAT_DECAY ** index,
-            0,
-          );
+    // A severity chosen in .codediag.yml replaces the "analyzer fails" rule.
+    const penalty =
+      getRule(rule)?.failsAnalyzer && !Object.hasOwn(rules, rule)
+        ? 100
+        : findings
+            .map((finding) => SEVERITY_WEIGHTS[finding.severity])
+            .sort((left, right) => right - left)
+            .reduce(
+              (sum, weight, index) => sum + weight * REPEAT_DECAY ** index,
+              0,
+            );
     total += penalty;
     scoreBreakdown.push({
       rule,
@@ -109,6 +119,7 @@ function scoreIssues(issues: DiagnosticIssue[]): {
 export function applyScoring(
   results: AnalyzerResult[],
   version: ScoringVersion,
+  rules: Readonly<Record<string, RuleSetting>> = {},
 ): AnalyzerResult[] {
   if (version === 1) return results;
 
@@ -117,6 +128,6 @@ export function applyScoring(
     summary: CHECKS_SUMMARY.test(result.summary)
       ? findingSummary(result.issues)
       : result.summary,
-    ...scoreIssues(result.issues),
+    ...scoreIssues(result.issues, rules),
   }));
 }

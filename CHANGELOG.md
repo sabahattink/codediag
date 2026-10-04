@@ -31,8 +31,11 @@ All notable changes to CodeDiag are documented in this file.
   (`unused-suppression`).
 - `rules` configuration to turn rules off or change their severity.
 - Offline scans: `--no-audit` or `audit: false` skips the package manager audit
-  and reports `audit-skipped` instead. VS Code scans triggered by saving always
-  skip the audit.
+  and reports `audit-skipped` instead.
+- Audit results are cached per lock file and package.json within a process,
+  and `scan()` accepts `audit: "cached"` to reuse them without running the
+  package manager. VS Code scans triggered by saving use it, so scores no
+  longer change between command-triggered and save-triggered scans.
 - Baselines: `--baseline <report.json>` and `--update-baseline <path>`, plus a
   `baseline` Action input. Baseline findings are marked `baseline: true` and do
   not affect scores, thresholds, or annotations.
@@ -48,6 +51,13 @@ All notable changes to CodeDiag are documented in this file.
   must score at least 85 with no critical findings, and defect applications
   that must keep producing specific findings.
 - CodeDiag scans itself with a committed `.codediag.yml` (threshold 85).
+- Fingerprints include the message for findings on a source line, so short
+  lines such as `@Post()` keep distinct identities, and mask numbers in
+  project-level messages (except vulnerability totals), so a moving test ratio
+  stays in the baseline.
+- Suppressed or baselined root causes no longer excuse their consequences, and
+  a severity configured for an analyzer-failing rule (such as
+  `no-test-files: info`) replaces its zero score.
 - An optional `confidence` on findings (`high`, `medium`, `low`), also emitted
   as a SARIF result property.
 - AST-based security sink detection for runtime code execution, dynamic shell

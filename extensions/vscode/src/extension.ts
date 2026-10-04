@@ -137,8 +137,9 @@ async function runScan(
         async (progress) =>
           scan(root, loadConfig(root), {
             interactive: false,
-            // Saves trigger frequent scans; never block on a network audit.
-            ...(trigger === "save" ? { audit: false } : {}),
+            // Saves trigger frequent scans: reuse the last audit of the same
+            // lock file instead of blocking on the network.
+            ...(trigger === "save" ? { audit: "cached" as const } : {}),
             onProgress: (message) => progress.report({ message }),
           }),
       );

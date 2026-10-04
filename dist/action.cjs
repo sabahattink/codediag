@@ -251894,7 +251894,8 @@ var RULES = {
     description: "The package manager audit reports dependencies with critical severity advisories.",
     defaultSeverity: "critical",
     cwe: ["CWE-1395"],
-    owasp: [OWASP.vulnerableComponents]
+    owasp: [OWASP.vulnerableComponents],
+    countsAreIdentity: true
   },
   "vuln-high": {
     analyzer: "Dependencies",
@@ -251902,7 +251903,8 @@ var RULES = {
     description: "The package manager audit reports dependencies with high severity advisories.",
     defaultSeverity: "warning",
     cwe: ["CWE-1395"],
-    owasp: [OWASP.vulnerableComponents]
+    owasp: [OWASP.vulnerableComponents],
+    countsAreIdentity: true
   },
   "vuln-moderate": {
     analyzer: "Dependencies",
@@ -251910,7 +251912,8 @@ var RULES = {
     description: "The package manager audit reports dependencies with moderate severity advisories.",
     defaultSeverity: "warning",
     cwe: ["CWE-1395"],
-    owasp: [OWASP.vulnerableComponents]
+    owasp: [OWASP.vulnerableComponents],
+    countsAreIdentity: true
   },
   "vuln-low": {
     analyzer: "Dependencies",
@@ -251918,7 +251921,8 @@ var RULES = {
     description: "The package manager audit reports dependencies with low severity advisories.",
     defaultSeverity: "info",
     cwe: ["CWE-1395"],
-    owasp: [OWASP.vulnerableComponents]
+    owasp: [OWASP.vulnerableComponents],
+    countsAreIdentity: true
   },
   "no-engines": {
     analyzer: "Dependencies",
@@ -252373,12 +252377,14 @@ function normalize(text) {
   return text.replace(/\s+/g, " ").trim();
 }
 function anchor(issue, lineText) {
-  const sensitive = getRule(issue.rule)?.sensitiveSource === true;
-  if (issue.line !== void 0 && lineText !== null && !sensitive) {
-    const normalized = normalize(lineText);
-    if (normalized) return normalized;
+  const rule = getRule(issue.rule);
+  const message = normalize(issue.message);
+  if (issue.line !== void 0) {
+    const line = lineText === null ? "" : normalize(lineText);
+    return rule?.sensitiveSource || !line ? message : `${line}${message}`;
   }
-  return issue.file && issue.line === void 0 ? "" : normalize(issue.message);
+  if (issue.file) return "";
+  return rule?.countsAreIdentity ? message : message.replace(/\d+(?:\.\d+)?/g, "#");
 }
 function computeFingerprint(issue, lineText, occurrence = 0) {
   return (0, import_node_crypto.createHash)("sha256").update(
@@ -254089,6 +254095,7 @@ function ora(options) {
 
 // src/analyzers/dependencies.ts
 var import_node_child_process = require("child_process");
+var import_node_crypto2 = require("crypto");
 var import_node_fs3 = require("fs");
 var import_node_path3 = require("path");
 var lockFileNames = {
@@ -254231,60 +254238,89 @@ function parseAuditSummary(output) {
   }
   throw new Error("audit JSON did not include a vulnerability summary");
 }
-function auditPasses(projectPath, auditCommand, issues) {
-  let passed = false;
-  const auditProcess = (0, import_node_child_process.spawnSync)(auditCommand.command, auditCommand.args, {
-    cwd: projectPath,
+var runAuditProcess = (command, cwd) => {
+  const result = (0, import_node_child_process.spawnSync)(command.command, command.args, {
+    cwd,
     timeout: 3e4,
     encoding: "utf-8",
     stdio: ["ignore", "pipe", "pipe"],
     shell: process.platform === "win32"
   });
+  return {
+    stdout: result.stdout ?? "",
+    stderr: result.stderr ?? "",
+    ...result.error ? { error: result.error } : {}
+  };
+};
+var auditCache = /* @__PURE__ */ new Map();
+function hashFile(path2) {
   try {
-    if (auditProcess.error) throw auditProcess.error;
-    if (!auditProcess.stdout.trim()) {
+    return (0, import_node_crypto2.createHash)("sha256").update((0, import_node_fs3.readFileSync)(path2)).digest("hex");
+  } catch {
+    return "missing";
+  }
+}
+function auditCacheKey(projectPath, command, lockFile) {
+  const lockPath = lockFileNames[lockFile.manager].map((name) => (0, import_node_path3.join)(lockFile.directory, name)).find((candidate) => (0, import_node_fs3.existsSync)(candidate));
+  return [
+    command.command,
+    ...command.args,
+    projectPath,
+    lockPath ? hashFile(lockPath) : "no-lock",
+    hashFile((0, import_node_path3.join)(projectPath, "package.json"))
+  ].join("\0");
+}
+function runAudit(projectPath, command, runner) {
+  const run = runner(command, projectPath);
+  try {
+    if (run.error) throw run.error;
+    if (!run.stdout.trim()) {
       throw new Error(
-        auditProcess.stderr.trim() || `${auditCommand.manager} audit returned no JSON`
+        run.stderr.trim() || `${command.manager} audit returned no JSON`
       );
     }
-    const { critical, high, moderate, low } = parseAuditSummary(
-      auditProcess.stdout
-    );
-    if (critical + high + moderate + low === 0) {
-      passed = true;
-    } else {
-      if (critical > 0)
-        issues.push({
-          ...fromRule("vuln-critical"),
-          message: `${critical} critical vulnerabilit${critical > 1 ? "ies" : "y"}`,
-          fix: `Run ${auditCommand.fixCommand}`
-        });
-      if (high > 0)
-        issues.push({
-          ...fromRule("vuln-high"),
-          message: `${high} high severity vulnerabilit${high > 1 ? "ies" : "y"}`,
-          fix: `Run ${auditCommand.fixCommand}`
-        });
-      if (moderate > 0)
-        issues.push({
-          ...fromRule("vuln-moderate"),
-          message: `${moderate} moderate vulnerabilit${moderate > 1 ? "ies" : "y"}`,
-          fix: `Review ${auditCommand.manager} audit output`
-        });
-      if (low > 0)
-        issues.push({
-          ...fromRule("vuln-low"),
-          message: `${low} low severity vulnerabilit${low > 1 ? "ies" : "y"}`
-        });
-    }
+    return { kind: "summary", summary: parseAuditSummary(run.stdout) };
   } catch (error) {
+    return {
+      kind: "error",
+      message: error instanceof Error ? error.message : String(error)
+    };
+  }
+}
+function recordAudit(outcome, auditCommand, issues) {
+  if (outcome.kind === "error") {
     issues.push({
       ...fromRule("audit-unavailable"),
-      message: `${auditCommand.manager} audit could not be evaluated: ${error instanceof Error ? error.message : String(error)}`,
+      message: `${auditCommand.manager} audit could not be evaluated: ${outcome.message}`,
       fix: `Run ${[auditCommand.manager, ...auditCommand.args].join(" ")} and resolve the reported error`
     });
+    return false;
   }
-  return passed;
+  const { critical, high, moderate, low } = outcome.summary;
+  if (critical > 0)
+    issues.push({
+      ...fromRule("vuln-critical"),
+      message: `${critical} critical vulnerabilit${critical > 1 ? "ies" : "y"}`,
+      fix: `Run ${auditCommand.fixCommand}`
+    });
+  if (high > 0)
+    issues.push({
+      ...fromRule("vuln-high"),
+      message: `${high} high severity vulnerabilit${high > 1 ? "ies" : "y"}`,
+      fix: `Run ${auditCommand.fixCommand}`
+    });
+  if (moderate > 0)
+    issues.push({
+      ...fromRule("vuln-moderate"),
+      message: `${moderate} moderate vulnerabilit${moderate > 1 ? "ies" : "y"}`,
+      fix: `Review ${auditCommand.manager} audit output`
+    });
+  if (low > 0)
+    issues.push({
+      ...fromRule("vuln-low"),
+      message: `${low} low severity vulnerabilit${low > 1 ? "ies" : "y"}`
+    });
+  return critical + high + moderate + low === 0;
 }
 async function analyzeDependencies(context, options = {}) {
   const { projectPath } = context;
@@ -254338,15 +254374,24 @@ async function analyzeDependencies(context, options = {}) {
       fix: `Run ${auditCommand.manager} install and commit the generated lock file`
     });
   }
-  if (options.audit ?? context.config.audit) {
+  const auditMode = options.audit ?? context.config.audit;
+  const cacheKey = lockFile ? auditCacheKey(projectPath, auditCommand, lockFile) : null;
+  const cached = cacheKey ? auditCache.get(cacheKey) : void 0;
+  if (auditMode === true || auditMode === "cached" && (cached || !lockFile)) {
     checksRun++;
-    if (lockFile && auditPasses(projectPath, auditCommand, issues)) {
-      checksPassed++;
+    if (lockFile && cacheKey) {
+      const outcome = auditMode === "cached" && cached ? cached : runAudit(
+        projectPath,
+        auditCommand,
+        options.runAudit ?? runAuditProcess
+      );
+      auditCache.set(cacheKey, outcome);
+      if (recordAudit(outcome, auditCommand, issues)) checksPassed++;
     }
   } else {
     issues.push({
       ...fromRule("audit-skipped"),
-      message: "Dependency audit skipped; known vulnerabilities were not checked",
+      message: auditMode === "cached" ? "Dependency audit has not run for this lock file yet; known vulnerabilities were not checked" : "Dependency audit skipped; known vulnerabilities were not checked",
       fix: `Run ${[auditCommand.manager, ...auditCommand.args].join(" ")} or scan without --no-audit`
     });
   }
@@ -258819,7 +258864,9 @@ function roundPenalty(value) {
 }
 function linkRootCauses(results) {
   const reported = new Set(
-    results.flatMap((result) => result.issues.map((issue) => issue.rule))
+    results.flatMap(
+      (result) => result.issues.filter(isActive).map((issue) => issue.rule)
+    )
   );
   return results.map((result) => ({
     ...result,
@@ -258830,7 +258877,7 @@ function linkRootCauses(results) {
     })
   }));
 }
-function scoreIssues(issues) {
+function scoreIssues(issues, rules) {
   const byRule = /* @__PURE__ */ new Map();
   for (const issue of issues) {
     if (issue.causedBy || !isActive(issue)) continue;
@@ -258839,7 +258886,7 @@ function scoreIssues(issues) {
   let total = 0;
   const scoreBreakdown = [];
   for (const [rule, findings] of byRule) {
-    const penalty = getRule(rule)?.failsAnalyzer ? 100 : findings.map((finding) => SEVERITY_WEIGHTS[finding.severity]).sort((left, right) => right - left).reduce(
+    const penalty = getRule(rule)?.failsAnalyzer && !Object.hasOwn(rules, rule) ? 100 : findings.map((finding) => SEVERITY_WEIGHTS[finding.severity]).sort((left, right) => right - left).reduce(
       (sum, weight, index) => sum + weight * REPEAT_DECAY ** index,
       0
     );
@@ -258858,12 +258905,12 @@ function scoreIssues(issues) {
     scoreBreakdown
   };
 }
-function applyScoring(results, version) {
+function applyScoring(results, version, rules = {}) {
   if (version === 1) return results;
   return linkRootCauses(results).map((result) => ({
     ...result,
     summary: CHECKS_SUMMARY.test(result.summary) ? findingSummary(result.issues) : result.summary,
-    ...scoreIssues(result.issues)
+    ...scoreIssues(result.issues, rules)
   }));
 }
 
@@ -259050,7 +259097,8 @@ async function scan(projectPath, config = loadConfig(projectPath), options = {})
   const baseline = options.baseline ? applyBaseline(fingerprinted, options.baseline) : void 0;
   const analyzers = applyScoring(
     baseline?.results ?? fingerprinted,
-    config.scoring.version
+    config.scoring.version,
+    config.rules
   );
   let totalWeight = 0;
   let weightedSum = 0;

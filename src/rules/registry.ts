@@ -29,6 +29,11 @@ export interface RuleDefinition {
    * version 2 sets that analyzer's score to 0.
    */
   failsAnalyzer?: boolean;
+  /**
+   * Numbers in the message are part of the finding's identity, so a changed
+   * count (more vulnerabilities) is a new finding for baselines.
+   */
+  countsAreIdentity?: boolean;
 }
 
 export const RULES_DOCUMENT_URL =
@@ -352,6 +357,7 @@ export const RULES = {
     defaultSeverity: "critical",
     cwe: ["CWE-1395"],
     owasp: [OWASP.vulnerableComponents],
+    countsAreIdentity: true,
   },
   "vuln-high": {
     analyzer: "Dependencies",
@@ -361,6 +367,7 @@ export const RULES = {
     defaultSeverity: "warning",
     cwe: ["CWE-1395"],
     owasp: [OWASP.vulnerableComponents],
+    countsAreIdentity: true,
   },
   "vuln-moderate": {
     analyzer: "Dependencies",
@@ -370,6 +377,7 @@ export const RULES = {
     defaultSeverity: "warning",
     cwe: ["CWE-1395"],
     owasp: [OWASP.vulnerableComponents],
+    countsAreIdentity: true,
   },
   "vuln-low": {
     analyzer: "Dependencies",
@@ -379,6 +387,7 @@ export const RULES = {
     defaultSeverity: "info",
     cwe: ["CWE-1395"],
     owasp: [OWASP.vulnerableComponents],
+    countsAreIdentity: true,
   },
   "no-engines": {
     analyzer: "Dependencies",

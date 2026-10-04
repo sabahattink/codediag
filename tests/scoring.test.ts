@@ -247,3 +247,33 @@ test("version 2 replaces checks-passed summaries with finding counts", () => {
   assert.equal(security.summary, "2 findings: 1 critical, 1 warning");
   assert.equal(unchanged.summary, "3 test files, framework: vitest");
 });
+
+test("accepted root causes no longer excuse their consequences", () => {
+  const [result] = applyScoring(
+    [
+      analyzer("Dependencies", [
+        {
+          ...issue("lock-file-manager-mismatch", "critical"),
+          baseline: true,
+        },
+        issue("audit-unavailable", "warning"),
+      ]),
+    ],
+    2,
+  );
+
+  assert.equal(result.issues[1].causedBy, undefined);
+  assert.deepEqual(result.scoreBreakdown, [
+    { rule: "audit-unavailable", count: 1, penalty: 8 },
+  ]);
+});
+
+test("a configured severity replaces the analyzer-failing penalty", () => {
+  const [result] = applyScoring(
+    [analyzer("Testing", [issue("no-test-files", "info")])],
+    2,
+    { "no-test-files": "info" },
+  );
+
+  assert.equal(result.score, 98);
+});

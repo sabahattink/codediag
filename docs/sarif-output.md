@@ -27,9 +27,10 @@ its section in `docs/rules.md`, and security rules carry `security` and
 `external/cwe/cwe-<id>` tags plus an `owasp` property.
 
 Each result carries a `codediagFinding/v2` partial fingerprint: a SHA-256
-digest of the rule, the file, and the flagged line's whitespace-normalized
-text. It does not include the line number, so alerts keep their identity when
-code above them moves. Only the digest is emitted, never the line text.
+digest of the rule, the file, the flagged line's whitespace-normalized text,
+and the message (see [JSON output](json-output.md) for the exact rules). It
+does not include the line number, so alerts keep their identity when code
+above them moves. Only the digest is emitted, never the line text.
 
 Findings suppressed with a `codediag-ignore` comment carry
 `suppressions: [{ "kind": "inSource", "justification": "..." }]`. When the scan

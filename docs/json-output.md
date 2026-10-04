@@ -70,9 +70,14 @@ thresholds; see [suppressions and baselines](suppressions-and-baselines.md). Rul
 meaning are listed in [rules.md](rules.md).
 
 `fingerprint` is a SHA-256 hex digest that identifies a finding independently
-of its line number: it is derived from the rule ID, the file, and the flagged
-line's whitespace-normalized text (or the message for findings without a
-source line). For rules that flag credentials, such as `hardcoded-secret`,
-the line text is never hashed and the message is used instead. Identical
-findings in the same file are distinguished by their order. The same value is emitted as the `codediagFinding/v2` SARIF partial
-fingerprint.
+of its line number. It is derived from the rule ID, the file, and:
+
+- for findings on a source line, the line's whitespace-normalized text and the
+  message (for rules that flag credentials, such as `hardcoded-secret`, only
+  the message, so a secret is never hashed);
+- for findings on a file without a line, nothing else;
+- for project-level findings, the message with numbers masked, except for
+  vulnerability totals (`vuln-*`), where a changed count is a new finding.
+
+Identical findings are distinguished by their order. The same value is emitted
+as the `codediagFinding/v2` SARIF partial fingerprint.

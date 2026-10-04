@@ -37,8 +37,11 @@ export interface ScanOptions {
   onProgress?: (message: string) => void;
   /** Fingerprints of accepted findings, typically from loadBaseline(). */
   baseline?: ReadonlySet<string>;
-  /** Overrides the `audit` config setting; false keeps the scan offline. */
-  audit?: boolean;
+  /**
+   * Overrides the `audit` config setting: false keeps the scan offline, and
+   * "cached" reuses this process's earlier audit of the same lock file.
+   */
+  audit?: boolean | "cached";
 }
 
 interface ProgressReporter {
@@ -166,6 +169,7 @@ export async function scan(
   const analyzers = applyScoring(
     baseline?.results ?? fingerprinted,
     config.scoring.version,
+    config.rules,
   );
 
   // Calculate total

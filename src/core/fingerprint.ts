@@ -10,18 +10,27 @@ function normalize(text: string): string {
 }
 
 /**
- * The location-independent part of a finding's identity: the flagged line's
- * normalized text when available, otherwise the message (fileless findings
- * such as audit counts are identified by what they report). Lines that may
- * hold a credential are never hashed.
+ * The location-independent part of a finding's identity.
+ *
+ * - With a source line: the line's normalized text plus the message, so short
+ *   lines such as `@Post()` are told apart by what the finding says. Lines
+ *   that may hold a credential are never hashed.
+ * - With a file but no line: nothing beyond the rule and file.
+ * - Without a file: the message with numbers masked, so a changing count
+ *   (such as a test ratio) keeps its identity, unless the rule declares that
+ *   counts are identity (vulnerability totals).
  */
 function anchor(issue: DiagnosticIssue, lineText: string | null): string {
-  const sensitive = getRule(issue.rule)?.sensitiveSource === true;
-  if (issue.line !== undefined && lineText !== null && !sensitive) {
-    const normalized = normalize(lineText);
-    if (normalized) return normalized;
+  const rule = getRule(issue.rule);
+  const message = normalize(issue.message);
+  if (issue.line !== undefined) {
+    const line = lineText === null ? "" : normalize(lineText);
+    return rule?.sensitiveSource || !line ? message : `${line}\u0001${message}`;
   }
-  return issue.file && issue.line === undefined ? "" : normalize(issue.message);
+  if (issue.file) return "";
+  return rule?.countsAreIdentity
+    ? message
+    : message.replace(/\d+(?:\.\d+)?/g, "#");
 }
 
 export function computeFingerprint(

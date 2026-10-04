@@ -4,6 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 import { loadConfig } from "../src/config.js";
+import { computeFingerprint } from "../src/core/fingerprint.js";
 import { buildSarif } from "../src/reporters/sarif.js";
 import { scan } from "../src/scanner.js";
 
@@ -103,4 +104,45 @@ test("fingerprints never hash a line that may contain a credential", async () =>
   } finally {
     rmSync(directory, { recursive: true, force: true });
   }
+});
+
+test("short decorator lines are identified by their message", () => {
+  const post = (path: string): Parameters<typeof computeFingerprint>[0] => ({
+    severity: "warning",
+    rule: "missing-guard",
+    message: `POST ${path} has no auth guard`,
+    file: "src/users.controller.ts",
+    line: 4,
+  });
+
+  assert.notEqual(
+    computeFingerprint(post("/users"), "  @Post()"),
+    computeFingerprint(post("/users/import"), "  @Post()"),
+  );
+  assert.equal(
+    computeFingerprint(post("/users"), "  @Post()"),
+    computeFingerprint({ ...post("/users"), line: 40 }, "@Post()"),
+  );
+});
+
+test("fileless counts are masked unless they are the finding's identity", () => {
+  const ratio = (message: string) =>
+    computeFingerprint(
+      { severity: "info", rule: "low-test-ratio", message },
+      null,
+    );
+  const vulnerabilities = (message: string) =>
+    computeFingerprint(
+      { severity: "warning", rule: "vuln-high", message },
+      null,
+    );
+
+  assert.equal(
+    ratio("Test ratio: 25% (3 tests / 12 source files)"),
+    ratio("Test ratio: 23% (3 tests / 13 source files)"),
+  );
+  assert.notEqual(
+    vulnerabilities("2 high severity vulnerabilities"),
+    vulnerabilities("3 high severity vulnerabilities"),
+  );
 });

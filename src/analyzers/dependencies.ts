@@ -1,5 +1,6 @@
 import { spawnSync } from "node:child_process";
-import { existsSync } from "node:fs";
+import { createHash } from "node:crypto";
+import { existsSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import type { ScanContext } from "../core/scan-context.js";
 import { fromRule } from "../rules/registry.js";
@@ -206,73 +207,142 @@ export function parseAuditSummary(output: string): AuditSummary {
   throw new Error("audit JSON did not include a vulnerability summary");
 }
 
-/** Runs the package manager audit, records its findings, and reports a pass. */
-function auditPasses(
-  projectPath: string,
-  auditCommand: AuditCommand,
-  issues: DiagnosticIssue[],
-): boolean {
-  let passed = false;
-  const auditProcess = spawnSync(auditCommand.command, auditCommand.args, {
-    cwd: projectPath,
+export interface AuditRun {
+  stdout: string;
+  stderr: string;
+  error?: Error;
+}
+
+export type AuditRunner = (command: AuditCommand, cwd: string) => AuditRun;
+
+const runAuditProcess: AuditRunner = (command, cwd) => {
+  const result = spawnSync(command.command, command.args, {
+    cwd,
     timeout: 30000,
     encoding: "utf-8",
     stdio: ["ignore", "pipe", "pipe"],
     shell: process.platform === "win32",
   });
+  return {
+    stdout: result.stdout ?? "",
+    stderr: result.stderr ?? "",
+    ...(result.error ? { error: result.error } : {}),
+  };
+};
 
+type AuditOutcome =
+  | { kind: "summary"; summary: AuditSummary }
+  | { kind: "error"; message: string };
+
+/**
+ * Audit outcomes for this process, keyed by the command and the exact lock
+ * file and package.json contents, so repeated scans (such as editor saves)
+ * can reuse them without the network.
+ */
+const auditCache = new Map<string, AuditOutcome>();
+
+export function clearAuditCache(): void {
+  auditCache.clear();
+}
+
+function hashFile(path: string): string {
   try {
-    if (auditProcess.error) throw auditProcess.error;
-    if (!auditProcess.stdout.trim()) {
+    return createHash("sha256").update(readFileSync(path)).digest("hex");
+  } catch {
+    return "missing";
+  }
+}
+
+function auditCacheKey(
+  projectPath: string,
+  command: AuditCommand,
+  lockFile: LockFile,
+): string {
+  const lockPath = lockFileNames[lockFile.manager]
+    .map((name) => join(lockFile.directory, name))
+    .find((candidate) => existsSync(candidate));
+  return [
+    command.command,
+    ...command.args,
+    projectPath,
+    lockPath ? hashFile(lockPath) : "no-lock",
+    hashFile(join(projectPath, "package.json")),
+  ].join("\u0000");
+}
+
+function runAudit(
+  projectPath: string,
+  command: AuditCommand,
+  runner: AuditRunner,
+): AuditOutcome {
+  const run = runner(command, projectPath);
+  try {
+    if (run.error) throw run.error;
+    if (!run.stdout.trim()) {
       throw new Error(
-        auditProcess.stderr.trim() ||
-          `${auditCommand.manager} audit returned no JSON`,
+        run.stderr.trim() || `${command.manager} audit returned no JSON`,
       );
     }
-
-    const { critical, high, moderate, low } = parseAuditSummary(
-      auditProcess.stdout,
-    );
-    if (critical + high + moderate + low === 0) {
-      passed = true;
-    } else {
-      if (critical > 0)
-        issues.push({
-          ...fromRule("vuln-critical"),
-          message: `${critical} critical vulnerabilit${critical > 1 ? "ies" : "y"}`,
-          fix: `Run ${auditCommand.fixCommand}`,
-        });
-      if (high > 0)
-        issues.push({
-          ...fromRule("vuln-high"),
-          message: `${high} high severity vulnerabilit${high > 1 ? "ies" : "y"}`,
-          fix: `Run ${auditCommand.fixCommand}`,
-        });
-      if (moderate > 0)
-        issues.push({
-          ...fromRule("vuln-moderate"),
-          message: `${moderate} moderate vulnerabilit${moderate > 1 ? "ies" : "y"}`,
-          fix: `Review ${auditCommand.manager} audit output`,
-        });
-      if (low > 0)
-        issues.push({
-          ...fromRule("vuln-low"),
-          message: `${low} low severity vulnerabilit${low > 1 ? "ies" : "y"}`,
-        });
-    }
+    return { kind: "summary", summary: parseAuditSummary(run.stdout) };
   } catch (error) {
+    return {
+      kind: "error",
+      message: error instanceof Error ? error.message : String(error),
+    };
+  }
+}
+
+/** Records an audit outcome's findings and reports whether it passed. */
+function recordAudit(
+  outcome: AuditOutcome,
+  auditCommand: AuditCommand,
+  issues: DiagnosticIssue[],
+): boolean {
+  if (outcome.kind === "error") {
     issues.push({
       ...fromRule("audit-unavailable"),
-      message: `${auditCommand.manager} audit could not be evaluated: ${error instanceof Error ? error.message : String(error)}`,
+      message: `${auditCommand.manager} audit could not be evaluated: ${outcome.message}`,
       fix: `Run ${[auditCommand.manager, ...auditCommand.args].join(" ")} and resolve the reported error`,
     });
+    return false;
   }
-  return passed;
+
+  const { critical, high, moderate, low } = outcome.summary;
+  if (critical > 0)
+    issues.push({
+      ...fromRule("vuln-critical"),
+      message: `${critical} critical vulnerabilit${critical > 1 ? "ies" : "y"}`,
+      fix: `Run ${auditCommand.fixCommand}`,
+    });
+  if (high > 0)
+    issues.push({
+      ...fromRule("vuln-high"),
+      message: `${high} high severity vulnerabilit${high > 1 ? "ies" : "y"}`,
+      fix: `Run ${auditCommand.fixCommand}`,
+    });
+  if (moderate > 0)
+    issues.push({
+      ...fromRule("vuln-moderate"),
+      message: `${moderate} moderate vulnerabilit${moderate > 1 ? "ies" : "y"}`,
+      fix: `Review ${auditCommand.manager} audit output`,
+    });
+  if (low > 0)
+    issues.push({
+      ...fromRule("vuln-low"),
+      message: `${low} low severity vulnerabilit${low > 1 ? "ies" : "y"}`,
+    });
+  return critical + high + moderate + low === 0;
 }
 
 export interface DependencyOptions {
-  /** Overrides the `audit` config setting, for example for offline scans. */
-  audit?: boolean;
+  /**
+   * Overrides the `audit` config setting: false skips the audit, and
+   * "cached" reuses an earlier result for the same lock file in this process
+   * without running the package manager.
+   */
+  audit?: boolean | "cached";
+  /** Runs the audit command; replaced in tests. */
+  runAudit?: AuditRunner;
 }
 
 export async function analyzeDependencies(
@@ -341,16 +411,33 @@ export async function analyzeDependencies(
   // 2. Package manager audit. Audits need a lock file; without one the
   // missing lock file is the finding and the check counts as failed. A
   // deliberately skipped audit is reported but not counted as a check.
-  if (options.audit ?? context.config.audit) {
+  const auditMode = options.audit ?? context.config.audit;
+  const cacheKey = lockFile
+    ? auditCacheKey(projectPath, auditCommand, lockFile)
+    : null;
+  const cached = cacheKey ? auditCache.get(cacheKey) : undefined;
+  // Without a lock file no audit can run in any mode; that is a failed check.
+  if (auditMode === true || (auditMode === "cached" && (cached || !lockFile))) {
     checksRun++;
-    if (lockFile && auditPasses(projectPath, auditCommand, issues)) {
-      checksPassed++;
+    if (lockFile && cacheKey) {
+      const outcome =
+        auditMode === "cached" && cached
+          ? cached
+          : runAudit(
+              projectPath,
+              auditCommand,
+              options.runAudit ?? runAuditProcess,
+            );
+      auditCache.set(cacheKey, outcome);
+      if (recordAudit(outcome, auditCommand, issues)) checksPassed++;
     }
   } else {
     issues.push({
       ...fromRule("audit-skipped"),
       message:
-        "Dependency audit skipped; known vulnerabilities were not checked",
+        auditMode === "cached"
+          ? "Dependency audit has not run for this lock file yet; known vulnerabilities were not checked"
+          : "Dependency audit skipped; known vulnerabilities were not checked",
       fix: `Run ${[auditCommand.manager, ...auditCommand.args].join(" ")} or scan without --no-audit`,
     });
   }
