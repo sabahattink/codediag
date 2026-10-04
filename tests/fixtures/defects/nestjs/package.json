@@ -1,0 +1,6 @@
+{
+  "name": "defects-nestjs",
+  "dependencies": {
+    "@nestjs/core": "^10.0.0"
+  }
+}

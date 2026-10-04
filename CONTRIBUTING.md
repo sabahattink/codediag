@@ -36,6 +36,14 @@ Analyzer changes should include fixtures for both positive and negative cases.
 Every finding uses a rule registered in `src/rules/registry.ts` through
 `fromRule()`. After adding or changing a rule, run `npm run docs:rules` to
 regenerate `docs/rules.md`; the test suite fails when it is stale.
+
+`tests/fixtures/realistic/` holds small, well-built NestJS, Express, and
+Next.js applications that must keep scoring at least 85 with no critical
+findings, and `tests/fixtures/defects/` holds applications that must keep
+producing specific findings (`tests/benchmark.test.ts`). When an analyzer
+change fails these tests, fix the analyzer rather than the fixture unless the
+fixture itself is wrong. The fixtures are excluded from Biome and from
+CodeDiag's own scan (`.codediag.yml`).
 Avoid checks that depend on network access unless the analyzer already owns
 that dependency and the failure mode is covered by tests.
 

@@ -1,0 +1,9 @@
+# CodeDiag scans itself in CI with this configuration.
+threshold: 85
+
+scoring:
+  version: 2
+
+# Benchmark fixtures contain deliberately insecure sample applications.
+ignore:
+  - tests/fixtures/**

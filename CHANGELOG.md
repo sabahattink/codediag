@@ -37,6 +37,10 @@ All notable changes to CodeDiag are documented in this file.
   findings.
 - `dto-not-validated`: reported once when DTO classes are used but no global,
   `APP_PIPE`, controller, method, or parameter `ValidationPipe` validates them.
+- Benchmark fixtures: realistic NestJS, Express, and Next.js applications that
+  must score at least 85 with no critical findings, and defect applications
+  that must keep producing specific findings.
+- CodeDiag scans itself with a committed `.codediag.yml` (threshold 85).
 - An optional `confidence` on findings (`high`, `medium`, `low`), also emitted
   as a SARIF result property.
 - AST-based security sink detection for runtime code execution, dynamic shell

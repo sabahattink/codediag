@@ -1,0 +1,6 @@
+{
+  "name": "defects-express",
+  "dependencies": {
+    "express": "^5.0.0"
+  }
+}
