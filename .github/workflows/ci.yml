@@ -26,6 +26,9 @@ jobs:
 
   action:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
     steps:
       - uses: actions/checkout@v7
       - name: Run repository Action bundle
@@ -35,6 +38,7 @@ jobs:
           threshold: 0
           report: codediag-action-report.json
           sarif: codediag-action-report.sarif
+          comment: true
       - name: Validate Action outputs
         env:
           CODEDIAG_SCORE: ${{ steps.codediag.outputs.score }}

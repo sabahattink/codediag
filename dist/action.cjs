@@ -3995,10 +3995,10 @@ var require_resolve_block_map = __commonJS({
       let offset = bm.offset;
       let commentEnd = null;
       for (const collItem of bm.items) {
-        const { start, key, sep: sep3, value } = collItem;
+        const { start, key, sep: sep4, value } = collItem;
         const keyProps = resolveProps.resolveProps(start, {
           indicator: "explicit-key-ind",
-          next: key ?? sep3?.[0],
+          next: key ?? sep4?.[0],
           offset,
           onError,
           parentIndent: bm.indent,
@@ -4012,7 +4012,7 @@ var require_resolve_block_map = __commonJS({
             else if ("indent" in key && key.indent !== bm.indent)
               onError(offset, "BAD_INDENT", startColMsg);
           }
-          if (!keyProps.anchor && !keyProps.tag && !sep3) {
+          if (!keyProps.anchor && !keyProps.tag && !sep4) {
             commentEnd = keyProps.end;
             if (keyProps.comment) {
               if (map.comment)
@@ -4036,7 +4036,7 @@ var require_resolve_block_map = __commonJS({
         ctx.atKey = false;
         if (utilMapIncludes.mapIncludes(ctx, map.items, keyNode))
           onError(keyStart, "DUPLICATE_KEY", "Map keys must be unique");
-        const valueProps = resolveProps.resolveProps(sep3 ?? [], {
+        const valueProps = resolveProps.resolveProps(sep4 ?? [], {
           indicator: "map-value-ind",
           next: value,
           offset: keyNode.range[2],
@@ -4052,7 +4052,7 @@ var require_resolve_block_map = __commonJS({
             if (ctx.options.strict && keyProps.start < valueProps.found.offset - 1024)
               onError(keyNode.range, "KEY_OVER_1024_CHARS", "The : indicator must be at most 1024 chars after the start of an implicit block mapping key");
           }
-          const valueNode = value ? composeNode(ctx, value, valueProps, onError) : composeEmptyNode(ctx, offset, sep3, null, valueProps, onError);
+          const valueNode = value ? composeNode(ctx, value, valueProps, onError) : composeEmptyNode(ctx, offset, sep4, null, valueProps, onError);
           if (ctx.schema.compat)
             utilFlowIndentCheck.flowIndentCheck(bm.indent, value, onError);
           offset = valueNode.range[2];
@@ -4143,7 +4143,7 @@ var require_resolve_end = __commonJS({
       let comment = "";
       if (end) {
         let hasSpace = false;
-        let sep3 = "";
+        let sep4 = "";
         for (const token of end) {
           const { source, type } = token;
           switch (type) {
@@ -4157,13 +4157,13 @@ var require_resolve_end = __commonJS({
               if (!comment)
                 comment = cb;
               else
-                comment += sep3 + cb;
-              sep3 = "";
+                comment += sep4 + cb;
+              sep4 = "";
               break;
             }
             case "newline":
               if (comment)
-                sep3 += source;
+                sep4 += source;
               hasSpace = true;
               break;
             default:
@@ -4206,18 +4206,18 @@ var require_resolve_flow_collection = __commonJS({
       let offset = fc.offset + fc.start.source.length;
       for (let i = 0; i < fc.items.length; ++i) {
         const collItem = fc.items[i];
-        const { start, key, sep: sep3, value } = collItem;
+        const { start, key, sep: sep4, value } = collItem;
         const props = resolveProps.resolveProps(start, {
           flow: fcName,
           indicator: "explicit-key-ind",
-          next: key ?? sep3?.[0],
+          next: key ?? sep4?.[0],
           offset,
           onError,
           parentIndent: fc.indent,
           startOnNewline: false
         });
         if (!props.found) {
-          if (!props.anchor && !props.tag && !sep3 && !value) {
+          if (!props.anchor && !props.tag && !sep4 && !value) {
             if (i === 0 && props.comma)
               onError(props.comma, "UNEXPECTED_TOKEN", `Unexpected , in ${fcName}`);
             else if (i < fc.items.length - 1)
@@ -4271,8 +4271,8 @@ var require_resolve_flow_collection = __commonJS({
             }
           }
         }
-        if (!isMap && !sep3 && !props.found) {
-          const valueNode = value ? composeNode(ctx, value, props, onError) : composeEmptyNode(ctx, props.end, sep3, null, props, onError);
+        if (!isMap && !sep4 && !props.found) {
+          const valueNode = value ? composeNode(ctx, value, props, onError) : composeEmptyNode(ctx, props.end, sep4, null, props, onError);
           coll.items.push(valueNode);
           offset = valueNode.range[2];
           if (isBlock(value))
@@ -4284,7 +4284,7 @@ var require_resolve_flow_collection = __commonJS({
           if (isBlock(key))
             onError(keyNode.range, "BLOCK_IN_FLOW", blockMsg);
           ctx.atKey = false;
-          const valueProps = resolveProps.resolveProps(sep3 ?? [], {
+          const valueProps = resolveProps.resolveProps(sep4 ?? [], {
             flow: fcName,
             indicator: "map-value-ind",
             next: value,
@@ -4295,8 +4295,8 @@ var require_resolve_flow_collection = __commonJS({
           });
           if (valueProps.found) {
             if (!isMap && !props.found && ctx.options.strict) {
-              if (sep3)
-                for (const st of sep3) {
+              if (sep4)
+                for (const st of sep4) {
                   if (st === valueProps.found)
                     break;
                   if (st.type === "newline") {
@@ -4313,7 +4313,7 @@ var require_resolve_flow_collection = __commonJS({
             else
               onError(valueProps.start, "MISSING_CHAR", `Missing , or : between ${fcName} items`);
           }
-          const valueNode = value ? composeNode(ctx, value, valueProps, onError) : valueProps.found ? composeEmptyNode(ctx, valueProps.end, sep3, null, valueProps, onError) : null;
+          const valueNode = value ? composeNode(ctx, value, valueProps, onError) : valueProps.found ? composeEmptyNode(ctx, valueProps.end, sep4, null, valueProps, onError) : null;
           if (valueNode) {
             if (isBlock(value))
               onError(valueNode.range, "BLOCK_IN_FLOW", blockMsg);
@@ -4493,7 +4493,7 @@ var require_resolve_block_scalar = __commonJS({
           chompStart = i + 1;
       }
       let value = "";
-      let sep3 = "";
+      let sep4 = "";
       let prevMoreIndented = false;
       for (let i = 0; i < contentStart; ++i)
         value += lines[i][0].slice(trimIndent) + "\n";
@@ -4510,24 +4510,24 @@ var require_resolve_block_scalar = __commonJS({
           indent = "";
         }
         if (type === Scalar.Scalar.BLOCK_LITERAL) {
-          value += sep3 + indent.slice(trimIndent) + content;
-          sep3 = "\n";
+          value += sep4 + indent.slice(trimIndent) + content;
+          sep4 = "\n";
         } else if (indent.length > trimIndent || content[0] === "	") {
-          if (sep3 === " ")
-            sep3 = "\n";
-          else if (!prevMoreIndented && sep3 === "\n")
-            sep3 = "\n\n";
-          value += sep3 + indent.slice(trimIndent) + content;
-          sep3 = "\n";
+          if (sep4 === " ")
+            sep4 = "\n";
+          else if (!prevMoreIndented && sep4 === "\n")
+            sep4 = "\n\n";
+          value += sep4 + indent.slice(trimIndent) + content;
+          sep4 = "\n";
           prevMoreIndented = true;
         } else if (content === "") {
-          if (sep3 === "\n")
+          if (sep4 === "\n")
             value += "\n";
           else
-            sep3 = "\n";
+            sep4 = "\n";
         } else {
-          value += sep3 + content;
-          sep3 = " ";
+          value += sep4 + content;
+          sep4 = " ";
           prevMoreIndented = false;
         }
       }
@@ -4709,25 +4709,25 @@ var require_resolve_flow_scalar = __commonJS({
       if (!match2)
         return source;
       let res = match2[1];
-      let sep3 = " ";
+      let sep4 = " ";
       let pos = first.lastIndex;
       line.lastIndex = pos;
       while (match2 = line.exec(source)) {
         if (match2[1] === "") {
-          if (sep3 === "\n")
-            res += sep3;
+          if (sep4 === "\n")
+            res += sep4;
           else
-            sep3 = "\n";
+            sep4 = "\n";
         } else {
-          res += sep3 + match2[1];
-          sep3 = " ";
+          res += sep4 + match2[1];
+          sep4 = " ";
         }
         pos = line.lastIndex;
       }
       const last = /[ \t]*(.*)/sy;
       last.lastIndex = pos;
       match2 = last.exec(source);
-      return res + sep3 + (match2?.[1] ?? "");
+      return res + sep4 + (match2?.[1] ?? "");
     }
     function doubleQuotedValue(source, onError) {
       let res = "";
@@ -5537,14 +5537,14 @@ var require_cst_stringify = __commonJS({
         }
       }
     }
-    function stringifyItem({ start, key, sep: sep3, value }) {
+    function stringifyItem({ start, key, sep: sep4, value }) {
       let res = "";
       for (const st of start)
         res += st.source;
       if (key)
         res += stringifyToken(key);
-      if (sep3)
-        for (const st of sep3)
+      if (sep4)
+        for (const st of sep4)
           res += st.source;
       if (value)
         res += stringifyToken(value);
@@ -6711,18 +6711,18 @@ var require_parser = __commonJS({
         if (this.type === "map-value-ind") {
           const prev = getPrevProps(this.peek(2));
           const start = getFirstKeyStartProps(prev);
-          let sep3;
+          let sep4;
           if (scalar.end) {
-            sep3 = scalar.end;
-            sep3.push(this.sourceToken);
+            sep4 = scalar.end;
+            sep4.push(this.sourceToken);
             delete scalar.end;
           } else
-            sep3 = [this.sourceToken];
+            sep4 = [this.sourceToken];
           const map = {
             type: "block-map",
             offset: scalar.offset,
             indent: scalar.indent,
-            items: [{ start, key: scalar, sep: sep3 }]
+            items: [{ start, key: scalar, sep: sep4 }]
           };
           this.onKeyLine = true;
           this.stack[this.stack.length - 1] = map;
@@ -6875,15 +6875,15 @@ var require_parser = __commonJS({
                 } else if (isFlowToken(it.key) && !includesToken(it.sep, "newline")) {
                   const start2 = getFirstKeyStartProps(it.start);
                   const key = it.key;
-                  const sep3 = it.sep;
-                  sep3.push(this.sourceToken);
+                  const sep4 = it.sep;
+                  sep4.push(this.sourceToken);
                   delete it.key;
                   delete it.sep;
                   this.stack.push({
                     type: "block-map",
                     offset: this.offset,
                     indent: this.indent,
-                    items: [{ start: start2, key, sep: sep3 }]
+                    items: [{ start: start2, key, sep: sep4 }]
                   });
                 } else if (start.length > 0) {
                   it.sep = it.sep.concat(start, this.sourceToken);
@@ -7077,13 +7077,13 @@ var require_parser = __commonJS({
             const prev = getPrevProps(parent);
             const start = getFirstKeyStartProps(prev);
             fixFlowSeqItems(fc);
-            const sep3 = fc.end.splice(1, fc.end.length);
-            sep3.push(this.sourceToken);
+            const sep4 = fc.end.splice(1, fc.end.length);
+            sep4.push(this.sourceToken);
             const map = {
               type: "block-map",
               offset: fc.offset,
               indent: fc.indent,
-              items: [{ start, key: fc, sep: sep3 }]
+              items: [{ start, key: fc, sep: sep4 }]
             };
             this.onKeyLine = true;
             this.stack[this.stack.length - 1] = map;
@@ -18410,11 +18410,11 @@ ${lanes.join("\n")}
           return toComponents;
         }
         const components = toComponents.slice(start);
-        const relative5 = [];
+        const relative6 = [];
         for (; start < fromComponents.length; start++) {
-          relative5.push("..");
+          relative6.push("..");
         }
-        return ["", ...relative5, ...components];
+        return ["", ...relative6, ...components];
       }
       function getRelativePathFromDirectory(fromDirectory, to, getCanonicalFileNameOrIgnoreCase) {
         Debug.assert(getRootLength(fromDirectory) > 0 === getRootLength(to) > 0, "Paths must either both be absolute or both be relative");
@@ -57110,11 +57110,11 @@ ${lanes.join("\n")}
             if (i < rootLength) {
               return void 0;
             }
-            const sep3 = directory.lastIndexOf(directorySeparator, i - 1);
-            if (sep3 === -1) {
+            const sep4 = directory.lastIndexOf(directorySeparator, i - 1);
+            if (sep4 === -1) {
               return void 0;
             }
-            return directory.substr(0, Math.max(sep3, rootLength));
+            return directory.substr(0, Math.max(sep4, rootLength));
           }
         }
       }
@@ -62957,9 +62957,9 @@ ${lanes.join("\n")}
               if (!startsWithDirectory(target, realPathDirectory, getCanonicalFileName)) {
                 return;
               }
-              const relative5 = getRelativePathFromDirectory(realPathDirectory, target, getCanonicalFileName);
+              const relative6 = getRelativePathFromDirectory(realPathDirectory, target, getCanonicalFileName);
               for (const symlinkDirectory of symlinkDirectories) {
-                const option = resolvePath(symlinkDirectory, relative5);
+                const option = resolvePath(symlinkDirectory, relative6);
                 const result2 = cb(option, target === referenceRedirect);
                 shouldFilterIgnoredPaths = true;
                 if (result2) return result2;
@@ -188789,8 +188789,8 @@ ${newComment.split("\n").map((c) => ` * ${c}`).join("\n")}
         const symbolCompletion = getSymbolCompletionFromEntryId(program, log, sourceFile, position, entryId, host, preferences);
         switch (symbolCompletion.type) {
           case "request": {
-            const { request } = symbolCompletion;
-            switch (request.kind) {
+            const { request: request2 } = symbolCompletion;
+            switch (request2.kind) {
               case 1:
                 return ts_JsDoc_exports.getJSDocTagNameCompletionDetails(name);
               case 2:
@@ -188798,14 +188798,14 @@ ${newComment.split("\n").map((c) => ` * ${c}`).join("\n")}
               case 3:
                 return ts_JsDoc_exports.getJSDocParameterNameCompletionDetails(name);
               case 4:
-                return some(request.keywordCompletions, (c) => c.name === name) ? createSimpleDetails(
+                return some(request2.keywordCompletions, (c) => c.name === name) ? createSimpleDetails(
                   name,
                   "keyword",
                   5
                   /* keyword */
                 ) : void 0;
               default:
-                return Debug.assertNever(request);
+                return Debug.assertNever(request2);
             }
           }
           case "symbol": {
@@ -208115,13 +208115,13 @@ ${options.prefix}` : "\n" : options.prefix
             this.sendResponse({ kind: ActionWatchTypingLocations, projectName, files: void 0 });
           }
         }
-        createSetTypings(request, typings) {
+        createSetTypings(request2, typings) {
           return {
-            projectName: request.projectName,
-            typeAcquisition: request.typeAcquisition,
-            compilerOptions: request.compilerOptions,
+            projectName: request2.projectName,
+            typeAcquisition: request2.typeAcquisition,
+            compilerOptions: request2.compilerOptions,
             typings,
-            unresolvedImports: request.unresolvedImports,
+            unresolvedImports: request2.unresolvedImports,
             kind: ActionSet
           };
         }
@@ -208132,10 +208132,10 @@ ${options.prefix}` : "\n" : options.prefix
         executeWithThrottling() {
           while (this.inFlightRequestCount < this.throttleLimit && this.pendingRunRequests.length) {
             this.inFlightRequestCount++;
-            const request = this.pendingRunRequests.pop();
-            this.installWorker(request.requestId, request.packageNames, request.cwd, (ok) => {
+            const request2 = this.pendingRunRequests.pop();
+            this.installWorker(request2.requestId, request2.packageNames, request2.cwd, (ok) => {
               this.inFlightRequestCount--;
-              request.onRequestCompleted(ok);
+              request2.onRequestCompleted(ok);
               this.executeWithThrottling();
             });
           }
@@ -209941,12 +209941,12 @@ ${options.prefix}` : "\n" : options.prefix
           const hasAddedorRemovedFiles = this.hasAddedorRemovedFiles;
           this.hasAddedorRemovedFiles = false;
           this.hasAddedOrRemovedSymlinks = false;
-          const changedFiles = this.resolutionCache.finishRecordingFilesWithChangedResolutions() || emptyArray2;
-          for (const file of changedFiles) {
+          const changedFiles2 = this.resolutionCache.finishRecordingFilesWithChangedResolutions() || emptyArray2;
+          for (const file of changedFiles2) {
             this.cachedUnresolvedImportsPerFile.delete(file);
           }
           if (this.languageServiceEnabled && this.projectService.serverMode === 0 && !this.isOrphan()) {
-            if (hasNewProgram || changedFiles.length) {
+            if (hasNewProgram || changedFiles2.length) {
               this.lastCachedUnresolvedImportsList = getUnresolvedImports(this.program, this.cachedUnresolvedImportsPerFile);
             }
             this.enqueueInstallTypingsForProject(hasAddedorRemovedFiles);
@@ -214893,7 +214893,7 @@ Dynamic files must always be opened with service's current directory or service 
           return files;
         }
         /** @internal */
-        applyChangesInOpenFiles(openFiles, changedFiles, closedFiles) {
+        applyChangesInOpenFiles(openFiles, changedFiles2, closedFiles) {
           let existingOpenScriptInfos;
           let openScriptInfos;
           let assignOrphanScriptInfosToInferredProject = false;
@@ -214914,8 +214914,8 @@ Dynamic files must always be opened with service's current directory or service 
               (openScriptInfos || (openScriptInfos = [])).push(info);
             }
           }
-          if (changedFiles) {
-            for (const file of changedFiles) {
+          if (changedFiles2) {
+            for (const file of changedFiles2) {
               const scriptInfo = this.getScriptInfo(file.fileName);
               Debug.assert(!!scriptInfo);
               this.applyChangesToFile(scriptInfo, file.changes);
@@ -216116,9 +216116,9 @@ ${json}${newLine}`;
             [
               "openExternalProject"
               /* OpenExternalProject */
-            ]: (request) => {
+            ]: (request2) => {
               this.projectService.openExternalProject(
-                request.arguments,
+                request2.arguments,
                 /*cleanupAfter*/
                 true
               );
@@ -216130,8 +216130,8 @@ ${json}${newLine}`;
             [
               "openExternalProjects"
               /* OpenExternalProjects */
-            ]: (request) => {
-              this.projectService.openExternalProjects(request.arguments.projects);
+            ]: (request2) => {
+              this.projectService.openExternalProjects(request2.arguments.projects);
               return this.requiredResponse(
                 /*response*/
                 true
@@ -216140,9 +216140,9 @@ ${json}${newLine}`;
             [
               "closeExternalProject"
               /* CloseExternalProject */
-            ]: (request) => {
+            ]: (request2) => {
               this.projectService.closeExternalProject(
-                request.arguments.projectFileName,
+                request2.arguments.projectFileName,
                 /*cleanupAfter*/
                 true
               );
@@ -216154,8 +216154,8 @@ ${json}${newLine}`;
             [
               "synchronizeProjectList"
               /* SynchronizeProjectList */
-            ]: (request) => {
-              const result = this.projectService.synchronizeProjectList(request.arguments.knownProjects, request.arguments.includeProjectReferenceRedirectInfo);
+            ]: (request2) => {
+              const result = this.projectService.synchronizeProjectList(request2.arguments.knownProjects, request2.arguments.includeProjectReferenceRedirectInfo);
               if (!result.some((p) => p.projectErrors && p.projectErrors.length !== 0)) {
                 return this.requiredResponse(result);
               }
@@ -216179,16 +216179,16 @@ ${json}${newLine}`;
             [
               "updateOpen"
               /* UpdateOpen */
-            ]: (request) => {
+            ]: (request2) => {
               this.changeSeq++;
               this.projectService.applyChangesInOpenFiles(
-                request.arguments.openFiles && mapIterator(request.arguments.openFiles, (file) => ({
+                request2.arguments.openFiles && mapIterator(request2.arguments.openFiles, (file) => ({
                   fileName: file.file,
                   content: file.fileContent,
                   scriptKind: file.scriptKindName,
                   projectRootPath: file.projectRootPath
                 })),
-                request.arguments.changedFiles && mapIterator(request.arguments.changedFiles, (file) => ({
+                request2.arguments.changedFiles && mapIterator(request2.arguments.changedFiles, (file) => ({
                   fileName: file.fileName,
                   changes: mapDefinedIterator(arrayReverseIterator(file.textChanges), (change) => {
                     const scriptInfo = Debug.checkDefined(this.projectService.getScriptInfo(file.fileName));
@@ -216197,7 +216197,7 @@ ${json}${newLine}`;
                     return start >= 0 ? { span: { start, length: end - start }, newText: change.newText } : void 0;
                   })
                 })),
-                request.arguments.closedFiles
+                request2.arguments.closedFiles
               );
               return this.requiredResponse(
                 /*response*/
@@ -216207,16 +216207,16 @@ ${json}${newLine}`;
             [
               "applyChangedToOpenFiles"
               /* ApplyChangedToOpenFiles */
-            ]: (request) => {
+            ]: (request2) => {
               this.changeSeq++;
               this.projectService.applyChangesInOpenFiles(
-                request.arguments.openFiles,
-                request.arguments.changedFiles && mapIterator(request.arguments.changedFiles, (file) => ({
+                request2.arguments.openFiles,
+                request2.arguments.changedFiles && mapIterator(request2.arguments.changedFiles, (file) => ({
                   fileName: file.fileName,
                   // apply changes in reverse order
                   changes: arrayReverseIterator(file.changes)
                 })),
-                request.arguments.closedFiles
+                request2.arguments.closedFiles
               );
               return this.requiredResponse(
                 /*response*/
@@ -216236,9 +216236,9 @@ ${json}${newLine}`;
             [
               "definition"
               /* Definition */
-            ]: (request) => {
+            ]: (request2) => {
               return this.requiredResponse(this.getDefinition(
-                request.arguments,
+                request2.arguments,
                 /*simplifiedResult*/
                 true
               ));
@@ -216246,9 +216246,9 @@ ${json}${newLine}`;
             [
               "definition-full"
               /* DefinitionFull */
-            ]: (request) => {
+            ]: (request2) => {
               return this.requiredResponse(this.getDefinition(
-                request.arguments,
+                request2.arguments,
                 /*simplifiedResult*/
                 false
               ));
@@ -216256,9 +216256,9 @@ ${json}${newLine}`;
             [
               "definitionAndBoundSpan"
               /* DefinitionAndBoundSpan */
-            ]: (request) => {
+            ]: (request2) => {
               return this.requiredResponse(this.getDefinitionAndBoundSpan(
-                request.arguments,
+                request2.arguments,
                 /*simplifiedResult*/
                 true
               ));
@@ -216266,9 +216266,9 @@ ${json}${newLine}`;
             [
               "definitionAndBoundSpan-full"
               /* DefinitionAndBoundSpanFull */
-            ]: (request) => {
+            ]: (request2) => {
               return this.requiredResponse(this.getDefinitionAndBoundSpan(
-                request.arguments,
+                request2.arguments,
                 /*simplifiedResult*/
                 false
               ));
@@ -216276,27 +216276,27 @@ ${json}${newLine}`;
             [
               "findSourceDefinition"
               /* FindSourceDefinition */
-            ]: (request) => {
-              return this.requiredResponse(this.findSourceDefinition(request.arguments));
+            ]: (request2) => {
+              return this.requiredResponse(this.findSourceDefinition(request2.arguments));
             },
             [
               "emit-output"
               /* EmitOutput */
-            ]: (request) => {
-              return this.requiredResponse(this.getEmitOutput(request.arguments));
+            ]: (request2) => {
+              return this.requiredResponse(this.getEmitOutput(request2.arguments));
             },
             [
               "typeDefinition"
               /* TypeDefinition */
-            ]: (request) => {
-              return this.requiredResponse(this.getTypeDefinition(request.arguments));
+            ]: (request2) => {
+              return this.requiredResponse(this.getTypeDefinition(request2.arguments));
             },
             [
               "implementation"
               /* Implementation */
-            ]: (request) => {
+            ]: (request2) => {
               return this.requiredResponse(this.getImplementation(
-                request.arguments,
+                request2.arguments,
                 /*simplifiedResult*/
                 true
               ));
@@ -216304,9 +216304,9 @@ ${json}${newLine}`;
             [
               "implementation-full"
               /* ImplementationFull */
-            ]: (request) => {
+            ]: (request2) => {
               return this.requiredResponse(this.getImplementation(
-                request.arguments,
+                request2.arguments,
                 /*simplifiedResult*/
                 false
               ));
@@ -216314,9 +216314,9 @@ ${json}${newLine}`;
             [
               "references"
               /* References */
-            ]: (request) => {
+            ]: (request2) => {
               return this.requiredResponse(this.getReferences(
-                request.arguments,
+                request2.arguments,
                 /*simplifiedResult*/
                 true
               ));
@@ -216324,9 +216324,9 @@ ${json}${newLine}`;
             [
               "references-full"
               /* ReferencesFull */
-            ]: (request) => {
+            ]: (request2) => {
               return this.requiredResponse(this.getReferences(
-                request.arguments,
+                request2.arguments,
                 /*simplifiedResult*/
                 false
               ));
@@ -216334,9 +216334,9 @@ ${json}${newLine}`;
             [
               "rename"
               /* Rename */
-            ]: (request) => {
+            ]: (request2) => {
               return this.requiredResponse(this.getRenameLocations(
-                request.arguments,
+                request2.arguments,
                 /*simplifiedResult*/
                 true
               ));
@@ -216344,9 +216344,9 @@ ${json}${newLine}`;
             [
               "renameLocations-full"
               /* RenameLocationsFull */
-            ]: (request) => {
+            ]: (request2) => {
               return this.requiredResponse(this.getRenameLocations(
-                request.arguments,
+                request2.arguments,
                 /*simplifiedResult*/
                 false
               ));
@@ -216354,28 +216354,28 @@ ${json}${newLine}`;
             [
               "rename-full"
               /* RenameInfoFull */
-            ]: (request) => {
-              return this.requiredResponse(this.getRenameInfo(request.arguments));
+            ]: (request2) => {
+              return this.requiredResponse(this.getRenameInfo(request2.arguments));
             },
             [
               "open"
               /* Open */
-            ]: (request) => {
+            ]: (request2) => {
               this.openClientFile(
-                toNormalizedPath(request.arguments.file),
-                request.arguments.fileContent,
-                convertScriptKindName(request.arguments.scriptKindName),
+                toNormalizedPath(request2.arguments.file),
+                request2.arguments.fileContent,
+                convertScriptKindName(request2.arguments.scriptKindName),
                 // TODO: GH#18217
-                request.arguments.projectRootPath ? toNormalizedPath(request.arguments.projectRootPath) : void 0
+                request2.arguments.projectRootPath ? toNormalizedPath(request2.arguments.projectRootPath) : void 0
               );
-              return this.notRequired(request);
+              return this.notRequired(request2);
             },
             [
               "quickinfo"
               /* Quickinfo */
-            ]: (request) => {
+            ]: (request2) => {
               return this.requiredResponse(this.getQuickInfoWorker(
-                request.arguments,
+                request2.arguments,
                 /*simplifiedResult*/
                 true
               ));
@@ -216383,9 +216383,9 @@ ${json}${newLine}`;
             [
               "quickinfo-full"
               /* QuickinfoFull */
-            ]: (request) => {
+            ]: (request2) => {
               return this.requiredResponse(this.getQuickInfoWorker(
-                request.arguments,
+                request2.arguments,
                 /*simplifiedResult*/
                 false
               ));
@@ -216393,9 +216393,9 @@ ${json}${newLine}`;
             [
               "getOutliningSpans"
               /* GetOutliningSpans */
-            ]: (request) => {
+            ]: (request2) => {
               return this.requiredResponse(this.getOutliningSpans(
-                request.arguments,
+                request2.arguments,
                 /*simplifiedResult*/
                 true
               ));
@@ -216403,9 +216403,9 @@ ${json}${newLine}`;
             [
               "outliningSpans"
               /* GetOutliningSpansFull */
-            ]: (request) => {
+            ]: (request2) => {
               return this.requiredResponse(this.getOutliningSpans(
-                request.arguments,
+                request2.arguments,
                 /*simplifiedResult*/
                 false
               ));
@@ -216413,51 +216413,51 @@ ${json}${newLine}`;
             [
               "todoComments"
               /* TodoComments */
-            ]: (request) => {
-              return this.requiredResponse(this.getTodoComments(request.arguments));
+            ]: (request2) => {
+              return this.requiredResponse(this.getTodoComments(request2.arguments));
             },
             [
               "indentation"
               /* Indentation */
-            ]: (request) => {
-              return this.requiredResponse(this.getIndentation(request.arguments));
+            ]: (request2) => {
+              return this.requiredResponse(this.getIndentation(request2.arguments));
             },
             [
               "nameOrDottedNameSpan"
               /* NameOrDottedNameSpan */
-            ]: (request) => {
-              return this.requiredResponse(this.getNameOrDottedNameSpan(request.arguments));
+            ]: (request2) => {
+              return this.requiredResponse(this.getNameOrDottedNameSpan(request2.arguments));
             },
             [
               "breakpointStatement"
               /* BreakpointStatement */
-            ]: (request) => {
-              return this.requiredResponse(this.getBreakpointStatement(request.arguments));
+            ]: (request2) => {
+              return this.requiredResponse(this.getBreakpointStatement(request2.arguments));
             },
             [
               "braceCompletion"
               /* BraceCompletion */
-            ]: (request) => {
-              return this.requiredResponse(this.isValidBraceCompletion(request.arguments));
+            ]: (request2) => {
+              return this.requiredResponse(this.isValidBraceCompletion(request2.arguments));
             },
             [
               "docCommentTemplate"
               /* DocCommentTemplate */
-            ]: (request) => {
-              return this.requiredResponse(this.getDocCommentTemplate(request.arguments));
+            ]: (request2) => {
+              return this.requiredResponse(this.getDocCommentTemplate(request2.arguments));
             },
             [
               "getSpanOfEnclosingComment"
               /* GetSpanOfEnclosingComment */
-            ]: (request) => {
-              return this.requiredResponse(this.getSpanOfEnclosingComment(request.arguments));
+            ]: (request2) => {
+              return this.requiredResponse(this.getSpanOfEnclosingComment(request2.arguments));
             },
             [
               "fileReferences"
               /* FileReferences */
-            ]: (request) => {
+            ]: (request2) => {
               return this.requiredResponse(this.getFileReferences(
-                request.arguments,
+                request2.arguments,
                 /*simplifiedResult*/
                 true
               ));
@@ -216465,9 +216465,9 @@ ${json}${newLine}`;
             [
               "fileReferences-full"
               /* FileReferencesFull */
-            ]: (request) => {
+            ]: (request2) => {
               return this.requiredResponse(this.getFileReferences(
-                request.arguments,
+                request2.arguments,
                 /*simplifiedResult*/
                 false
               ));
@@ -216475,39 +216475,39 @@ ${json}${newLine}`;
             [
               "format"
               /* Format */
-            ]: (request) => {
-              return this.requiredResponse(this.getFormattingEditsForRange(request.arguments));
+            ]: (request2) => {
+              return this.requiredResponse(this.getFormattingEditsForRange(request2.arguments));
             },
             [
               "formatonkey"
               /* Formatonkey */
-            ]: (request) => {
-              return this.requiredResponse(this.getFormattingEditsAfterKeystroke(request.arguments));
+            ]: (request2) => {
+              return this.requiredResponse(this.getFormattingEditsAfterKeystroke(request2.arguments));
             },
             [
               "format-full"
               /* FormatFull */
-            ]: (request) => {
-              return this.requiredResponse(this.getFormattingEditsForDocumentFull(request.arguments));
+            ]: (request2) => {
+              return this.requiredResponse(this.getFormattingEditsForDocumentFull(request2.arguments));
             },
             [
               "formatonkey-full"
               /* FormatonkeyFull */
-            ]: (request) => {
-              return this.requiredResponse(this.getFormattingEditsAfterKeystrokeFull(request.arguments));
+            ]: (request2) => {
+              return this.requiredResponse(this.getFormattingEditsAfterKeystrokeFull(request2.arguments));
             },
             [
               "formatRange-full"
               /* FormatRangeFull */
-            ]: (request) => {
-              return this.requiredResponse(this.getFormattingEditsForRangeFull(request.arguments));
+            ]: (request2) => {
+              return this.requiredResponse(this.getFormattingEditsForRangeFull(request2.arguments));
             },
             [
               "completionInfo"
               /* CompletionInfo */
-            ]: (request) => {
+            ]: (request2) => {
               return this.requiredResponse(this.getCompletions(
-                request.arguments,
+                request2.arguments,
                 "completionInfo"
                 /* CompletionInfo */
               ));
@@ -216515,9 +216515,9 @@ ${json}${newLine}`;
             [
               "completions"
               /* Completions */
-            ]: (request) => {
+            ]: (request2) => {
               return this.requiredResponse(this.getCompletions(
-                request.arguments,
+                request2.arguments,
                 "completions"
                 /* Completions */
               ));
@@ -216525,9 +216525,9 @@ ${json}${newLine}`;
             [
               "completions-full"
               /* CompletionsFull */
-            ]: (request) => {
+            ]: (request2) => {
               return this.requiredResponse(this.getCompletions(
-                request.arguments,
+                request2.arguments,
                 "completions-full"
                 /* CompletionsFull */
               ));
@@ -216535,9 +216535,9 @@ ${json}${newLine}`;
             [
               "completionEntryDetails"
               /* CompletionDetails */
-            ]: (request) => {
+            ]: (request2) => {
               return this.requiredResponse(this.getCompletionEntryDetails(
-                request.arguments,
+                request2.arguments,
                 /*fullResult*/
                 false
               ));
@@ -216545,9 +216545,9 @@ ${json}${newLine}`;
             [
               "completionEntryDetails-full"
               /* CompletionDetailsFull */
-            ]: (request) => {
+            ]: (request2) => {
               return this.requiredResponse(this.getCompletionEntryDetails(
-                request.arguments,
+                request2.arguments,
                 /*fullResult*/
                 true
               ));
@@ -216555,21 +216555,21 @@ ${json}${newLine}`;
             [
               "compileOnSaveAffectedFileList"
               /* CompileOnSaveAffectedFileList */
-            ]: (request) => {
-              return this.requiredResponse(this.getCompileOnSaveAffectedFileList(request.arguments));
+            ]: (request2) => {
+              return this.requiredResponse(this.getCompileOnSaveAffectedFileList(request2.arguments));
             },
             [
               "compileOnSaveEmitFile"
               /* CompileOnSaveEmitFile */
-            ]: (request) => {
-              return this.requiredResponse(this.emitFile(request.arguments));
+            ]: (request2) => {
+              return this.requiredResponse(this.emitFile(request2.arguments));
             },
             [
               "signatureHelp"
               /* SignatureHelp */
-            ]: (request) => {
+            ]: (request2) => {
               return this.requiredResponse(this.getSignatureHelpItems(
-                request.arguments,
+                request2.arguments,
                 /*simplifiedResult*/
                 true
               ));
@@ -216577,9 +216577,9 @@ ${json}${newLine}`;
             [
               "signatureHelp-full"
               /* SignatureHelpFull */
-            ]: (request) => {
+            ]: (request2) => {
               return this.requiredResponse(this.getSignatureHelpItems(
-                request.arguments,
+                request2.arguments,
                 /*simplifiedResult*/
                 false
               ));
@@ -216587,20 +216587,20 @@ ${json}${newLine}`;
             [
               "compilerOptionsDiagnostics-full"
               /* CompilerOptionsDiagnosticsFull */
-            ]: (request) => {
-              return this.requiredResponse(this.getCompilerOptionsDiagnostics(request.arguments));
+            ]: (request2) => {
+              return this.requiredResponse(this.getCompilerOptionsDiagnostics(request2.arguments));
             },
             [
               "encodedSyntacticClassifications-full"
               /* EncodedSyntacticClassificationsFull */
-            ]: (request) => {
-              return this.requiredResponse(this.getEncodedSyntacticClassifications(request.arguments));
+            ]: (request2) => {
+              return this.requiredResponse(this.getEncodedSyntacticClassifications(request2.arguments));
             },
             [
               "encodedSemanticClassifications-full"
               /* EncodedSemanticClassificationsFull */
-            ]: (request) => {
-              return this.requiredResponse(this.getEncodedSemanticClassifications(request.arguments));
+            ]: (request2) => {
+              return this.requiredResponse(this.getEncodedSemanticClassifications(request2.arguments));
             },
             [
               "cleanup"
@@ -216615,26 +216615,26 @@ ${json}${newLine}`;
             [
               "semanticDiagnosticsSync"
               /* SemanticDiagnosticsSync */
-            ]: (request) => {
-              return this.requiredResponse(this.getSemanticDiagnosticsSync(request.arguments));
+            ]: (request2) => {
+              return this.requiredResponse(this.getSemanticDiagnosticsSync(request2.arguments));
             },
             [
               "syntacticDiagnosticsSync"
               /* SyntacticDiagnosticsSync */
-            ]: (request) => {
-              return this.requiredResponse(this.getSyntacticDiagnosticsSync(request.arguments));
+            ]: (request2) => {
+              return this.requiredResponse(this.getSyntacticDiagnosticsSync(request2.arguments));
             },
             [
               "suggestionDiagnosticsSync"
               /* SuggestionDiagnosticsSync */
-            ]: (request) => {
-              return this.requiredResponse(this.getSuggestionDiagnosticsSync(request.arguments));
+            ]: (request2) => {
+              return this.requiredResponse(this.getSuggestionDiagnosticsSync(request2.arguments));
             },
             [
               "geterr"
               /* Geterr */
-            ]: (request) => {
-              this.errorCheck.startNew((next) => this.getDiagnostics(next, request.arguments.delay, request.arguments.files));
+            ]: (request2) => {
+              this.errorCheck.startNew((next) => this.getDiagnostics(next, request2.arguments.delay, request2.arguments.files));
               return this.notRequired(
                 /*request*/
                 void 0
@@ -216643,8 +216643,8 @@ ${json}${newLine}`;
             [
               "geterrForProject"
               /* GeterrForProject */
-            ]: (request) => {
-              this.errorCheck.startNew((next) => this.getDiagnosticsForProject(next, request.arguments.delay, request.arguments.file));
+            ]: (request2) => {
+              this.errorCheck.startNew((next) => this.getDiagnosticsForProject(next, request2.arguments.delay, request2.arguments.file));
               return this.notRequired(
                 /*request*/
                 void 0
@@ -216653,46 +216653,46 @@ ${json}${newLine}`;
             [
               "change"
               /* Change */
-            ]: (request) => {
-              this.change(request.arguments);
-              return this.notRequired(request);
+            ]: (request2) => {
+              this.change(request2.arguments);
+              return this.notRequired(request2);
             },
             [
               "configure"
               /* Configure */
-            ]: (request) => {
-              this.projectService.setHostConfiguration(request.arguments);
-              return this.notRequired(request);
+            ]: (request2) => {
+              this.projectService.setHostConfiguration(request2.arguments);
+              return this.notRequired(request2);
             },
             [
               "reload"
               /* Reload */
-            ]: (request) => {
-              this.reload(request.arguments);
+            ]: (request2) => {
+              this.reload(request2.arguments);
               return this.requiredResponse({ reloadFinished: true });
             },
             [
               "saveto"
               /* Saveto */
-            ]: (request) => {
-              const savetoArgs = request.arguments;
+            ]: (request2) => {
+              const savetoArgs = request2.arguments;
               this.saveToTmp(savetoArgs.file, savetoArgs.tmpfile);
-              return this.notRequired(request);
+              return this.notRequired(request2);
             },
             [
               "close"
               /* Close */
-            ]: (request) => {
-              const closeArgs = request.arguments;
+            ]: (request2) => {
+              const closeArgs = request2.arguments;
               this.closeClientFile(closeArgs.file);
-              return this.notRequired(request);
+              return this.notRequired(request2);
             },
             [
               "navto"
               /* Navto */
-            ]: (request) => {
+            ]: (request2) => {
               return this.requiredResponse(this.getNavigateToItems(
-                request.arguments,
+                request2.arguments,
                 /*simplifiedResult*/
                 true
               ));
@@ -216700,9 +216700,9 @@ ${json}${newLine}`;
             [
               "navto-full"
               /* NavtoFull */
-            ]: (request) => {
+            ]: (request2) => {
               return this.requiredResponse(this.getNavigateToItems(
-                request.arguments,
+                request2.arguments,
                 /*simplifiedResult*/
                 false
               ));
@@ -216710,9 +216710,9 @@ ${json}${newLine}`;
             [
               "brace"
               /* Brace */
-            ]: (request) => {
+            ]: (request2) => {
               return this.requiredResponse(this.getBraceMatching(
-                request.arguments,
+                request2.arguments,
                 /*simplifiedResult*/
                 true
               ));
@@ -216720,9 +216720,9 @@ ${json}${newLine}`;
             [
               "brace-full"
               /* BraceFull */
-            ]: (request) => {
+            ]: (request2) => {
               return this.requiredResponse(this.getBraceMatching(
-                request.arguments,
+                request2.arguments,
                 /*simplifiedResult*/
                 false
               ));
@@ -216730,9 +216730,9 @@ ${json}${newLine}`;
             [
               "navbar"
               /* NavBar */
-            ]: (request) => {
+            ]: (request2) => {
               return this.requiredResponse(this.getNavigationBarItems(
-                request.arguments,
+                request2.arguments,
                 /*simplifiedResult*/
                 true
               ));
@@ -216740,9 +216740,9 @@ ${json}${newLine}`;
             [
               "navbar-full"
               /* NavBarFull */
-            ]: (request) => {
+            ]: (request2) => {
               return this.requiredResponse(this.getNavigationBarItems(
-                request.arguments,
+                request2.arguments,
                 /*simplifiedResult*/
                 false
               ));
@@ -216750,9 +216750,9 @@ ${json}${newLine}`;
             [
               "navtree"
               /* NavTree */
-            ]: (request) => {
+            ]: (request2) => {
               return this.requiredResponse(this.getNavigationTree(
-                request.arguments,
+                request2.arguments,
                 /*simplifiedResult*/
                 true
               ));
@@ -216760,9 +216760,9 @@ ${json}${newLine}`;
             [
               "navtree-full"
               /* NavTreeFull */
-            ]: (request) => {
+            ]: (request2) => {
               return this.requiredResponse(this.getNavigationTree(
-                request.arguments,
+                request2.arguments,
                 /*simplifiedResult*/
                 false
               ));
@@ -216770,9 +216770,9 @@ ${json}${newLine}`;
             [
               "documentHighlights"
               /* DocumentHighlights */
-            ]: (request) => {
+            ]: (request2) => {
               return this.requiredResponse(this.getDocumentHighlights(
-                request.arguments,
+                request2.arguments,
                 /*simplifiedResult*/
                 true
               ));
@@ -216780,9 +216780,9 @@ ${json}${newLine}`;
             [
               "documentHighlights-full"
               /* DocumentHighlightsFull */
-            ]: (request) => {
+            ]: (request2) => {
               return this.requiredResponse(this.getDocumentHighlights(
-                request.arguments,
+                request2.arguments,
                 /*simplifiedResult*/
                 false
               ));
@@ -216790,8 +216790,8 @@ ${json}${newLine}`;
             [
               "compilerOptionsForInferredProjects"
               /* CompilerOptionsForInferredProjects */
-            ]: (request) => {
-              this.setCompilerOptionsForInferredProjects(request.arguments);
+            ]: (request2) => {
+              this.setCompilerOptionsForInferredProjects(request2.arguments);
               return this.requiredResponse(
                 /*response*/
                 true
@@ -216800,34 +216800,34 @@ ${json}${newLine}`;
             [
               "projectInfo"
               /* ProjectInfo */
-            ]: (request) => {
-              return this.requiredResponse(this.getProjectInfo(request.arguments));
+            ]: (request2) => {
+              return this.requiredResponse(this.getProjectInfo(request2.arguments));
             },
             [
               "reloadProjects"
               /* ReloadProjects */
-            ]: (request) => {
+            ]: (request2) => {
               this.projectService.reloadProjects();
-              return this.notRequired(request);
+              return this.notRequired(request2);
             },
             [
               "jsxClosingTag"
               /* JsxClosingTag */
-            ]: (request) => {
-              return this.requiredResponse(this.getJsxClosingTag(request.arguments));
+            ]: (request2) => {
+              return this.requiredResponse(this.getJsxClosingTag(request2.arguments));
             },
             [
               "linkedEditingRange"
               /* LinkedEditingRange */
-            ]: (request) => {
-              return this.requiredResponse(this.getLinkedEditingRange(request.arguments));
+            ]: (request2) => {
+              return this.requiredResponse(this.getLinkedEditingRange(request2.arguments));
             },
             [
               "getCodeFixes"
               /* GetCodeFixes */
-            ]: (request) => {
+            ]: (request2) => {
               return this.requiredResponse(this.getCodeFixes(
-                request.arguments,
+                request2.arguments,
                 /*simplifiedResult*/
                 true
               ));
@@ -216835,9 +216835,9 @@ ${json}${newLine}`;
             [
               "getCodeFixes-full"
               /* GetCodeFixesFull */
-            ]: (request) => {
+            ]: (request2) => {
               return this.requiredResponse(this.getCodeFixes(
-                request.arguments,
+                request2.arguments,
                 /*simplifiedResult*/
                 false
               ));
@@ -216845,9 +216845,9 @@ ${json}${newLine}`;
             [
               "getCombinedCodeFix"
               /* GetCombinedCodeFix */
-            ]: (request) => {
+            ]: (request2) => {
               return this.requiredResponse(this.getCombinedCodeFix(
-                request.arguments,
+                request2.arguments,
                 /*simplifiedResult*/
                 true
               ));
@@ -216855,9 +216855,9 @@ ${json}${newLine}`;
             [
               "getCombinedCodeFix-full"
               /* GetCombinedCodeFixFull */
-            ]: (request) => {
+            ]: (request2) => {
               return this.requiredResponse(this.getCombinedCodeFix(
-                request.arguments,
+                request2.arguments,
                 /*simplifiedResult*/
                 false
               ));
@@ -216865,27 +216865,27 @@ ${json}${newLine}`;
             [
               "applyCodeActionCommand"
               /* ApplyCodeActionCommand */
-            ]: (request) => {
-              return this.requiredResponse(this.applyCodeActionCommand(request.arguments));
+            ]: (request2) => {
+              return this.requiredResponse(this.applyCodeActionCommand(request2.arguments));
             },
             [
               "getSupportedCodeFixes"
               /* GetSupportedCodeFixes */
-            ]: (request) => {
-              return this.requiredResponse(this.getSupportedCodeFixes(request.arguments));
+            ]: (request2) => {
+              return this.requiredResponse(this.getSupportedCodeFixes(request2.arguments));
             },
             [
               "getApplicableRefactors"
               /* GetApplicableRefactors */
-            ]: (request) => {
-              return this.requiredResponse(this.getApplicableRefactors(request.arguments));
+            ]: (request2) => {
+              return this.requiredResponse(this.getApplicableRefactors(request2.arguments));
             },
             [
               "getEditsForRefactor"
               /* GetEditsForRefactor */
-            ]: (request) => {
+            ]: (request2) => {
               return this.requiredResponse(this.getEditsForRefactor(
-                request.arguments,
+                request2.arguments,
                 /*simplifiedResult*/
                 true
               ));
@@ -216893,27 +216893,27 @@ ${json}${newLine}`;
             [
               "getMoveToRefactoringFileSuggestions"
               /* GetMoveToRefactoringFileSuggestions */
-            ]: (request) => {
-              return this.requiredResponse(this.getMoveToRefactoringFileSuggestions(request.arguments));
+            ]: (request2) => {
+              return this.requiredResponse(this.getMoveToRefactoringFileSuggestions(request2.arguments));
             },
             [
               "preparePasteEdits"
               /* PreparePasteEdits */
-            ]: (request) => {
-              return this.requiredResponse(this.preparePasteEdits(request.arguments));
+            ]: (request2) => {
+              return this.requiredResponse(this.preparePasteEdits(request2.arguments));
             },
             [
               "getPasteEdits"
               /* GetPasteEdits */
-            ]: (request) => {
-              return this.requiredResponse(this.getPasteEdits(request.arguments));
+            ]: (request2) => {
+              return this.requiredResponse(this.getPasteEdits(request2.arguments));
             },
             [
               "getEditsForRefactor-full"
               /* GetEditsForRefactorFull */
-            ]: (request) => {
+            ]: (request2) => {
               return this.requiredResponse(this.getEditsForRefactor(
-                request.arguments,
+                request2.arguments,
                 /*simplifiedResult*/
                 false
               ));
@@ -216921,9 +216921,9 @@ ${json}${newLine}`;
             [
               "organizeImports"
               /* OrganizeImports */
-            ]: (request) => {
+            ]: (request2) => {
               return this.requiredResponse(this.organizeImports(
-                request.arguments,
+                request2.arguments,
                 /*simplifiedResult*/
                 true
               ));
@@ -216931,9 +216931,9 @@ ${json}${newLine}`;
             [
               "organizeImports-full"
               /* OrganizeImportsFull */
-            ]: (request) => {
+            ]: (request2) => {
               return this.requiredResponse(this.organizeImports(
-                request.arguments,
+                request2.arguments,
                 /*simplifiedResult*/
                 false
               ));
@@ -216941,9 +216941,9 @@ ${json}${newLine}`;
             [
               "getEditsForFileRename"
               /* GetEditsForFileRename */
-            ]: (request) => {
+            ]: (request2) => {
               return this.requiredResponse(this.getEditsForFileRename(
-                request.arguments,
+                request2.arguments,
                 /*simplifiedResult*/
                 true
               ));
@@ -216951,9 +216951,9 @@ ${json}${newLine}`;
             [
               "getEditsForFileRename-full"
               /* GetEditsForFileRenameFull */
-            ]: (request) => {
+            ]: (request2) => {
               return this.requiredResponse(this.getEditsForFileRename(
-                request.arguments,
+                request2.arguments,
                 /*simplifiedResult*/
                 false
               ));
@@ -216961,16 +216961,16 @@ ${json}${newLine}`;
             [
               "configurePlugin"
               /* ConfigurePlugin */
-            ]: (request) => {
-              this.configurePlugin(request.arguments);
-              return this.notRequired(request);
+            ]: (request2) => {
+              this.configurePlugin(request2.arguments);
+              return this.notRequired(request2);
             },
             [
               "selectionRange"
               /* SelectionRange */
-            ]: (request) => {
+            ]: (request2) => {
               return this.requiredResponse(this.getSmartSelectionRange(
-                request.arguments,
+                request2.arguments,
                 /*simplifiedResult*/
                 true
               ));
@@ -216978,9 +216978,9 @@ ${json}${newLine}`;
             [
               "selectionRange-full"
               /* SelectionRangeFull */
-            ]: (request) => {
+            ]: (request2) => {
               return this.requiredResponse(this.getSmartSelectionRange(
-                request.arguments,
+                request2.arguments,
                 /*simplifiedResult*/
                 false
               ));
@@ -216988,27 +216988,27 @@ ${json}${newLine}`;
             [
               "prepareCallHierarchy"
               /* PrepareCallHierarchy */
-            ]: (request) => {
-              return this.requiredResponse(this.prepareCallHierarchy(request.arguments));
+            ]: (request2) => {
+              return this.requiredResponse(this.prepareCallHierarchy(request2.arguments));
             },
             [
               "provideCallHierarchyIncomingCalls"
               /* ProvideCallHierarchyIncomingCalls */
-            ]: (request) => {
-              return this.requiredResponse(this.provideCallHierarchyIncomingCalls(request.arguments));
+            ]: (request2) => {
+              return this.requiredResponse(this.provideCallHierarchyIncomingCalls(request2.arguments));
             },
             [
               "provideCallHierarchyOutgoingCalls"
               /* ProvideCallHierarchyOutgoingCalls */
-            ]: (request) => {
-              return this.requiredResponse(this.provideCallHierarchyOutgoingCalls(request.arguments));
+            ]: (request2) => {
+              return this.requiredResponse(this.provideCallHierarchyOutgoingCalls(request2.arguments));
             },
             [
               "toggleLineComment"
               /* ToggleLineComment */
-            ]: (request) => {
+            ]: (request2) => {
               return this.requiredResponse(this.toggleLineComment(
-                request.arguments,
+                request2.arguments,
                 /*simplifiedResult*/
                 true
               ));
@@ -217016,9 +217016,9 @@ ${json}${newLine}`;
             [
               "toggleLineComment-full"
               /* ToggleLineCommentFull */
-            ]: (request) => {
+            ]: (request2) => {
               return this.requiredResponse(this.toggleLineComment(
-                request.arguments,
+                request2.arguments,
                 /*simplifiedResult*/
                 false
               ));
@@ -217026,9 +217026,9 @@ ${json}${newLine}`;
             [
               "toggleMultilineComment"
               /* ToggleMultilineComment */
-            ]: (request) => {
+            ]: (request2) => {
               return this.requiredResponse(this.toggleMultilineComment(
-                request.arguments,
+                request2.arguments,
                 /*simplifiedResult*/
                 true
               ));
@@ -217036,9 +217036,9 @@ ${json}${newLine}`;
             [
               "toggleMultilineComment-full"
               /* ToggleMultilineCommentFull */
-            ]: (request) => {
+            ]: (request2) => {
               return this.requiredResponse(this.toggleMultilineComment(
-                request.arguments,
+                request2.arguments,
                 /*simplifiedResult*/
                 false
               ));
@@ -217046,9 +217046,9 @@ ${json}${newLine}`;
             [
               "commentSelection"
               /* CommentSelection */
-            ]: (request) => {
+            ]: (request2) => {
               return this.requiredResponse(this.commentSelection(
-                request.arguments,
+                request2.arguments,
                 /*simplifiedResult*/
                 true
               ));
@@ -217056,9 +217056,9 @@ ${json}${newLine}`;
             [
               "commentSelection-full"
               /* CommentSelectionFull */
-            ]: (request) => {
+            ]: (request2) => {
               return this.requiredResponse(this.commentSelection(
-                request.arguments,
+                request2.arguments,
                 /*simplifiedResult*/
                 false
               ));
@@ -217066,9 +217066,9 @@ ${json}${newLine}`;
             [
               "uncommentSelection"
               /* UncommentSelection */
-            ]: (request) => {
+            ]: (request2) => {
               return this.requiredResponse(this.uncommentSelection(
-                request.arguments,
+                request2.arguments,
                 /*simplifiedResult*/
                 true
               ));
@@ -217076,9 +217076,9 @@ ${json}${newLine}`;
             [
               "uncommentSelection-full"
               /* UncommentSelectionFull */
-            ]: (request) => {
+            ]: (request2) => {
               return this.requiredResponse(this.uncommentSelection(
-                request.arguments,
+                request2.arguments,
                 /*simplifiedResult*/
                 false
               ));
@@ -217086,14 +217086,14 @@ ${json}${newLine}`;
             [
               "provideInlayHints"
               /* ProvideInlayHints */
-            ]: (request) => {
-              return this.requiredResponse(this.provideInlayHints(request.arguments));
+            ]: (request2) => {
+              return this.requiredResponse(this.provideInlayHints(request2.arguments));
             },
             [
               "mapCode"
               /* MapCode */
-            ]: (request) => {
-              return this.requiredResponse(this.mapCode(request.arguments));
+            ]: (request2) => {
+              return this.requiredResponse(this.mapCode(request2.arguments));
             },
             [
               "copilotRelated"
@@ -217155,15 +217155,15 @@ ${json}${newLine}`;
               break;
             case 1:
               invalidPartialSemanticModeCommands.forEach(
-                (commandName) => this.handlers.set(commandName, (request) => {
-                  throw new Error(`Request: ${request.command} not allowed in LanguageServiceMode.PartialSemantic`);
+                (commandName) => this.handlers.set(commandName, (request2) => {
+                  throw new Error(`Request: ${request2.command} not allowed in LanguageServiceMode.PartialSemantic`);
                 })
               );
               break;
             case 2:
               invalidSyntacticModeCommands.forEach(
-                (commandName) => this.handlers.set(commandName, (request) => {
-                  throw new Error(`Request: ${request.command} not allowed in LanguageServiceMode.Syntactic`);
+                (commandName) => this.handlers.set(commandName, (request2) => {
+                  throw new Error(`Request: ${request2.command} not allowed in LanguageServiceMode.Syntactic`);
                 })
               );
               break;
@@ -219206,12 +219206,12 @@ Additional information: BADCLIENT: Bad error code, ${badCode} not found in range
         }
         exit() {
         }
-        notRequired(request) {
-          if (request) this.doOutput(
+        notRequired(request2) {
+          if (request2) this.doOutput(
             /*info*/
             void 0,
-            request.command,
-            request.seq,
+            request2.command,
+            request2.seq,
             /*success*/
             true,
             this.performanceData
@@ -219249,12 +219249,12 @@ Additional information: BADCLIENT: Bad error code, ${badCode} not found in range
             this.performanceData = currentPerformanceData;
           }
         }
-        executeCommand(request) {
-          const handler = this.handlers.get(request.command);
+        executeCommand(request2) {
+          const handler = this.handlers.get(request2.command);
           if (handler) {
             const response = this.executeWithRequestId(
-              request.seq,
-              () => handler(request),
+              request2.seq,
+              () => handler(request2),
               /*perfomanceData*/
               void 0
             );
@@ -219262,7 +219262,7 @@ Additional information: BADCLIENT: Bad error code, ${badCode} not found in range
             return response;
           } else {
             this.logger.msg(
-              `Unrecognized JSON command:${stringifyIndented(request)}`,
+              `Unrecognized JSON command:${stringifyIndented(request2)}`,
               "Err"
               /* Err */
             );
@@ -219270,12 +219270,12 @@ Additional information: BADCLIENT: Bad error code, ${badCode} not found in range
               /*info*/
               void 0,
               "unknown",
-              request.seq,
+              request2.seq,
               /*success*/
               false,
               /*performanceData*/
               void 0,
-              `Unrecognized JSON command: ${request.command}`
+              `Unrecognized JSON command: ${request2.command}`
             );
             return { responseRequired: false };
           }
@@ -219297,20 +219297,20 @@ Additional information: BADCLIENT: Bad error code, ${badCode} not found in range
               this.logger.info(`request:${indent2(this.toStringMessage(message))}`);
             }
           }
-          let request;
+          let request2;
           let relevantFile;
           try {
-            request = this.parseMessage(message);
-            relevantFile = request.arguments && request.arguments.file ? request.arguments : void 0;
-            (_a2 = tracing) == null ? void 0 : _a2.instant(tracing.Phase.Session, "request", { seq: request.seq, command: request.command });
+            request2 = this.parseMessage(message);
+            relevantFile = request2.arguments && request2.arguments.file ? request2.arguments : void 0;
+            (_a2 = tracing) == null ? void 0 : _a2.instant(tracing.Phase.Session, "request", { seq: request2.seq, command: request2.command });
             (_b = tracing) == null ? void 0 : _b.push(
               tracing.Phase.Session,
               "executeCommand",
-              { seq: request.seq, command: request.command },
+              { seq: request2.seq, command: request2.command },
               /*separateBeginAndEnd*/
               true
             );
-            const { response, responseRequired, performanceData } = this.executeCommand(request);
+            const { response, responseRequired, performanceData } = this.executeCommand(request2);
             (_c = tracing) == null ? void 0 : _c.pop();
             if (this.logger.hasLevel(
               2
@@ -219318,17 +219318,17 @@ Additional information: BADCLIENT: Bad error code, ${badCode} not found in range
             )) {
               const elapsedTime = hrTimeToMilliseconds(this.hrtime(start)).toFixed(4);
               if (responseRequired) {
-                this.logger.perftrc(`${request.seq}::${request.command}: elapsed time (in milliseconds) ${elapsedTime}`);
+                this.logger.perftrc(`${request2.seq}::${request2.command}: elapsed time (in milliseconds) ${elapsedTime}`);
               } else {
-                this.logger.perftrc(`${request.seq}::${request.command}: async elapsed time (in milliseconds) ${elapsedTime}`);
+                this.logger.perftrc(`${request2.seq}::${request2.command}: async elapsed time (in milliseconds) ${elapsedTime}`);
               }
             }
-            (_d = tracing) == null ? void 0 : _d.instant(tracing.Phase.Session, "response", { seq: request.seq, command: request.command, success: !!response });
+            (_d = tracing) == null ? void 0 : _d.instant(tracing.Phase.Session, "response", { seq: request2.seq, command: request2.command, success: !!response });
             if (response) {
               this.doOutput(
                 response,
-                request.command,
-                request.seq,
+                request2.command,
+                request2.seq,
                 /*success*/
                 true,
                 performanceData
@@ -219337,8 +219337,8 @@ Additional information: BADCLIENT: Bad error code, ${badCode} not found in range
               this.doOutput(
                 /*info*/
                 void 0,
-                request.command,
-                request.seq,
+                request2.command,
+                request2.seq,
                 /*success*/
                 false,
                 performanceData,
@@ -219348,11 +219348,11 @@ Additional information: BADCLIENT: Bad error code, ${badCode} not found in range
           } catch (err) {
             (_e = tracing) == null ? void 0 : _e.popAll();
             if (err instanceof OperationCanceledException) {
-              (_f = tracing) == null ? void 0 : _f.instant(tracing.Phase.Session, "commandCanceled", { seq: request == null ? void 0 : request.seq, command: request == null ? void 0 : request.command });
+              (_f = tracing) == null ? void 0 : _f.instant(tracing.Phase.Session, "commandCanceled", { seq: request2 == null ? void 0 : request2.seq, command: request2 == null ? void 0 : request2.command });
               this.doOutput(
                 { canceled: true },
-                request.command,
-                request.seq,
+                request2.command,
+                request2.seq,
                 /*success*/
                 true,
                 this.performanceData
@@ -219360,12 +219360,12 @@ Additional information: BADCLIENT: Bad error code, ${badCode} not found in range
               return;
             }
             this.logErrorWorker(err, this.toStringMessage(message), relevantFile);
-            (_g = tracing) == null ? void 0 : _g.instant(tracing.Phase.Session, "commandError", { seq: request == null ? void 0 : request.seq, command: request == null ? void 0 : request.command, message: err.message });
+            (_g = tracing) == null ? void 0 : _g.instant(tracing.Phase.Session, "commandError", { seq: request2 == null ? void 0 : request2.seq, command: request2 == null ? void 0 : request2.command, message: err.message });
             this.doOutput(
               /*info*/
               void 0,
-              request ? request.command : "unknown",
-              request ? request.seq : 0,
+              request2 ? request2.command : "unknown",
+              request2 ? request2.seq : 0,
               /*success*/
               false,
               this.performanceData,
@@ -220233,11 +220233,11 @@ Additional information: BADCLIENT: Bad error code, ${badCode} not found in range
         }
         installPackage(options) {
           this.packageInstallId++;
-          const request = { kind: "installPackage", ...options, id: this.packageInstallId };
+          const request2 = { kind: "installPackage", ...options, id: this.packageInstallId };
           const promise = new Promise((resolve3, reject) => {
             (this.packageInstalledPromise ?? (this.packageInstalledPromise = /* @__PURE__ */ new Map())).set(this.packageInstallId, { resolve: resolve3, reject });
           });
-          this.installer.send(request);
+          this.installer.send(request2);
           return promise;
         }
         attach(projectService) {
@@ -220248,24 +220248,24 @@ Additional information: BADCLIENT: Bad error code, ${badCode} not found in range
           this.installer.send({ projectName: p.getProjectName(), kind: "closeProject" });
         }
         enqueueInstallTypingsRequest(project, typeAcquisition, unresolvedImports) {
-          const request = createInstallTypingsRequest(project, typeAcquisition, unresolvedImports);
+          const request2 = createInstallTypingsRequest(project, typeAcquisition, unresolvedImports);
           if (this.logger.hasLevel(
             3
             /* verbose */
           )) {
-            this.logger.info(`TIAdapter:: Scheduling throttled operation:${stringifyIndented(request)}`);
+            this.logger.info(`TIAdapter:: Scheduling throttled operation:${stringifyIndented(request2)}`);
           }
           if (this.activeRequestCount < this.maxActiveRequestCount) {
-            this.scheduleRequest(request);
+            this.scheduleRequest(request2);
           } else {
             if (this.logger.hasLevel(
               3
               /* verbose */
             )) {
-              this.logger.info(`TIAdapter:: Deferring request for: ${request.projectName}`);
+              this.logger.info(`TIAdapter:: Deferring request for: ${request2.projectName}`);
             }
-            this.requestQueue.enqueue(request);
-            this.requestMap.set(request.projectName, request);
+            this.requestQueue.enqueue(request2);
+            this.requestMap.set(request2.projectName, request2);
           }
         }
         handleMessage(response) {
@@ -220367,12 +220367,12 @@ Additional information: BADCLIENT: Bad error code, ${badCode} not found in range
               assertType(response);
           }
         }
-        scheduleRequest(request) {
+        scheduleRequest(request2) {
           if (this.logger.hasLevel(
             3
             /* verbose */
           )) {
-            this.logger.info(`TIAdapter:: Scheduling request for: ${request.projectName}`);
+            this.logger.info(`TIAdapter:: Scheduling request for: ${request2.projectName}`);
           }
           this.activeRequestCount++;
           this.host.setTimeout(
@@ -220381,12 +220381,12 @@ Additional information: BADCLIENT: Bad error code, ${badCode} not found in range
                 3
                 /* verbose */
               )) {
-                this.logger.info(`TIAdapter:: Sending request:${stringifyIndented(request)}`);
+                this.logger.info(`TIAdapter:: Sending request:${stringifyIndented(request2)}`);
               }
-              this.installer.send(request);
+              this.installer.send(request2);
             },
             _TypingsInstallerAdapter2.requestDelayMillis,
-            `${request.projectName}::${request.kind}`
+            `${request2.projectName}::${request2.kind}`
           );
         }
       };
@@ -222550,7 +222550,7 @@ var require_path_browserify = __commonJS({
       }
       return res;
     }
-    function _format(sep3, pathObject) {
+    function _format(sep4, pathObject) {
       var dir = pathObject.dir || pathObject.root;
       var base = pathObject.base || (pathObject.name || "") + (pathObject.ext || "");
       if (!dir) {
@@ -222559,9 +222559,9 @@ var require_path_browserify = __commonJS({
       if (dir === pathObject.root) {
         return dir + base;
       }
-      return dir + sep3 + base;
+      return dir + sep4 + base;
     }
-    var posix2 = {
+    var posix3 = {
       // path.resolve([from ...], to)
       resolve: function resolve3() {
         var resolvedPath = "";
@@ -222626,14 +222626,14 @@ var require_path_browserify = __commonJS({
         }
         if (joined === void 0)
           return ".";
-        return posix2.normalize(joined);
+        return posix3.normalize(joined);
       },
-      relative: function relative5(from, to) {
+      relative: function relative6(from, to) {
         assertPath(from);
         assertPath(to);
         if (from === to) return "";
-        from = posix2.resolve(from);
-        to = posix2.resolve(to);
+        from = posix3.resolve(from);
+        to = posix3.resolve(to);
         if (from === to) return "";
         var fromStart = 1;
         for (; fromStart < from.length; ++fromStart) {
@@ -222880,8 +222880,8 @@ var require_path_browserify = __commonJS({
       win32: null,
       posix: null
     };
-    posix2.posix = posix2;
-    module2.exports = posix2;
+    posix3.posix = posix3;
+    module2.exports = posix3;
   }
 });
 
@@ -223986,9 +223986,9 @@ var require_parse = __commonJS({
                 const idx = prev.value.lastIndexOf("[");
                 const pre = prev.value.slice(0, idx);
                 const rest2 = prev.value.slice(idx + 2);
-                const posix2 = POSIX_REGEX_SOURCE[rest2];
-                if (posix2) {
-                  prev.value = pre + posix2;
+                const posix3 = POSIX_REGEX_SOURCE[rest2];
+                if (posix3) {
+                  prev.value = pre + posix3;
                   state.backtrack = true;
                   advance();
                   if (!bos.output && tokens.indexOf(prev) === 1) {
@@ -224504,7 +224504,7 @@ var require_picomatch = __commonJS({
         throw new TypeError("Expected pattern to be a non-empty string");
       }
       const opts = options || {};
-      const posix2 = opts.windows;
+      const posix3 = opts.windows;
       const regex2 = isState ? picomatch.compileRe(glob, options) : picomatch.makeRe(glob, options, false, true);
       const state = regex2.state;
       delete regex2.state;
@@ -224514,8 +224514,8 @@ var require_picomatch = __commonJS({
         isIgnored = picomatch(opts.ignore, ignoreOpts, returnState);
       }
       const matcher = (input, returnObject = false) => {
-        const { isMatch, match: match2, output } = picomatch.test(input, regex2, options, { glob, posix: posix2 });
-        const result = { glob, state, regex: regex2, posix: posix2, input, output, match: match2, isMatch };
+        const { isMatch, match: match2, output } = picomatch.test(input, regex2, options, { glob, posix: posix3 });
+        const result = { glob, state, regex: regex2, posix: posix3, input, output, match: match2, isMatch };
         if (typeof opts.onResult === "function") {
           opts.onResult(result);
         }
@@ -224540,7 +224540,7 @@ var require_picomatch = __commonJS({
       }
       return matcher;
     };
-    picomatch.test = (input, regex2, options, { glob, posix: posix2 } = {}) => {
+    picomatch.test = (input, regex2, options, { glob, posix: posix3 } = {}) => {
       if (typeof input !== "string") {
         throw new TypeError("Expected input to be a string");
       }
@@ -224548,7 +224548,7 @@ var require_picomatch = __commonJS({
         return { isMatch: false, output: "" };
       }
       const opts = options || {};
-      const format = opts.format || (posix2 ? utils.toPosixSlashes : null);
+      const format = opts.format || (posix3 ? utils.toPosixSlashes : null);
       let match2 = input === glob;
       let output = match2 && format ? format(input) : input;
       if (match2 === false) {
@@ -224557,7 +224557,7 @@ var require_picomatch = __commonJS({
       }
       if (match2 === false || opts.capture === true) {
         if (opts.matchBase === true || opts.basename === true) {
-          match2 = picomatch.matchBase(input, regex2, options, posix2);
+          match2 = picomatch.matchBase(input, regex2, options, posix3);
         } else {
           match2 = regex2.exec(output);
         }
@@ -225362,10 +225362,10 @@ var require_dist3 = __commonJS({
         ignore: ignorePatterns
       };
     }
-    function formatPaths(paths, relative5) {
+    function formatPaths(paths, relative6) {
       for (let i = paths.length - 1; i >= 0; i--) {
         const path$2 = paths[i];
-        paths[i] = relative5(path$2);
+        paths[i] = relative6(path$2);
       }
       return paths;
     }
@@ -225462,26 +225462,26 @@ var require_dist3 = __commonJS({
       props.root = props.root.replace(BACKSLASHES, "");
       const root = props.root;
       if (options.debug) log("internal properties:", props);
-      const relative5 = cwd !== root && !options.absolute && buildRelative(cwd, props.root);
-      return [new fdir.fdir(fdirOptions).crawl(root), relative5];
+      const relative6 = cwd !== root && !options.absolute && buildRelative(cwd, props.root);
+      return [new fdir.fdir(fdirOptions).crawl(root), relative6];
     }
     async function glob(patternsOrOptions, options) {
       if (patternsOrOptions && (options === null || options === void 0 ? void 0 : options.patterns)) throw new Error("Cannot pass patterns as both an argument and an option");
       const isModern = isReadonlyArray(patternsOrOptions) || typeof patternsOrOptions === "string";
       const opts = isModern ? options : patternsOrOptions;
       const patterns = isModern ? patternsOrOptions : patternsOrOptions.patterns;
-      const [crawler, relative5] = getCrawler(patterns, opts);
-      if (!relative5) return crawler.withPromise();
-      return formatPaths(await crawler.withPromise(), relative5);
+      const [crawler, relative6] = getCrawler(patterns, opts);
+      if (!relative6) return crawler.withPromise();
+      return formatPaths(await crawler.withPromise(), relative6);
     }
     function globSync(patternsOrOptions, options) {
       if (patternsOrOptions && (options === null || options === void 0 ? void 0 : options.patterns)) throw new Error("Cannot pass patterns as both an argument and an option");
       const isModern = isReadonlyArray(patternsOrOptions) || typeof patternsOrOptions === "string";
       const opts = isModern ? options : patternsOrOptions;
       const patterns = isModern ? patternsOrOptions : patternsOrOptions.patterns;
-      const [crawler, relative5] = getCrawler(patterns, opts);
-      if (!relative5) return crawler.sync();
-      return formatPaths(crawler.sync(), relative5);
+      const [crawler, relative6] = getCrawler(patterns, opts);
+      if (!relative6) return crawler.sync();
+      return formatPaths(crawler.sync(), relative6);
     }
     exports2.convertPathToPattern = convertPathToPattern;
     exports2.escapePath = escapePath;
@@ -251604,8 +251604,8 @@ __export(action_exports, {
   runAction: () => runAction
 });
 module.exports = __toCommonJS(action_exports);
-var import_node_fs10 = require("fs");
-var import_node_path11 = require("path");
+var import_node_fs11 = require("fs");
+var import_node_path12 = require("path");
 
 // src/config.ts
 var import_node_fs = require("fs");
@@ -252381,6 +252381,12 @@ function applyBaseline(results, baseline) {
   };
 }
 
+// src/core/github-pr.ts
+var import_node_fs3 = require("fs");
+
+// src/reporters/pr-comment.ts
+var import_node_path2 = require("path");
+
 // src/core/issues.ts
 function isActive(issue) {
   return !issue.suppression && issue.baseline !== true;
@@ -252399,8 +252405,185 @@ function inactiveCounts(analyzers) {
   return counts;
 }
 
+// src/reporters/pr-comment.ts
+var PR_COMMENT_MARKER = "<!-- codediag:pr-comment -->";
+var SCORE_MARKER = /<!-- codediag:score=(\d+(?:\.\d+)?) -->/;
+var MAX_LISTED_FINDINGS = 25;
+var SEVERITY_ICONS = { critical: "\u{1F534}", warning: "\u{1F7E1}", info: "\u{1F535}" };
+function previousScore(body) {
+  const match2 = SCORE_MARKER.exec(body);
+  return match2 ? Number(match2[1]) : void 0;
+}
+function escapeCell(value) {
+  return value.replaceAll("|", "\\|").replace(/\r?\n/g, " ");
+}
+function scoreChange(score, previous) {
+  if (previous === void 0) return "";
+  const delta = Math.round((score - previous) * 10) / 10;
+  if (delta === 0) return "no change since the last run";
+  return delta > 0 ? `\u25B2 +${delta} since the last run` : `\u25BC \u2212${Math.abs(delta)} since the last run`;
+}
+function findingRow({ issue, path: path2 }) {
+  const location = issue.line ? `${path2}:${issue.line}` : path2;
+  return `| ${SEVERITY_ICONS[issue.severity]} | [\`${issue.rule}\`](${ruleDocsUrl(issue.rule)}) | \`${escapeCell(location)}\` | ${escapeCell(issue.message)} |`;
+}
+function renderPrComment(input) {
+  const { result, threshold, changedFiles: changedFiles2, projectDirectory } = input;
+  const passed = !isBelowThreshold(result.totalScore, threshold);
+  const status = [
+    scoreChange(result.totalScore, input.previousScore),
+    `threshold ${threshold}`
+  ].filter(Boolean);
+  const lines = [
+    PR_COMMENT_MARKER,
+    `<!-- codediag:score=${result.totalScore} -->`,
+    `## ${passed ? "\u2705" : "\u274C"} CodeDiag: ${result.totalScore}/100 (${result.grade})`,
+    "",
+    status.join(" \xB7 "),
+    "",
+    "| Analyzer | Score | Findings |",
+    "| --- | ---: | ---: |",
+    ...result.analyzers.map(
+      (analyzer) => `| ${escapeCell(analyzer.name)} | ${analyzer.score}/100 | ${activeIssues(analyzer).length} |`
+    ),
+    ""
+  ];
+  const actionable = result.analyzers.flatMap(activeIssues).filter((issue) => issue.severity !== "info");
+  const inChangedFiles = [];
+  let elsewhere = 0;
+  for (const issue of actionable) {
+    const path2 = issue.file ? import_node_path2.posix.join(projectDirectory, issue.file) : void 0;
+    if (path2 && changedFiles2.has(path2)) inChangedFiles.push({ issue, path: path2 });
+    else elsewhere += 1;
+  }
+  inChangedFiles.sort(
+    (left, right) => Number(right.issue.severity === "critical") - Number(left.issue.severity === "critical") || left.path.localeCompare(right.path) || (left.issue.line ?? 0) - (right.issue.line ?? 0)
+  );
+  if (inChangedFiles.length === 0) {
+    lines.push("No findings in the files this pull request changes.");
+  } else {
+    lines.push(
+      `### Findings in changed files (${inChangedFiles.length})`,
+      "",
+      "| | Rule | Location | Finding |",
+      "| --- | --- | --- | --- |",
+      ...inChangedFiles.slice(0, MAX_LISTED_FINDINGS).map(findingRow)
+    );
+    if (inChangedFiles.length > MAX_LISTED_FINDINGS) {
+      lines.push(
+        "",
+        `\u2026and ${inChangedFiles.length - MAX_LISTED_FINDINGS} more in the job summary and SARIF report.`
+      );
+    }
+  }
+  const notCounted = inactiveCounts(result.analyzers);
+  const footnotes = [
+    elsewhere > 0 ? `${elsewhere} finding${elsewhere === 1 ? "" : "s"} elsewhere in the project` : "",
+    notCounted.suppressed > 0 ? `${notCounted.suppressed} suppressed` : "",
+    notCounted.baseline > 0 ? `${notCounted.baseline} in the baseline` : ""
+  ].filter(Boolean);
+  if (footnotes.length > 0)
+    lines.push("", `Not listed: ${footnotes.join(", ")}.`);
+  lines.push(
+    "",
+    "<sub>Scanned by [CodeDiag](https://github.com/sabahattink/codediag) \xB7 updated on every push</sub>"
+  );
+  return `${lines.join("\n")}
+`;
+}
+
+// src/core/github-pr.ts
+var PULL_REQUEST_EVENTS = /* @__PURE__ */ new Set(["pull_request", "pull_request_target"]);
+var PER_PAGE = 100;
+var MAX_PAGES = 30;
+function pullRequestContext(env2, token) {
+  if (!PULL_REQUEST_EVENTS.has(env2.GITHUB_EVENT_NAME ?? "")) return null;
+  if (!env2.GITHUB_EVENT_PATH || !env2.GITHUB_REPOSITORY) return null;
+  const event = JSON.parse((0, import_node_fs3.readFileSync)(env2.GITHUB_EVENT_PATH, "utf8"));
+  const number = event.pull_request?.number;
+  if (typeof number !== "number") return null;
+  return {
+    apiUrl: (env2.GITHUB_API_URL || "https://api.github.com").replace(/\/$/, ""),
+    repository: env2.GITHUB_REPOSITORY,
+    number,
+    token
+  };
+}
+var GitHubRequestError = class extends Error {
+  constructor(status, message) {
+    super(message);
+    this.status = status;
+  }
+  status;
+};
+async function request(context, fetchImpl, method, path2, body) {
+  const response = await fetchImpl(`${context.apiUrl}${path2}`, {
+    method,
+    headers: {
+      accept: "application/vnd.github+json",
+      authorization: `Bearer ${context.token}`,
+      "x-github-api-version": "2022-11-28",
+      ...body === void 0 ? {} : { "content-type": "application/json" }
+    },
+    ...body === void 0 ? {} : { body: JSON.stringify(body) }
+  });
+  if (!response.ok) {
+    throw new GitHubRequestError(
+      response.status,
+      `GitHub API ${method} ${path2} returned ${response.status}`
+    );
+  }
+  return await response.json();
+}
+async function paginate(context, fetchImpl, path2) {
+  const items = [];
+  for (let page = 1; page <= MAX_PAGES; page += 1) {
+    const batch = await request(
+      context,
+      fetchImpl,
+      "GET",
+      `${path2}?per_page=${PER_PAGE}&page=${page}`
+    );
+    items.push(...batch);
+    if (batch.length < PER_PAGE) break;
+  }
+  return items;
+}
+async function changedFiles(context, fetchImpl = fetch) {
+  const files = await paginate(
+    context,
+    fetchImpl,
+    `/repos/${context.repository}/pulls/${context.number}/files`
+  );
+  return new Set(
+    files.filter((file) => file.status !== "removed").map((file) => file.filename)
+  );
+}
+async function upsertComment(context, render, fetchImpl = fetch) {
+  const commentsPath = `/repos/${context.repository}/issues/${context.number}/comments`;
+  const comments = await paginate(
+    context,
+    fetchImpl,
+    commentsPath
+  );
+  const existing = [...comments].reverse().find((comment) => comment.body?.includes(PR_COMMENT_MARKER));
+  const body = render(existing?.body);
+  if (existing) {
+    await request(
+      context,
+      fetchImpl,
+      "PATCH",
+      `/repos/${context.repository}/issues/comments/${existing.id}`,
+      { body }
+    );
+    return "updated";
+  }
+  await request(context, fetchImpl, "POST", commentsPath, { body });
+  return "created";
+}
+
 // src/reporters/sarif.ts
-var import_node_path2 = require("path");
+var import_node_path3 = require("path");
 var import_node_url = require("url");
 
 // src/core/fingerprint.ts
@@ -252571,7 +252754,7 @@ function sarifLevel(severity) {
   }
 }
 function artifactUri(file) {
-  if ((0, import_node_path2.isAbsolute)(file)) {
+  if ((0, import_node_path3.isAbsolute)(file)) {
     return (0, import_node_url.pathToFileURL)(file).href;
   }
   return file.replaceAll("\\", "/").split("/").map((segment) => encodeURIComponent(segment)).join("/");
@@ -252704,8 +252887,8 @@ function renderSarif(result) {
 }
 
 // src/scanner.ts
-var import_node_fs9 = require("fs");
-var import_node_path10 = require("path");
+var import_node_fs10 = require("fs");
+var import_node_path11 = require("path");
 
 // node_modules/chalk/source/vendor/ansi-styles/index.js
 var ANSI_BACKGROUND_OFFSET = 10;
@@ -254129,8 +254312,8 @@ function ora(options) {
 // src/analyzers/dependencies.ts
 var import_node_child_process = require("child_process");
 var import_node_crypto2 = require("crypto");
-var import_node_fs3 = require("fs");
-var import_node_path3 = require("path");
+var import_node_fs4 = require("fs");
+var import_node_path4 = require("path");
 var lockFileNames = {
   npm: ["package-lock.json", "npm-shrinkwrap.json"],
   pnpm: ["pnpm-lock.yaml"],
@@ -254146,11 +254329,11 @@ function findLockFile(projectPath, preferredManager) {
   ] : ["pnpm", "yarn", "npm"];
   for (let depth = 0; depth <= 3; depth++) {
     for (const manager of managers) {
-      if (lockFileNames[manager].some((name) => (0, import_node_fs3.existsSync)((0, import_node_path3.join)(directory, name)))) {
+      if (lockFileNames[manager].some((name) => (0, import_node_fs4.existsSync)((0, import_node_path4.join)(directory, name)))) {
         return { manager, directory };
       }
     }
-    const parent = (0, import_node_path3.dirname)(directory);
+    const parent = (0, import_node_path4.dirname)(directory);
     if (parent === directory) break;
     directory = parent;
   }
@@ -254165,9 +254348,9 @@ function isModernYarn(projectPath, packageManager, lockDirectory) {
   if (version && Number(version) >= 2) return true;
   let directory = projectPath;
   for (let depth = 0; depth <= 3; depth++) {
-    if ((0, import_node_fs3.existsSync)((0, import_node_path3.join)(directory, ".yarnrc.yml"))) return true;
+    if ((0, import_node_fs4.existsSync)((0, import_node_path4.join)(directory, ".yarnrc.yml"))) return true;
     if (directory === lockDirectory) break;
-    const parent = (0, import_node_path3.dirname)(directory);
+    const parent = (0, import_node_path4.dirname)(directory);
     if (parent === directory) break;
     directory = parent;
   }
@@ -254288,19 +254471,19 @@ var runAuditProcess = (command, cwd) => {
 var auditCache = /* @__PURE__ */ new Map();
 function hashFile(path2) {
   try {
-    return (0, import_node_crypto2.createHash)("sha256").update((0, import_node_fs3.readFileSync)(path2)).digest("hex");
+    return (0, import_node_crypto2.createHash)("sha256").update((0, import_node_fs4.readFileSync)(path2)).digest("hex");
   } catch {
     return "missing";
   }
 }
 function auditCacheKey(projectPath, command, lockFile) {
-  const lockPath = lockFileNames[lockFile.manager].map((name) => (0, import_node_path3.join)(lockFile.directory, name)).find((candidate) => (0, import_node_fs3.existsSync)(candidate));
+  const lockPath = lockFileNames[lockFile.manager].map((name) => (0, import_node_path4.join)(lockFile.directory, name)).find((candidate) => (0, import_node_fs4.existsSync)(candidate));
   return [
     command.command,
     ...command.args,
     projectPath,
     lockPath ? hashFile(lockPath) : "no-lock",
-    hashFile((0, import_node_path3.join)(projectPath, "package.json"))
+    hashFile((0, import_node_path4.join)(projectPath, "package.json"))
   ].join("\0");
 }
 function runAudit(projectPath, command, runner) {
@@ -254472,7 +254655,7 @@ async function analyzeDependencies(context, options = {}) {
 }
 
 // src/analyzers/express-api.ts
-var import_node_path4 = require("path");
+var import_node_path5 = require("path");
 var import_ts_morph = __toESM(require_ts_morph(), 1);
 var HTTP_METHODS = /* @__PURE__ */ new Set([
   "all",
@@ -254603,7 +254786,7 @@ function collectRouters(sourceFile, file) {
 }
 function resolveModule(fromFile, specifier, files) {
   if (!specifier.startsWith(".")) return null;
-  const base = import_node_path4.posix.normalize(import_node_path4.posix.join(import_node_path4.posix.dirname(fromFile), specifier));
+  const base = import_node_path5.posix.normalize(import_node_path5.posix.join(import_node_path5.posix.dirname(fromFile), specifier));
   const stem = base.replace(/\.(?:[cm]?js|jsx)$/, "");
   const candidates = [
     base,
@@ -255444,8 +255627,8 @@ async function analyzeNextjsApi(context) {
 }
 
 // src/analyzers/security.ts
-var import_node_fs4 = require("fs");
-var import_node_path5 = require("path");
+var import_node_fs5 = require("fs");
+var import_node_path6 = require("path");
 
 // src/analyzers/security-sinks.ts
 var import_ts_morph4 = __toESM(require_ts_morph(), 1);
@@ -256359,23 +256542,23 @@ async function analyzeSecurity(context) {
     let foundGitignore = false;
     let directory = projectPath;
     for (let depth = 0; depth <= 3; depth++) {
-      const gitignorePath = (0, import_node_path5.join)(directory, ".gitignore");
-      if ((0, import_node_fs4.existsSync)(gitignorePath)) {
+      const gitignorePath = (0, import_node_path6.join)(directory, ".gitignore");
+      if ((0, import_node_fs5.existsSync)(gitignorePath)) {
         foundGitignore = true;
-        const content = (0, import_node_fs4.readFileSync)(gitignorePath, "utf-8");
+        const content = (0, import_node_fs5.readFileSync)(gitignorePath, "utf-8");
         if (gitignoreProtectsEnv(content)) {
           checksPassed++;
         } else {
           issues.push({
             ...fromRule("env-not-gitignored"),
             message: ".env is not ignored by .gitignore \u2014 secrets may be committed",
-            file: (0, import_node_path5.relative)(projectPath, gitignorePath).replace(/\\/g, "/"),
+            file: (0, import_node_path6.relative)(projectPath, gitignorePath).replace(/\\/g, "/"),
             fix: "Add .env or .env* to your .gitignore"
           });
         }
         break;
       }
-      const parent = (0, import_node_path5.dirname)(directory);
+      const parent = (0, import_node_path6.dirname)(directory);
       if (parent === directory) break;
       directory = parent;
     }
@@ -256463,8 +256646,8 @@ async function analyzeSecurity(context) {
 }
 
 // src/analyzers/structure.ts
-var import_node_fs5 = require("fs");
-var import_node_path6 = require("path");
+var import_node_fs6 = require("fs");
+var import_node_path7 = require("path");
 var LINTER_CONFIGS = [
   "eslint.config.js",
   "eslint.config.cjs",
@@ -256503,10 +256686,10 @@ function findConfigUp(projectPath, fileNames, maxParentDepth = 3) {
   let directory = projectPath;
   for (let depth = 0; depth <= maxParentDepth; depth++) {
     for (const fileName of fileNames) {
-      const candidate = (0, import_node_path6.join)(directory, fileName);
-      if ((0, import_node_fs5.existsSync)(candidate)) return candidate;
+      const candidate = (0, import_node_path7.join)(directory, fileName);
+      if ((0, import_node_fs6.existsSync)(candidate)) return candidate;
     }
-    const parent = (0, import_node_path6.dirname)(directory);
+    const parent = (0, import_node_path7.dirname)(directory);
     if (parent === directory) break;
     directory = parent;
   }
@@ -256521,13 +256704,13 @@ function findReadme(projectPath) {
       "readme.txt",
       "readme"
     ];
-    const entries = (0, import_node_fs5.readdirSync)(projectPath);
+    const entries = (0, import_node_fs6.readdirSync)(projectPath);
     const byLowerName = new Map(
       entries.map((entry) => [entry.toLowerCase(), entry])
     );
     for (const name of preferredNames) {
       const actualName = byLowerName.get(name);
-      if (actualName) return (0, import_node_path6.join)(projectPath, actualName);
+      if (actualName) return (0, import_node_path7.join)(projectPath, actualName);
     }
   } catch {
     return void 0;
@@ -256538,11 +256721,11 @@ function meaningfulReadmeLength(content) {
   return content.replace(/<!--[\s\S]*?-->/g, " ").replace(/!\[[^\]]*\]\([^)]*\)/g, " ").replace(/\[([^\]]+)\]\([^)]*\)/g, "$1").replace(/<[^>]+>/g, " ").replace(/[`#>*_|~=-]/g, " ").replace(/\s+/g, " ").trim().length;
 }
 function displayPath(projectPath, filePath) {
-  return (0, import_node_path6.relative)(projectPath, filePath).replace(/\\/g, "/") || ".";
+  return (0, import_node_path7.relative)(projectPath, filePath).replace(/\\/g, "/") || ".";
 }
 function rootEnvFiles(projectPath) {
   try {
-    return (0, import_node_fs5.readdirSync)(projectPath).filter(
+    return (0, import_node_fs6.readdirSync)(projectPath).filter(
       (entry) => /^\.env(?:\..+)?$/.test(entry) && !ENV_TEMPLATES.includes(entry)
     );
   } catch {
@@ -256550,8 +256733,8 @@ function rootEnvFiles(projectPath) {
   }
 }
 function analyzeNestOrganization(context, issues) {
-  const srcPath = (0, import_node_path6.join)(context.projectPath, "src");
-  if (!(0, import_node_fs5.existsSync)(srcPath)) {
+  const srcPath = (0, import_node_path7.join)(context.projectPath, "src");
+  if (!(0, import_node_fs6.existsSync)(srcPath)) {
     issues.push({
       ...fromRule("no-src-dir"),
       message: "No src/ directory found",
@@ -256583,11 +256766,11 @@ function analyzeNestOrganization(context, issues) {
       return false;
     }
     const moduleDirectories = new Set(
-      moduleFiles.map((file) => (0, import_node_path6.dirname)(file).replace(/\\/g, "/"))
+      moduleFiles.map((file) => (0, import_node_path7.dirname)(file).replace(/\\/g, "/"))
     );
     const featureDirectories = new Set(
       [...controllerFiles, ...serviceFiles].map(
-        (file) => (0, import_node_path6.dirname)(file).replace(/\\/g, "/")
+        (file) => (0, import_node_path7.dirname)(file).replace(/\\/g, "/")
       )
     );
     if (featureDirectories.size === 0) return true;
@@ -256595,7 +256778,7 @@ function analyzeNestOrganization(context, issues) {
       let directory = featureDirectory;
       while (directory !== "src" && directory !== ".") {
         if (moduleDirectories.has(directory)) return true;
-        directory = (0, import_node_path6.dirname)(directory).replace(/\\/g, "/");
+        directory = (0, import_node_path7.dirname)(directory).replace(/\\/g, "/");
       }
       return featureDirectory === "src" && moduleDirectories.has("src");
     };
@@ -256628,12 +256811,12 @@ async function analyzeStructure(context) {
   const pkg = context.packageJson ?? {};
   const hasDependency = (name) => Boolean(pkg.dependencies?.[name] || pkg.devDependencies?.[name]);
   const isNestjs = hasDependency("@nestjs/core");
-  const tsconfigPath = (0, import_node_path6.join)(projectPath, "tsconfig.json");
-  const isTypescript = (0, import_node_fs5.existsSync)(tsconfigPath) || hasDependency("typescript");
+  const tsconfigPath = (0, import_node_path7.join)(projectPath, "tsconfig.json");
+  const isTypescript = (0, import_node_fs6.existsSync)(tsconfigPath) || hasDependency("typescript");
   checksRun++;
   const readmePath = findReadme(projectPath);
   if (readmePath) {
-    const content = (0, import_node_fs5.readFileSync)(readmePath, "utf-8");
+    const content = (0, import_node_fs6.readFileSync)(readmePath, "utf-8");
     if (meaningfulReadmeLength(content) >= 100) {
       checksPassed++;
     } else {
@@ -256717,7 +256900,7 @@ async function analyzeStructure(context) {
   checksRun++;
   const envFiles = rootEnvFiles(projectPath);
   const envTemplate = ENV_TEMPLATES.find(
-    (name) => (0, import_node_fs5.existsSync)((0, import_node_path6.join)(projectPath, name))
+    (name) => (0, import_node_fs6.existsSync)((0, import_node_path7.join)(projectPath, name))
   );
   if (envFiles.length === 0 || envTemplate) {
     checksPassed++;
@@ -256739,8 +256922,8 @@ async function analyzeStructure(context) {
 }
 
 // src/analyzers/testing.ts
-var import_node_fs6 = require("fs");
-var import_node_path7 = require("path");
+var import_node_fs7 = require("fs");
+var import_node_path8 = require("path");
 var import_ts_morph5 = __toESM(require_ts_morph(), 1);
 var TEST_CONFIG_FILES = ["jest", "vitest"].flatMap(
   (tool) => ["ts", "js", "mjs", "mts"].map((extension) => `${tool}.config.${extension}`)
@@ -256779,12 +256962,12 @@ function parseCoverageMetric(value) {
 }
 function readCoverageReport(projectPath) {
   const candidates = [
-    (0, import_node_path7.join)(projectPath, "coverage", "coverage-summary.json"),
-    (0, import_node_path7.join)(projectPath, "coverage-summary.json")
+    (0, import_node_path8.join)(projectPath, "coverage", "coverage-summary.json"),
+    (0, import_node_path8.join)(projectPath, "coverage-summary.json")
   ];
-  const reportPath = candidates.find((candidate) => (0, import_node_fs6.existsSync)(candidate));
+  const reportPath = candidates.find((candidate) => (0, import_node_fs7.existsSync)(candidate));
   if (!reportPath) return null;
-  const document = JSON.parse((0, import_node_fs6.readFileSync)(reportPath, "utf-8"));
+  const document = JSON.parse((0, import_node_fs7.readFileSync)(reportPath, "utf-8"));
   if (!isRecord3(document) || !isRecord3(document.total)) {
     throw new Error("missing total coverage summary");
   }
@@ -256798,7 +256981,7 @@ function readCoverageReport(projectPath) {
     Object.values(metrics).reduce((sum, metric) => sum + metric.pct, 0) / Object.keys(metrics).length
   );
   return {
-    file: (0, import_node_path7.relative)(projectPath, reportPath).replace(/\\/g, "/"),
+    file: (0, import_node_path8.relative)(projectPath, reportPath).replace(/\\/g, "/"),
     metrics,
     score
   };
@@ -256824,10 +257007,10 @@ function configDeclaresThreshold(context, file) {
 }
 function coverageRcDeclaresThreshold(projectPath) {
   return COVERAGE_RC_FILES.some((name) => {
-    const path2 = (0, import_node_path7.join)(projectPath, name);
-    if (!(0, import_node_fs6.existsSync)(path2)) return false;
+    const path2 = (0, import_node_path8.join)(projectPath, name);
+    if (!(0, import_node_fs7.existsSync)(path2)) return false;
     try {
-      const options = JSON.parse((0, import_node_fs6.readFileSync)(path2, "utf-8"));
+      const options = JSON.parse((0, import_node_fs7.readFileSync)(path2, "utf-8"));
       return options?.["check-coverage"] === true || Object.keys(options ?? {}).some((key) => METRIC_KEYS.has(key));
     } catch {
       return false;
@@ -256846,7 +257029,7 @@ function hasCoverageThreshold(context) {
   return Boolean(jest?.coverageThreshold) || packageTool("c8") || packageTool("nyc") || Object.values(pkg?.scripts ?? {}).some(
     (script) => COVERAGE_SCRIPT.test(script)
   ) || coverageRcDeclaresThreshold(context.projectPath) || COVERAGE_CONFIG_FILES.some(
-    (file) => (0, import_node_fs6.existsSync)((0, import_node_path7.join)(context.projectPath, file)) && configDeclaresThreshold(context, file)
+    (file) => (0, import_node_fs7.existsSync)((0, import_node_path8.join)(context.projectPath, file)) && configDeclaresThreshold(context, file)
   );
 }
 async function analyzeTesting(context) {
@@ -256907,7 +257090,7 @@ async function analyzeTesting(context) {
   }
   checksRun++;
   const hasE2e = ["test", "tests", "e2e", "__tests__"].some(
-    (dir) => (0, import_node_fs6.existsSync)((0, import_node_path7.join)(projectPath, dir))
+    (dir) => (0, import_node_fs7.existsSync)((0, import_node_path8.join)(projectPath, dir))
   );
   if (hasE2e) {
     checksPassed++;
@@ -256919,7 +257102,7 @@ async function analyzeTesting(context) {
     });
   }
   checksRun++;
-  const hasConfig = (0, import_node_fs6.existsSync)((0, import_node_path7.join)(projectPath, "jest.config.js")) || (0, import_node_fs6.existsSync)((0, import_node_path7.join)(projectPath, "jest.config.ts")) || (0, import_node_fs6.existsSync)((0, import_node_path7.join)(projectPath, "jest.config.mjs")) || (0, import_node_fs6.existsSync)((0, import_node_path7.join)(projectPath, "vitest.config.ts")) || (0, import_node_fs6.existsSync)((0, import_node_path7.join)(projectPath, "vitest.config.js")) || (0, import_node_fs6.existsSync)((0, import_node_path7.join)(projectPath, "vitest.config.mts"));
+  const hasConfig = (0, import_node_fs7.existsSync)((0, import_node_path8.join)(projectPath, "jest.config.js")) || (0, import_node_fs7.existsSync)((0, import_node_path8.join)(projectPath, "jest.config.ts")) || (0, import_node_fs7.existsSync)((0, import_node_path8.join)(projectPath, "jest.config.mjs")) || (0, import_node_fs7.existsSync)((0, import_node_path8.join)(projectPath, "vitest.config.ts")) || (0, import_node_fs7.existsSync)((0, import_node_path8.join)(projectPath, "vitest.config.js")) || (0, import_node_fs7.existsSync)((0, import_node_path8.join)(projectPath, "vitest.config.mts"));
   if (hasConfig || framework === "node:test") {
     checksPassed++;
   } else {
@@ -256942,7 +257125,7 @@ async function analyzeTesting(context) {
     issues.push({
       ...fromRule("invalid-coverage-report"),
       message: `Coverage summary could not be read: ${error instanceof Error ? error.message : String(error)}`,
-      file: (0, import_node_fs6.existsSync)((0, import_node_path7.join)(projectPath, "coverage", "coverage-summary.json")) ? "coverage/coverage-summary.json" : "coverage-summary.json",
+      file: (0, import_node_fs7.existsSync)((0, import_node_path8.join)(projectPath, "coverage", "coverage-summary.json")) ? "coverage/coverage-summary.json" : "coverage-summary.json",
       fix: "Regenerate coverage-summary.json with Jest, Vitest, or Istanbul"
     });
   }
@@ -256999,8 +257182,8 @@ function applyRuleOverrides(results, rules) {
 }
 
 // src/core/scan-context.ts
-var import_node_fs8 = require("fs");
-var import_node_path9 = require("path");
+var import_node_fs9 = require("fs");
+var import_node_path10 = require("path");
 var import_ignore = __toESM(require_ignore(), 1);
 
 // node_modules/balanced-match/dist/esm/index.js
@@ -258877,8 +259060,8 @@ minimatch.unescape = unescape;
 var import_ts_morph6 = __toESM(require_ts_morph(), 1);
 
 // src/detectors/stack-detector.ts
-var import_node_fs7 = require("fs");
-var import_node_path8 = require("path");
+var import_node_fs8 = require("fs");
+var import_node_path9 = require("path");
 function detectStack(projectPath) {
   const info = {
     framework: "unknown",
@@ -258890,11 +259073,11 @@ function detectStack(projectPath) {
     hasTests: false,
     packageManager: "unknown"
   };
-  const pkgPath = (0, import_node_path8.join)(projectPath, "package.json");
-  if (!(0, import_node_fs7.existsSync)(pkgPath)) return info;
+  const pkgPath = (0, import_node_path9.join)(projectPath, "package.json");
+  if (!(0, import_node_fs8.existsSync)(pkgPath)) return info;
   let pkg;
   try {
-    pkg = JSON.parse((0, import_node_fs7.readFileSync)(pkgPath, "utf-8"));
+    pkg = JSON.parse((0, import_node_fs8.readFileSync)(pkgPath, "utf-8"));
   } catch {
     return info;
   }
@@ -258902,19 +259085,19 @@ function detectStack(projectPath) {
     ...pkg.dependencies || {},
     ...pkg.devDependencies || {}
   };
-  if (allDeps.typescript || (0, import_node_fs7.existsSync)((0, import_node_path8.join)(projectPath, "tsconfig.json"))) {
+  if (allDeps.typescript || (0, import_node_fs8.existsSync)((0, import_node_path9.join)(projectPath, "tsconfig.json"))) {
     info.language = "typescript";
   }
-  if (allDeps["@nestjs/core"] || (0, import_node_fs7.existsSync)((0, import_node_path8.join)(projectPath, "nest-cli.json"))) {
+  if (allDeps["@nestjs/core"] || (0, import_node_fs8.existsSync)((0, import_node_path9.join)(projectPath, "nest-cli.json"))) {
     info.framework = "nestjs";
-  } else if (allDeps.next || (0, import_node_fs7.existsSync)((0, import_node_path8.join)(projectPath, "next.config.js")) || (0, import_node_fs7.existsSync)((0, import_node_path8.join)(projectPath, "next.config.mjs")) || (0, import_node_fs7.existsSync)((0, import_node_path8.join)(projectPath, "next.config.ts"))) {
+  } else if (allDeps.next || (0, import_node_fs8.existsSync)((0, import_node_path9.join)(projectPath, "next.config.js")) || (0, import_node_fs8.existsSync)((0, import_node_path9.join)(projectPath, "next.config.mjs")) || (0, import_node_fs8.existsSync)((0, import_node_path9.join)(projectPath, "next.config.ts"))) {
     info.framework = "nextjs";
   } else if (allDeps.express) {
     info.framework = "express";
   } else if (pkg.dependencies || pkg.devDependencies) {
     info.framework = "generic";
   }
-  if (allDeps.prisma || allDeps["@prisma/client"] || (0, import_node_fs7.existsSync)((0, import_node_path8.join)(projectPath, "prisma", "schema.prisma"))) {
+  if (allDeps.prisma || allDeps["@prisma/client"] || (0, import_node_fs8.existsSync)((0, import_node_path9.join)(projectPath, "prisma", "schema.prisma"))) {
     info.orm = "prisma";
     info.hasPrisma = true;
   } else if (allDeps.typeorm) {
@@ -258926,14 +259109,14 @@ function detectStack(projectPath) {
   } else if (allDeps["drizzle-orm"]) {
     info.orm = "drizzle";
   }
-  info.hasDocker = (0, import_node_fs7.existsSync)((0, import_node_path8.join)(projectPath, "Dockerfile")) || (0, import_node_fs7.existsSync)((0, import_node_path8.join)(projectPath, "docker-compose.yml")) || (0, import_node_fs7.existsSync)((0, import_node_path8.join)(projectPath, "docker-compose.yaml"));
-  info.hasEnvFile = (0, import_node_fs7.existsSync)((0, import_node_path8.join)(projectPath, ".env")) || (0, import_node_fs7.existsSync)((0, import_node_path8.join)(projectPath, ".env.local")) || (0, import_node_fs7.existsSync)((0, import_node_path8.join)(projectPath, ".env.example"));
-  info.hasTests = (0, import_node_fs7.existsSync)((0, import_node_path8.join)(projectPath, "test")) || (0, import_node_fs7.existsSync)((0, import_node_path8.join)(projectPath, "tests")) || (0, import_node_fs7.existsSync)((0, import_node_path8.join)(projectPath, "__tests__")) || (0, import_node_fs7.existsSync)((0, import_node_path8.join)(projectPath, "e2e"));
-  if ((0, import_node_fs7.existsSync)((0, import_node_path8.join)(projectPath, "pnpm-lock.yaml"))) {
+  info.hasDocker = (0, import_node_fs8.existsSync)((0, import_node_path9.join)(projectPath, "Dockerfile")) || (0, import_node_fs8.existsSync)((0, import_node_path9.join)(projectPath, "docker-compose.yml")) || (0, import_node_fs8.existsSync)((0, import_node_path9.join)(projectPath, "docker-compose.yaml"));
+  info.hasEnvFile = (0, import_node_fs8.existsSync)((0, import_node_path9.join)(projectPath, ".env")) || (0, import_node_fs8.existsSync)((0, import_node_path9.join)(projectPath, ".env.local")) || (0, import_node_fs8.existsSync)((0, import_node_path9.join)(projectPath, ".env.example"));
+  info.hasTests = (0, import_node_fs8.existsSync)((0, import_node_path9.join)(projectPath, "test")) || (0, import_node_fs8.existsSync)((0, import_node_path9.join)(projectPath, "tests")) || (0, import_node_fs8.existsSync)((0, import_node_path9.join)(projectPath, "__tests__")) || (0, import_node_fs8.existsSync)((0, import_node_path9.join)(projectPath, "e2e"));
+  if ((0, import_node_fs8.existsSync)((0, import_node_path9.join)(projectPath, "pnpm-lock.yaml"))) {
     info.packageManager = "pnpm";
-  } else if ((0, import_node_fs7.existsSync)((0, import_node_path8.join)(projectPath, "yarn.lock"))) {
+  } else if ((0, import_node_fs8.existsSync)((0, import_node_path9.join)(projectPath, "yarn.lock"))) {
     info.packageManager = "yarn";
-  } else if ((0, import_node_fs7.existsSync)((0, import_node_path8.join)(projectPath, "package-lock.json"))) {
+  } else if ((0, import_node_fs8.existsSync)((0, import_node_path9.join)(projectPath, "package-lock.json"))) {
     info.packageManager = "npm";
   }
   return info;
@@ -258955,13 +259138,13 @@ var MINIFIED_AVERAGE_LINE_LENGTH = 500;
 var MAX_LISTED_SKIPPED_FILES = 50;
 var CHILD_PROBE = "codediag-probe";
 function toPosix(path2) {
-  return path2.split(import_node_path9.sep).join("/");
+  return path2.split(import_node_path10.sep).join("/");
 }
 function readGitignore(directory) {
-  const path2 = (0, import_node_path9.join)(directory, ".gitignore");
-  if (!(0, import_node_fs8.existsSync)(path2)) return null;
+  const path2 = (0, import_node_path10.join)(directory, ".gitignore");
+  if (!(0, import_node_fs9.existsSync)(path2)) return null;
   try {
-    return (0, import_ignore.default)().add((0, import_node_fs8.readFileSync)(path2, "utf-8"));
+    return (0, import_ignore.default)().add((0, import_node_fs9.readFileSync)(path2, "utf-8"));
   } catch {
     return null;
   }
@@ -258969,8 +259152,8 @@ function readGitignore(directory) {
 function findGitRoot(projectPath) {
   let directory = projectPath;
   while (true) {
-    if ((0, import_node_fs8.existsSync)((0, import_node_path9.join)(directory, ".git"))) return directory;
-    const parent = (0, import_node_path9.dirname)(directory);
+    if ((0, import_node_fs9.existsSync)((0, import_node_path10.join)(directory, ".git"))) return directory;
+    const parent = (0, import_node_path10.dirname)(directory);
     if (parent === directory) return null;
     directory = parent;
   }
@@ -258979,11 +259162,11 @@ function ancestorGitignores(projectPath) {
   const gitRoot = findGitRoot(projectPath);
   if (!gitRoot || gitRoot === projectPath) return [];
   const directories = [];
-  let directory = (0, import_node_path9.dirname)(projectPath);
+  let directory = (0, import_node_path10.dirname)(projectPath);
   while (true) {
     directories.unshift(directory);
     if (directory === gitRoot) break;
-    const parent = (0, import_node_path9.dirname)(directory);
+    const parent = (0, import_node_path10.dirname)(directory);
     if (parent === directory) break;
     directory = parent;
   }
@@ -258993,7 +259176,7 @@ function ancestorGitignores(projectPath) {
       {
         matcher,
         base: "",
-        prefix: toPosix((0, import_node_path9.relative)(ancestor, projectPath))
+        prefix: toPosix((0, import_node_path10.relative)(ancestor, projectPath))
       }
     ] : [];
   });
@@ -259017,10 +259200,10 @@ function isMinified(content) {
   return content.length / lines > MINIFIED_AVERAGE_LINE_LENGTH;
 }
 function readPackageJson(projectPath) {
-  const path2 = (0, import_node_path9.join)(projectPath, "package.json");
-  if (!(0, import_node_fs8.existsSync)(path2)) return { status: "missing", value: null };
+  const path2 = (0, import_node_path10.join)(projectPath, "package.json");
+  if (!(0, import_node_fs9.existsSync)(path2)) return { status: "missing", value: null };
   try {
-    const value = JSON.parse((0, import_node_fs8.readFileSync)(path2, "utf-8"));
+    const value = JSON.parse((0, import_node_fs9.readFileSync)(path2, "utf-8"));
     if (typeof value !== "object" || value === null || Array.isArray(value)) {
       return { status: "invalid", value: null };
     }
@@ -259030,7 +259213,7 @@ function readPackageJson(projectPath) {
   }
 }
 function createScanContext(projectPath, config = loadConfig(projectPath), options = {}) {
-  const root = (0, import_node_path9.resolve)(projectPath);
+  const root = (0, import_node_path10.resolve)(projectPath);
   const maxFileBytes = config.maxFileSizeKb * 1024;
   const userIgnores = normalizeIgnorePatterns(config.ignore).map(
     (pattern) => new Minimatch(pattern, { dot: true })
@@ -259045,15 +259228,15 @@ function createScanContext(projectPath, config = loadConfig(projectPath), option
   let realRoot;
   let project;
   let typescriptConfig;
-  const absolutePath = (file) => (0, import_node_path9.join)(root, file);
+  const absolutePath = (file) => (0, import_node_path10.join)(root, file);
   const isUserIgnored = (file, isDirectory) => userIgnores.some(
     (pattern) => pattern.match(isDirectory ? `${file}/${CHILD_PROBE}` : file)
   );
   const isInsideRoot = (path2) => {
     try {
-      realRoot ??= (0, import_node_fs8.realpathSync)(root);
-      const target = (0, import_node_path9.relative)(realRoot, (0, import_node_fs8.realpathSync)(path2));
-      return target !== "" && !target.startsWith("..") && !(0, import_node_path9.isAbsolute)(target);
+      realRoot ??= (0, import_node_fs9.realpathSync)(root);
+      const target = (0, import_node_path10.relative)(realRoot, (0, import_node_fs9.realpathSync)(path2));
+      return target !== "" && !target.startsWith("..") && !(0, import_node_path10.isAbsolute)(target);
     } catch {
       return false;
     }
@@ -259062,7 +259245,7 @@ function createScanContext(projectPath, config = loadConfig(projectPath), option
     if (textCache.has(file)) return textCache.get(file) ?? null;
     let content;
     try {
-      content = (0, import_node_fs8.readFileSync)(absolutePath(file), "utf-8");
+      content = (0, import_node_fs9.readFileSync)(absolutePath(file), "utf-8");
     } catch {
       content = null;
       skippedFiles.set(file, "unreadable");
@@ -259088,7 +259271,7 @@ function createScanContext(projectPath, config = loadConfig(projectPath), option
   const walk = (directory, relativeDirectory, inherited2, found) => {
     let entries;
     try {
-      entries = (0, import_node_fs8.readdirSync)(directory, { withFileTypes: true });
+      entries = (0, import_node_fs9.readdirSync)(directory, { withFileTypes: true });
     } catch {
       return;
     }
@@ -259100,12 +259283,12 @@ function createScanContext(projectPath, config = loadConfig(projectPath), option
     for (const entry of entries) {
       if (entry.name.startsWith(".")) continue;
       const file = relativeDirectory ? `${relativeDirectory}/${entry.name}` : entry.name;
-      const path2 = (0, import_node_path9.join)(directory, entry.name);
+      const path2 = (0, import_node_path10.join)(directory, entry.name);
       let isDirectory = entry.isDirectory();
       let isFile = entry.isFile();
       if (entry.isSymbolicLink()) {
         try {
-          const target = (0, import_node_fs8.statSync)(path2);
+          const target = (0, import_node_fs9.statSync)(path2);
           isDirectory = false;
           isFile = target.isFile() && isInsideRoot(path2);
         } catch {
@@ -259125,7 +259308,7 @@ function createScanContext(projectPath, config = loadConfig(projectPath), option
       if (isUserIgnored(file, false)) continue;
       let size;
       try {
-        size = (0, import_node_fs8.statSync)(path2).size;
+        size = (0, import_node_fs9.statSync)(path2).size;
       } catch {
         continue;
       }
@@ -259135,7 +259318,7 @@ function createScanContext(projectPath, config = loadConfig(projectPath), option
   const files = () => {
     if (!index) {
       const found = [];
-      if ((0, import_node_fs8.existsSync)(root)) walk(root, "", ancestorGitignores(root), found);
+      if ((0, import_node_fs9.existsSync)(root)) walk(root, "", ancestorGitignores(root), found);
       index = found;
     }
     return index;
@@ -259180,8 +259363,8 @@ function createScanContext(projectPath, config = loadConfig(projectPath), option
   };
   const resolveTypeScriptConfig = () => {
     if (typescriptConfig) return typescriptConfig;
-    const tsconfigPath = (0, import_node_path9.join)(root, "tsconfig.json");
-    if (!(0, import_node_fs8.existsSync)(tsconfigPath)) {
+    const tsconfigPath = (0, import_node_path10.join)(root, "tsconfig.json");
+    if (!(0, import_node_fs9.existsSync)(tsconfigPath)) {
       typescriptConfig = { status: "missing" };
     } else {
       try {
@@ -259427,7 +259610,7 @@ function calculateGrade(score) {
   return "F";
 }
 async function scan(projectPath, config = loadConfig(projectPath), options = {}) {
-  if (!(0, import_node_fs9.existsSync)(projectPath)) {
+  if (!(0, import_node_fs10.existsSync)(projectPath)) {
     throw new Error(`Directory not found: ${projectPath}`);
   }
   const progress = createProgressReporter(options);
@@ -259493,7 +259676,7 @@ async function scan(projectPath, config = loadConfig(projectPath), options = {})
   const grade = calculateGrade(totalScore);
   const skipped = context.skipped();
   return {
-    project: (0, import_node_path10.basename)(projectPath),
+    project: (0, import_node_path11.basename)(projectPath),
     stack,
     analyzers,
     totalScore,
@@ -259520,7 +259703,7 @@ function markdownEscape(value) {
 function writeOutput(name, value) {
   const outputFile = process.env.GITHUB_OUTPUT;
   if (outputFile) {
-    (0, import_node_fs10.appendFileSync)(outputFile, `${name}=${value}
+    (0, import_node_fs11.appendFileSync)(outputFile, `${name}=${value}
 `, "utf8");
   }
 }
@@ -259581,8 +259764,50 @@ function renderSummary(result, threshold) {
   return `${lines.join("\n")}
 `;
 }
+function parseBooleanInput(name, value) {
+  if (/^(?:true|yes|1)$/i.test(value)) return true;
+  if (/^(?:false|no|0|)$/i.test(value)) return false;
+  throw new Error(`${name} must be true or false.`);
+}
+async function commentOnPullRequest(result, threshold, workspace, projectPath) {
+  try {
+    const token = getInput("github-token", process.env.GITHUB_TOKEN ?? "");
+    const context = pullRequestContext(process.env, token);
+    if (!context) {
+      console.log(
+        "CodeDiag comment skipped: this run is not for a pull request."
+      );
+      return;
+    }
+    if (!token) {
+      console.log(
+        "::warning title=CodeDiag pull request comment::No github-token is available, so no comment was posted."
+      );
+      return;
+    }
+    const files = await changedFiles(context);
+    const projectDirectory = (0, import_node_path12.relative)(workspace, projectPath).split(import_node_path12.sep).join("/");
+    const outcome = await upsertComment(
+      context,
+      (previousBody) => renderPrComment({
+        result,
+        threshold,
+        changedFiles: files,
+        projectDirectory,
+        previousScore: previousBody ? previousScore(previousBody) : void 0
+      })
+    );
+    console.log(`CodeDiag pull request comment ${outcome}.`);
+  } catch (error) {
+    const hint = error instanceof GitHubRequestError && (error.status === 403 || error.status === 404) ? " Grant `pull-requests: write` in the workflow's permissions; pull requests from forks get a read-only token." : "";
+    const message = error instanceof Error ? error.message : String(error);
+    console.log(
+      `::warning title=CodeDiag pull request comment::${workflowEscape(`${message}.${hint}`)}`
+    );
+  }
+}
 function resolveWorkspacePath(workspace, value) {
-  return (0, import_node_path11.isAbsolute)(value) ? (0, import_node_path11.resolve)(value) : (0, import_node_path11.resolve)(workspace, value);
+  return (0, import_node_path12.isAbsolute)(value) ? (0, import_node_path12.resolve)(value) : (0, import_node_path12.resolve)(workspace, value);
 }
 function validatePathInput(name, value) {
   if (/[\r\n]/.test(value)) {
@@ -259592,7 +259817,7 @@ function validatePathInput(name, value) {
 }
 async function runAction() {
   try {
-    const workspace = (0, import_node_path11.resolve)(process.env.GITHUB_WORKSPACE || process.cwd());
+    const workspace = (0, import_node_path12.resolve)(process.env.GITHUB_WORKSPACE || process.cwd());
     const projectPath = resolveWorkspacePath(
       workspace,
       validatePathInput("path", getInput("path", "."))
@@ -259617,18 +259842,18 @@ async function runAction() {
     const result = await scan(projectPath, loadConfig(projectPath), {
       baseline
     });
-    (0, import_node_fs10.mkdirSync)((0, import_node_path11.dirname)(reportPath), { recursive: true });
-    (0, import_node_fs10.writeFileSync)(reportPath, `${JSON.stringify(result, null, 2)}
+    (0, import_node_fs11.mkdirSync)((0, import_node_path12.dirname)(reportPath), { recursive: true });
+    (0, import_node_fs11.writeFileSync)(reportPath, `${JSON.stringify(result, null, 2)}
 `, "utf8");
-    (0, import_node_fs10.mkdirSync)((0, import_node_path11.dirname)(sarifPath), { recursive: true });
-    (0, import_node_fs10.writeFileSync)(sarifPath, renderSarif(result), "utf8");
+    (0, import_node_fs11.mkdirSync)((0, import_node_path12.dirname)(sarifPath), { recursive: true });
+    (0, import_node_fs11.writeFileSync)(sarifPath, renderSarif(result), "utf8");
     writeOutput("score", String(result.totalScore));
     writeOutput("grade", result.grade);
     writeOutput("report", reportPath);
     writeOutput("sarif", sarifPath);
     emitAnnotations(result);
     if (process.env.GITHUB_STEP_SUMMARY) {
-      (0, import_node_fs10.appendFileSync)(
+      (0, import_node_fs11.appendFileSync)(
         process.env.GITHUB_STEP_SUMMARY,
         renderSummary(result, threshold),
         "utf8"
@@ -259637,6 +259862,9 @@ async function runAction() {
     console.log(
       `CodeDiag score: ${result.totalScore}/100 (${result.grade}); JSON: ${reportPath}; SARIF: ${sarifPath}`
     );
+    if (parseBooleanInput("comment", getInput("comment", "false"))) {
+      await commentOnPullRequest(result, threshold, workspace, projectPath);
+    }
     if (isBelowThreshold(result.totalScore, threshold)) {
       console.log(
         `::error title=CodeDiag threshold not met::Score ${result.totalScore} is below the required threshold ${threshold}.`

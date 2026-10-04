@@ -221,7 +221,10 @@ mapping and GitHub Code Scanning workflow. Every rule is described in the
 ```
 
 The Action adds score annotations and a job summary, writes JSON and SARIF
-reports, and fails when the score is below the requested threshold. Its
+reports, and fails when the score is below the requested threshold. With
+`comment: true` (and `pull-requests: write` permission) it also keeps one
+pull request comment up to date with the score, its change since the last
+push, and the findings in the files the pull request changes. Its
 `score`, `grade`, `report`, and `sarif` outputs can be used by later steps. See
 the [GitHub Action guide](docs/github-action.md) for all inputs, outputs, and a
 complete workflow.

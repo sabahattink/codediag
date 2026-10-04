@@ -26,6 +26,17 @@ inputs:
       score, threshold, or annotations.
     required: false
     default: ""
+  comment:
+    description: >-
+      Post one pull request comment with the score, its change since the last
+      run, and the findings in files the pull request changes, updating it on
+      every push. Needs `pull-requests: write` permission.
+    required: false
+    default: "false"
+  github-token:
+    description: Token used to read changed files and write the comment.
+    required: false
+    default: ${{ github.token }}
 
 outputs:
   score:

@@ -45,6 +45,8 @@ third-party dependencies.
 | `report` | `codediag-report.json` | JSON report path relative to `GITHUB_WORKSPACE` |
 | `sarif` | `codediag-report.sarif` | SARIF 2.1.0 report path relative to `GITHUB_WORKSPACE` |
 | `baseline` | _(none)_ | Optional CodeDiag JSON report relative to `GITHUB_WORKSPACE`; its findings do not affect the score, threshold, or annotations. See [baselines](suppressions-and-baselines.md#baselines) |
+| `comment` | `false` | Post and update one pull request comment; see [pull request comments](#pull-request-comments) |
+| `github-token` | `${{ github.token }}` | Token for reading changed files and writing the comment |
 
 Absolute `path`, `report`, and `sarif` values are also accepted for advanced
 workflows. JSON and SARIF paths must resolve to different files. The project
@@ -71,6 +73,45 @@ Every run writes a GitHub job summary containing analyzer scores and actionable
 findings. Critical findings become error annotations and warnings become
 warning annotations. CodeDiag emits at most 50 annotations per run; the JSON
 report retains the complete result.
+
+### Pull request comments
+
+With `comment: true`, CodeDiag keeps one comment on the pull request:
+
+- the score and grade, with ✅ or ❌ for the threshold;
+- the change since the previous run (`▲ +3 since the last run`);
+- the analyzer table;
+- findings in the files the pull request adds or modifies, critical first,
+  each linked to its rule documentation;
+- a count of findings elsewhere in the project, suppressed findings, and
+  baseline findings.
+
+Later pushes update the same comment instead of adding new ones. The job
+needs permission to write pull request comments:
+
+```yaml
+on:
+  pull_request:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  codediag:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: sabahattink/codediag@v0
+        with:
+          threshold: 80
+          comment: true
+```
+
+Runs outside a pull request skip the comment. If the comment cannot be
+written, for example because a pull request from a fork gets a read-only
+token, the Action logs a warning and the scan result and threshold still
+apply.
 
 The action exits with:
 

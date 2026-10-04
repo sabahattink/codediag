@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { spawnSync } from "node:child_process";
@@ -211,6 +211,97 @@ test("GitHub Action excludes baseline findings from annotations and the gate", a
     assert.equal(second.status, 0, second.stdout);
     assert.doesNotMatch(second.stdout, /::error file=/);
   } finally {
+    await rm(temporaryDirectory, { recursive: true, force: true });
+  }
+});
+
+test("GitHub Action creates, then updates, one pull request comment", async () => {
+  const { createServer } = await import("node:http");
+  const { spawn } = await import("node:child_process");
+  const temporaryDirectory = await mkdtemp(join(tmpdir(), "codediag-comment-"));
+  const comments = [];
+  const requests = [];
+  const server = createServer((request, response) => {
+    let body = "";
+    request.on("data", (chunk) => {
+      body += chunk;
+    });
+    request.on("end", () => {
+      requests.push(`${request.method} ${request.url.split("?")[0]}`);
+      assert.equal(request.headers.authorization, "Bearer test-token");
+      let payload = [];
+      if (request.url.startsWith("/repos/octo/app/pulls/5/files")) {
+        payload = request.url.includes("page=1")
+          ? [{ filename: "app/run.js", status: "added" }]
+          : [];
+      } else if (request.method === "GET") {
+        payload = request.url.includes("page=1") ? comments : [];
+      } else if (request.method === "POST") {
+        comments.push({ id: 11, body: JSON.parse(body).body });
+        payload = comments[0];
+      } else if (request.method === "PATCH") {
+        comments[0].body = JSON.parse(body).body;
+        payload = comments[0];
+      }
+      response.setHeader("content-type", "application/json");
+      response.end(JSON.stringify(payload));
+    });
+  });
+  await new Promise((done) => server.listen(0, "127.0.0.1", done));
+  const run = () =>
+    new Promise((done) => {
+      const child = spawn(process.execPath, [actionEntry], {
+        cwd: temporaryDirectory,
+        env: {
+          ...process.env,
+          GITHUB_WORKSPACE: temporaryDirectory,
+          GITHUB_EVENT_NAME: "pull_request",
+          GITHUB_EVENT_PATH: join(temporaryDirectory, "event.json"),
+          GITHUB_REPOSITORY: "octo/app",
+          GITHUB_API_URL: `http://127.0.0.1:${server.address().port}`,
+          INPUT_PATH: "app",
+          INPUT_THRESHOLD: "0",
+          INPUT_REPORT: join(temporaryDirectory, "report.json"),
+          INPUT_SARIF: join(temporaryDirectory, "report.sarif"),
+          INPUT_COMMENT: "true",
+          "INPUT_GITHUB-TOKEN": "test-token",
+        },
+      });
+      let stdout = "";
+      child.stdout.on("data", (chunk) => {
+        stdout += chunk;
+      });
+      child.on("close", (status) => done({ status, stdout }));
+    });
+
+  try {
+    await mkdir(join(temporaryDirectory, "app"));
+    await writeFile(
+      join(temporaryDirectory, "event.json"),
+      JSON.stringify({ pull_request: { number: 5 } }),
+    );
+    await writeFile(join(temporaryDirectory, "app", "package.json"), "{}\n");
+    await writeFile(join(temporaryDirectory, "app", "run.js"), "eval(a);\n");
+
+    const first = await run();
+    assert.equal(first.status, 0, first.stdout);
+    assert.match(first.stdout, /CodeDiag pull request comment created\./);
+    assert.equal(comments.length, 1);
+    assert.match(comments[0].body, /^<!-- codediag:pr-comment -->/);
+    assert.match(comments[0].body, /`app\/run\.js:1`/);
+
+    const second = await run();
+    assert.equal(second.status, 0, second.stdout);
+    assert.match(second.stdout, /CodeDiag pull request comment updated\./);
+    assert.equal(comments.length, 1);
+    assert.match(comments[0].body, /no change since the last run/);
+    assert.deepEqual(requests.slice(-3), [
+      "GET /repos/octo/app/pulls/5/files",
+      "GET /repos/octo/app/issues/5/comments",
+      "PATCH /repos/octo/app/issues/comments/11",
+    ]);
+  } finally {
+    server.close();
     await rm(temporaryDirectory, { recursive: true, force: true });
   }
 });

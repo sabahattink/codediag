@@ -34,8 +34,9 @@ benchmark tests green.
   Turborepo; score each package and report a combined result.
 - **Changed-files mode:** `--changed-since origin/main` to report findings
   only in files a pull request touches.
-- **Pull request comments:** an Action option that posts or updates a single
-  summary comment with the score delta.
+- **Base-branch delta in pull request comments:** compare against the base
+  branch's score, not only the previous run. (The comment itself shipped in
+  0.5.)
 - **Trends:** `--compare previous.json` to show score and finding changes,
   and a history view in the HTML report.
 

@@ -1,8 +1,15 @@
 import { appendFileSync, mkdirSync, writeFileSync } from "node:fs";
-import { dirname, isAbsolute, resolve } from "node:path";
+import { dirname, isAbsolute, relative, resolve, sep } from "node:path";
 import { isBelowThreshold, loadConfig, parseThreshold } from "./config.js";
 import { loadBaseline } from "./core/baseline.js";
+import {
+  changedFiles,
+  GitHubRequestError,
+  pullRequestContext,
+  upsertComment,
+} from "./core/github-pr.js";
 import { activeIssues, inactiveCounts } from "./core/issues.js";
+import { previousScore, renderPrComment } from "./reporters/pr-comment.js";
 import { renderSarif } from "./reporters/sarif.js";
 import { scan } from "./scanner.js";
 import type { DiagnosticIssue, ScanResult } from "./types.js";
@@ -108,6 +115,64 @@ function renderSummary(result: ScanResult, threshold: number): string {
   return `${lines.join("\n")}\n`;
 }
 
+function parseBooleanInput(name: string, value: string): boolean {
+  if (/^(?:true|yes|1)$/i.test(value)) return true;
+  if (/^(?:false|no|0|)$/i.test(value)) return false;
+  throw new Error(`${name} must be true or false.`);
+}
+
+/**
+ * Creates or updates CodeDiag's pull request comment. A failure only warns,
+ * because the scan result and threshold must not depend on comment access.
+ */
+async function commentOnPullRequest(
+  result: ScanResult,
+  threshold: number,
+  workspace: string,
+  projectPath: string,
+): Promise<void> {
+  try {
+    const token = getInput("github-token", process.env.GITHUB_TOKEN ?? "");
+    const context = pullRequestContext(process.env, token);
+    if (!context) {
+      console.log(
+        "CodeDiag comment skipped: this run is not for a pull request.",
+      );
+      return;
+    }
+    if (!token) {
+      console.log(
+        "::warning title=CodeDiag pull request comment::No github-token is available, so no comment was posted.",
+      );
+      return;
+    }
+    const files = await changedFiles(context);
+    const projectDirectory = relative(workspace, projectPath)
+      .split(sep)
+      .join("/");
+    const outcome = await upsertComment(context, (previousBody) =>
+      renderPrComment({
+        result,
+        threshold,
+        changedFiles: files,
+        projectDirectory,
+        previousScore: previousBody ? previousScore(previousBody) : undefined,
+      }),
+    );
+    console.log(`CodeDiag pull request comment ${outcome}.`);
+  } catch (error) {
+    const hint =
+      error instanceof GitHubRequestError &&
+      (error.status === 403 || error.status === 404)
+        ? " Grant `pull-requests: write` in the workflow's permissions; pull requests from forks get a read-only token."
+        : "";
+    const message = error instanceof Error ? error.message : String(error);
+    console.log(
+      `::warning title=CodeDiag pull request comment::${workflowEscape(`${message}.${hint}`)}`,
+    );
+  }
+}
+
 function resolveWorkspacePath(workspace: string, value: string): string {
   return isAbsolute(value) ? resolve(value) : resolve(workspace, value);
 }
@@ -175,6 +240,10 @@ export async function runAction(): Promise<void> {
     console.log(
       `CodeDiag score: ${result.totalScore}/100 (${result.grade}); JSON: ${reportPath}; SARIF: ${sarifPath}`,
     );
+
+    if (parseBooleanInput("comment", getInput("comment", "false"))) {
+      await commentOnPullRequest(result, threshold, workspace, projectPath);
+    }
 
     if (isBelowThreshold(result.totalScore, threshold)) {
       console.log(

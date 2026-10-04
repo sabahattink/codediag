@@ -4,6 +4,14 @@ All notable changes to CodeDiag are documented in this file.
 
 ## [Unreleased]
 
+### Added
+
+- Pull request comments: with `comment: true`, the GitHub Action keeps one
+  comment on the pull request with the score, its change since the last
+  run, the analyzer table, and the findings in files the pull request
+  changes. Later pushes update the same comment. A comment that cannot be
+  written only logs a warning.
+
 ## [0.4.0] - 2026-10-04
 
 Web security sinks: request data that reaches a file path, an outgoing
