@@ -51,7 +51,9 @@ await myDb.query(sql);
 Other non-literal values are warnings.
 
 The path traversal, SSRF, open redirect, and XSS checks report only values
-that are request data themselves, followed through the same variables. A
+that are request data themselves, followed through the same variables.
+NestJS parameters injected with `@Query()`, `@Param()`, `@Body()`, or
+`@Headers()` are request data too. A
 function's result is not request data, so `db.find(req.params.id)` and
 `await repo.pathFor(req.params.id)` are not reported, and neither are values
 wrapped in `path.basename()`, `encodeURIComponent()`, `Number()`, or an

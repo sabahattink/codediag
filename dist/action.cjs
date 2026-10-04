@@ -255716,6 +255716,15 @@ var REQUEST_VALUE_FUNCTIONS = /* @__PURE__ */ new Set([
 ]);
 var SERVER_SET_REQUEST_DATA = /\b(?:req(?:uest)?|ctx)\s*\.\s*(?:app|auth|file|files|ip|ips|method|protocol|secure|session|state|user)\b/;
 var REQUEST_OBJECT = /^(?:req|request|ctx)$/;
+var REQUEST_DECORATORS = /* @__PURE__ */ new Set(["Body", "Headers", "Param", "Query"]);
+function requestDecorator(identifier) {
+  for (const declaration of identifier.getSymbol()?.getDeclarations() ?? []) {
+    if (!import_ts_morph4.Node.isParameterDeclaration(declaration)) continue;
+    const decorator = declaration.getDecorators().find((candidate) => REQUEST_DECORATORS.has(candidate.getName()));
+    if (decorator) return decorator;
+  }
+  return void 0;
+}
 function unwrap(node) {
   let current = node;
   while (import_ts_morph4.Node.isAwaitExpression(current) || import_ts_morph4.Node.isParenthesizedExpression(current) || import_ts_morph4.Node.isAsExpression(current) || import_ts_morph4.Node.isNonNullExpression(current)) {
@@ -255726,6 +255735,7 @@ function unwrap(node) {
 function isRequestValue(node, hops = 0) {
   const value = unwrap(node);
   if (import_ts_morph4.Node.isIdentifier(value)) {
+    if (requestDecorator(value)) return true;
     if (hops >= MAX_TAINT_HOPS) return false;
     return valueSources(value).some(
       (source) => isRequestValue(source, hops + 1)
@@ -255887,7 +255897,11 @@ function reflectsRequestData(body) {
   const parts = stringParts(value);
   if (parts.length === 1) {
     const [part] = parts;
-    return typeof part !== "string" && !REQUEST_OBJECT_VALUE.test(unwrap(part).getText()) && isRequestValue(part);
+    if (typeof part === "string") return false;
+    const node = unwrap(part);
+    const decorator = import_ts_morph4.Node.isIdentifier(node) ? requestDecorator(node) : void 0;
+    if (decorator && decorator.getArguments().length === 0) return false;
+    return !REQUEST_OBJECT_VALUE.test(node.getText()) && isRequestValue(node);
   }
   return parts.some((part) => typeof part !== "string" && isRequestValue(part));
 }

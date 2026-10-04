@@ -10,8 +10,10 @@ All notable changes to CodeDiag are documented in this file.
   `server-side-request-forgery` (CWE-918), `open-redirect` (CWE-601), and
   `reflected-xss` (CWE-79). They report request data that reaches a file
   path, an outgoing request's host, a redirect target, or an HTML response.
-  Function results, sanitized values, fixed-origin URLs, same-site paths,
-  and server-set request fields such as `req.user` are not reported.
+  NestJS `@Query()`, `@Param()`, `@Body()`, and `@Headers()` parameters
+  count as request data. Function results, sanitized values, fixed-origin
+  URLs, same-site paths, and server-set request fields such as `req.user`
+  are not reported.
 
 ### Changed
 

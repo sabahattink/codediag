@@ -275,3 +275,42 @@ test("escaped, JSON, plain-text, and looked-up responses are not XSS", async () 
     [],
   );
 });
+
+test("NestJS @Query, @Param, @Body, and @Headers parameters are request data", async () => {
+  assert.deepEqual(
+    await findings([
+      'import { readFile } from "node:fs/promises";',
+      "export class FilesController {",
+      "  constructor(private readonly httpService: HttpService) {}",
+      '  @Get(":name") async read(@Param("name") name: string) {',
+      '    return readFile(`uploads/${name}`, "utf-8");',
+      "  }",
+      '  @Post("hooks") test(@Body() dto: WebhookDto) {',
+      "    return this.httpService.post(dto.url, {});",
+      "  }",
+      '  @Get("go") go(@Query("next") next: string, @Res() res: Response) {',
+      "    res.redirect(next);",
+      "  }",
+      '  @Get("echo") echo(@Body() dto: EchoDto, @Res() res: Response) {',
+      "    res.send(dto);",
+      "  }",
+      '  @Get(":id") find(@Param("id") id: string, svc: Service) {',
+      "    return readFile(svc.pathFor(id));",
+      "  }",
+      "}",
+    ]),
+    [
+      [
+        "path-traversal",
+        "critical",
+        'return readFile(`uploads/${name}`, "utf-8");',
+      ],
+      [
+        "server-side-request-forgery",
+        "warning",
+        "return this.httpService.post(dto.url, {});",
+      ],
+      ["open-redirect", "warning", "res.redirect(next);"],
+    ],
+  );
+});

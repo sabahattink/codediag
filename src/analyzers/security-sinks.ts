@@ -1,5 +1,6 @@
 import {
   type CallExpression,
+  type Decorator,
   type Expression,
   Node,
   type PropertyAccessExpression,
@@ -398,6 +399,23 @@ const SERVER_SET_REQUEST_DATA =
   /\b(?:req(?:uest)?|ctx)\s*\.\s*(?:app|auth|file|files|ip|ips|method|protocol|secure|session|state|user)\b/;
 
 const REQUEST_OBJECT = /^(?:req|request|ctx)$/;
+/** NestJS parameter decorators that inject request data. */
+const REQUEST_DECORATORS = new Set(["Body", "Headers", "Param", "Query"]);
+
+/**
+ * The NestJS decorator that injects a parameter from the request:
+ * `@Query("q") q` (one field) or `@Body() dto` (the parsed object).
+ */
+function requestDecorator(identifier: Node): Decorator | undefined {
+  for (const declaration of identifier.getSymbol()?.getDeclarations() ?? []) {
+    if (!Node.isParameterDeclaration(declaration)) continue;
+    const decorator = declaration
+      .getDecorators()
+      .find((candidate) => REQUEST_DECORATORS.has(candidate.getName()));
+    if (decorator) return decorator;
+  }
+  return undefined;
+}
 
 function unwrap(node: Node): Node {
   let current = node;
@@ -424,6 +442,7 @@ function isRequestValue(node: Node, hops = 0): boolean {
   const value = unwrap(node);
 
   if (Node.isIdentifier(value)) {
+    if (requestDecorator(value)) return true;
     if (hops >= MAX_TAINT_HOPS) return false;
     return valueSources(value).some((source) =>
       isRequestValue(source, hops + 1),
@@ -694,11 +713,14 @@ function reflectsRequestData(body: Node | undefined): boolean {
   const parts = stringParts(value);
   if (parts.length === 1) {
     const [part] = parts;
-    return (
-      typeof part !== "string" &&
-      !REQUEST_OBJECT_VALUE.test(unwrap(part).getText()) &&
-      isRequestValue(part)
-    );
+    if (typeof part === "string") return false;
+    const node = unwrap(part);
+    // `@Body() dto` without a field name injects the parsed object.
+    const decorator = Node.isIdentifier(node)
+      ? requestDecorator(node)
+      : undefined;
+    if (decorator && decorator.getArguments().length === 0) return false;
+    return !REQUEST_OBJECT_VALUE.test(node.getText()) && isRequestValue(node);
   }
   return parts.some((part) => typeof part !== "string" && isRequestValue(part));
 }
