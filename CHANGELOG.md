@@ -4,6 +4,11 @@ All notable changes to CodeDiag are documented in this file.
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-10-04
+
+Web security sinks: request data that reaches a file path, an outgoing
+request, a redirect, or an HTML response is now reported.
+
 ### Added
 
 - Four taint-based security rules: `path-traversal` (CWE-22),

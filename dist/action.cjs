@@ -252454,7 +252454,7 @@ function assignFingerprints(results, readText) {
 // package.json
 var package_default = {
   name: "@sabahattink/codediag",
-  version: "0.3.0",
+  version: "0.4.0",
   description: "Automated project health scanner for Node.js, NestJS, Express, and Next.js projects.",
   author: "Sabahattin Kalkan <hello@sabahattinkalkan.com> (https://sabahattinkalkan.com)",
   license: "MIT",

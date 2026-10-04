@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.3.0
+
+- Run the CodeDiag 0.4 engine, which reports path traversal, server-side
+  request forgery, open redirects, and reflected XSS.
+
 ## 0.2.0
 
 - Run the CodeDiag 0.3 engine: gitignore-aware discovery, explainable
