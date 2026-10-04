@@ -104,6 +104,12 @@ All notable changes to CodeDiag are documented in this file.
   `Partial<...>`, inline types, and interfaces are reported, while endpoints
   without `@Body()` are not. `@Controller({ path })` and path arrays resolve to
   real routes.
+- Shell and SQL sinks follow variables back through declarations,
+  destructuring, and reassignments (up to three hops) to decide whether a value
+  comes from request data, including Next.js `request.json()` and
+  `searchParams`. Such findings are `critical`. Dynamic SQL built from request
+  data is now reported for any client variable name, not only `db`, `pool`,
+  `knex`, and similar names.
 - Project ownership and links now use the canonical Sabahattin Kalkan identity.
 - CLI version is read from `package.json`.
 - Threshold failures now return exit code 1 in every output mode.

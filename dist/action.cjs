@@ -10658,7 +10658,7 @@ var require_typescript = __commonJS({
         isPropertyAccessOrQualifiedNameOrImportTypeNode: () => isPropertyAccessOrQualifiedNameOrImportTypeNode,
         isPropertyAssignment: () => isPropertyAssignment,
         isPropertyDeclaration: () => isPropertyDeclaration,
-        isPropertyName: () => isPropertyName,
+        isPropertyName: () => isPropertyName2,
         isPropertyNameLiteral: () => isPropertyNameLiteral,
         isPropertySignature: () => isPropertySignature,
         isPrototypeAccess: () => isPrototypeAccess,
@@ -24974,7 +24974,7 @@ ${lanes.join("\n")}
         const kind = node.kind;
         return kind === 167 || kind === 80;
       }
-      function isPropertyName(node) {
+      function isPropertyName2(node) {
         const kind = node.kind;
         return kind === 80 || kind === 81 || kind === 11 || kind === 9 || kind === 168;
       }
@@ -30562,7 +30562,7 @@ ${lanes.join("\n")}
           }
         } else if (isElementAccessExpression(expr)) {
           const baseStr = tryGetPropertyAccessOrIdentifierToString(expr.expression);
-          if (baseStr !== void 0 && isPropertyName(expr.argumentExpression)) {
+          if (baseStr !== void 0 && isPropertyName2(expr.argumentExpression)) {
             return baseStr + "." + getPropertyNameForPropertyNameNode(expr.argumentExpression);
           }
         } else if (isIdentifier(expr)) {
@@ -39780,7 +39780,7 @@ ${lanes.join("\n")}
       function propagateChildFlags(child) {
         if (!child) return 0;
         const childFlags = child.transformFlags & ~getTransformFlagsSubtreeExclusions(child.kind);
-        return isNamedDeclaration(child) && isPropertyName(child.name) ? propagatePropertyNameFlagsOfChild(child.name, childFlags) : childFlags;
+        return isNamedDeclaration(child) && isPropertyName2(child.name) ? propagatePropertyNameFlagsOfChild(child.name, childFlags) : childFlags;
       }
       function propagateChildrenFlags(children) {
         return children ? children.transformFlags : 0;
@@ -42657,7 +42657,7 @@ ${lanes.join("\n")}
             return bindingElement.name;
         }
         const target = getTargetOfBindingOrAssignmentElement(bindingElement);
-        if (target && isPropertyName(target)) {
+        if (target && isPropertyName2(target)) {
           return target;
         }
       }
@@ -80624,7 +80624,7 @@ ${lanes.join("\n")}
           return false;
         }
         function getPropertyNameFromIndex(indexType, accessNode) {
-          return isTypeUsableAsPropertyName(indexType) ? getPropertyNameFromType(indexType) : accessNode && isPropertyName(accessNode) ? (
+          return isTypeUsableAsPropertyName(indexType) ? getPropertyNameFromType(indexType) : accessNode && isPropertyName2(accessNode) ? (
             // late bound names are handled in the first branch, so here we only need to handle normal names
             getPropertyNameForPropertyNameNode(accessNode)
           ) : void 0;
@@ -108140,8 +108140,8 @@ ${lanes.join("\n")}
           if (!node) return false;
           const parent2 = node.parent;
           if (!parent2) return false;
-          const isPropertyName2 = (isPropertyAccessExpression(parent2) || isPropertyAssignment(parent2)) && parent2.name === node;
-          return !isPropertyName2 && getReferencedValueSymbol(node) === argumentsSymbol;
+          const isPropertyName22 = (isPropertyAccessExpression(parent2) || isPropertyAssignment(parent2)) && parent2.name === node;
+          return !isPropertyName22 && getReferencedValueSymbol(node) === argumentsSymbol;
         }
         function isNameOfModuleOrEnumDeclaration(node) {
           return isModuleOrEnumDeclaration(node.parent) && node === node.parent.name;
@@ -111833,7 +111833,7 @@ ${lanes.join("\n")}
           return context.factory.updatePropertySignature(
             node,
             nodesVisitor(node.modifiers, visitor, isModifier),
-            Debug.checkDefined(nodeVisitor(node.name, visitor, isPropertyName)),
+            Debug.checkDefined(nodeVisitor(node.name, visitor, isPropertyName2)),
             tokenVisitor ? nodeVisitor(node.questionToken, tokenVisitor, isQuestionToken) : node.questionToken,
             nodeVisitor(node.type, visitor, isTypeNode)
           );
@@ -111845,7 +111845,7 @@ ${lanes.join("\n")}
           return context.factory.updatePropertyDeclaration(
             node,
             nodesVisitor(node.modifiers, visitor, isModifierLike),
-            Debug.checkDefined(nodeVisitor(node.name, visitor, isPropertyName)),
+            Debug.checkDefined(nodeVisitor(node.name, visitor, isPropertyName2)),
             // QuestionToken and ExclamationToken are mutually exclusive in PropertyDeclaration
             tokenVisitor ? nodeVisitor(node.questionToken ?? node.exclamationToken, tokenVisitor, isQuestionOrExclamationToken) : node.questionToken ?? node.exclamationToken,
             nodeVisitor(node.type, visitor, isTypeNode),
@@ -111859,7 +111859,7 @@ ${lanes.join("\n")}
           return context.factory.updateMethodSignature(
             node,
             nodesVisitor(node.modifiers, visitor, isModifier),
-            Debug.checkDefined(nodeVisitor(node.name, visitor, isPropertyName)),
+            Debug.checkDefined(nodeVisitor(node.name, visitor, isPropertyName2)),
             tokenVisitor ? nodeVisitor(node.questionToken, tokenVisitor, isQuestionToken) : node.questionToken,
             nodesVisitor(node.typeParameters, visitor, isTypeParameterDeclaration),
             nodesVisitor(node.parameters, visitor, isParameter),
@@ -111874,7 +111874,7 @@ ${lanes.join("\n")}
             node,
             nodesVisitor(node.modifiers, visitor, isModifierLike),
             tokenVisitor ? nodeVisitor(node.asteriskToken, tokenVisitor, isAsteriskToken) : node.asteriskToken,
-            Debug.checkDefined(nodeVisitor(node.name, visitor, isPropertyName)),
+            Debug.checkDefined(nodeVisitor(node.name, visitor, isPropertyName2)),
             tokenVisitor ? nodeVisitor(node.questionToken, tokenVisitor, isQuestionToken) : node.questionToken,
             nodesVisitor(node.typeParameters, visitor, isTypeParameterDeclaration),
             visitParameterList(node.parameters, visitor, context, nodesVisitor),
@@ -111900,7 +111900,7 @@ ${lanes.join("\n")}
           return context.factory.updateGetAccessorDeclaration(
             node,
             nodesVisitor(node.modifiers, visitor, isModifierLike),
-            Debug.checkDefined(nodeVisitor(node.name, visitor, isPropertyName)),
+            Debug.checkDefined(nodeVisitor(node.name, visitor, isPropertyName2)),
             visitParameterList(node.parameters, visitor, context, nodesVisitor),
             nodeVisitor(node.type, visitor, isTypeNode),
             visitFunctionBody(node.body, visitor, context, nodeVisitor)
@@ -111913,7 +111913,7 @@ ${lanes.join("\n")}
           return context.factory.updateSetAccessorDeclaration(
             node,
             nodesVisitor(node.modifiers, visitor, isModifierLike),
-            Debug.checkDefined(nodeVisitor(node.name, visitor, isPropertyName)),
+            Debug.checkDefined(nodeVisitor(node.name, visitor, isPropertyName2)),
             visitParameterList(node.parameters, visitor, context, nodesVisitor),
             visitFunctionBody(node.body, visitor, context, nodeVisitor)
           );
@@ -112233,7 +112233,7 @@ ${lanes.join("\n")}
           return context.factory.updateBindingElement(
             node,
             tokenVisitor ? nodeVisitor(node.dotDotDotToken, tokenVisitor, isDotDotDotToken) : node.dotDotDotToken,
-            nodeVisitor(node.propertyName, visitor, isPropertyName),
+            nodeVisitor(node.propertyName, visitor, isPropertyName2),
             Debug.checkDefined(nodeVisitor(node.name, visitor, isBindingName)),
             nodeVisitor(node.initializer, visitor, isExpression)
           );
@@ -113144,7 +113144,7 @@ ${lanes.join("\n")}
         ]: function visitEachChildOfPropertyAssignment(node, visitor, context, _nodesVisitor, nodeVisitor, _tokenVisitor) {
           return context.factory.updatePropertyAssignment(
             node,
-            Debug.checkDefined(nodeVisitor(node.name, visitor, isPropertyName)),
+            Debug.checkDefined(nodeVisitor(node.name, visitor, isPropertyName2)),
             Debug.checkDefined(nodeVisitor(node.initializer, visitor, isExpression))
           );
         },
@@ -113174,7 +113174,7 @@ ${lanes.join("\n")}
         ]: function visitEachChildOfEnumMember(node, visitor, context, _nodesVisitor, nodeVisitor, _tokenVisitor) {
           return context.factory.updateEnumMember(
             node,
-            Debug.checkDefined(nodeVisitor(node.name, visitor, isPropertyName)),
+            Debug.checkDefined(nodeVisitor(node.name, visitor, isPropertyName2)),
             nodeVisitor(node.initializer, visitor, isExpression)
           );
         },
@@ -115842,7 +115842,7 @@ ${lanes.join("\n")}
               return factory2.updateComputedPropertyName(name, factory2.createAssignment(generatedName, expression));
             }
           }
-          return Debug.checkDefined(visitNode(name, visitor, isPropertyName));
+          return Debug.checkDefined(visitNode(name, visitor, isPropertyName2));
         }
         function visitHeritageClause(node) {
           if (node.token === 119) {
@@ -115879,7 +115879,7 @@ ${lanes.join("\n")}
                 128
                 /* Ambient */
               )),
-              Debug.checkDefined(visitNode(node.name, visitor, isPropertyName)),
+              Debug.checkDefined(visitNode(node.name, visitor, isPropertyName2)),
               /*questionOrExclamationToken*/
               void 0,
               /*type*/
@@ -117502,7 +117502,7 @@ ${lanes.join("\n")}
           return factory2.updatePropertyDeclaration(
             node,
             visitNodes2(node.modifiers, modifierVisitor, isModifier),
-            visitNode(node.name, propertyNameVisitor, isPropertyName),
+            visitNode(node.name, propertyNameVisitor, isPropertyName2),
             /*questionOrExclamationToken*/
             void 0,
             /*type*/
@@ -117539,7 +117539,7 @@ ${lanes.join("\n")}
           return factory2.updatePropertyDeclaration(
             node,
             visitNodes2(node.modifiers, modifierVisitor, isModifier),
-            visitNode(node.name, propertyNameVisitor, isPropertyName),
+            visitNode(node.name, propertyNameVisitor, isPropertyName2),
             /*questionOrExclamationToken*/
             void 0,
             /*type*/
@@ -119162,7 +119162,7 @@ ${lanes.join("\n")}
           return visitEachChild(node, visitor, context);
         }
         function visitAssignmentProperty(node) {
-          const name = visitNode(node.name, visitor, isPropertyName);
+          const name = visitNode(node.name, visitor, isPropertyName2);
           if (isAssignmentExpression(
             node.initializer,
             /*excludeCompoundAssignment*/
@@ -119994,7 +119994,7 @@ ${lanes.join("\n")}
               node,
               visitNodes2(node.modifiers, modifierVisitor, isModifier),
               node.asteriskToken,
-              Debug.checkDefined(visitNode(node.name, visitor, isPropertyName)),
+              Debug.checkDefined(visitNode(node.name, visitor, isPropertyName2)),
               /*questionToken*/
               void 0,
               /*typeParameters*/
@@ -120012,7 +120012,7 @@ ${lanes.join("\n")}
             factory2.updateGetAccessorDeclaration(
               node,
               visitNodes2(node.modifiers, modifierVisitor, isModifier),
-              Debug.checkDefined(visitNode(node.name, visitor, isPropertyName)),
+              Debug.checkDefined(visitNode(node.name, visitor, isPropertyName2)),
               visitNodes2(node.parameters, visitor, isParameter),
               /*type*/
               void 0,
@@ -120026,7 +120026,7 @@ ${lanes.join("\n")}
             factory2.updateSetAccessorDeclaration(
               node,
               visitNodes2(node.modifiers, modifierVisitor, isModifier),
-              Debug.checkDefined(visitNode(node.name, visitor, isPropertyName)),
+              Debug.checkDefined(visitNode(node.name, visitor, isPropertyName2)),
               visitNodes2(node.parameters, visitor, isParameter),
               visitNode(node.body, visitor, isBlock)
             ),
@@ -120045,7 +120045,7 @@ ${lanes.join("\n")}
             factory2.updatePropertyDeclaration(
               node,
               visitNodes2(node.modifiers, modifierVisitor, isModifier),
-              Debug.checkDefined(visitNode(node.name, visitor, isPropertyName)),
+              Debug.checkDefined(visitNode(node.name, visitor, isPropertyName2)),
               /*questionOrExclamationToken*/
               void 0,
               /*type*/
@@ -121796,12 +121796,12 @@ ${lanes.join("\n")}
         function visitReferencedPropertyName(node) {
           if (isPropertyNameLiteral(node) || isPrivateIdentifier(node)) {
             const referencedName2 = factory2.createStringLiteralFromNode(node);
-            const name2 = visitNode(node, visitor, isPropertyName);
+            const name2 = visitNode(node, visitor, isPropertyName2);
             return { referencedName: referencedName2, name: name2 };
           }
           if (isPropertyNameLiteral(node.expression) && !isIdentifier(node.expression)) {
             const referencedName2 = factory2.createStringLiteralFromNode(node.expression);
-            const name2 = visitNode(node, visitor, isPropertyName);
+            const name2 = visitNode(node, visitor, isPropertyName2);
             return { referencedName: referencedName2, name: name2 };
           }
           const referencedName = factory2.getGeneratedNameForNode(node);
@@ -121815,7 +121815,7 @@ ${lanes.join("\n")}
           if (isComputedPropertyName(node)) {
             return visitComputedPropertyName(node);
           }
-          return visitNode(node, visitor, isPropertyName);
+          return visitNode(node, visitor, isPropertyName2);
         }
         function visitComputedPropertyName(node) {
           let expression = visitNode(node.expression, visitor, isExpression);
@@ -121899,7 +121899,7 @@ ${lanes.join("\n")}
           return visitEachChild(node, visitor, context);
         }
         function visitAssignmentProperty(node) {
-          const name = visitNode(node.name, visitor, isPropertyName);
+          const name = visitNode(node.name, visitor, isPropertyName2);
           if (isAssignmentExpression(
             node.initializer,
             /*excludeCompoundAssignment*/
@@ -124110,7 +124110,7 @@ ${lanes.join("\n")}
           const updated = factory2.updateGetAccessorDeclaration(
             node,
             node.modifiers,
-            visitNode(node.name, visitor, isPropertyName),
+            visitNode(node.name, visitor, isPropertyName2),
             visitParameterList(node.parameters, parameterVisitor, context),
             /*type*/
             void 0,
@@ -124128,7 +124128,7 @@ ${lanes.join("\n")}
           const updated = factory2.updateSetAccessorDeclaration(
             node,
             node.modifiers,
-            visitNode(node.name, visitor, isPropertyName),
+            visitNode(node.name, visitor, isPropertyName2),
             visitParameterList(node.parameters, parameterVisitor, context),
             transformFunctionBody2(node)
           );
@@ -124145,7 +124145,7 @@ ${lanes.join("\n")}
             node,
             enclosingFunctionFlags & 1 ? visitNodes2(node.modifiers, visitorNoAsyncModifier, isModifierLike) : node.modifiers,
             enclosingFunctionFlags & 2 ? void 0 : node.asteriskToken,
-            visitNode(node.name, visitor, isPropertyName),
+            visitNode(node.name, visitor, isPropertyName2),
             visitNode(
               /*node*/
               void 0,
@@ -127974,7 +127974,7 @@ ${lanes.join("\n")}
             void 0,
             container
           );
-          const propertyName = visitNode(member.name, visitor, isPropertyName);
+          const propertyName = visitNode(member.name, visitor, isPropertyName2);
           Debug.assert(propertyName);
           let e;
           if (!isPrivateIdentifier(propertyName) && getUseDefineForClassFields(context.getCompilerOptions())) {
@@ -128034,7 +128034,7 @@ ${lanes.join("\n")}
             /* NoTrailingSourceMap */
           );
           setSourceMapRange(target, firstAccessor.name);
-          const visitedAccessorName = visitNode(firstAccessor.name, visitor, isPropertyName);
+          const visitedAccessorName = visitNode(firstAccessor.name, visitor, isPropertyName2);
           Debug.assert(visitedAccessorName);
           if (isPrivateIdentifier(visitedAccessorName)) {
             return Debug.failBadSyntaxKind(visitedAccessorName, "Encountered unhandled private identifier while transforming ES2015.");
@@ -129628,7 +129628,7 @@ ${lanes.join("\n")}
             createMemberAccessForPropertyName(
               factory2,
               receiver,
-              Debug.checkDefined(visitNode(property.name, visitor, isPropertyName))
+              Debug.checkDefined(visitNode(property.name, visitor, isPropertyName2))
             ),
             Debug.checkDefined(visitNode(property.initializer, visitor, isExpression))
           );
@@ -129643,7 +129643,7 @@ ${lanes.join("\n")}
             createMemberAccessForPropertyName(
               factory2,
               receiver,
-              Debug.checkDefined(visitNode(property.name, visitor, isPropertyName))
+              Debug.checkDefined(visitNode(property.name, visitor, isPropertyName2))
             ),
             factory2.cloneNode(property.name)
           );
@@ -129658,7 +129658,7 @@ ${lanes.join("\n")}
             createMemberAccessForPropertyName(
               factory2,
               receiver,
-              Debug.checkDefined(visitNode(method.name, visitor, isPropertyName))
+              Debug.checkDefined(visitNode(method.name, visitor, isPropertyName2))
             ),
             transformFunctionLikeToExpression(
               method,
@@ -160736,11 +160736,11 @@ ${lanes.join("\n")}
         return checker.getTypeAtLocation(caseClause.parent.parent.expression);
       }
       var ANONYMOUS = "anonymous function";
-      function getTypeNodeIfAccessible(type, enclosingScope, program, host) {
+      function getTypeNodeIfAccessible(type, enclosingScope2, program, host) {
         const checker = program.getTypeChecker();
         let typeIsAccessible = true;
         const notAccessible = () => typeIsAccessible = false;
-        const res = checker.typeToTypeNode(type, enclosingScope, 1, 8, {
+        const res = checker.typeToTypeNode(type, enclosingScope2, 1, 8, {
           trackSymbol: (symbol, declaration, meaning) => {
             typeIsAccessible = typeIsAccessible && checker.isSymbolAccessible(
               symbol,
@@ -165617,7 +165617,7 @@ interface Symbol {
           return getModuleName(node);
         }
         const declName = getNameOfDeclaration(node);
-        if (declName && isPropertyName(declName)) {
+        if (declName && isPropertyName2(declName)) {
           const propertyName = getPropertyNameForPropertyNameNode(declName);
           return propertyName && unescapeLeadingUnderscores(propertyName);
         }
@@ -172136,7 +172136,7 @@ ${newComment.split("\n").map((c) => ` * ${c}`).join("\n")}
           }
           function getDeclarationName(declaration) {
             const name = getNonAssignedNameOfDeclaration(declaration);
-            return name && (isComputedPropertyName(name) && isPropertyAccessExpression(name.expression) ? name.expression.name.text : isPropertyName(name) ? getNameFromPropertyName(name) : void 0);
+            return name && (isComputedPropertyName(name) && isPropertyAccessExpression(name.expression) ? name.expression.name.text : isPropertyName2(name) ? getNameFromPropertyName(name) : void 0);
           }
           function visit(node) {
             switch (node.kind) {
@@ -194942,7 +194942,7 @@ ${newComment.split("\n").map((c) => ` * ${c}`).join("\n")}
           )) : emptyArray;
           return concatenate(definitions, getDefinitionFromObjectLiteralElement(typeChecker, node));
         }
-        if (isPropertyName(node) && isBindingElement(parent2) && isObjectBindingPattern(parent2.parent) && node === (parent2.propertyName || parent2.name)) {
+        if (isPropertyName2(node) && isBindingElement(parent2) && isObjectBindingPattern(parent2.parent) && node === (parent2.propertyName || parent2.name)) {
           const name = getNameFromPropertyName(node);
           const type = typeChecker.getTypeAtLocation(parent2.parent);
           return name === void 0 ? emptyArray : flatMap(type.isUnion() ? type.types : [type], (t) => {
@@ -206909,7 +206909,7 @@ ${options.prefix}` : "\n" : options.prefix
         isPropertyAccessOrQualifiedNameOrImportTypeNode: () => isPropertyAccessOrQualifiedNameOrImportTypeNode,
         isPropertyAssignment: () => isPropertyAssignment,
         isPropertyDeclaration: () => isPropertyDeclaration,
-        isPropertyName: () => isPropertyName,
+        isPropertyName: () => isPropertyName2,
         isPropertyNameLiteral: () => isPropertyNameLiteral,
         isPropertySignature: () => isPropertySignature,
         isPrototypeAccess: () => isPrototypeAccess,
@@ -255358,7 +255358,9 @@ var SQL_METHODS = /* @__PURE__ */ new Set([
   "raw"
 ]);
 var SQL_RECEIVER = /(?:^|\.)(?:client|connection|database|db|entityManager|knex|pool|prisma|queryRunner|sql)$/i;
-var REQUEST_DATA = /\b(?:req(?:uest)?|ctx)\s*(?:\.|\[)|\bprocess\s*\.\s*argv\b|\b(?:body|params|query)\s*(?:\.|\[)/i;
+var REQUEST_DATA = /\b(?:req(?:uest)?|ctx)\s*(?:\.|\[)|\bprocess\s*\.\s*argv\b|\b(?:body|params|query)\s*(?:\.|\[)|\bsearchParams\b/i;
+var SQL_KEYWORDS = /\b(?:select|insert\s+into|update|delete\s+from|from|where|values|join)\b/i;
+var MAX_TAINT_HOPS = 3;
 function sourceLocation(file, line) {
   return { file, line };
 }
@@ -255418,19 +255420,93 @@ function isStaticString(node) {
     node && (import_ts_morph4.Node.isStringLiteral(node) || import_ts_morph4.Node.isNoSubstitutionTemplateLiteral(node))
   );
 }
+function enclosingScope(node) {
+  return node.getFirstAncestor(
+    (ancestor) => import_ts_morph4.Node.isFunctionDeclaration(ancestor) || import_ts_morph4.Node.isFunctionExpression(ancestor) || import_ts_morph4.Node.isArrowFunction(ancestor) || import_ts_morph4.Node.isMethodDeclaration(ancestor) || import_ts_morph4.Node.isConstructorDeclaration(ancestor)
+  ) ?? node.getSourceFile();
+}
+function bindsName(name, identifier) {
+  if (import_ts_morph4.Node.isIdentifier(name)) return name.getText() === identifier;
+  if (import_ts_morph4.Node.isObjectBindingPattern(name) || import_ts_morph4.Node.isArrayBindingPattern(name)) {
+    return name.getDescendantsOfKind(import_ts_morph4.SyntaxKind.Identifier).some(
+      (element) => element.getText() === identifier && import_ts_morph4.Node.isBindingElement(element.getParent())
+    );
+  }
+  return false;
+}
+function valueSources(identifier) {
+  const name = identifier.getText();
+  let scope = enclosingScope(identifier);
+  while (scope) {
+    const current = scope;
+    const inScope = (node) => enclosingScope(node) === current;
+    const declarations = current.getDescendantsOfKind(import_ts_morph4.SyntaxKind.VariableDeclaration).filter(
+      (declaration) => inScope(declaration) && bindsName(declaration.getNameNode(), name)
+    );
+    if (declarations.length > 0) {
+      const assignments = current.getDescendantsOfKind(import_ts_morph4.SyntaxKind.BinaryExpression).filter(
+        (binary) => binary.getOperatorToken().getKind() === import_ts_morph4.SyntaxKind.EqualsToken && binary.getLeft().getText() === name
+      ).map((binary) => binary.getRight());
+      return [
+        ...declarations.flatMap(
+          (declaration) => declaration.getInitializer() ?? []
+        ),
+        ...assignments
+      ];
+    }
+    scope = import_ts_morph4.Node.isSourceFile(current) ? void 0 : enclosingScope(current);
+  }
+  return [];
+}
+function isPropertyName(identifier) {
+  const parent = identifier.getParent();
+  return Boolean(
+    parent && import_ts_morph4.Node.isPropertyAccessExpression(parent) && parent.getNameNode() === identifier
+  );
+}
+function isTainted(node, hops = 0, seen = /* @__PURE__ */ new Set()) {
+  if (REQUEST_DATA.test(node.getText())) return true;
+  if (hops >= MAX_TAINT_HOPS) return false;
+  const identifiers = import_ts_morph4.Node.isIdentifier(node) ? [node] : node.getDescendantsOfKind(import_ts_morph4.SyntaxKind.Identifier);
+  for (const identifier of identifiers) {
+    if (isPropertyName(identifier)) continue;
+    for (const source of valueSources(identifier)) {
+      if (seen.has(source)) continue;
+      seen.add(source);
+      if (isTainted(source, hops + 1, seen)) return true;
+    }
+  }
+  return false;
+}
+function dynamicStringShape(node, hops = 0) {
+  if (import_ts_morph4.Node.isTemplateExpression(node)) return node;
+  if (import_ts_morph4.Node.isBinaryExpression(node) && node.getOperatorToken().getKind() === import_ts_morph4.SyntaxKind.PlusToken) {
+    return node;
+  }
+  if (import_ts_morph4.Node.isIdentifier(node) && hops < MAX_TAINT_HOPS) {
+    for (const source of valueSources(node)) {
+      const shape = dynamicStringShape(source, hops + 1);
+      if (shape) return shape;
+    }
+  }
+  return null;
+}
 function isDynamicSqlCall(call) {
   const expression = call.getExpression();
   if (!import_ts_morph4.Node.isPropertyAccessExpression(expression)) return false;
   if (!SQL_METHODS.has(expression.getName())) return false;
-  if (!expression.getName().endsWith("Unsafe") && !SQL_RECEIVER.test(expression.getExpression().getText())) {
-    return false;
-  }
   const query = call.getArguments()[0];
   if (!query || isStaticString(query)) return false;
-  return true;
+  if (expression.getName().endsWith("Unsafe") || SQL_RECEIVER.test(expression.getExpression().getText())) {
+    return true;
+  }
+  const shape = dynamicStringShape(query);
+  return Boolean(
+    shape && SQL_KEYWORDS.test(shape.getText()) && isTainted(query)
+  );
 }
-function severityForDynamicInput(text) {
-  return REQUEST_DATA.test(text) ? "critical" : "warning";
+function severityForDynamicInput(node) {
+  return node && isTainted(node) ? "critical" : "warning";
 }
 function inspectSourceFile(sourceFile, file) {
   const issues = [];
@@ -255454,7 +255530,7 @@ function inspectSourceFile(sourceFile, file) {
       if (command && !isStaticString(command)) {
         issues.push({
           ...fromRule("dynamic-command-execution"),
-          severity: severityForDynamicInput(command.getText()),
+          severity: severityForDynamicInput(command),
           message: "Shell execution receives a non-literal command",
           ...sourceLocation(file, call.getStartLineNumber()),
           fix: "Avoid a shell; use execFile or spawn with a fixed executable and validated argument array"
@@ -255465,7 +255541,7 @@ function inspectSourceFile(sourceFile, file) {
       const query = call.getArguments()[0];
       issues.push({
         ...fromRule("dynamic-sql-query"),
-        severity: severityForDynamicInput(query?.getText() ?? ""),
+        severity: severityForDynamicInput(query),
         message: "SQL execution uses a dynamically constructed query",
         ...sourceLocation(file, call.getStartLineNumber()),
         fix: "Use parameterized queries or the ORM's safe tagged-template API"

@@ -31,7 +31,11 @@ const SQL_METHODS = new Set([
 const SQL_RECEIVER =
   /(?:^|\.)(?:client|connection|database|db|entityManager|knex|pool|prisma|queryRunner|sql)$/i;
 const REQUEST_DATA =
-  /\b(?:req(?:uest)?|ctx)\s*(?:\.|\[)|\bprocess\s*\.\s*argv\b|\b(?:body|params|query)\s*(?:\.|\[)/i;
+  /\b(?:req(?:uest)?|ctx)\s*(?:\.|\[)|\bprocess\s*\.\s*argv\b|\b(?:body|params|query)\s*(?:\.|\[)|\bsearchParams\b/i;
+const SQL_KEYWORDS =
+  /\b(?:select|insert\s+into|update|delete\s+from|from|where|values|join)\b/i;
+/** How many variable assignments taint tracking follows back from a sink. */
+const MAX_TAINT_HOPS = 3;
 
 interface CommandBindings {
   functions: Set<string>;
@@ -121,24 +125,147 @@ function isStaticString(node: Node | undefined): boolean {
   );
 }
 
+type ScopeNode = Node;
+
+function enclosingScope(node: Node): ScopeNode {
+  return (
+    node.getFirstAncestor(
+      (ancestor) =>
+        Node.isFunctionDeclaration(ancestor) ||
+        Node.isFunctionExpression(ancestor) ||
+        Node.isArrowFunction(ancestor) ||
+        Node.isMethodDeclaration(ancestor) ||
+        Node.isConstructorDeclaration(ancestor),
+    ) ?? node.getSourceFile()
+  );
+}
+
+function bindsName(name: Node, identifier: string): boolean {
+  if (Node.isIdentifier(name)) return name.getText() === identifier;
+  if (Node.isObjectBindingPattern(name) || Node.isArrayBindingPattern(name)) {
+    return name
+      .getDescendantsOfKind(SyntaxKind.Identifier)
+      .some(
+        (element) =>
+          element.getText() === identifier &&
+          Node.isBindingElement(element.getParent()),
+      );
+  }
+  return false;
+}
+
+/**
+ * The expressions a variable can hold: initializers of its declaration in the
+ * nearest scope that declares it, and plain reassignments in that scope.
+ * Destructuring propagates the whole initializer.
+ */
+function valueSources(identifier: Node): Node[] {
+  const name = identifier.getText();
+  let scope: ScopeNode | undefined = enclosingScope(identifier);
+  while (scope) {
+    const current: ScopeNode = scope;
+    const inScope = (node: Node) => enclosingScope(node) === current;
+    const declarations = current
+      .getDescendantsOfKind(SyntaxKind.VariableDeclaration)
+      .filter(
+        (declaration) =>
+          inScope(declaration) && bindsName(declaration.getNameNode(), name),
+      );
+    if (declarations.length > 0) {
+      const assignments = current
+        .getDescendantsOfKind(SyntaxKind.BinaryExpression)
+        .filter(
+          (binary) =>
+            binary.getOperatorToken().getKind() === SyntaxKind.EqualsToken &&
+            binary.getLeft().getText() === name,
+        )
+        .map((binary) => binary.getRight());
+      return [
+        ...declarations.flatMap(
+          (declaration) => declaration.getInitializer() ?? [],
+        ),
+        ...assignments,
+      ];
+    }
+    scope = Node.isSourceFile(current) ? undefined : enclosingScope(current);
+  }
+  return [];
+}
+
+function isPropertyName(identifier: Node): boolean {
+  const parent = identifier.getParent();
+  return Boolean(
+    parent &&
+      Node.isPropertyAccessExpression(parent) &&
+      parent.getNameNode() === identifier,
+  );
+}
+
+/**
+ * True when an expression visibly contains request data, directly or through
+ * up to MAX_TAINT_HOPS variable assignments in enclosing scopes.
+ */
+function isTainted(node: Node, hops = 0, seen = new Set<Node>()): boolean {
+  if (REQUEST_DATA.test(node.getText())) return true;
+  if (hops >= MAX_TAINT_HOPS) return false;
+
+  const identifiers = Node.isIdentifier(node)
+    ? [node]
+    : node.getDescendantsOfKind(SyntaxKind.Identifier);
+  for (const identifier of identifiers) {
+    if (isPropertyName(identifier)) continue;
+    for (const source of valueSources(identifier)) {
+      if (seen.has(source)) continue;
+      seen.add(source);
+      if (isTainted(source, hops + 1, seen)) return true;
+    }
+  }
+  return false;
+}
+
+/** A template with substitutions or a `+` concatenation, seen through variables. */
+function dynamicStringShape(node: Node, hops = 0): Node | null {
+  if (Node.isTemplateExpression(node)) return node;
+  if (
+    Node.isBinaryExpression(node) &&
+    node.getOperatorToken().getKind() === SyntaxKind.PlusToken
+  ) {
+    return node;
+  }
+  if (Node.isIdentifier(node) && hops < MAX_TAINT_HOPS) {
+    for (const source of valueSources(node)) {
+      const shape = dynamicStringShape(source, hops + 1);
+      if (shape) return shape;
+    }
+  }
+  return null;
+}
+
 function isDynamicSqlCall(call: CallExpression): boolean {
   const expression = call.getExpression();
   if (!Node.isPropertyAccessExpression(expression)) return false;
   if (!SQL_METHODS.has(expression.getName())) return false;
-  if (
-    !expression.getName().endsWith("Unsafe") &&
-    !SQL_RECEIVER.test(expression.getExpression().getText())
-  ) {
-    return false;
-  }
 
   const query = call.getArguments()[0];
   if (!query || isStaticString(query)) return false;
-  return true;
+  if (
+    expression.getName().endsWith("Unsafe") ||
+    SQL_RECEIVER.test(expression.getExpression().getText())
+  ) {
+    return true;
+  }
+
+  // Any receiver: a query string built from request data is SQL injection.
+  const shape = dynamicStringShape(query);
+  return Boolean(
+    shape && SQL_KEYWORDS.test(shape.getText()) && isTainted(query),
+  );
 }
 
-function severityForDynamicInput(text: string): DiagnosticIssue["severity"] {
-  return REQUEST_DATA.test(text) ? "critical" : "warning";
+function severityForDynamicInput(
+  node: Node | undefined,
+): DiagnosticIssue["severity"] {
+  return node && isTainted(node) ? "critical" : "warning";
 }
 
 function inspectSourceFile(
@@ -173,7 +300,7 @@ function inspectSourceFile(
       if (command && !isStaticString(command)) {
         issues.push({
           ...fromRule("dynamic-command-execution"),
-          severity: severityForDynamicInput(command.getText()),
+          severity: severityForDynamicInput(command),
           message: "Shell execution receives a non-literal command",
           ...sourceLocation(file, call.getStartLineNumber()),
           fix: "Avoid a shell; use execFile or spawn with a fixed executable and validated argument array",
@@ -185,7 +312,7 @@ function inspectSourceFile(
       const query = call.getArguments()[0];
       issues.push({
         ...fromRule("dynamic-sql-query"),
-        severity: severityForDynamicInput(query?.getText() ?? ""),
+        severity: severityForDynamicInput(query),
         message: "SQL execution uses a dynamically constructed query",
         ...sourceLocation(file, call.getStartLineNumber()),
         fix: "Use parameterized queries or the ORM's safe tagged-template API",
