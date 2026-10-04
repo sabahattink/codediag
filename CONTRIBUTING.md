@@ -68,8 +68,11 @@ verification performed. Keep unrelated refactors in separate pull requests.
 2. Run `npm run check` and merge to `main`.
 3. Publish a GitHub release tagged `v<x.y.z>`. The Release workflow checks
    that the tag matches `package.json`, runs `npm run check`, publishes to npm
-   with provenance (requires the `NPM_TOKEN` repository secret), and attaches
-   the VS Code `.vsix` to the release.
+   with provenance through npm trusted publishing, and attaches the VS Code
+   `.vsix` to the release. No npm token is stored in the repository: the
+   package's trusted publisher on npmjs.com (GitHub Actions,
+   `sabahattink/codediag`, workflow `release.yml`, "Allow npm publish") lets
+   this workflow publish with a short-lived OIDC credential.
 4. Move the Action's major tag (for example `v0`) to the release commit so
    `uses: sabahattink/codediag@v0` picks it up.
 
