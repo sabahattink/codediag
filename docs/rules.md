@@ -5,6 +5,9 @@
 Every finding carries one of these rule IDs. SARIF output links each rule
 to its section here through `helpUri`.
 
+With scoring version 2, a finding whose root cause is also reported is
+downgraded to `info`, marked with `causedBy`, and costs no points.
+
 ## API Health
 
 ### implicit-pages-methods
@@ -99,6 +102,8 @@ A POST, PUT, or PATCH route has no recognizable request validation middleware.
 
 The project depends on NestJS but no *.controller.ts files were found, so no HTTP endpoints can be analyzed.
 
+- Scoring: sets the analyzer score to 0 (nothing to evaluate)
+
 ### no-endpoints
 
 **Controllers without endpoints** · default severity: `warning`
@@ -111,11 +116,15 @@ Controller classes exist but none of their methods use an HTTP method decorator 
 
 The project depends on Express but no app or router route registrations with a literal path were detected.
 
+- Scoring: sets the analyzer score to 0 (nothing to evaluate)
+
 ### no-nextjs-handlers
 
 **API route files without handlers** · default severity: `critical`
 
 Next.js API route files exist but export no detectable HTTP method handlers.
+
+- Scoring: sets the analyzer score to 0 (nothing to evaluate)
 
 ## Security
 
@@ -261,6 +270,8 @@ A dependency is a known deprecated or unmaintained package such as request or no
 
 package.json is not valid JSON or is not an object.
 
+- Scoring: sets the analyzer score to 0 (nothing to evaluate)
+
 ### lock-file-manager-mismatch
 
 **Lock file does not match packageManager** · default severity: `critical`
@@ -290,6 +301,8 @@ No npm, pnpm, or Yarn lock file was found in the project or up to three parent d
 **No package.json** · default severity: `critical`
 
 The scanned directory has no package.json.
+
+- Scoring: sets the analyzer score to 0 (nothing to evaluate)
 
 ### vuln-critical
 
@@ -374,6 +387,8 @@ A test framework is installed but its configuration file was not found.
 **No test files** · default severity: `critical`
 
 No *.test.* or *.spec.* files were found.
+
+- Scoring: sets the analyzer score to 0 (nothing to evaluate)
 
 ### no-test-framework
 

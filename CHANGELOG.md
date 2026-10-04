@@ -18,6 +18,12 @@ All notable changes to CodeDiag are documented in this file.
 - SARIF rules now use registry titles and descriptions and include `helpUri`,
   `help`, CWE tags, and OWASP mappings.
 - An optional line-number-independent `fingerprint` on each JSON issue.
+- Scoring version 2: analyzers start at 100 and lose severity-weighted points
+  per finding with diminishing returns per rule. Consequences of a reported
+  root cause are downgraded to `info` with `causedBy` and cost nothing. Each
+  analyzer reports a `scoreBreakdown`, shown in JSON, HTML, Markdown, and
+  `--verbose` terminal output, and results include `scoringVersion`.
+- `scoring.version` configuration.
 - AST-based security sink detection for runtime code execution, dynamic shell
   commands, dynamic SQL queries, and disabled TLS certificate verification.
 - SARIF 2.1.0 output through `--format sarif`, including stable rule IDs,
@@ -56,9 +62,17 @@ All notable changes to CodeDiag are documented in this file.
   includes the line number, so alerts no longer reopen when code moves. The
   `codediagFinding/v1` key is removed; existing Code Scanning alerts are
   matched anew once after upgrading.
+- Scores now use scoring version 2 by default, which changes most project
+  scores. A single configuration gap such as a missing `.gitignore` no longer
+  costs as much as dozens of injection findings, one root cause is penalized
+  once, and NestJS GET endpoints without guards no longer lower the score
+  without a finding. Set
+  `scoring: { version: 1 }` to keep the previous scores; version 1 will be
+  removed in the next minor release.
 - Dependency audits are skipped when no lock file exists; the `no-lock-file`
   finding now says that dependencies cannot be audited instead of a separate
   misleading `audit-unavailable` warning.
+- Scan progress lines report finding counts instead of preliminary scores.
 - Project ownership and links now use the canonical Sabahattin Kalkan identity.
 - CLI version is read from `package.json`.
 - Threshold failures now return exit code 1 in every output mode.

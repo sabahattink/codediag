@@ -18,13 +18,25 @@ export interface DiagnosticIssue {
   fix?: string;
   /** Line-number-independent identity used by SARIF and baselines. */
   fingerprint?: string;
+  /** The reported rule this finding is a consequence of; it is not penalized. */
+  causedBy?: string;
 }
+
+export interface ScoreBreakdownEntry {
+  rule: string;
+  count: number;
+  penalty: number;
+}
+
+export type ScoringVersion = 1 | 2;
 
 export interface AnalyzerResult {
   name: string;
   score: number;
   issues: DiagnosticIssue[];
   summary: string;
+  /** Scoring version 2: the points each rule cost this analyzer. */
+  scoreBreakdown?: ScoreBreakdownEntry[];
 }
 
 export type Grade = "A+" | "A" | "B+" | "B" | "C" | "D" | "F";
@@ -49,6 +61,7 @@ export interface ScanResult {
   totalScore: number;
   grade: Grade;
   timestamp: string;
+  scoringVersion?: ScoringVersion;
   skipped?: SkippedSummary;
 }
 
@@ -68,6 +81,7 @@ export interface CodediagConfig {
   threshold: number;
   ignore: string[];
   maxFileSizeKb: number;
+  scoring: { version: ScoringVersion };
   analyzers: {
     api: boolean;
     security: boolean;
@@ -83,6 +97,7 @@ export const DEFAULT_CONFIG: CodediagConfig = {
   threshold: 70,
   ignore: ["node_modules", "dist", ".git", "coverage"],
   maxFileSizeKb: 512,
+  scoring: { version: 2 },
   analyzers: {
     api: true,
     security: true,

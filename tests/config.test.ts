@@ -72,6 +72,24 @@ test("loads and validates maxFileSizeKb", () => {
   });
 });
 
+test("loads and validates the scoring version", () => {
+  withProject((directory) => {
+    assert.deepEqual(loadConfig(directory).scoring, { version: 2 });
+
+    writeFileSync(join(directory, ".codediag.yml"), "scoring:\n  version: 1\n");
+    assert.deepEqual(loadConfig(directory).scoring, { version: 1 });
+
+    for (const [content, message] of [
+      ["scoring:\n  version: 3\n", /scoring.version must be 1 or 2/],
+      ["scoring: 2\n", /scoring must be an object/],
+      ["scoring:\n  weights: {}\n", /unknown scoring option: weights/],
+    ] as const) {
+      writeFileSync(join(directory, ".codediag.yml"), content);
+      assert.throws(() => loadConfig(directory), message);
+    }
+  });
+});
+
 test("normalizes directories without corrupting glob patterns", () => {
   assert.deepEqual(normalizeIgnorePatterns(["dist", "generated/**"]), [
     "dist",

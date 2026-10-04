@@ -227,3 +227,40 @@ test("built CLI JSON output conforms to the published schema", () => {
     rmSync(directory, { recursive: true, force: true });
   }
 });
+
+test("Markdown output explains lost points with scoring version 2", () => {
+  const directory = mkdtempSync(join(tmpdir(), "codediag-cli-"));
+  try {
+    writeFileSync(join(directory, "package.json"), "{}");
+    writeFileSync(join(directory, "index.ts"), "export const a = 1;\n");
+    writeFileSync(
+      join(directory, ".codediag.yml"),
+      [
+        "threshold: 0",
+        "analyzers:",
+        "  api: false",
+        "  security: false",
+        "  dependencies: false",
+        "  testing: true",
+        "  structure: false",
+      ].join("\n"),
+    );
+
+    const result = runCli(["scan", ".", "--format", "md"], directory);
+
+    assert.equal(result.status, 0, result.stderr);
+    assert.match(result.stdout, /Testing \| 0\/100 \|/);
+    assert.match(result.stdout, /### Score breakdown/);
+    assert.match(
+      result.stdout,
+      /\| Testing \| `no-test-files` \| 1 \| -100 \|/,
+    );
+    assert.match(
+      result.stdout,
+      /\| Testing \| `no-test-framework` \| 1 \| -8 \|/,
+    );
+    assert.doesNotMatch(result.stdout, /zero-test-ratio/);
+  } finally {
+    rmSync(directory, { recursive: true, force: true });
+  }
+});

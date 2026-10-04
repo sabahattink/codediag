@@ -3,6 +3,7 @@ import { resolve } from "node:path";
 import chalk from "chalk";
 import { Command } from "commander";
 import { isBelowThreshold, loadConfig, parseThreshold } from "./config.js";
+import { formatPenalty } from "./core/scoring.js";
 import { renderHtml } from "./reporters/html.js";
 import { renderAiPrompt, renderFixPlan } from "./reporters/fix-plan.js";
 import { renderJson } from "./reporters/json.js";
@@ -40,6 +41,21 @@ function renderMarkdown(result: ScanResult): string {
 
   lines.push(`| **Total** | **${result.totalScore}/100 (${result.grade})** |`);
   lines.push(``);
+
+  const breakdown = result.analyzers.flatMap((a) =>
+    (a.scoreBreakdown ?? []).map((entry) => ({ analyzer: a.name, ...entry })),
+  );
+  if (breakdown.length > 0) {
+    lines.push(`### Score breakdown`, ``);
+    lines.push(`| Analyzer | Rule | Findings | Points lost |`);
+    lines.push(`|----------|------|---------:|------------:|`);
+    for (const entry of breakdown) {
+      lines.push(
+        `| ${entry.analyzer} | \`${entry.rule}\` | ${entry.count} | ${formatPenalty(entry.penalty)} |`,
+      );
+    }
+    lines.push(``);
+  }
   lines.push(
     `> Scanned by [codediag](https://github.com/sabahattink/codediag) on ${new Date().toLocaleDateString()}`,
   );
@@ -148,6 +164,9 @@ program
 # https://github.com/sabahattink/codediag#config
 
 threshold: 70
+
+scoring:
+  version: 2
 
 ignore:
   - node_modules

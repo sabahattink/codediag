@@ -1,4 +1,5 @@
 import chalk from "chalk";
+import { formatPenalty } from "../core/scoring.js";
 import type { ScanResult } from "../types.js";
 
 function scoreBar(score: number, width = 20): string {
@@ -80,6 +81,15 @@ export function renderTerminal(
     console.log(
       `  ${chalk.dim(a.name.padEnd(16))} ${bar} ${chalk.bold(scoreStr)}`,
     );
+    if (options.verbose) {
+      for (const entry of a.scoreBreakdown ?? []) {
+        console.log(
+          chalk.dim(
+            `    ${formatPenalty(entry.penalty).padStart(6)}  ${entry.rule} ×${entry.count}`,
+          ),
+        );
+      }
+    }
   }
   console.log();
 
@@ -110,7 +120,10 @@ export function renderTerminal(
       : [...criticals, ...warnings].slice(0, 10);
 
     for (const issue of showIssues) {
-      console.log(`  ${severityIcon(issue.severity)} ${issue.message}`);
+      const cause = issue.causedBy
+        ? chalk.dim(` (caused by ${issue.causedBy})`)
+        : "";
+      console.log(`  ${severityIcon(issue.severity)} ${issue.message}${cause}`);
       if (issue.file) console.log(chalk.dim(`    ${issue.file}`));
       if (issue.fix) console.log(chalk.dim(`    \u2192 ${issue.fix}`));
     }

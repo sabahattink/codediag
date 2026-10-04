@@ -12,6 +12,7 @@ import { analyzeTesting } from "./analyzers/testing.js";
 import { loadConfig } from "./config.js";
 import { assignFingerprints } from "./core/fingerprint.js";
 import { createScanContext } from "./core/scan-context.js";
+import { applyScoring } from "./core/scoring.js";
 import { detectStack } from "./detectors/stack-detector.js";
 import type {
   AnalyzerResult,
@@ -51,6 +52,12 @@ function createProgressReporter(options: ScanOptions): ProgressReporter {
       spinner?.succeed(chalk.dim(message));
     },
   };
+}
+
+/** Progress text; scores are final only after all analyzers have run. */
+function findingCount(result: AnalyzerResult): string {
+  const count = result.issues.length;
+  return `${count} finding${count === 1 ? "" : "s"}`;
 }
 
 function calculateGrade(score: number): Grade {
@@ -101,7 +108,7 @@ export async function scan(
           : await analyzeNextjsApi(context);
     if (r) {
       results.push(r);
-      progress.succeed(`API Health: ${r.score}/100`);
+      progress.succeed(`API Health: ${findingCount(r)}`);
     } else {
       progress.succeed("API Health: not applicable");
     }
@@ -112,7 +119,7 @@ export async function scan(
     progress.start("Scanning security...");
     const sec = await analyzeSecurity(context);
     results.push(sec);
-    progress.succeed(`Security: ${sec.score}/100`);
+    progress.succeed(`Security: ${findingCount(sec)}`);
   }
 
   // Dependencies
@@ -120,7 +127,7 @@ export async function scan(
     progress.start("Auditing dependencies...");
     const dep = await analyzeDependencies(context);
     results.push(dep);
-    progress.succeed(`Dependencies: ${dep.score}/100`);
+    progress.succeed(`Dependencies: ${findingCount(dep)}`);
   }
 
   // Testing
@@ -128,7 +135,7 @@ export async function scan(
     progress.start("Checking test coverage...");
     const test = await analyzeTesting(context);
     results.push(test);
-    progress.succeed(`Testing: ${test.score}/100`);
+    progress.succeed(`Testing: ${findingCount(test)}`);
   }
 
   // Structure
@@ -136,13 +143,15 @@ export async function scan(
     progress.start("Analyzing project structure...");
     const str = await analyzeStructure(context);
     results.push(str);
-    progress.succeed(`Structure: ${str.score}/100`);
+    progress.succeed(`Structure: ${findingCount(str)}`);
   }
+
+  const scored = applyScoring(results, config.scoring.version);
 
   // Calculate total
   let totalWeight = 0;
   let weightedSum = 0;
-  for (const r of results) {
+  for (const r of scored) {
     const w = WEIGHTS[r.name] || 10;
     weightedSum += r.score * w;
     totalWeight += w;
@@ -151,7 +160,7 @@ export async function scan(
   const totalScore =
     totalWeight > 0 ? Math.round(weightedSum / totalWeight) : 0;
   const grade = calculateGrade(totalScore);
-  const analyzers = assignFingerprints(results, context.readText);
+  const analyzers = assignFingerprints(scored, context.readText);
   const skipped = context.skipped();
 
   return {
@@ -161,6 +170,7 @@ export async function scan(
     totalScore,
     grade,
     timestamp: new Date().toISOString(),
+    scoringVersion: config.scoring.version,
     ...(skipped.total > 0 ? { skipped } : {}),
   };
 }

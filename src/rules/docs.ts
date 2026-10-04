@@ -29,7 +29,17 @@ function ruleSection(id: string, rule: RuleDefinition): string[] {
   if (rule.rootCause) {
     lines.push(`- Root cause: [\`${rule.rootCause}\`](#${rule.rootCause})`);
   }
-  if (rule.cwe?.length || rule.owasp?.length || rule.rootCause) lines.push("");
+  if (rule.failsAnalyzer) {
+    lines.push("- Scoring: sets the analyzer score to 0 (nothing to evaluate)");
+  }
+  if (
+    rule.cwe?.length ||
+    rule.owasp?.length ||
+    rule.rootCause ||
+    rule.failsAnalyzer
+  ) {
+    lines.push("");
+  }
   return lines;
 }
 
@@ -43,6 +53,9 @@ export function renderRulesMarkdown(): string {
     "",
     "Every finding carries one of these rule IDs. SARIF output links each rule",
     "to its section here through `helpUri`.",
+    "",
+    "With scoring version 2, a finding whose root cause is also reported is",
+    "downgraded to `info`, marked with `causedBy`, and costs no points.",
     "",
   ];
 

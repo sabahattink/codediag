@@ -44,6 +44,7 @@ https://raw.githubusercontent.com/sabahattink/codediag/main/schema/scan-result.s
 | `totalScore` | integer | Weighted score from 0 through 100 |
 | `grade` | string | `A+`, `A`, `B+`, `B`, `C`, `D`, or `F` |
 | `timestamp` | string | UTC ISO 8601 scan timestamp |
+| `scoringVersion` | integer | Scoring model used for analyzer scores: `1` or `2` |
 | `skipped` | object | Optional. Present only when source files were left out of analysis |
 
 `skipped` counts code files that were not analyzed: `tooLarge` (larger than
@@ -52,7 +53,14 @@ average line length above 500 characters), and `unreadable`. `files` lists up
 to 50 of them as `{ "file", "reason" }`, sorted by path.
 
 Each diagnostic issue always includes `severity`, `rule`, and `message`.
-`file`, `line`, `fix`, and `fingerprint` are optional. Rule IDs and their
+Each analyzer result includes `name`, `score`, `issues`, and `summary`. With
+scoring version 2 it also includes `scoreBreakdown`: one `{ "rule", "count",
+"penalty" }` entry per rule that cost points, sorted by penalty. The penalties
+add up to `100 - score` before rounding and the floor at 0.
+
+`file`, `line`, `fix`, `fingerprint`, and `causedBy` are optional. `causedBy`
+names the reported rule a finding is a consequence of; such findings are
+`info` and are not penalized. Rule IDs and their
 meaning are listed in [rules.md](rules.md).
 
 `fingerprint` is a SHA-256 hex digest that identifies a finding independently

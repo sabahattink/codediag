@@ -24,6 +24,11 @@ export interface RuleDefinition {
    * because a digest of a guessable line can be brute-forced offline.
    */
   sensitiveSource?: boolean;
+  /**
+   * The finding means the analyzer had nothing to evaluate, so scoring
+   * version 2 sets that analyzer's score to 0.
+   */
+  failsAnalyzer?: boolean;
 }
 
 export const RULES_DOCUMENT_URL =
@@ -47,6 +52,7 @@ export const RULES = {
     description:
       "The project depends on NestJS but no *.controller.ts files were found, so no HTTP endpoints can be analyzed.",
     defaultSeverity: "critical",
+    failsAnalyzer: true,
   },
   "no-endpoints": {
     analyzer: "API Health",
@@ -94,6 +100,7 @@ export const RULES = {
     description:
       "The project depends on Express but no app or router route registrations with a literal path were detected.",
     defaultSeverity: "critical",
+    failsAnalyzer: true,
   },
   "missing-auth-middleware": {
     analyzer: "API Health",
@@ -128,6 +135,7 @@ export const RULES = {
     description:
       "Next.js API route files exist but export no detectable HTTP method handlers.",
     defaultSeverity: "critical",
+    failsAnalyzer: true,
   },
   "missing-auth-check": {
     analyzer: "API Health",
@@ -289,12 +297,14 @@ export const RULES = {
     title: "No package.json",
     description: "The scanned directory has no package.json.",
     defaultSeverity: "critical",
+    failsAnalyzer: true,
   },
   "invalid-package-json": {
     analyzer: "Dependencies",
     title: "Invalid package.json",
     description: "package.json is not valid JSON or is not an object.",
     defaultSeverity: "critical",
+    failsAnalyzer: true,
   },
   "no-lock-file": {
     analyzer: "Dependencies",
@@ -384,6 +394,7 @@ export const RULES = {
     title: "No test files",
     description: "No *.test.* or *.spec.* files were found.",
     defaultSeverity: "critical",
+    failsAnalyzer: true,
   },
   "no-test-framework": {
     analyzer: "Testing",

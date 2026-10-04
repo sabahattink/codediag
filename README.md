@@ -97,6 +97,20 @@ API Health: 25%  ·  Security: 30%  ·  Dependencies: 20%  ·  Testing: 15%  · 
 |:--:|:-:|:--:|:-:|:-:|:-:|:-:|
 | 95+ | 90+ | 85+ | 80+ | 70+ | 60+ | <60 |
 
+Analyzer scores use scoring version 2 by default: every analyzer starts at
+100 and each finding subtracts a severity weight (critical 25, warning 8,
+info 2). Further findings of the same rule cost half the previous one, so a
+single rule costs at most twice its weight. A finding whose root cause is also
+reported (for example "no test directory" when there are no tests at all) is
+downgraded to `info`, linked with `causedBy`, and costs nothing. Findings that
+leave an analyzer with nothing to evaluate, such as a missing `package.json`,
+set that analyzer to 0.
+
+Every lost point is listed in `scoreBreakdown` in JSON output, in the HTML and
+Markdown reports, and under each analyzer with `--verbose`. Set
+`scoring: { version: 1 }` to keep the previous checks-passed scores for one
+more release.
+
 ## CLI
 
 ```bash
@@ -219,6 +233,8 @@ plain scans are informational; `--ci` uses the default threshold of 70.
 threshold: 70
 ignore: [node_modules, dist, .git, coverage]
 maxFileSizeKb: 512
+scoring:
+  version: 2
 analyzers:
   api: true
   security: true

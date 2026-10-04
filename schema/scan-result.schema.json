@@ -50,6 +50,13 @@
     },
     "skipped": {
       "$ref": "#/$defs/skippedSummary"
+    },
+    "scoringVersion": {
+      "type": "integer",
+      "enum": [
+        1,
+        2
+      ]
     }
   },
   "$defs": {
@@ -140,6 +147,12 @@
         },
         "summary": {
           "type": "string"
+        },
+        "scoreBreakdown": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/scoreBreakdownEntry"
+          }
         }
       }
     },
@@ -183,6 +196,10 @@
         "fingerprint": {
           "type": "string",
           "pattern": "^[a-f0-9]{64}$"
+        },
+        "causedBy": {
+          "type": "string",
+          "minLength": 1
         }
       }
     },
@@ -238,6 +255,30 @@
               }
             }
           }
+        }
+      }
+    },
+    "scoreBreakdownEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "rule",
+        "count",
+        "penalty"
+      ],
+      "properties": {
+        "rule": {
+          "type": "string",
+          "minLength": 1
+        },
+        "count": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "penalty": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
         }
       }
     }

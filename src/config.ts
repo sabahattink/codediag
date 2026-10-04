@@ -5,6 +5,7 @@ import {
   type AnalyzerKey,
   type CodediagConfig,
   DEFAULT_CONFIG,
+  type ScoringVersion,
 } from "./types.js";
 
 const ANALYZER_KEYS: AnalyzerKey[] = [
@@ -54,6 +55,27 @@ function readMaxFileSizeKb(value: unknown, fallback: number): number {
   return Number(value);
 }
 
+const SCORING_VERSIONS: ScoringVersion[] = [1, 2];
+
+function readScoring(
+  value: unknown,
+  fallback: CodediagConfig["scoring"],
+): CodediagConfig["scoring"] {
+  if (value === undefined) return { ...fallback };
+  if (!isRecord(value)) {
+    throw new Error("scoring must be an object");
+  }
+  const unknownKeys = Object.keys(value).filter((key) => key !== "version");
+  if (unknownKeys.length > 0) {
+    throw new Error(`unknown scoring option: ${unknownKeys.join(", ")}`);
+  }
+  if (value.version === undefined) return { ...fallback };
+  if (!SCORING_VERSIONS.includes(value.version as ScoringVersion)) {
+    throw new Error("scoring.version must be 1 or 2");
+  }
+  return { version: value.version as ScoringVersion };
+}
+
 function readAnalyzers(
   value: unknown,
   fallback: CodediagConfig["analyzers"],
@@ -89,6 +111,7 @@ export function loadConfig(projectPath: string): CodediagConfig {
       threshold: DEFAULT_CONFIG.threshold,
       ignore: [...DEFAULT_CONFIG.ignore],
       maxFileSizeKb: DEFAULT_CONFIG.maxFileSizeKb,
+      scoring: { ...DEFAULT_CONFIG.scoring },
       analyzers: { ...DEFAULT_CONFIG.analyzers },
     };
   }
@@ -111,6 +134,7 @@ export function loadConfig(projectPath: string): CodediagConfig {
     "threshold",
     "ignore",
     "maxFileSizeKb",
+    "scoring",
     "analyzers",
   ]);
   const unknownKeys = Object.keys(document).filter(
@@ -130,6 +154,7 @@ export function loadConfig(projectPath: string): CodediagConfig {
         document.maxFileSizeKb,
         DEFAULT_CONFIG.maxFileSizeKb,
       ),
+      scoring: readScoring(document.scoring, DEFAULT_CONFIG.scoring),
       analyzers: readAnalyzers(document.analyzers, DEFAULT_CONFIG.analyzers),
     };
   } catch (error) {

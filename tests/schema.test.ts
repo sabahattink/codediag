@@ -89,6 +89,20 @@ test("JSON schema accepts the optional skipped-file summary", () => {
   assert.equal(validate(invalid), false);
 });
 
+test("JSON schema accepts scoring version 2 breakdowns and root causes", () => {
+  const result = validResult();
+  result.scoringVersion = 2;
+  result.analyzers[0].scoreBreakdown = [
+    { rule: "missing-health-endpoint", count: 1, penalty: 2 },
+  ];
+  result.analyzers[0].issues[0].causedBy = "no-express-routes";
+  assert.equal(validate(result), true, JSON.stringify(validate.errors));
+
+  const invalid = validResult() as unknown as Record<string, unknown>;
+  invalid.scoringVersion = 3;
+  assert.equal(validate(invalid), false);
+});
+
 test("JSON schema rejects out-of-range scores and incomplete stacks", () => {
   const invalid = validResult() as unknown as Record<string, unknown>;
   invalid.totalScore = 101;

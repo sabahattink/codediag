@@ -251617,6 +251617,7 @@ var DEFAULT_CONFIG = {
   threshold: 70,
   ignore: ["node_modules", "dist", ".git", "coverage"],
   maxFileSizeKb: 512,
+  scoring: { version: 2 },
   analyzers: {
     api: true,
     security: true,
@@ -251661,6 +251662,22 @@ function readMaxFileSizeKb(value, fallback2) {
   }
   return Number(value);
 }
+var SCORING_VERSIONS = [1, 2];
+function readScoring(value, fallback2) {
+  if (value === void 0) return { ...fallback2 };
+  if (!isRecord(value)) {
+    throw new Error("scoring must be an object");
+  }
+  const unknownKeys = Object.keys(value).filter((key) => key !== "version");
+  if (unknownKeys.length > 0) {
+    throw new Error(`unknown scoring option: ${unknownKeys.join(", ")}`);
+  }
+  if (value.version === void 0) return { ...fallback2 };
+  if (!SCORING_VERSIONS.includes(value.version)) {
+    throw new Error("scoring.version must be 1 or 2");
+  }
+  return { version: value.version };
+}
 function readAnalyzers(value, fallback2) {
   if (value === void 0) return { ...fallback2 };
   if (!isRecord(value)) {
@@ -251690,6 +251707,7 @@ function loadConfig(projectPath) {
       threshold: DEFAULT_CONFIG.threshold,
       ignore: [...DEFAULT_CONFIG.ignore],
       maxFileSizeKb: DEFAULT_CONFIG.maxFileSizeKb,
+      scoring: { ...DEFAULT_CONFIG.scoring },
       analyzers: { ...DEFAULT_CONFIG.analyzers }
     };
   }
@@ -251709,6 +251727,7 @@ function loadConfig(projectPath) {
     "threshold",
     "ignore",
     "maxFileSizeKb",
+    "scoring",
     "analyzers"
   ]);
   const unknownKeys = Object.keys(document).filter(
@@ -251727,6 +251746,7 @@ function loadConfig(projectPath) {
         document.maxFileSizeKb,
         DEFAULT_CONFIG.maxFileSizeKb
       ),
+      scoring: readScoring(document.scoring, DEFAULT_CONFIG.scoring),
       analyzers: readAnalyzers(document.analyzers, DEFAULT_CONFIG.analyzers)
     };
   } catch (error) {
@@ -251776,7 +251796,8 @@ var RULES = {
     analyzer: "API Health",
     title: "No NestJS controllers",
     description: "The project depends on NestJS but no *.controller.ts files were found, so no HTTP endpoints can be analyzed.",
-    defaultSeverity: "critical"
+    defaultSeverity: "critical",
+    failsAnalyzer: true
   },
   "no-endpoints": {
     analyzer: "API Health",
@@ -251817,7 +251838,8 @@ var RULES = {
     analyzer: "API Health",
     title: "No Express routes",
     description: "The project depends on Express but no app or router route registrations with a literal path were detected.",
-    defaultSeverity: "critical"
+    defaultSeverity: "critical",
+    failsAnalyzer: true
   },
   "missing-auth-middleware": {
     analyzer: "API Health",
@@ -251847,7 +251869,8 @@ var RULES = {
     analyzer: "API Health",
     title: "API route files without handlers",
     description: "Next.js API route files exist but export no detectable HTTP method handlers.",
-    defaultSeverity: "critical"
+    defaultSeverity: "critical",
+    failsAnalyzer: true
   },
   "missing-auth-check": {
     analyzer: "API Health",
@@ -251989,13 +252012,15 @@ var RULES = {
     analyzer: "Dependencies",
     title: "No package.json",
     description: "The scanned directory has no package.json.",
-    defaultSeverity: "critical"
+    defaultSeverity: "critical",
+    failsAnalyzer: true
   },
   "invalid-package-json": {
     analyzer: "Dependencies",
     title: "Invalid package.json",
     description: "package.json is not valid JSON or is not an object.",
-    defaultSeverity: "critical"
+    defaultSeverity: "critical",
+    failsAnalyzer: true
   },
   "no-lock-file": {
     analyzer: "Dependencies",
@@ -252073,7 +252098,8 @@ var RULES = {
     analyzer: "Testing",
     title: "No test files",
     description: "No *.test.* or *.spec.* files were found.",
-    defaultSeverity: "critical"
+    defaultSeverity: "critical",
+    failsAnalyzer: true
   },
   "no-test-framework": {
     analyzer: "Testing",
@@ -258033,6 +258059,65 @@ function createScanContext(projectPath, config = loadConfig(projectPath), option
   });
 }
 
+// src/core/scoring.ts
+var SEVERITY_WEIGHTS = {
+  critical: 25,
+  warning: 8,
+  info: 2
+};
+var REPEAT_DECAY = 0.5;
+function roundPenalty(value) {
+  return Math.round(value * 10) / 10;
+}
+function linkRootCauses(results) {
+  const reported = new Set(
+    results.flatMap((result) => result.issues.map((issue) => issue.rule))
+  );
+  return results.map((result) => ({
+    ...result,
+    issues: result.issues.map((issue) => {
+      const rootCause = getRule(issue.rule)?.rootCause;
+      if (!rootCause || !reported.has(rootCause)) return issue;
+      return { ...issue, severity: "info", causedBy: rootCause };
+    })
+  }));
+}
+function scoreIssues(issues) {
+  const byRule = /* @__PURE__ */ new Map();
+  for (const issue of issues) {
+    if (issue.causedBy) continue;
+    byRule.set(issue.rule, [...byRule.get(issue.rule) ?? [], issue]);
+  }
+  let total = 0;
+  const scoreBreakdown = [];
+  for (const [rule, findings] of byRule) {
+    const penalty = getRule(rule)?.failsAnalyzer ? 100 : findings.map((finding) => SEVERITY_WEIGHTS[finding.severity]).sort((left, right) => right - left).reduce(
+      (sum, weight, index) => sum + weight * REPEAT_DECAY ** index,
+      0
+    );
+    total += penalty;
+    scoreBreakdown.push({
+      rule,
+      count: findings.length,
+      penalty: roundPenalty(penalty)
+    });
+  }
+  scoreBreakdown.sort(
+    (left, right) => right.penalty - left.penalty || left.rule.localeCompare(right.rule)
+  );
+  return {
+    score: Math.max(0, Math.round(100 - total)),
+    scoreBreakdown
+  };
+}
+function applyScoring(results, version) {
+  if (version === 1) return results;
+  return linkRootCauses(results).map((result) => ({
+    ...result,
+    ...scoreIssues(result.issues)
+  }));
+}
+
 // src/scanner.ts
 var WEIGHTS = {
   "API Health": 25,
@@ -258053,6 +258138,10 @@ function createProgressReporter(options) {
       spinner?.succeed(source_default.dim(message));
     }
   };
+}
+function findingCount(result) {
+  const count = result.issues.length;
+  return `${count} finding${count === 1 ? "" : "s"}`;
 }
 function calculateGrade(score) {
   if (score >= 95) return "A+";
@@ -258079,7 +258168,7 @@ async function scan(projectPath, config = loadConfig(projectPath), options = {})
     const r = stack.framework === "nestjs" ? await analyzeNestjsApi(context) : stack.framework === "express" ? await analyzeExpressApi(context) : await analyzeNextjsApi(context);
     if (r) {
       results.push(r);
-      progress.succeed(`API Health: ${r.score}/100`);
+      progress.succeed(`API Health: ${findingCount(r)}`);
     } else {
       progress.succeed("API Health: not applicable");
     }
@@ -258088,36 +258177,37 @@ async function scan(projectPath, config = loadConfig(projectPath), options = {})
     progress.start("Scanning security...");
     const sec = await analyzeSecurity(context);
     results.push(sec);
-    progress.succeed(`Security: ${sec.score}/100`);
+    progress.succeed(`Security: ${findingCount(sec)}`);
   }
   if (config.analyzers.dependencies) {
     progress.start("Auditing dependencies...");
     const dep = await analyzeDependencies(context);
     results.push(dep);
-    progress.succeed(`Dependencies: ${dep.score}/100`);
+    progress.succeed(`Dependencies: ${findingCount(dep)}`);
   }
   if (config.analyzers.testing) {
     progress.start("Checking test coverage...");
     const test = await analyzeTesting(context);
     results.push(test);
-    progress.succeed(`Testing: ${test.score}/100`);
+    progress.succeed(`Testing: ${findingCount(test)}`);
   }
   if (config.analyzers.structure) {
     progress.start("Analyzing project structure...");
     const str = await analyzeStructure(context);
     results.push(str);
-    progress.succeed(`Structure: ${str.score}/100`);
+    progress.succeed(`Structure: ${findingCount(str)}`);
   }
+  const scored = applyScoring(results, config.scoring.version);
   let totalWeight = 0;
   let weightedSum = 0;
-  for (const r of results) {
+  for (const r of scored) {
     const w = WEIGHTS[r.name] || 10;
     weightedSum += r.score * w;
     totalWeight += w;
   }
   const totalScore = totalWeight > 0 ? Math.round(weightedSum / totalWeight) : 0;
   const grade = calculateGrade(totalScore);
-  const analyzers = assignFingerprints(results, context.readText);
+  const analyzers = assignFingerprints(scored, context.readText);
   const skipped = context.skipped();
   return {
     project: (0, import_node_path9.basename)(projectPath),
@@ -258126,6 +258216,7 @@ async function scan(projectPath, config = loadConfig(projectPath), options = {})
     totalScore,
     grade,
     timestamp: (/* @__PURE__ */ new Date()).toISOString(),
+    scoringVersion: config.scoring.version,
     ...skipped.total > 0 ? { skipped } : {}
   };
 }
