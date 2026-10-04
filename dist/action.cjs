@@ -255935,8 +255935,10 @@ async function analyzeSecurity(context) {
   for (const source of allSources) {
     for (const { pattern, name } of SECRET_PATTERNS) {
       pattern.lastIndex = 0;
-      const match2 = pattern.exec(source.content);
-      if (!match2) continue;
+      const match2 = [...source.content.matchAll(pattern)].find(
+        (candidate) => !candidate[0].includes("${")
+      );
+      if (!match2 || match2.index === void 0) continue;
       secretsFound = true;
       issues.push({
         ...fromRule("hardcoded-secret"),

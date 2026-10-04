@@ -216,3 +216,29 @@ test("runtime sink findings contribute to the security analyzer score", async ()
     },
   );
 });
+
+test("interpolated values are not hardcoded secrets", async () => {
+  const literal = ["hunter2", "hunter2"].join("-");
+  // "${" is assembled so this test file holds no template placeholders.
+  const placeholder = (name: string) => ["$", "{", name, "}"].join("");
+  await withProject(
+    {
+      ".gitignore": ".env\n",
+      "package.json": "{}",
+      "src/config.ts": [
+        `const login = \`password: "${placeholder("password")}"\`;`,
+        `const dsn = \`secret = "${placeholder("prefix")}-${placeholder("suffix")}"\`;`,
+        `const fallback = { password: "${literal}" };`,
+      ].join("\n"),
+    },
+    async (directory) => {
+      const result = await analyzeSecurity(createScanContext(directory));
+      assert.deepEqual(
+        result.issues
+          .filter((issue) => issue.rule === "hardcoded-secret")
+          .map((issue) => issue.line),
+        [3],
+      );
+    },
+  );
+});

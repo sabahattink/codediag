@@ -404,8 +404,11 @@ export async function analyzeSecurity(
   for (const source of allSources) {
     for (const { pattern, name } of SECRET_PATTERNS) {
       pattern.lastIndex = 0;
-      const match = pattern.exec(source.content);
-      if (!match) continue;
+      // A value built with ${...} interpolation is not a hardcoded secret.
+      const match = [...source.content.matchAll(pattern)].find(
+        (candidate) => !candidate[0].includes("${"),
+      );
+      if (!match || match.index === undefined) continue;
       secretsFound = true;
       issues.push({
         ...fromRule("hardcoded-secret"),

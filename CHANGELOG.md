@@ -115,6 +115,8 @@ All notable changes to CodeDiag are documented in this file.
   `vitest.config.*` or `vite.config.*`, node:test `--test-coverage-*` flags,
   and c8/nyc options. Mentioning "coverage" in a comment or enabling coverage
   without thresholds no longer counts.
+- `hardcoded-secret` ignores values built with `${...}` interpolation and
+  reports the first literal credential in a file instead.
 - Project ownership and links now use the canonical Sabahattin Kalkan identity.
 - CLI version is read from `package.json`.
 - Threshold failures now return exit code 1 in every output mode.
