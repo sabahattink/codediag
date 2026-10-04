@@ -8,7 +8,7 @@ scope and expected behavior can be agreed on first.
 
 Requirements:
 
-- Node.js 18 or newer
+- Node.js 20.19 or newer (CI runs 20, 22, and 24)
 - npm 9 or newer
 
 ```bash

@@ -95,6 +95,8 @@ All notable changes to CodeDiag are documented in this file.
 - Markdown reports moved to `src/reporters/markdown.ts`, are dated from the
   scan timestamp instead of the local clock, escape table cells, and list
   active finding counts.
+- Node.js 20.19 or newer is required; CI tests Node 20, 22, and 24, and the
+  GitHub Action runs on the `node24` runtime.
 - Express routes are found on routers resolved from `express()`,
   `express.Router()`, `Router()`, and `Express`/`Router`-typed parameters
   instead of only on receivers named `app`, `api`, or `router`, including
@@ -134,6 +136,14 @@ All notable changes to CodeDiag are documented in this file.
   non-zero.
 - Security and structure checks apply framework-specific expectations only
   when the matching framework is detected.
+
+### Security
+
+- `npm audit fix` updated vulnerable transitive development dependencies.
+  Production dependencies report no known vulnerabilities. Six high-severity
+  advisories remain in `braces`, reached only through the development tool
+  `@vscode/vsce` (via `secretlint` and `globby`), for which no patched
+  `braces` release exists yet.
 
 ### Removed
 

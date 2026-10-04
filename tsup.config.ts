@@ -4,7 +4,7 @@ export default defineConfig([
   {
     entry: ["src/index.ts"],
     format: ["esm"],
-    target: "node18",
+    target: "node20",
     outDir: "dist",
     clean: false,
     splitting: false,
@@ -18,7 +18,7 @@ export default defineConfig([
     entry: ["src/action.ts"],
     format: ["cjs"],
     platform: "node",
-    target: "node20",
+    target: "node22",
     outDir: "dist",
     clean: false,
     splitting: false,

@@ -252463,7 +252463,7 @@ var package_default = {
     }
   },
   engines: {
-    node: ">=18.0.0"
+    node: ">=20.19.0"
   },
   dependencies: {
     chalk: "^5.3.0",
