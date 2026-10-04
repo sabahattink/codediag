@@ -110,7 +110,7 @@ export function renderHtml(result: ScanResult): string {
     <div>
       <p class="eyebrow">CodeDiag project health</p>
       <h1 class="title">${escapeHtml(result.project)}</h1>
-      <p class="meta">Generated <time datetime="${generated}">${generated.replace("T", " ").replace(".000Z", " UTC")}</time></p>
+      <p class="meta">Generated <time datetime="${generated}">${generated.slice(0, 16).replace("T", " ")} UTC</time></p>
       <div class="stack" aria-label="Detected stack">${stack}</div>
     </div>
     <div class="total ${totalTone}" aria-label="Total score ${result.totalScore} out of 100, grade ${escapeHtml(result.grade)}">

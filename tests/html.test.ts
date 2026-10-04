@@ -61,6 +61,10 @@ test("HTML reporter renders a complete interactive dashboard", () => {
     /Move it to an environment variable &amp; rotate &quot;now&quot;/,
   );
   assert.match(html, /No source code was uploaded/);
+  assert.match(
+    html,
+    /<time datetime="2026-01-01T00:00:00.000Z">2026-01-01 00:00 UTC<\/time>/,
+  );
   assert.match(html, /<\/html>$/);
 });
 
