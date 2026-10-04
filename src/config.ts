@@ -100,6 +100,13 @@ function readRules(value: unknown): Record<string, RuleSetting> {
   return rules;
 }
 
+function readAudit(value: unknown): boolean {
+  if (value === undefined) return DEFAULT_CONFIG.audit;
+  if (typeof value !== "boolean")
+    throw new Error("audit must be true or false");
+  return value;
+}
+
 function readAnalyzers(
   value: unknown,
   fallback: CodediagConfig["analyzers"],
@@ -137,6 +144,7 @@ export function loadConfig(projectPath: string): CodediagConfig {
       maxFileSizeKb: DEFAULT_CONFIG.maxFileSizeKb,
       scoring: { ...DEFAULT_CONFIG.scoring },
       rules: {},
+      audit: DEFAULT_CONFIG.audit,
       analyzers: { ...DEFAULT_CONFIG.analyzers },
     };
   }
@@ -161,6 +169,7 @@ export function loadConfig(projectPath: string): CodediagConfig {
     "maxFileSizeKb",
     "scoring",
     "rules",
+    "audit",
     "analyzers",
   ]);
   const unknownKeys = Object.keys(document).filter(
@@ -182,6 +191,7 @@ export function loadConfig(projectPath: string): CodediagConfig {
       ),
       scoring: readScoring(document.scoring, DEFAULT_CONFIG.scoring),
       rules: readRules(document.rules),
+      audit: readAudit(document.audit),
       analyzers: readAnalyzers(document.analyzers, DEFAULT_CONFIG.analyzers),
     };
   } catch (error) {

@@ -99,6 +99,8 @@ export interface CodediagConfig {
   maxFileSizeKb: number;
   scoring: { version: ScoringVersion };
   rules: Record<string, RuleSetting>;
+  /** Run the package manager audit; it needs network access. */
+  audit: boolean;
   analyzers: {
     api: boolean;
     security: boolean;
@@ -116,6 +118,7 @@ export const DEFAULT_CONFIG: CodediagConfig = {
   maxFileSizeKb: 512,
   scoring: { version: 2 },
   rules: {},
+  audit: true,
   analyzers: {
     api: true,
     security: true,

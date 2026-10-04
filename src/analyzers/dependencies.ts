@@ -270,8 +270,14 @@ function auditPasses(
   return passed;
 }
 
+export interface DependencyOptions {
+  /** Overrides the `audit` config setting, for example for offline scans. */
+  audit?: boolean;
+}
+
 export async function analyzeDependencies(
   context: ScanContext,
+  options: DependencyOptions = {},
 ): Promise<AnalyzerResult> {
   const { projectPath } = context;
   const issues: DiagnosticIssue[] = [];
@@ -333,10 +339,20 @@ export async function analyzeDependencies(
   }
 
   // 2. Package manager audit. Audits need a lock file; without one the
-  // missing lock file is the finding and the check counts as failed.
-  checksRun++;
-  if (lockFile && auditPasses(projectPath, auditCommand, issues)) {
-    checksPassed++;
+  // missing lock file is the finding and the check counts as failed. A
+  // deliberately skipped audit is reported but not counted as a check.
+  if (options.audit ?? context.config.audit) {
+    checksRun++;
+    if (lockFile && auditPasses(projectPath, auditCommand, issues)) {
+      checksPassed++;
+    }
+  } else {
+    issues.push({
+      ...fromRule("audit-skipped"),
+      message:
+        "Dependency audit skipped; known vulnerabilities were not checked",
+      fix: `Run ${[auditCommand.manager, ...auditCommand.args].join(" ")} or scan without --no-audit`,
+    });
   }
 
   // 3. Engines field

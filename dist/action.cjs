@@ -251882,6 +251882,12 @@ var RULES = {
     defaultSeverity: "warning",
     rootCause: "lock-file-manager-mismatch"
   },
+  "audit-skipped": {
+    analyzer: "Dependencies",
+    title: "Dependency audit skipped",
+    description: "The package manager audit was turned off with `audit: false` or `--no-audit`, so known vulnerabilities were not checked.",
+    defaultSeverity: "info"
+  },
   "vuln-critical": {
     analyzer: "Dependencies",
     title: "Critical dependency vulnerabilities",
@@ -252102,6 +252108,7 @@ var DEFAULT_CONFIG = {
   maxFileSizeKb: 512,
   scoring: { version: 2 },
   rules: {},
+  audit: true,
   analyzers: {
     api: true,
     security: true,
@@ -252181,6 +252188,12 @@ function readRules(value) {
   }
   return rules;
 }
+function readAudit(value) {
+  if (value === void 0) return DEFAULT_CONFIG.audit;
+  if (typeof value !== "boolean")
+    throw new Error("audit must be true or false");
+  return value;
+}
 function readAnalyzers(value, fallback2) {
   if (value === void 0) return { ...fallback2 };
   if (!isRecord(value)) {
@@ -252212,6 +252225,7 @@ function loadConfig(projectPath) {
       maxFileSizeKb: DEFAULT_CONFIG.maxFileSizeKb,
       scoring: { ...DEFAULT_CONFIG.scoring },
       rules: {},
+      audit: DEFAULT_CONFIG.audit,
       analyzers: { ...DEFAULT_CONFIG.analyzers }
     };
   }
@@ -252233,6 +252247,7 @@ function loadConfig(projectPath) {
     "maxFileSizeKb",
     "scoring",
     "rules",
+    "audit",
     "analyzers"
   ]);
   const unknownKeys = Object.keys(document).filter(
@@ -252253,6 +252268,7 @@ function loadConfig(projectPath) {
       ),
       scoring: readScoring(document.scoring, DEFAULT_CONFIG.scoring),
       rules: readRules(document.rules),
+      audit: readAudit(document.audit),
       analyzers: readAnalyzers(document.analyzers, DEFAULT_CONFIG.analyzers)
     };
   } catch (error) {
@@ -254270,7 +254286,7 @@ function auditPasses(projectPath, auditCommand, issues) {
   }
   return passed;
 }
-async function analyzeDependencies(context) {
+async function analyzeDependencies(context, options = {}) {
   const { projectPath } = context;
   const issues = [];
   let checksRun = 0;
@@ -254322,9 +254338,17 @@ async function analyzeDependencies(context) {
       fix: `Run ${auditCommand.manager} install and commit the generated lock file`
     });
   }
-  checksRun++;
-  if (lockFile && auditPasses(projectPath, auditCommand, issues)) {
-    checksPassed++;
+  if (options.audit ?? context.config.audit) {
+    checksRun++;
+    if (lockFile && auditPasses(projectPath, auditCommand, issues)) {
+      checksPassed++;
+    }
+  } else {
+    issues.push({
+      ...fromRule("audit-skipped"),
+      message: "Dependency audit skipped; known vulnerabilities were not checked",
+      fix: `Run ${[auditCommand.manager, ...auditCommand.args].join(" ")} or scan without --no-audit`
+    });
   }
   checksRun++;
   if (pkg.engines?.node) {
@@ -258997,7 +259021,7 @@ async function scan(projectPath, config = loadConfig(projectPath), options = {})
   }
   if (config.analyzers.dependencies) {
     progress.start("Auditing dependencies...");
-    const dep = await analyzeDependencies(context);
+    const dep = await analyzeDependencies(context, { audit: options.audit });
     results.push(dep);
     progress.succeed(`Dependencies: ${findingCount(dep)}`);
   }

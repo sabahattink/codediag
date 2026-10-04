@@ -126,6 +126,7 @@ codediag scan . --ci               # JSON output + exit code
 codediag scan . --threshold 80     # Exit 1 below 80 in any output mode
 codediag scan . --quiet            # Score only
 codediag scan . --verbose          # All issues and the score breakdown
+codediag scan . --no-audit         # Offline: skip the package manager audit
 codediag scan . --update-baseline .codediag-baseline.json  # Record accepted findings
 codediag scan . --ci --baseline .codediag-baseline.json    # Fail only on new findings
 codediag init                      # Create .codediag.yml
@@ -239,6 +240,7 @@ scoring:
   version: 2
 rules:
   missing-swagger: off   # or info, warning, critical
+audit: true              # false skips the network-based dependency audit
 analyzers:
   api: true
   security: true

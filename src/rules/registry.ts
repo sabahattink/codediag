@@ -337,6 +337,13 @@ export const RULES = {
     defaultSeverity: "warning",
     rootCause: "lock-file-manager-mismatch",
   },
+  "audit-skipped": {
+    analyzer: "Dependencies",
+    title: "Dependency audit skipped",
+    description:
+      "The package manager audit was turned off with `audit: false` or `--no-audit`, so known vulnerabilities were not checked.",
+    defaultSeverity: "info",
+  },
   "vuln-critical": {
     analyzer: "Dependencies",
     title: "Critical dependency vulnerabilities",

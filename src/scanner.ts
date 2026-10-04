@@ -37,6 +37,8 @@ export interface ScanOptions {
   onProgress?: (message: string) => void;
   /** Fingerprints of accepted findings, typically from loadBaseline(). */
   baseline?: ReadonlySet<string>;
+  /** Overrides the `audit` config setting; false keeps the scan offline. */
+  audit?: boolean;
 }
 
 interface ProgressReporter {
@@ -130,7 +132,7 @@ export async function scan(
   // Dependencies
   if (config.analyzers.dependencies) {
     progress.start("Auditing dependencies...");
-    const dep = await analyzeDependencies(context);
+    const dep = await analyzeDependencies(context, { audit: options.audit });
     results.push(dep);
     progress.succeed(`Dependencies: ${findingCount(dep)}`);
   }

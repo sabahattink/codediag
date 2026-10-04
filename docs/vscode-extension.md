@@ -45,3 +45,7 @@ command and can therefore access the network.
 - Analyzer output stays local unless the user deliberately shares a generated
   report or prompt.
 - Fix plans and AI prompts never apply changes automatically.
+
+Scans started by saving a file always skip the dependency audit, so they never
+access the network or wait for the package manager. Commands run from the
+Command Palette follow the project's `audit` setting.

@@ -30,6 +30,9 @@ All notable changes to CodeDiag are documented in this file.
   (`suppression-missing-reason`) and stale ones are reported
   (`unused-suppression`).
 - `rules` configuration to turn rules off or change their severity.
+- Offline scans: `--no-audit` or `audit: false` skips the package manager audit
+  and reports `audit-skipped` instead. VS Code scans triggered by saving always
+  skip the audit.
 - Baselines: `--baseline <report.json>` and `--update-baseline <path>`, plus a
   `baseline` Action input. Baseline findings are marked `baseline: true` and do
   not affect scores, thresholds, or annotations.

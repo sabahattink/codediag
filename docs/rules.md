@@ -256,6 +256,12 @@ Code that handles passwords uses MD5 or SHA-1, which are fast general-purpose ha
 
 ## Dependencies
 
+### audit-skipped
+
+**Dependency audit skipped** · default severity: `info`
+
+The package manager audit was turned off with `audit: false` or `--no-audit`, so known vulnerabilities were not checked.
+
 ### audit-unavailable
 
 **Dependency audit unavailable** · default severity: `warning`

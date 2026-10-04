@@ -389,3 +389,26 @@ test("Markdown output dates the report from the scan timestamp", () => {
     rmSync(directory, { recursive: true, force: true });
   }
 });
+
+test("--no-audit scans offline and reports the skipped audit", () => {
+  const directory = mkdtempSync(join(tmpdir(), "codediag-cli-"));
+  try {
+    writeFileSync(join(directory, "package.json"), "{}");
+    writeFileSync(join(directory, "package-lock.json"), "{}");
+
+    const result = runCli(["scan", ".", "--ci", "--no-audit"], directory);
+    const report = JSON.parse(result.stdout);
+    const dependencies = report.analyzers.find(
+      (analyzer) => analyzer.name === "Dependencies",
+    );
+
+    assert.deepEqual(
+      dependencies.issues
+        .filter((issue) => issue.rule.startsWith("audit"))
+        .map((issue) => issue.rule),
+      ["audit-skipped"],
+    );
+  } finally {
+    rmSync(directory, { recursive: true, force: true });
+  }
+});

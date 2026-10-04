@@ -53,6 +53,7 @@ program
   )
   .option("--quiet", "Show score only")
   .option("--verbose", "Show all issues including info")
+  .option("--no-audit", "Skip the package manager audit (no network access)")
   .option(
     "--baseline <report>",
     "JSON report whose findings are accepted and excluded from the score",
@@ -85,7 +86,12 @@ program
       const baseline = options.baseline
         ? loadBaseline(resolve(options.baseline))
         : undefined;
-      const result = await scan(targetPath, config, { baseline });
+      const result = await scan(targetPath, config, {
+        baseline,
+        // --no-audit overrides the config; otherwise the config decides.
+        audit:
+          command.getOptionValueSource("audit") === "cli" ? false : undefined,
+      });
       if (options.updateBaseline) {
         const baselinePath = resolve(options.updateBaseline);
         mkdirSync(dirname(baselinePath), { recursive: true });

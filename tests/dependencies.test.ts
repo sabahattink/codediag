@@ -178,3 +178,38 @@ test("a missing lock file skips the audit and reports one clear finding", async 
     rmSync(directory, { recursive: true, force: true });
   }
 });
+
+test("audits can be skipped by config or scan option without network access", async () => {
+  const directory = mkdtempSync(join(tmpdir(), "codediag-dependencies-"));
+  try {
+    writeFileSync(
+      join(directory, "package.json"),
+      JSON.stringify({
+        name: "app",
+        engines: { node: ">=20" },
+        scripts: { build: "tsc", start: "node ." },
+      }),
+    );
+    writeFileSync(join(directory, "package-lock.json"), "{}");
+    writeFileSync(join(directory, ".codediag.yml"), "audit: false\n");
+
+    const configured = await analyzeDependencies(createScanContext(directory));
+    assert.deepEqual(
+      configured.issues.map((issue) => [issue.rule, issue.severity]),
+      [["audit-skipped", "info"]],
+    );
+    // A deliberately skipped audit is not a failed check in the v1 score.
+    assert.equal(configured.score, 100);
+
+    rmSync(join(directory, ".codediag.yml"));
+    const optedOut = await analyzeDependencies(createScanContext(directory), {
+      audit: false,
+    });
+    assert.deepEqual(
+      optedOut.issues.map((issue) => issue.rule),
+      ["audit-skipped"],
+    );
+  } finally {
+    rmSync(directory, { recursive: true, force: true });
+  }
+});

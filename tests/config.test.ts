@@ -128,3 +128,13 @@ test("threshold parsing and comparison are deterministic", () => {
   assert.equal(isBelowThreshold(80, 80), false);
   assert.throws(() => parseThreshold("80x"), /threshold must be an integer/);
 });
+
+test("loads and validates the audit switch", () => {
+  withProject((directory) => {
+    assert.equal(loadConfig(directory).audit, true);
+    writeFileSync(join(directory, ".codediag.yml"), "audit: false\n");
+    assert.equal(loadConfig(directory).audit, false);
+    writeFileSync(join(directory, ".codediag.yml"), "audit: sometimes\n");
+    assert.throws(() => loadConfig(directory), /audit must be true or false/);
+  });
+});
