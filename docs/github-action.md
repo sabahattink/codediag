@@ -33,7 +33,7 @@ jobs:
 ```
 
 `@v0` follows the latest 0.x release. Pin an exact release such as
-`@v0.4.0`, or a full commit SHA, when a workflow requires immutable
+`@v0.5.0`, or a full commit SHA, when a workflow requires immutable
 third-party dependencies.
 
 ## Inputs

@@ -4,6 +4,11 @@ All notable changes to CodeDiag are documented in this file.
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-10-04
+
+Pull request comments: the GitHub Action can keep one comment on each pull
+request with the score and the findings in the files it changes.
+
 ### Added
 
 - Pull request comments: with `comment: true`, the GitHub Action keeps one
