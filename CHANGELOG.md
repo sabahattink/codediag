@@ -34,6 +34,8 @@ All notable changes to CodeDiag are documented in this file.
   not affect scores, thresholds, or annotations.
 - SARIF `suppressions` and `baselineState` for suppressed and baseline
   findings.
+- `dto-not-validated`: reported once when DTO classes are used but no global,
+  `APP_PIPE`, controller, method, or parameter `ValidationPipe` validates them.
 - An optional `confidence` on findings (`high`, `medium`, `low`), also emitted
   as a SARIF result property.
 - AST-based security sink detection for runtime code execution, dynamic shell
@@ -94,6 +96,14 @@ All notable changes to CodeDiag are documented in this file.
   messages show the mounted path. Receivers matched only by name produce
   findings with `confidence: "low"`, and names declared as anything else, such
   as an HTTP client called `api`, are no longer treated as routers.
+- NestJS endpoints are guarded by `app.useGlobalGuards()`, `APP_GUARD`
+  providers, and custom decorators built on `UseGuards` (such as
+  `applyDecorators`), and routes marked with `@Public()`, `@SkipAuth()`, or any
+  decorator that sets public metadata are treated as intentionally open.
+  `missing-dto` now requires a class body type: `any`, `Record<...>`,
+  `Partial<...>`, inline types, and interfaces are reported, while endpoints
+  without `@Body()` are not. `@Controller({ path })` and path arrays resolve to
+  real routes.
 - Project ownership and links now use the canonical Sabahattin Kalkan identity.
 - CLI version is read from `package.json`.
 - Threshold failures now return exit code 1 in every output mode.

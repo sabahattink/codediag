@@ -10,6 +10,15 @@ downgraded to `info`, marked with `causedBy`, and costs no points.
 
 ## API Health
 
+### dto-not-validated
+
+**DTOs without ValidationPipe** · default severity: `warning`
+
+Endpoints take DTO classes, but no global, controller, method, or parameter ValidationPipe validates them, so class-validator rules are never enforced.
+
+- CWE: [CWE-20](https://cwe.mitre.org/data/definitions/20.html)
+- OWASP Top 10: A03:2021
+
 ### implicit-pages-methods
 
 **Pages API route without method branches** · default severity: `info`

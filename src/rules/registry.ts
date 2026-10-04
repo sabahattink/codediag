@@ -79,6 +79,15 @@ export const RULES = {
     cwe: ["CWE-20"],
     owasp: [OWASP.injection],
   },
+  "dto-not-validated": {
+    analyzer: "API Health",
+    title: "DTOs without ValidationPipe",
+    description:
+      "Endpoints take DTO classes, but no global, controller, method, or parameter ValidationPipe validates them, so class-validator rules are never enforced.",
+    defaultSeverity: "warning",
+    cwe: ["CWE-20"],
+    owasp: [OWASP.injection],
+  },
   "missing-swagger": {
     analyzer: "API Health",
     title: "Endpoint without OpenAPI documentation",

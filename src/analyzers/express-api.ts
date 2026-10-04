@@ -1,11 +1,5 @@
 import { posix } from "node:path";
-import {
-  type CallExpression,
-  type Expression,
-  Node,
-  type SourceFile,
-  SyntaxKind,
-} from "ts-morph";
+import { type Expression, Node, type SourceFile, SyntaxKind } from "ts-morph";
 import type { ScanContext } from "../core/scan-context.js";
 import { fromRule } from "../rules/registry.js";
 import type { AnalyzerResult, DiagnosticIssue } from "../types.js";
