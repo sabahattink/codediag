@@ -81,7 +81,7 @@ test("fingerprints never hash a line that may contain a credential", async () =>
   const secretFingerprints = async (value: string) => {
     writeFileSync(
       join(directory, "src", "config.ts"),
-      `export const config = { password: "${value}" };\n`,
+      `export const config = { password: ${JSON.stringify(value)} };\n`,
     );
     const result = await scan(directory, loadConfig(directory), {
       interactive: false,
