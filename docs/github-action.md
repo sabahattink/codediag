@@ -44,6 +44,7 @@ first Action release is cut.
 | `threshold` | `70` | Minimum passing score from 0 through 100 |
 | `report` | `codediag-report.json` | JSON report path relative to `GITHUB_WORKSPACE` |
 | `sarif` | `codediag-report.sarif` | SARIF 2.1.0 report path relative to `GITHUB_WORKSPACE` |
+| `baseline` | _(none)_ | Optional CodeDiag JSON report relative to `GITHUB_WORKSPACE`; its findings do not affect the score, threshold, or annotations. See [baselines](suppressions-and-baselines.md#baselines) |
 
 Absolute `path`, `report`, and `sarif` values are also accepted for advanced
 workflows. JSON and SARIF paths must resolve to different files. The project

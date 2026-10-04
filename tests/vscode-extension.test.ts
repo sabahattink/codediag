@@ -105,3 +105,27 @@ test("severity counts include located and project-level findings", () => {
     info: 1,
   });
 });
+
+test("editor diagnostics and counts skip suppressed and baseline findings", () => {
+  const result = fixture();
+  result.analyzers[0].issues[0].suppression = {
+    kind: "inSource",
+    justification: "test fixture",
+  };
+  result.analyzers[1].issues[0].baseline = true;
+
+  const summary = collectEditorDiagnostics(
+    result,
+    resolve("workspace-fixture"),
+  );
+
+  assert.deepEqual(
+    summary.diagnostics.map((diagnostic) => diagnostic.rule),
+    [],
+  );
+  assert.deepEqual(countSeverities(result), {
+    critical: 0,
+    warning: 1,
+    info: 1,
+  });
+});

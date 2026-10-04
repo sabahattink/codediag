@@ -264,3 +264,59 @@ test("Markdown output explains lost points with scoring version 2", () => {
     rmSync(directory, { recursive: true, force: true });
   }
 });
+
+test("baselines accept existing findings and fail only on new ones", () => {
+  const directory = mkdtempSync(join(tmpdir(), "codediag-cli-"));
+  try {
+    writeFileSync(join(directory, "package.json"), "{}");
+    writeFileSync(join(directory, ".gitignore"), ".env\n");
+    writeFileSync(join(directory, "run.js"), "eval(a);\n");
+    writeFileSync(
+      join(directory, ".codediag.yml"),
+      [
+        "threshold: 100",
+        "analyzers:",
+        "  api: false",
+        "  security: true",
+        "  dependencies: false",
+        "  testing: false",
+        "  structure: false",
+      ].join("\n"),
+    );
+
+    const update = runCli(
+      ["scan", ".", "--quiet", "--update-baseline", "reports/baseline.json"],
+      directory,
+    );
+    assert.equal(update.status, 1, "the unbaselined scan misses 100");
+    const baseline = JSON.parse(
+      readFileSync(join(directory, "reports", "baseline.json"), "utf-8"),
+    );
+    assert.equal(validateScanResult(baseline), true);
+
+    const accepted = runCli(
+      ["scan", ".", "--ci", "--baseline", "reports/baseline.json"],
+      directory,
+    );
+    assert.equal(accepted.status, 0, accepted.stderr);
+    const report = JSON.parse(accepted.stdout);
+    assert.equal(report.totalScore, 100);
+    assert.deepEqual(report.baseline, { matched: 1, fixed: 0 });
+
+    writeFileSync(join(directory, "run.js"), "eval(a);\neval(b);\n");
+    const regressed = runCli(
+      ["scan", ".", "--quiet", "--baseline", "reports/baseline.json"],
+      directory,
+    );
+    assert.equal(regressed.status, 1);
+
+    const missing = runCli(
+      ["scan", ".", "--baseline", "missing.json"],
+      directory,
+    );
+    assert.equal(missing.status, 1);
+    assert.match(missing.stderr, /Cannot read baseline/);
+  } finally {
+    rmSync(directory, { recursive: true, force: true });
+  }
+});

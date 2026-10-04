@@ -1,4 +1,5 @@
 import chalk from "chalk";
+import { activeIssues, inactiveCounts } from "../core/issues.js";
 import { formatPenalty } from "../core/scoring.js";
 import type { ScanResult } from "../types.js";
 
@@ -95,15 +96,20 @@ export function renderTerminal(
 
   // Issues
   const criticals = result.analyzers.flatMap((a) =>
-    a.issues.filter((i) => i.severity === "critical"),
+    activeIssues(a).filter((i) => i.severity === "critical"),
   );
   const warnings = result.analyzers.flatMap((a) =>
-    a.issues.filter((i) => i.severity === "warning"),
+    activeIssues(a).filter((i) => i.severity === "warning"),
   );
   const infos = result.analyzers.flatMap((a) =>
-    a.issues.filter((i) => i.severity === "info"),
+    activeIssues(a).filter((i) => i.severity === "info"),
   );
   const total = criticals.length + warnings.length + infos.length;
+  const inactive = inactiveCounts(result.analyzers);
+  const notCounted = [
+    inactive.suppressed > 0 ? `${inactive.suppressed} suppressed` : "",
+    inactive.baseline > 0 ? `${inactive.baseline} in baseline` : "",
+  ].filter(Boolean);
 
   if (total > 0) {
     const parts: string[] = [];
@@ -112,6 +118,7 @@ export function renderTerminal(
     if (warnings.length > 0)
       parts.push(chalk.yellow(`${warnings.length} warnings`));
     if (infos.length > 0) parts.push(chalk.blue(`${infos.length} info`));
+    for (const label of notCounted) parts.push(chalk.dim(label));
     console.log(`  ${parts.join(chalk.dim(" \u00B7 "))}`);
     console.log();
 
@@ -140,6 +147,9 @@ export function renderTerminal(
     console.log();
   } else {
     console.log(chalk.green("  \u2714 No issues found. Ship it!"));
+    if (notCounted.length > 0) {
+      console.log(chalk.dim(`  ${notCounted.join(" \u00B7 ")}`));
+    }
     console.log();
   }
 }

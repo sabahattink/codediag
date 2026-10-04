@@ -19,7 +19,10 @@ function sourceFiles(directory: string): string[] {
 
 function emittedRuleIds(): Set<string> {
   const ids = new Set<string>();
-  for (const file of sourceFiles(join(sourceDirectory, "analyzers"))) {
+  for (const file of [
+    ...sourceFiles(join(sourceDirectory, "analyzers")),
+    ...sourceFiles(join(sourceDirectory, "core")),
+  ]) {
     const source = readFileSync(file, "utf-8");
     for (const match of source.matchAll(/fromRule\(\s*"([^"]+)"\s*\)/g)) {
       ids.add(match[1]);

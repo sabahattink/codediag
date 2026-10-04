@@ -87333,7 +87333,7 @@ ${lanes.join("\n")}
           const targetEndText = targetTexts[lastTargetIndex];
           if (lastSourceIndex === 0 && sourceStartText.length < targetStartText.length + targetEndText.length || !sourceStartText.startsWith(targetStartText) || !sourceEndText.endsWith(targetEndText)) return void 0;
           const remainingEndText = sourceEndText.slice(0, sourceEndText.length - targetEndText.length);
-          const matches = [];
+          const matches2 = [];
           let seg = 0;
           let pos = targetStartText.length;
           for (let i = 1; i < lastTargetIndex; i++) {
@@ -87359,7 +87359,7 @@ ${lanes.join("\n")}
             }
           }
           addMatch(lastSourceIndex, getSourceText(lastSourceIndex).length);
-          return matches;
+          return matches2;
           function getSourceText(index) {
             return index < lastSourceIndex ? sourceTexts[index] : remainingEndText;
           }
@@ -87368,7 +87368,7 @@ ${lanes.join("\n")}
               [sourceTexts[seg].slice(pos), ...sourceTexts.slice(seg + 1, s), getSourceText(s).slice(0, p)],
               sourceTypes.slice(seg, s)
             );
-            matches.push(matchType);
+            matches2.push(matchType);
             seg = s;
             pos = p;
           }
@@ -87614,12 +87614,12 @@ ${lanes.join("\n")}
             visited.set(key, inferencePriority);
             inferencePriority = Math.min(inferencePriority, saveInferencePriority);
           }
-          function inferFromMatchingTypes(sources, targets, matches) {
+          function inferFromMatchingTypes(sources, targets, matches2) {
             let matchedSources;
             let matchedTargets;
             for (const t of targets) {
               for (const s of sources) {
-                if (matches(s, t)) {
+                if (matches2(s, t)) {
                   inferFromTypes(s, t);
                   matchedSources = appendIfUnique(matchedSources, s);
                   matchedTargets = appendIfUnique(matchedTargets, t);
@@ -87795,11 +87795,11 @@ ${lanes.join("\n")}
             }
           }
           function inferToTemplateLiteralType(source, target) {
-            const matches = inferTypesFromTemplateLiteralType(source, target);
+            const matches2 = inferTypesFromTemplateLiteralType(source, target);
             const types2 = target.types;
-            if (matches || every(target.texts, (s) => s.length === 0)) {
+            if (matches2 || every(target.texts, (s) => s.length === 0)) {
               for (let i = 0; i < types2.length; i++) {
-                const source2 = matches ? matches[i] : neverType;
+                const source2 = matches2 ? matches2[i] : neverType;
                 const target2 = types2[i];
                 if (source2.flags & 1024 && target2.flags & 34078720) {
                   const inferenceContext = getInferenceInfoForType(target2);
@@ -158148,23 +158148,23 @@ ${lanes.join("\n")}
           return 4;
         }
         if (supportScopedPackage) {
-          const matches = /^@([^/]+)\/([^/]+)$/.exec(packageName);
-          if (matches) {
+          const matches2 = /^@([^/]+)\/([^/]+)$/.exec(packageName);
+          if (matches2) {
             const scopeResult = validatePackageNameWorker(
-              matches[1],
+              matches2[1],
               /*supportScopedPackage*/
               false
             );
             if (scopeResult !== 0) {
-              return { name: matches[1], isScopeName: true, result: scopeResult };
+              return { name: matches2[1], isScopeName: true, result: scopeResult };
             }
             const packageResult = validatePackageNameWorker(
-              matches[2],
+              matches2[2],
               /*supportScopedPackage*/
               false
             );
             if (packageResult !== 0) {
-              return { name: matches[2], isScopeName: false, result: packageResult };
+              return { name: matches2[2], isScopeName: false, result: packageResult };
             }
             return 0;
           }
@@ -161476,12 +161476,12 @@ ${lanes.join("\n")}
             const result = exportInfo.get(key2);
             return result == null ? void 0 : result.map(rehydrateCachedInfo);
           },
-          search: (importingFile, preferCapitalized, matches, action) => {
+          search: (importingFile, preferCapitalized, matches2, action) => {
             if (importingFile !== usableByFileName) return;
             return forEachEntry(exportInfo, (info, key2) => {
               const { symbolName: symbolName2, ambientModuleName } = parseKey(key2);
               const name = preferCapitalized && info[0].capitalizedSymbolName || symbolName2;
-              if (matches(name, info[0].targetFlags)) {
+              if (matches2(name, info[0].targetFlags)) {
                 const rehydrated = info.map(rehydrateCachedInfo);
                 const filtered = rehydrated.filter((r, i) => isNotShadowedByDeeperNodeModulesPackage(r, info[i].packageName));
                 if (filtered.length) {
@@ -192037,23 +192037,23 @@ ${newComment.split("\n").map((c) => ` * ${c}`).join("\n")}
         ].filter(isString);
         const includeGlobs = normalizedSuffix ? matchingSuffixes.map((suffix) => "**/*" + suffix) : ["./*"];
         const isExportsOrImportsWildcard = (isExports || isImports) && endsWith(pattern, "/*");
-        let matches = getMatchesWithPrefix(baseDirectory);
+        let matches2 = getMatchesWithPrefix(baseDirectory);
         if (possibleInputBaseDirectoryForOutDir) {
-          matches = concatenate(matches, getMatchesWithPrefix(possibleInputBaseDirectoryForOutDir));
+          matches2 = concatenate(matches2, getMatchesWithPrefix(possibleInputBaseDirectoryForOutDir));
         }
         if (possibleInputBaseDirectoryForDeclarationDir) {
-          matches = concatenate(matches, getMatchesWithPrefix(possibleInputBaseDirectoryForDeclarationDir));
+          matches2 = concatenate(matches2, getMatchesWithPrefix(possibleInputBaseDirectoryForDeclarationDir));
         }
         if (!normalizedSuffix) {
-          matches = concatenate(matches, getDirectoryMatches(baseDirectory));
+          matches2 = concatenate(matches2, getDirectoryMatches(baseDirectory));
           if (possibleInputBaseDirectoryForOutDir) {
-            matches = concatenate(matches, getDirectoryMatches(possibleInputBaseDirectoryForOutDir));
+            matches2 = concatenate(matches2, getDirectoryMatches(possibleInputBaseDirectoryForOutDir));
           }
           if (possibleInputBaseDirectoryForDeclarationDir) {
-            matches = concatenate(matches, getDirectoryMatches(possibleInputBaseDirectoryForDeclarationDir));
+            matches2 = concatenate(matches2, getDirectoryMatches(possibleInputBaseDirectoryForDeclarationDir));
           }
         }
-        return matches;
+        return matches2;
         function getMatchesWithPrefix(directory) {
           const completePrefix = fragmentHasPath ? directory : ensureTrailingDirectorySeparator(directory) + normalizedPrefixBase;
           return mapDefined(tryReadDirectory(
@@ -217825,8 +217825,8 @@ Project '${project.projectName}' (${ProjectKind[project.projectKind]}) ${counter
             return searchForDeclaration(nameToSearch, fileToSearch, noDtsProgram);
           }
           function searchForDeclaration(declarationName, fileToSearch, noDtsProgram) {
-            const matches = ts_FindAllReferences_exports.Core.getTopMostDeclarationNamesInFile(declarationName, fileToSearch);
-            return mapDefined(matches, (match2) => {
+            const matches2 = ts_FindAllReferences_exports.Core.getTopMostDeclarationNamesInFile(declarationName, fileToSearch);
+            return mapDefined(matches2, (match2) => {
               const symbol = noDtsProgram.getTypeChecker().getSymbolAtLocation(match2);
               const decl = getDeclarationFromName(match2);
               if (symbol && decl) {
@@ -225418,9 +225418,9 @@ var require_dist3 = __commonJS({
       const fdirOptions = {
         filters: [options.debug ? (p, isDirectory) => {
           const path$2 = format(p, isDirectory);
-          const matches = matcher(path$2);
-          if (matches) log(`matched ${path$2}`);
-          return matches;
+          const matches2 = matcher(path$2);
+          if (matches2) log(`matched ${path$2}`);
+          return matches2;
         } : (p, isDirectory) => matcher(format(p, isDirectory))],
         exclude: options.debug ? (_, p) => {
           const relativePath = formatExclude(p, true);
@@ -246395,8 +246395,8 @@ Node text: ${this.#forgottenText}`;
       getLiteralValue() {
         const pattern = /^\/(.*)\/([^\/]*)$/;
         const text = this.compilerNode.text;
-        const matches = pattern.exec(text);
-        return new RegExp(matches[1], matches[2]);
+        const matches2 = pattern.exec(text);
+        return new RegExp(matches2[1], matches2[2]);
       }
       setLiteralValue(regExpOrPattern, flags) {
         let pattern;
@@ -251604,180 +251604,13 @@ __export(action_exports, {
   runAction: () => runAction
 });
 module.exports = __toCommonJS(action_exports);
-var import_node_fs9 = require("fs");
+var import_node_fs10 = require("fs");
 var import_node_path10 = require("path");
 
 // src/config.ts
 var import_node_fs = require("fs");
 var import_node_path = require("path");
 var import_yaml = __toESM(require_dist(), 1);
-
-// src/types.ts
-var DEFAULT_CONFIG = {
-  threshold: 70,
-  ignore: ["node_modules", "dist", ".git", "coverage"],
-  maxFileSizeKb: 512,
-  scoring: { version: 2 },
-  analyzers: {
-    api: true,
-    security: true,
-    dependencies: true,
-    testing: true,
-    structure: true
-  }
-};
-
-// src/config.ts
-var ANALYZER_KEYS = [
-  "api",
-  "security",
-  "dependencies",
-  "testing",
-  "structure"
-];
-function isRecord(value) {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-function readThreshold(value, fallback2) {
-  if (value === void 0) return fallback2;
-  if (!Number.isInteger(value) || Number(value) < 0 || Number(value) > 100) {
-    throw new Error("threshold must be an integer between 0 and 100");
-  }
-  return Number(value);
-}
-function readIgnore(value, fallback2) {
-  if (value === void 0) return [...fallback2];
-  if (!Array.isArray(value) || value.some((entry) => typeof entry !== "string" || entry.trim() === "")) {
-    throw new Error("ignore must be an array of non-empty strings");
-  }
-  return value.map((entry) => entry.trim());
-}
-var MAX_FILE_SIZE_KB_LIMIT = 1024 * 1024;
-function readMaxFileSizeKb(value, fallback2) {
-  if (value === void 0) return fallback2;
-  if (!Number.isInteger(value) || Number(value) < 1 || Number(value) > MAX_FILE_SIZE_KB_LIMIT) {
-    throw new Error(
-      `maxFileSizeKb must be an integer between 1 and ${MAX_FILE_SIZE_KB_LIMIT}`
-    );
-  }
-  return Number(value);
-}
-var SCORING_VERSIONS = [1, 2];
-function readScoring(value, fallback2) {
-  if (value === void 0) return { ...fallback2 };
-  if (!isRecord(value)) {
-    throw new Error("scoring must be an object");
-  }
-  const unknownKeys = Object.keys(value).filter((key) => key !== "version");
-  if (unknownKeys.length > 0) {
-    throw new Error(`unknown scoring option: ${unknownKeys.join(", ")}`);
-  }
-  if (value.version === void 0) return { ...fallback2 };
-  if (!SCORING_VERSIONS.includes(value.version)) {
-    throw new Error("scoring.version must be 1 or 2");
-  }
-  return { version: value.version };
-}
-function readAnalyzers(value, fallback2) {
-  if (value === void 0) return { ...fallback2 };
-  if (!isRecord(value)) {
-    throw new Error("analyzers must be an object");
-  }
-  const unknownKeys = Object.keys(value).filter(
-    (key) => !ANALYZER_KEYS.includes(key)
-  );
-  if (unknownKeys.length > 0) {
-    throw new Error(`unknown analyzer: ${unknownKeys.join(", ")}`);
-  }
-  const analyzers = { ...fallback2 };
-  for (const key of ANALYZER_KEYS) {
-    const setting = value[key];
-    if (setting === void 0) continue;
-    if (typeof setting !== "boolean") {
-      throw new Error(`analyzers.${key} must be true or false`);
-    }
-    analyzers[key] = setting;
-  }
-  return analyzers;
-}
-function loadConfig(projectPath) {
-  const configPath = (0, import_node_path.join)(projectPath, ".codediag.yml");
-  if (!(0, import_node_fs.existsSync)(configPath)) {
-    return {
-      threshold: DEFAULT_CONFIG.threshold,
-      ignore: [...DEFAULT_CONFIG.ignore],
-      maxFileSizeKb: DEFAULT_CONFIG.maxFileSizeKb,
-      scoring: { ...DEFAULT_CONFIG.scoring },
-      analyzers: { ...DEFAULT_CONFIG.analyzers }
-    };
-  }
-  let document;
-  try {
-    document = (0, import_yaml.parse)((0, import_node_fs.readFileSync)(configPath, "utf-8"));
-  } catch (error) {
-    throw new Error(
-      `Invalid .codediag.yml: ${error instanceof Error ? error.message : String(error)}`
-    );
-  }
-  if (document === null || document === void 0) document = {};
-  if (!isRecord(document)) {
-    throw new Error("Invalid .codediag.yml: root must be an object");
-  }
-  const allowedKeys = /* @__PURE__ */ new Set([
-    "threshold",
-    "ignore",
-    "maxFileSizeKb",
-    "scoring",
-    "analyzers"
-  ]);
-  const unknownKeys = Object.keys(document).filter(
-    (key) => !allowedKeys.has(key)
-  );
-  if (unknownKeys.length > 0) {
-    throw new Error(
-      `Invalid .codediag.yml: unknown option: ${unknownKeys.join(", ")}`
-    );
-  }
-  try {
-    return {
-      threshold: readThreshold(document.threshold, DEFAULT_CONFIG.threshold),
-      ignore: readIgnore(document.ignore, DEFAULT_CONFIG.ignore),
-      maxFileSizeKb: readMaxFileSizeKb(
-        document.maxFileSizeKb,
-        DEFAULT_CONFIG.maxFileSizeKb
-      ),
-      scoring: readScoring(document.scoring, DEFAULT_CONFIG.scoring),
-      analyzers: readAnalyzers(document.analyzers, DEFAULT_CONFIG.analyzers)
-    };
-  } catch (error) {
-    throw new Error(
-      `Invalid .codediag.yml: ${error instanceof Error ? error.message : String(error)}`
-    );
-  }
-}
-function normalizeIgnorePatterns(entries) {
-  return entries.flatMap((entry) => {
-    const normalized = entry.replace(/\\/g, "/").replace(/^\.?\//, "").replace(/\/+$/, "");
-    if (/[*?[\]{}()!]/.test(normalized)) return [normalized];
-    return [normalized, `${normalized}/**`];
-  });
-}
-function parseThreshold(value) {
-  if (!/^\d+$/.test(value)) {
-    throw new Error("threshold must be an integer between 0 and 100");
-  }
-  return readThreshold(Number(value), DEFAULT_CONFIG.threshold);
-}
-function isBelowThreshold(score, threshold) {
-  return score < threshold;
-}
-
-// src/reporters/sarif.ts
-var import_node_path2 = require("path");
-var import_node_url = require("url");
-
-// src/core/fingerprint.ts
-var import_node_crypto = require("crypto");
 
 // src/rules/registry.ts
 var RULES_DOCUMENT_URL = "https://github.com/sabahattink/codediag/blob/main/docs/rules.md";
@@ -252230,6 +252063,18 @@ var RULES = {
     title: "No environment template",
     description: "Environment files exist without a shareable .env.example, .env.sample, or .env.template.",
     defaultSeverity: "info"
+  },
+  "suppression-missing-reason": {
+    analyzer: "Structure",
+    title: "Suppression without reason",
+    description: "A codediag-ignore comment has no rule IDs or no reason after `--`, so it was not applied.",
+    defaultSeverity: "info"
+  },
+  "unused-suppression": {
+    analyzer: "Structure",
+    title: "Unused suppression",
+    description: "A codediag-ignore comment matches no finding or names an unknown rule, so it can be removed or corrected.",
+    defaultSeverity: "info"
   }
 };
 function getRule(id) {
@@ -252242,7 +252087,263 @@ function fromRule(id) {
   return { severity: RULES[id].defaultSeverity, rule: id };
 }
 
+// src/types.ts
+var DEFAULT_CONFIG = {
+  threshold: 70,
+  ignore: ["node_modules", "dist", ".git", "coverage"],
+  maxFileSizeKb: 512,
+  scoring: { version: 2 },
+  rules: {},
+  analyzers: {
+    api: true,
+    security: true,
+    dependencies: true,
+    testing: true,
+    structure: true
+  }
+};
+
+// src/config.ts
+var ANALYZER_KEYS = [
+  "api",
+  "security",
+  "dependencies",
+  "testing",
+  "structure"
+];
+function isRecord(value) {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+function readThreshold(value, fallback2) {
+  if (value === void 0) return fallback2;
+  if (!Number.isInteger(value) || Number(value) < 0 || Number(value) > 100) {
+    throw new Error("threshold must be an integer between 0 and 100");
+  }
+  return Number(value);
+}
+function readIgnore(value, fallback2) {
+  if (value === void 0) return [...fallback2];
+  if (!Array.isArray(value) || value.some((entry) => typeof entry !== "string" || entry.trim() === "")) {
+    throw new Error("ignore must be an array of non-empty strings");
+  }
+  return value.map((entry) => entry.trim());
+}
+var MAX_FILE_SIZE_KB_LIMIT = 1024 * 1024;
+function readMaxFileSizeKb(value, fallback2) {
+  if (value === void 0) return fallback2;
+  if (!Number.isInteger(value) || Number(value) < 1 || Number(value) > MAX_FILE_SIZE_KB_LIMIT) {
+    throw new Error(
+      `maxFileSizeKb must be an integer between 1 and ${MAX_FILE_SIZE_KB_LIMIT}`
+    );
+  }
+  return Number(value);
+}
+var SCORING_VERSIONS = [1, 2];
+function readScoring(value, fallback2) {
+  if (value === void 0) return { ...fallback2 };
+  if (!isRecord(value)) {
+    throw new Error("scoring must be an object");
+  }
+  const unknownKeys = Object.keys(value).filter((key) => key !== "version");
+  if (unknownKeys.length > 0) {
+    throw new Error(`unknown scoring option: ${unknownKeys.join(", ")}`);
+  }
+  if (value.version === void 0) return { ...fallback2 };
+  if (!SCORING_VERSIONS.includes(value.version)) {
+    throw new Error("scoring.version must be 1 or 2");
+  }
+  return { version: value.version };
+}
+var RULE_SETTINGS = ["off", "info", "warning", "critical"];
+function readRules(value) {
+  if (value === void 0 || value === null) return {};
+  if (!isRecord(value)) {
+    throw new Error("rules must be a map of rule IDs to settings");
+  }
+  const rules = {};
+  for (const [id, setting] of Object.entries(value)) {
+    if (!getRule(id)) {
+      throw new Error(`unknown rule: ${id} (see docs/rules.md)`);
+    }
+    const normalized = setting === false ? "off" : setting;
+    if (!RULE_SETTINGS.includes(normalized)) {
+      throw new Error(`rules.${id} must be one of ${RULE_SETTINGS.join(", ")}`);
+    }
+    rules[id] = normalized;
+  }
+  return rules;
+}
+function readAnalyzers(value, fallback2) {
+  if (value === void 0) return { ...fallback2 };
+  if (!isRecord(value)) {
+    throw new Error("analyzers must be an object");
+  }
+  const unknownKeys = Object.keys(value).filter(
+    (key) => !ANALYZER_KEYS.includes(key)
+  );
+  if (unknownKeys.length > 0) {
+    throw new Error(`unknown analyzer: ${unknownKeys.join(", ")}`);
+  }
+  const analyzers = { ...fallback2 };
+  for (const key of ANALYZER_KEYS) {
+    const setting = value[key];
+    if (setting === void 0) continue;
+    if (typeof setting !== "boolean") {
+      throw new Error(`analyzers.${key} must be true or false`);
+    }
+    analyzers[key] = setting;
+  }
+  return analyzers;
+}
+function loadConfig(projectPath) {
+  const configPath = (0, import_node_path.join)(projectPath, ".codediag.yml");
+  if (!(0, import_node_fs.existsSync)(configPath)) {
+    return {
+      threshold: DEFAULT_CONFIG.threshold,
+      ignore: [...DEFAULT_CONFIG.ignore],
+      maxFileSizeKb: DEFAULT_CONFIG.maxFileSizeKb,
+      scoring: { ...DEFAULT_CONFIG.scoring },
+      rules: {},
+      analyzers: { ...DEFAULT_CONFIG.analyzers }
+    };
+  }
+  let document;
+  try {
+    document = (0, import_yaml.parse)((0, import_node_fs.readFileSync)(configPath, "utf-8"));
+  } catch (error) {
+    throw new Error(
+      `Invalid .codediag.yml: ${error instanceof Error ? error.message : String(error)}`
+    );
+  }
+  if (document === null || document === void 0) document = {};
+  if (!isRecord(document)) {
+    throw new Error("Invalid .codediag.yml: root must be an object");
+  }
+  const allowedKeys = /* @__PURE__ */ new Set([
+    "threshold",
+    "ignore",
+    "maxFileSizeKb",
+    "scoring",
+    "rules",
+    "analyzers"
+  ]);
+  const unknownKeys = Object.keys(document).filter(
+    (key) => !allowedKeys.has(key)
+  );
+  if (unknownKeys.length > 0) {
+    throw new Error(
+      `Invalid .codediag.yml: unknown option: ${unknownKeys.join(", ")}`
+    );
+  }
+  try {
+    return {
+      threshold: readThreshold(document.threshold, DEFAULT_CONFIG.threshold),
+      ignore: readIgnore(document.ignore, DEFAULT_CONFIG.ignore),
+      maxFileSizeKb: readMaxFileSizeKb(
+        document.maxFileSizeKb,
+        DEFAULT_CONFIG.maxFileSizeKb
+      ),
+      scoring: readScoring(document.scoring, DEFAULT_CONFIG.scoring),
+      rules: readRules(document.rules),
+      analyzers: readAnalyzers(document.analyzers, DEFAULT_CONFIG.analyzers)
+    };
+  } catch (error) {
+    throw new Error(
+      `Invalid .codediag.yml: ${error instanceof Error ? error.message : String(error)}`
+    );
+  }
+}
+function normalizeIgnorePatterns(entries) {
+  return entries.flatMap((entry) => {
+    const normalized = entry.replace(/\\/g, "/").replace(/^\.?\//, "").replace(/\/+$/, "");
+    if (/[*?[\]{}()!]/.test(normalized)) return [normalized];
+    return [normalized, `${normalized}/**`];
+  });
+}
+function parseThreshold(value) {
+  if (!/^\d+$/.test(value)) {
+    throw new Error("threshold must be an integer between 0 and 100");
+  }
+  return readThreshold(Number(value), DEFAULT_CONFIG.threshold);
+}
+function isBelowThreshold(score, threshold) {
+  return score < threshold;
+}
+
+// src/core/baseline.ts
+var import_node_fs2 = require("fs");
+function isRecord2(value) {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+function loadBaseline(path2) {
+  let document;
+  try {
+    document = JSON.parse((0, import_node_fs2.readFileSync)(path2, "utf-8"));
+  } catch (error) {
+    throw new Error(
+      `Cannot read baseline ${path2}: ${error instanceof Error ? error.message : String(error)}`
+    );
+  }
+  if (!isRecord2(document) || !Array.isArray(document.analyzers)) {
+    throw new Error(
+      `Baseline ${path2} is not a CodeDiag JSON report (missing analyzers)`
+    );
+  }
+  const fingerprints = /* @__PURE__ */ new Set();
+  for (const analyzer of document.analyzers) {
+    if (!isRecord2(analyzer) || !Array.isArray(analyzer.issues)) continue;
+    for (const issue of analyzer.issues) {
+      if (isRecord2(issue) && typeof issue.fingerprint === "string") {
+        fingerprints.add(issue.fingerprint);
+      }
+    }
+  }
+  return fingerprints;
+}
+function applyBaseline(results, baseline) {
+  const matched = /* @__PURE__ */ new Set();
+  const marked = results.map((result) => ({
+    ...result,
+    issues: result.issues.map((issue) => {
+      if (!issue.fingerprint || !baseline.has(issue.fingerprint)) return issue;
+      matched.add(issue.fingerprint);
+      return { ...issue, baseline: true };
+    })
+  }));
+  return {
+    results: marked,
+    summary: {
+      matched: matched.size,
+      // Baseline findings that no longer occur have been fixed.
+      fixed: baseline.size - matched.size
+    }
+  };
+}
+
+// src/core/issues.ts
+function isActive(issue) {
+  return !issue.suppression && issue.baseline !== true;
+}
+function activeIssues(analyzer) {
+  return analyzer.issues.filter(isActive);
+}
+function inactiveCounts(analyzers) {
+  const counts = { suppressed: 0, baseline: 0 };
+  for (const analyzer of analyzers) {
+    for (const issue of analyzer.issues) {
+      if (issue.suppression) counts.suppressed += 1;
+      else if (issue.baseline) counts.baseline += 1;
+    }
+  }
+  return counts;
+}
+
+// src/reporters/sarif.ts
+var import_node_path2 = require("path");
+var import_node_url = require("url");
+
 // src/core/fingerprint.ts
+var import_node_crypto = require("crypto");
 var FINGERPRINT_KEY = "codediagFinding/v2";
 function normalize(text) {
   return text.replace(/\s+/g, " ").trim();
@@ -252483,6 +252584,15 @@ function buildSarif(result) {
       level: sarifLevel(issue.severity),
       message: { text: issue.message },
       ...locations ? { locations } : {},
+      ...issue.suppression ? {
+        suppressions: [
+          {
+            kind: issue.suppression.kind,
+            justification: issue.suppression.justification
+          }
+        ]
+      } : {},
+      ...result.baseline ? { baselineState: issue.baseline ? "unchanged" : "new" } : {},
       partialFingerprints: {
         [FINGERPRINT_KEY]: issue.fingerprint ?? computeFingerprint(issue, null)
       },
@@ -252530,7 +252640,7 @@ function renderSarif(result) {
 }
 
 // src/scanner.ts
-var import_node_fs8 = require("fs");
+var import_node_fs9 = require("fs");
 var import_node_path9 = require("path");
 
 // node_modules/chalk/source/vendor/ansi-styles/index.js
@@ -252648,11 +252758,11 @@ function assembleStyles() {
     },
     hexToRgb: {
       value(hex) {
-        const matches = /[a-f\d]{6}|[a-f\d]{3}/i.exec(hex.toString(16));
-        if (!matches) {
+        const matches2 = /[a-f\d]{6}|[a-f\d]{3}/i.exec(hex.toString(16));
+        if (!matches2) {
           return [0, 0, 0];
         }
-        let [colorString] = matches;
+        let [colorString] = matches2;
         if (colorString.length === 3) {
           colorString = [...colorString].map((character) => character + character).join("");
         }
@@ -253954,7 +254064,7 @@ function ora(options) {
 
 // src/analyzers/dependencies.ts
 var import_node_child_process = require("child_process");
-var import_node_fs2 = require("fs");
+var import_node_fs3 = require("fs");
 var import_node_path3 = require("path");
 var lockFileNames = {
   npm: ["package-lock.json", "npm-shrinkwrap.json"],
@@ -253971,7 +254081,7 @@ function findLockFile(projectPath, preferredManager) {
   ] : ["pnpm", "yarn", "npm"];
   for (let depth = 0; depth <= 3; depth++) {
     for (const manager of managers) {
-      if (lockFileNames[manager].some((name) => (0, import_node_fs2.existsSync)((0, import_node_path3.join)(directory, name)))) {
+      if (lockFileNames[manager].some((name) => (0, import_node_fs3.existsSync)((0, import_node_path3.join)(directory, name)))) {
         return { manager, directory };
       }
     }
@@ -253990,7 +254100,7 @@ function isModernYarn(projectPath, packageManager, lockDirectory) {
   if (version && Number(version) >= 2) return true;
   let directory = projectPath;
   for (let depth = 0; depth <= 3; depth++) {
-    if ((0, import_node_fs2.existsSync)((0, import_node_path3.join)(directory, ".yarnrc.yml"))) return true;
+    if ((0, import_node_fs3.existsSync)((0, import_node_path3.join)(directory, ".yarnrc.yml"))) return true;
     if (directory === lockDirectory) break;
     const parent = (0, import_node_path3.dirname)(directory);
     if (parent === directory) break;
@@ -254765,7 +254875,7 @@ async function analyzeNextjsApi(context) {
 }
 
 // src/analyzers/security.ts
-var import_node_fs3 = require("fs");
+var import_node_fs4 = require("fs");
 var import_node_path4 = require("path");
 
 // src/analyzers/security-sinks.ts
@@ -255256,9 +255366,9 @@ async function analyzeSecurity(context) {
     let directory = projectPath;
     for (let depth = 0; depth <= 3; depth++) {
       const gitignorePath = (0, import_node_path4.join)(directory, ".gitignore");
-      if ((0, import_node_fs3.existsSync)(gitignorePath)) {
+      if ((0, import_node_fs4.existsSync)(gitignorePath)) {
         foundGitignore = true;
-        const content = (0, import_node_fs3.readFileSync)(gitignorePath, "utf-8");
+        const content = (0, import_node_fs4.readFileSync)(gitignorePath, "utf-8");
         if (gitignoreProtectsEnv(content)) {
           checksPassed++;
         } else {
@@ -255357,7 +255467,7 @@ async function analyzeSecurity(context) {
 }
 
 // src/analyzers/structure.ts
-var import_node_fs4 = require("fs");
+var import_node_fs5 = require("fs");
 var import_node_path5 = require("path");
 var LINTER_CONFIGS = [
   "eslint.config.js",
@@ -255398,7 +255508,7 @@ function findConfigUp(projectPath, fileNames, maxParentDepth = 3) {
   for (let depth = 0; depth <= maxParentDepth; depth++) {
     for (const fileName of fileNames) {
       const candidate = (0, import_node_path5.join)(directory, fileName);
-      if ((0, import_node_fs4.existsSync)(candidate)) return candidate;
+      if ((0, import_node_fs5.existsSync)(candidate)) return candidate;
     }
     const parent = (0, import_node_path5.dirname)(directory);
     if (parent === directory) break;
@@ -255415,7 +255525,7 @@ function findReadme(projectPath) {
       "readme.txt",
       "readme"
     ];
-    const entries = (0, import_node_fs4.readdirSync)(projectPath);
+    const entries = (0, import_node_fs5.readdirSync)(projectPath);
     const byLowerName = new Map(
       entries.map((entry) => [entry.toLowerCase(), entry])
     );
@@ -255436,7 +255546,7 @@ function displayPath(projectPath, filePath) {
 }
 function rootEnvFiles(projectPath) {
   try {
-    return (0, import_node_fs4.readdirSync)(projectPath).filter(
+    return (0, import_node_fs5.readdirSync)(projectPath).filter(
       (entry) => /^\.env(?:\..+)?$/.test(entry) && !ENV_TEMPLATES.includes(entry)
     );
   } catch {
@@ -255445,7 +255555,7 @@ function rootEnvFiles(projectPath) {
 }
 function analyzeNestOrganization(context, issues) {
   const srcPath = (0, import_node_path5.join)(context.projectPath, "src");
-  if (!(0, import_node_fs4.existsSync)(srcPath)) {
+  if (!(0, import_node_fs5.existsSync)(srcPath)) {
     issues.push({
       ...fromRule("no-src-dir"),
       message: "No src/ directory found",
@@ -255523,11 +255633,11 @@ async function analyzeStructure(context) {
   const hasDependency = (name) => Boolean(pkg.dependencies?.[name] || pkg.devDependencies?.[name]);
   const isNestjs = hasDependency("@nestjs/core");
   const tsconfigPath = (0, import_node_path5.join)(projectPath, "tsconfig.json");
-  const isTypescript = (0, import_node_fs4.existsSync)(tsconfigPath) || hasDependency("typescript");
+  const isTypescript = (0, import_node_fs5.existsSync)(tsconfigPath) || hasDependency("typescript");
   checksRun++;
   const readmePath = findReadme(projectPath);
   if (readmePath) {
-    const content = (0, import_node_fs4.readFileSync)(readmePath, "utf-8");
+    const content = (0, import_node_fs5.readFileSync)(readmePath, "utf-8");
     if (meaningfulReadmeLength(content) >= 100) {
       checksPassed++;
     } else {
@@ -255611,7 +255721,7 @@ async function analyzeStructure(context) {
   checksRun++;
   const envFiles = rootEnvFiles(projectPath);
   const envTemplate = ENV_TEMPLATES.find(
-    (name) => (0, import_node_fs4.existsSync)((0, import_node_path5.join)(projectPath, name))
+    (name) => (0, import_node_fs5.existsSync)((0, import_node_path5.join)(projectPath, name))
   );
   if (envFiles.length === 0 || envTemplate) {
     checksPassed++;
@@ -255633,7 +255743,7 @@ async function analyzeStructure(context) {
 }
 
 // src/analyzers/testing.ts
-var import_node_fs5 = require("fs");
+var import_node_fs6 = require("fs");
 var import_node_path6 = require("path");
 var TEST_CONFIG_FILES = ["jest", "vitest"].flatMap(
   (tool) => ["ts", "js", "mjs", "mts"].map((extension) => `${tool}.config.${extension}`)
@@ -255644,11 +255754,11 @@ var COVERAGE_THRESHOLDS = {
   functions: 70,
   branches: 70
 };
-function isRecord2(value) {
+function isRecord3(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 function parseCoverageMetric(value) {
-  if (!isRecord2(value)) return null;
+  if (!isRecord3(value)) return null;
   const total = value.total;
   const covered = value.covered;
   const pct = value.pct;
@@ -255662,10 +255772,10 @@ function readCoverageReport(projectPath) {
     (0, import_node_path6.join)(projectPath, "coverage", "coverage-summary.json"),
     (0, import_node_path6.join)(projectPath, "coverage-summary.json")
   ];
-  const reportPath = candidates.find((candidate) => (0, import_node_fs5.existsSync)(candidate));
+  const reportPath = candidates.find((candidate) => (0, import_node_fs6.existsSync)(candidate));
   if (!reportPath) return null;
-  const document = JSON.parse((0, import_node_fs5.readFileSync)(reportPath, "utf-8"));
-  if (!isRecord2(document) || !isRecord2(document.total)) {
+  const document = JSON.parse((0, import_node_fs6.readFileSync)(reportPath, "utf-8"));
+  if (!isRecord3(document) || !isRecord3(document.total)) {
     throw new Error("missing total coverage summary");
   }
   const metrics = {};
@@ -255741,7 +255851,7 @@ async function analyzeTesting(context) {
   }
   checksRun++;
   const hasE2e = ["test", "tests", "e2e", "__tests__"].some(
-    (dir) => (0, import_node_fs5.existsSync)((0, import_node_path6.join)(projectPath, dir))
+    (dir) => (0, import_node_fs6.existsSync)((0, import_node_path6.join)(projectPath, dir))
   );
   if (hasE2e) {
     checksPassed++;
@@ -255753,7 +255863,7 @@ async function analyzeTesting(context) {
     });
   }
   checksRun++;
-  const hasConfig = (0, import_node_fs5.existsSync)((0, import_node_path6.join)(projectPath, "jest.config.js")) || (0, import_node_fs5.existsSync)((0, import_node_path6.join)(projectPath, "jest.config.ts")) || (0, import_node_fs5.existsSync)((0, import_node_path6.join)(projectPath, "jest.config.mjs")) || (0, import_node_fs5.existsSync)((0, import_node_path6.join)(projectPath, "vitest.config.ts")) || (0, import_node_fs5.existsSync)((0, import_node_path6.join)(projectPath, "vitest.config.js")) || (0, import_node_fs5.existsSync)((0, import_node_path6.join)(projectPath, "vitest.config.mts"));
+  const hasConfig = (0, import_node_fs6.existsSync)((0, import_node_path6.join)(projectPath, "jest.config.js")) || (0, import_node_fs6.existsSync)((0, import_node_path6.join)(projectPath, "jest.config.ts")) || (0, import_node_fs6.existsSync)((0, import_node_path6.join)(projectPath, "jest.config.mjs")) || (0, import_node_fs6.existsSync)((0, import_node_path6.join)(projectPath, "vitest.config.ts")) || (0, import_node_fs6.existsSync)((0, import_node_path6.join)(projectPath, "vitest.config.js")) || (0, import_node_fs6.existsSync)((0, import_node_path6.join)(projectPath, "vitest.config.mts"));
   if (hasConfig || framework === "node:test") {
     checksPassed++;
   } else {
@@ -255769,10 +255879,10 @@ async function analyzeTesting(context) {
   let hasCoverageConfig = Boolean(pkg?.jest?.coverageThreshold);
   const configFiles = TEST_CONFIG_FILES.map(
     (name) => (0, import_node_path6.join)(projectPath, name)
-  ).filter((path2) => (0, import_node_fs5.existsSync)(path2));
+  ).filter((path2) => (0, import_node_fs6.existsSync)(path2));
   for (const cf of configFiles) {
     try {
-      if ((0, import_node_fs5.readFileSync)(cf, "utf-8").includes("coverageThreshold") || (0, import_node_fs5.readFileSync)(cf, "utf-8").includes("coverage")) {
+      if ((0, import_node_fs6.readFileSync)(cf, "utf-8").includes("coverageThreshold") || (0, import_node_fs6.readFileSync)(cf, "utf-8").includes("coverage")) {
         hasCoverageConfig = true;
         break;
       }
@@ -255788,7 +255898,7 @@ async function analyzeTesting(context) {
     issues.push({
       ...fromRule("invalid-coverage-report"),
       message: `Coverage summary could not be read: ${error instanceof Error ? error.message : String(error)}`,
-      file: (0, import_node_fs5.existsSync)((0, import_node_path6.join)(projectPath, "coverage", "coverage-summary.json")) ? "coverage/coverage-summary.json" : "coverage-summary.json",
+      file: (0, import_node_fs6.existsSync)((0, import_node_path6.join)(projectPath, "coverage", "coverage-summary.json")) ? "coverage/coverage-summary.json" : "coverage-summary.json",
       fix: "Regenerate coverage-summary.json with Jest, Vitest, or Istanbul"
     });
   }
@@ -255830,8 +255940,22 @@ async function analyzeTesting(context) {
   };
 }
 
+// src/core/rule-overrides.ts
+function applyRuleOverrides(results, rules) {
+  if (Object.keys(rules).length === 0) return results;
+  return results.map((result) => ({
+    ...result,
+    issues: result.issues.flatMap((issue) => {
+      const setting = Object.hasOwn(rules, issue.rule) ? rules[issue.rule] : void 0;
+      if (setting === void 0) return [issue];
+      if (setting === "off") return [];
+      return [{ ...issue, severity: setting }];
+    })
+  }));
+}
+
 // src/core/scan-context.ts
-var import_node_fs7 = require("fs");
+var import_node_fs8 = require("fs");
 var import_node_path8 = require("path");
 var import_ignore = __toESM(require_ignore(), 1);
 
@@ -257709,7 +257833,7 @@ minimatch.unescape = unescape;
 var import_ts_morph4 = __toESM(require_ts_morph(), 1);
 
 // src/detectors/stack-detector.ts
-var import_node_fs6 = require("fs");
+var import_node_fs7 = require("fs");
 var import_node_path7 = require("path");
 function detectStack(projectPath) {
   const info = {
@@ -257723,10 +257847,10 @@ function detectStack(projectPath) {
     packageManager: "unknown"
   };
   const pkgPath = (0, import_node_path7.join)(projectPath, "package.json");
-  if (!(0, import_node_fs6.existsSync)(pkgPath)) return info;
+  if (!(0, import_node_fs7.existsSync)(pkgPath)) return info;
   let pkg;
   try {
-    pkg = JSON.parse((0, import_node_fs6.readFileSync)(pkgPath, "utf-8"));
+    pkg = JSON.parse((0, import_node_fs7.readFileSync)(pkgPath, "utf-8"));
   } catch {
     return info;
   }
@@ -257734,19 +257858,19 @@ function detectStack(projectPath) {
     ...pkg.dependencies || {},
     ...pkg.devDependencies || {}
   };
-  if (allDeps.typescript || (0, import_node_fs6.existsSync)((0, import_node_path7.join)(projectPath, "tsconfig.json"))) {
+  if (allDeps.typescript || (0, import_node_fs7.existsSync)((0, import_node_path7.join)(projectPath, "tsconfig.json"))) {
     info.language = "typescript";
   }
-  if (allDeps["@nestjs/core"] || (0, import_node_fs6.existsSync)((0, import_node_path7.join)(projectPath, "nest-cli.json"))) {
+  if (allDeps["@nestjs/core"] || (0, import_node_fs7.existsSync)((0, import_node_path7.join)(projectPath, "nest-cli.json"))) {
     info.framework = "nestjs";
-  } else if (allDeps.next || (0, import_node_fs6.existsSync)((0, import_node_path7.join)(projectPath, "next.config.js")) || (0, import_node_fs6.existsSync)((0, import_node_path7.join)(projectPath, "next.config.mjs")) || (0, import_node_fs6.existsSync)((0, import_node_path7.join)(projectPath, "next.config.ts"))) {
+  } else if (allDeps.next || (0, import_node_fs7.existsSync)((0, import_node_path7.join)(projectPath, "next.config.js")) || (0, import_node_fs7.existsSync)((0, import_node_path7.join)(projectPath, "next.config.mjs")) || (0, import_node_fs7.existsSync)((0, import_node_path7.join)(projectPath, "next.config.ts"))) {
     info.framework = "nextjs";
   } else if (allDeps.express) {
     info.framework = "express";
   } else if (pkg.dependencies || pkg.devDependencies) {
     info.framework = "generic";
   }
-  if (allDeps.prisma || allDeps["@prisma/client"] || (0, import_node_fs6.existsSync)((0, import_node_path7.join)(projectPath, "prisma", "schema.prisma"))) {
+  if (allDeps.prisma || allDeps["@prisma/client"] || (0, import_node_fs7.existsSync)((0, import_node_path7.join)(projectPath, "prisma", "schema.prisma"))) {
     info.orm = "prisma";
     info.hasPrisma = true;
   } else if (allDeps.typeorm) {
@@ -257758,14 +257882,14 @@ function detectStack(projectPath) {
   } else if (allDeps["drizzle-orm"]) {
     info.orm = "drizzle";
   }
-  info.hasDocker = (0, import_node_fs6.existsSync)((0, import_node_path7.join)(projectPath, "Dockerfile")) || (0, import_node_fs6.existsSync)((0, import_node_path7.join)(projectPath, "docker-compose.yml")) || (0, import_node_fs6.existsSync)((0, import_node_path7.join)(projectPath, "docker-compose.yaml"));
-  info.hasEnvFile = (0, import_node_fs6.existsSync)((0, import_node_path7.join)(projectPath, ".env")) || (0, import_node_fs6.existsSync)((0, import_node_path7.join)(projectPath, ".env.local")) || (0, import_node_fs6.existsSync)((0, import_node_path7.join)(projectPath, ".env.example"));
-  info.hasTests = (0, import_node_fs6.existsSync)((0, import_node_path7.join)(projectPath, "test")) || (0, import_node_fs6.existsSync)((0, import_node_path7.join)(projectPath, "tests")) || (0, import_node_fs6.existsSync)((0, import_node_path7.join)(projectPath, "__tests__")) || (0, import_node_fs6.existsSync)((0, import_node_path7.join)(projectPath, "e2e"));
-  if ((0, import_node_fs6.existsSync)((0, import_node_path7.join)(projectPath, "pnpm-lock.yaml"))) {
+  info.hasDocker = (0, import_node_fs7.existsSync)((0, import_node_path7.join)(projectPath, "Dockerfile")) || (0, import_node_fs7.existsSync)((0, import_node_path7.join)(projectPath, "docker-compose.yml")) || (0, import_node_fs7.existsSync)((0, import_node_path7.join)(projectPath, "docker-compose.yaml"));
+  info.hasEnvFile = (0, import_node_fs7.existsSync)((0, import_node_path7.join)(projectPath, ".env")) || (0, import_node_fs7.existsSync)((0, import_node_path7.join)(projectPath, ".env.local")) || (0, import_node_fs7.existsSync)((0, import_node_path7.join)(projectPath, ".env.example"));
+  info.hasTests = (0, import_node_fs7.existsSync)((0, import_node_path7.join)(projectPath, "test")) || (0, import_node_fs7.existsSync)((0, import_node_path7.join)(projectPath, "tests")) || (0, import_node_fs7.existsSync)((0, import_node_path7.join)(projectPath, "__tests__")) || (0, import_node_fs7.existsSync)((0, import_node_path7.join)(projectPath, "e2e"));
+  if ((0, import_node_fs7.existsSync)((0, import_node_path7.join)(projectPath, "pnpm-lock.yaml"))) {
     info.packageManager = "pnpm";
-  } else if ((0, import_node_fs6.existsSync)((0, import_node_path7.join)(projectPath, "yarn.lock"))) {
+  } else if ((0, import_node_fs7.existsSync)((0, import_node_path7.join)(projectPath, "yarn.lock"))) {
     info.packageManager = "yarn";
-  } else if ((0, import_node_fs6.existsSync)((0, import_node_path7.join)(projectPath, "package-lock.json"))) {
+  } else if ((0, import_node_fs7.existsSync)((0, import_node_path7.join)(projectPath, "package-lock.json"))) {
     info.packageManager = "npm";
   }
   return info;
@@ -257793,9 +257917,9 @@ function toPosix(path2) {
 }
 function readGitignore(directory) {
   const path2 = (0, import_node_path8.join)(directory, ".gitignore");
-  if (!(0, import_node_fs7.existsSync)(path2)) return null;
+  if (!(0, import_node_fs8.existsSync)(path2)) return null;
   try {
-    return (0, import_ignore.default)().add((0, import_node_fs7.readFileSync)(path2, "utf-8"));
+    return (0, import_ignore.default)().add((0, import_node_fs8.readFileSync)(path2, "utf-8"));
   } catch {
     return null;
   }
@@ -257803,7 +257927,7 @@ function readGitignore(directory) {
 function findGitRoot(projectPath) {
   let directory = projectPath;
   while (true) {
-    if ((0, import_node_fs7.existsSync)((0, import_node_path8.join)(directory, ".git"))) return directory;
+    if ((0, import_node_fs8.existsSync)((0, import_node_path8.join)(directory, ".git"))) return directory;
     const parent = (0, import_node_path8.dirname)(directory);
     if (parent === directory) return null;
     directory = parent;
@@ -257852,9 +257976,9 @@ function isMinified(content) {
 }
 function readPackageJson(projectPath) {
   const path2 = (0, import_node_path8.join)(projectPath, "package.json");
-  if (!(0, import_node_fs7.existsSync)(path2)) return { status: "missing", value: null };
+  if (!(0, import_node_fs8.existsSync)(path2)) return { status: "missing", value: null };
   try {
-    const value = JSON.parse((0, import_node_fs7.readFileSync)(path2, "utf-8"));
+    const value = JSON.parse((0, import_node_fs8.readFileSync)(path2, "utf-8"));
     if (typeof value !== "object" || value === null || Array.isArray(value)) {
       return { status: "invalid", value: null };
     }
@@ -257885,8 +258009,8 @@ function createScanContext(projectPath, config = loadConfig(projectPath), option
   );
   const isInsideRoot = (path2) => {
     try {
-      realRoot ??= (0, import_node_fs7.realpathSync)(root);
-      const target = (0, import_node_path8.relative)(realRoot, (0, import_node_fs7.realpathSync)(path2));
+      realRoot ??= (0, import_node_fs8.realpathSync)(root);
+      const target = (0, import_node_path8.relative)(realRoot, (0, import_node_fs8.realpathSync)(path2));
       return target !== "" && !target.startsWith("..") && !(0, import_node_path8.isAbsolute)(target);
     } catch {
       return false;
@@ -257896,7 +258020,7 @@ function createScanContext(projectPath, config = loadConfig(projectPath), option
     if (textCache.has(file)) return textCache.get(file) ?? null;
     let content;
     try {
-      content = (0, import_node_fs7.readFileSync)(absolutePath(file), "utf-8");
+      content = (0, import_node_fs8.readFileSync)(absolutePath(file), "utf-8");
     } catch {
       content = null;
       skippedFiles.set(file, "unreadable");
@@ -257922,7 +258046,7 @@ function createScanContext(projectPath, config = loadConfig(projectPath), option
   const walk = (directory, relativeDirectory, inherited, found) => {
     let entries;
     try {
-      entries = (0, import_node_fs7.readdirSync)(directory, { withFileTypes: true });
+      entries = (0, import_node_fs8.readdirSync)(directory, { withFileTypes: true });
     } catch {
       return;
     }
@@ -257939,7 +258063,7 @@ function createScanContext(projectPath, config = loadConfig(projectPath), option
       let isFile = entry.isFile();
       if (entry.isSymbolicLink()) {
         try {
-          const target = (0, import_node_fs7.statSync)(path2);
+          const target = (0, import_node_fs8.statSync)(path2);
           isDirectory = false;
           isFile = target.isFile() && isInsideRoot(path2);
         } catch {
@@ -257959,7 +258083,7 @@ function createScanContext(projectPath, config = loadConfig(projectPath), option
       if (isUserIgnored(file, false)) continue;
       let size;
       try {
-        size = (0, import_node_fs7.statSync)(path2).size;
+        size = (0, import_node_fs8.statSync)(path2).size;
       } catch {
         continue;
       }
@@ -257969,7 +258093,7 @@ function createScanContext(projectPath, config = loadConfig(projectPath), option
   const files = () => {
     if (!index) {
       const found = [];
-      if ((0, import_node_fs7.existsSync)(root)) walk(root, "", ancestorGitignores(root), found);
+      if ((0, import_node_fs8.existsSync)(root)) walk(root, "", ancestorGitignores(root), found);
       index = found;
     }
     return index;
@@ -258015,7 +258139,7 @@ function createScanContext(projectPath, config = loadConfig(projectPath), option
   const resolveTypeScriptConfig = () => {
     if (typescriptConfig) return typescriptConfig;
     const tsconfigPath = (0, import_node_path8.join)(root, "tsconfig.json");
-    if (!(0, import_node_fs7.existsSync)(tsconfigPath)) {
+    if (!(0, import_node_fs8.existsSync)(tsconfigPath)) {
       typescriptConfig = { status: "missing" };
     } else {
       try {
@@ -258085,7 +258209,7 @@ function linkRootCauses(results) {
 function scoreIssues(issues) {
   const byRule = /* @__PURE__ */ new Map();
   for (const issue of issues) {
-    if (issue.causedBy) continue;
+    if (issue.causedBy || !isActive(issue)) continue;
     byRule.set(issue.rule, [...byRule.get(issue.rule) ?? [], issue]);
   }
   let total = 0;
@@ -258115,6 +258239,102 @@ function applyScoring(results, version) {
   return linkRootCauses(results).map((result) => ({
     ...result,
     ...scoreIssues(result.issues)
+  }));
+}
+
+// src/core/suppressions.ts
+var SOURCE_PATTERN3 = "**/*.{ts,tsx,js,jsx,mjs,cjs,mts,cts}";
+var MARKER = "codediag-ignore";
+var DIRECTIVE = /^\s*(?:\/\/|\/\*+)\s*codediag-ignore-(next-line|file)\b(.*?)(?:\*\/)?\s*$/;
+function parseDirectives(file, content) {
+  const lines = content.split(/\r?\n/);
+  const directives = [];
+  const pendingNextLine = [];
+  lines.forEach((text, index) => {
+    const match2 = DIRECTIVE.exec(text);
+    if (!match2) {
+      for (const directive2 of pendingNextLine.splice(0)) {
+        directive2.target = index + 1;
+      }
+      return;
+    }
+    const [ruleText, ...reasonParts] = match2[2].split("--");
+    const directive = {
+      file,
+      line: index + 1,
+      scope: match2[1],
+      rules: ruleText.split(/[\s,]+/).map((rule) => rule.trim()).filter(Boolean),
+      reason: reasonParts.join("--").trim(),
+      used: false
+    };
+    directives.push(directive);
+    if (directive.scope === "next-line") pendingNextLine.push(directive);
+  });
+  return directives;
+}
+function matches(directive, issue) {
+  if (issue.file !== directive.file) return false;
+  if (!directive.rules.includes(issue.rule)) return false;
+  return directive.scope === "file" || issue.line === directive.target;
+}
+function ownerFor(directive) {
+  for (const rule of directive.rules) {
+    const definition = getRule(rule);
+    if (definition) return definition.analyzer;
+  }
+  return "Structure";
+}
+function directiveIssue(directive) {
+  const label = `codediag-ignore-${directive.scope}`;
+  if (directive.rules.length === 0 || !directive.reason) {
+    return {
+      ...fromRule("suppression-missing-reason"),
+      message: `${label} needs rule IDs and a reason after "--"; it was not applied`,
+      file: directive.file,
+      line: directive.line,
+      fix: `Write ${label} <rule-id> -- <why this finding is acceptable>`
+    };
+  }
+  if (directive.used) return null;
+  const unknown = directive.rules.filter((rule) => !getRule(rule));
+  return {
+    ...fromRule("unused-suppression"),
+    message: unknown.length > 0 ? `${label} names unknown rule ${unknown.join(", ")}` : `${label} for ${directive.rules.join(", ")} matches no finding`,
+    file: directive.file,
+    line: directive.line,
+    fix: "Remove the directive or correct its rule IDs"
+  };
+}
+function applySuppressions(results, context) {
+  const directives = context.matchFiles(SOURCE_PATTERN3).flatMap((file) => {
+    const content = context.readText(file);
+    return content?.includes(MARKER) ? parseDirectives(file, content) : [];
+  });
+  if (directives.length === 0) return results;
+  const valid = directives.filter(
+    (directive) => directive.rules.length > 0 && directive.reason
+  );
+  const suppressed = results.map((result) => ({
+    ...result,
+    issues: result.issues.map((issue) => {
+      const directive = valid.find((candidate) => matches(candidate, issue));
+      if (!directive) return issue;
+      directive.used = true;
+      return {
+        ...issue,
+        suppression: {
+          kind: "inSource",
+          justification: directive.reason
+        }
+      };
+    })
+  }));
+  return suppressed.map((result) => ({
+    ...result,
+    issues: [
+      ...result.issues,
+      ...directives.filter((directive) => ownerFor(directive) === result.name).flatMap((directive) => directiveIssue(directive) ?? [])
+    ]
   }));
 }
 
@@ -258153,7 +258373,7 @@ function calculateGrade(score) {
   return "F";
 }
 async function scan(projectPath, config = loadConfig(projectPath), options = {}) {
-  if (!(0, import_node_fs8.existsSync)(projectPath)) {
+  if (!(0, import_node_fs9.existsSync)(projectPath)) {
     throw new Error(`Directory not found: ${projectPath}`);
   }
   const progress = createProgressReporter(options);
@@ -258197,17 +258417,25 @@ async function scan(projectPath, config = loadConfig(projectPath), options = {})
     results.push(str);
     progress.succeed(`Structure: ${findingCount(str)}`);
   }
-  const scored = applyScoring(results, config.scoring.version);
+  const configured = applyRuleOverrides(
+    applySuppressions(results, context),
+    config.rules
+  );
+  const fingerprinted = assignFingerprints(configured, context.readText);
+  const baseline = options.baseline ? applyBaseline(fingerprinted, options.baseline) : void 0;
+  const analyzers = applyScoring(
+    baseline?.results ?? fingerprinted,
+    config.scoring.version
+  );
   let totalWeight = 0;
   let weightedSum = 0;
-  for (const r of scored) {
+  for (const r of analyzers) {
     const w = WEIGHTS[r.name] || 10;
     weightedSum += r.score * w;
     totalWeight += w;
   }
   const totalScore = totalWeight > 0 ? Math.round(weightedSum / totalWeight) : 0;
   const grade = calculateGrade(totalScore);
-  const analyzers = assignFingerprints(scored, context.readText);
   const skipped = context.skipped();
   return {
     project: (0, import_node_path9.basename)(projectPath),
@@ -258217,6 +258445,7 @@ async function scan(projectPath, config = loadConfig(projectPath), options = {})
     grade,
     timestamp: (/* @__PURE__ */ new Date()).toISOString(),
     scoringVersion: config.scoring.version,
+    ...baseline ? { baseline: baseline.summary } : {},
     ...skipped.total > 0 ? { skipped } : {}
   };
 }
@@ -258236,7 +258465,7 @@ function markdownEscape(value) {
 function writeOutput(name, value) {
   const outputFile = process.env.GITHUB_OUTPUT;
   if (outputFile) {
-    (0, import_node_fs9.appendFileSync)(outputFile, `${name}=${value}
+    (0, import_node_fs10.appendFileSync)(outputFile, `${name}=${value}
 `, "utf8");
   }
 }
@@ -258249,7 +258478,7 @@ function issueAnnotation(issue) {
   return `::${level} ${properties.join(",")}::${workflowEscape(issue.message)}`;
 }
 function emitAnnotations(result) {
-  const issues = result.analyzers.flatMap((analyzer) => analyzer.issues).filter((issue) => issue.severity !== "info");
+  const issues = result.analyzers.flatMap(activeIssues).filter((issue) => issue.severity !== "info");
   for (const issue of issues.slice(0, MAX_ANNOTATIONS)) {
     console.log(issueAnnotation(issue));
   }
@@ -258270,12 +258499,19 @@ function renderSummary(result, threshold) {
   ];
   for (const analyzer of result.analyzers) {
     lines.push(
-      `| ${markdownEscape(analyzer.name)} | ${analyzer.score}/100 | ${analyzer.issues.length} |`
+      `| ${markdownEscape(analyzer.name)} | ${analyzer.score}/100 | ${activeIssues(analyzer).length} |`
     );
   }
   lines.push("", `Required threshold: **${threshold}/100**`);
+  const inactive = inactiveCounts(result.analyzers);
+  if (inactive.suppressed > 0 || inactive.baseline > 0) {
+    lines.push(
+      "",
+      `Not counted: ${inactive.suppressed} suppressed in source, ${inactive.baseline} in the baseline.`
+    );
+  }
   const actionable = result.analyzers.flatMap(
-    (analyzer) => analyzer.issues.filter((issue) => issue.severity !== "info").map((issue) => ({ analyzer: analyzer.name, issue }))
+    (analyzer) => activeIssues(analyzer).filter((issue) => issue.severity !== "info").map((issue) => ({ analyzer: analyzer.name, issue }))
   );
   if (actionable.length > 0) {
     lines.push("", "<details>", "<summary>Actionable findings</summary>", "");
@@ -258318,19 +258554,26 @@ async function runAction() {
       throw new Error("report and sarif must resolve to different files.");
     }
     const threshold = parseThreshold(getInput("threshold", "70"));
-    const result = await scan(projectPath, loadConfig(projectPath));
-    (0, import_node_fs9.mkdirSync)((0, import_node_path10.dirname)(reportPath), { recursive: true });
-    (0, import_node_fs9.writeFileSync)(reportPath, `${JSON.stringify(result, null, 2)}
+    const baselineInput = validatePathInput(
+      "baseline",
+      getInput("baseline", "")
+    );
+    const baseline = baselineInput ? loadBaseline(resolveWorkspacePath(workspace, baselineInput)) : void 0;
+    const result = await scan(projectPath, loadConfig(projectPath), {
+      baseline
+    });
+    (0, import_node_fs10.mkdirSync)((0, import_node_path10.dirname)(reportPath), { recursive: true });
+    (0, import_node_fs10.writeFileSync)(reportPath, `${JSON.stringify(result, null, 2)}
 `, "utf8");
-    (0, import_node_fs9.mkdirSync)((0, import_node_path10.dirname)(sarifPath), { recursive: true });
-    (0, import_node_fs9.writeFileSync)(sarifPath, renderSarif(result), "utf8");
+    (0, import_node_fs10.mkdirSync)((0, import_node_path10.dirname)(sarifPath), { recursive: true });
+    (0, import_node_fs10.writeFileSync)(sarifPath, renderSarif(result), "utf8");
     writeOutput("score", String(result.totalScore));
     writeOutput("grade", result.grade);
     writeOutput("report", reportPath);
     writeOutput("sarif", sarifPath);
     emitAnnotations(result);
     if (process.env.GITHUB_STEP_SUMMARY) {
-      (0, import_node_fs9.appendFileSync)(
+      (0, import_node_fs10.appendFileSync)(
         process.env.GITHUB_STEP_SUMMARY,
         renderSummary(result, threshold),
         "utf8"

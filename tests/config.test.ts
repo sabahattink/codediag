@@ -90,6 +90,30 @@ test("loads and validates the scoring version", () => {
   });
 });
 
+test("loads and validates per-rule settings", () => {
+  withProject((directory) => {
+    assert.deepEqual(loadConfig(directory).rules, {});
+
+    writeFileSync(
+      join(directory, ".codediag.yml"),
+      "rules:\n  missing-swagger: off\n  open-cors: critical\n",
+    );
+    assert.deepEqual(loadConfig(directory).rules, {
+      "missing-swagger": "off",
+      "open-cors": "critical",
+    });
+
+    for (const [content, message] of [
+      ["rules:\n  no-such-rule: off\n", /unknown rule: no-such-rule/],
+      ["rules:\n  open-cors: error\n", /rules.open-cors must be one of/],
+      ["rules: [open-cors]\n", /rules must be a map/],
+    ] as const) {
+      writeFileSync(join(directory, ".codediag.yml"), content);
+      assert.throws(() => loadConfig(directory), message);
+    }
+  });
+});
+
 test("normalizes directories without corrupting glob patterns", () => {
   assert.deepEqual(normalizeIgnorePatterns(["dist", "generated/**"]), [
     "dist",

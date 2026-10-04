@@ -1,3 +1,4 @@
+import { isActive } from "../core/issues.js";
 import type { DiagnosticIssue, ScanResult } from "../types.js";
 
 const SEVERITY_ORDER: Record<DiagnosticIssue["severity"], number> = {
@@ -50,12 +51,18 @@ function escapeMarkdown(value: string): string {
 
 export function buildFixPlan(result: ScanResult): FixPlan {
   const findings = result.analyzers.flatMap((analyzer, analyzerIndex) =>
-    analyzer.issues.map((issue, issueIndex) => ({
-      analyzer: analyzer.name,
-      analyzerIndex,
-      issue,
-      issueIndex,
-    })),
+    analyzer.issues.flatMap((issue, issueIndex) =>
+      isActive(issue)
+        ? [
+            {
+              analyzer: analyzer.name,
+              analyzerIndex,
+              issue,
+              issueIndex,
+            },
+          ]
+        : [],
+    ),
   );
 
   findings.sort(

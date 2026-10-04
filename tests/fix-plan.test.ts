@@ -107,3 +107,18 @@ test("AI prompt treats findings as data and prohibits edits", () => {
   assert.match(output, /Approval checkpoint/);
   assert.doesNotMatch(output, /sourceContents/);
 });
+
+test("fix plans and AI prompts leave out suppressed and baseline findings", () => {
+  const result = fixture();
+  result.analyzers[0].issues[0].suppression = {
+    kind: "inSource",
+    justification: "covered elsewhere",
+  };
+  result.analyzers[1].issues[0].baseline = true;
+
+  assert.deepEqual(
+    buildFixPlan(result).proposals.map((proposal) => proposal.rule),
+    ["review-tests"],
+  );
+  assert.doesNotMatch(renderAiPrompt(result), /unsafe-secret/);
+});

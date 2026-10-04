@@ -1,4 +1,5 @@
 import { isAbsolute, relative, resolve } from "node:path";
+import { activeIssues } from "../../../src/core/issues.js";
 import type { DiagnosticIssue, ScanResult } from "../../../src/types.js";
 
 export interface EditorDiagnostic {
@@ -46,7 +47,7 @@ export function collectEditorDiagnostics(
   let outsideWorkspace = 0;
 
   for (const analyzer of result.analyzers) {
-    for (const issue of analyzer.issues) {
+    for (const issue of activeIssues(analyzer)) {
       if (!issue.file) {
         fileless += 1;
         continue;
@@ -80,7 +81,7 @@ export function countSeverities(result: ScanResult): {
 } {
   const counts = { critical: 0, warning: 0, info: 0 };
   for (const analyzer of result.analyzers) {
-    for (const issue of analyzer.issues) counts[issue.severity] += 1;
+    for (const issue of activeIssues(analyzer)) counts[issue.severity] += 1;
   }
   return counts;
 }

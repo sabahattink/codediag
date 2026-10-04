@@ -541,6 +541,20 @@ export const RULES = {
       "Environment files exist without a shareable .env.example, .env.sample, or .env.template.",
     defaultSeverity: "info",
   },
+  "suppression-missing-reason": {
+    analyzer: "Structure",
+    title: "Suppression without reason",
+    description:
+      "A codediag-ignore comment has no rule IDs or no reason after `--`, so it was not applied.",
+    defaultSeverity: "info",
+  },
+  "unused-suppression": {
+    analyzer: "Structure",
+    title: "Unused suppression",
+    description:
+      "A codediag-ignore comment matches no finding or names an unknown rule, so it can be removed or corrected.",
+    defaultSeverity: "info",
+  },
 } as const satisfies Record<string, RuleDefinition>;
 
 export type RuleId = keyof typeof RULES;

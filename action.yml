@@ -19,6 +19,13 @@ inputs:
     description: SARIF report path, relative to the repository workspace.
     required: false
     default: codediag-report.sarif
+  baseline:
+    description: >-
+      Optional CodeDiag JSON report, relative to the repository workspace.
+      Findings it contains are reported as baseline and do not affect the
+      score, threshold, or annotations.
+    required: false
+    default: ""
 
 outputs:
   score:

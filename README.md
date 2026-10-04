@@ -125,7 +125,9 @@ codediag scan . --format prompt > codediag-prompt.txt  # Review-only AI handoff
 codediag scan . --ci               # JSON output + exit code
 codediag scan . --threshold 80     # Exit 1 below 80 in any output mode
 codediag scan . --quiet            # Score only
-codediag scan . --verbose          # All issues
+codediag scan . --verbose          # All issues and the score breakdown
+codediag scan . --update-baseline .codediag-baseline.json  # Record accepted findings
+codediag scan . --ci --baseline .codediag-baseline.json    # Fail only on new findings
 codediag init                      # Create .codediag.yml
 ```
 
@@ -235,6 +237,8 @@ ignore: [node_modules, dist, .git, coverage]
 maxFileSizeKb: 512
 scoring:
   version: 2
+rules:
+  missing-swagger: off   # or info, warning, critical
 analyzers:
   api: true
   security: true
@@ -246,6 +250,16 @@ analyzers:
 Unknown options and invalid values fail the scan instead of being silently
 ignored. Directory and glob entries under `ignore` are applied to analyzers
 that inspect source files.
+
+Individual findings can be suppressed in source with a required reason, and
+existing findings can be accepted with a baseline so CI fails only on new
+problems:
+
+```ts
+// codediag-ignore-next-line unsafe-dynamic-code -- plugin code is signed and sandboxed
+```
+
+See [suppressions, rule settings, and baselines](docs/suppressions-and-baselines.md).
 
 Source discovery always skips `node_modules`, `dist`, `build`, `out`,
 `coverage`, `.next`, and `.turbo` directories at any depth, `*.min.js` and

@@ -483,3 +483,15 @@ The README contains fewer than 100 characters of prose after removing badges and
 **Module organization not inspected** · default severity: `warning`
 
 NestJS module organization could not be inspected.
+
+### suppression-missing-reason
+
+**Suppression without reason** · default severity: `info`
+
+A codediag-ignore comment has no rule IDs or no reason after `--`, so it was not applied.
+
+### unused-suppression
+
+**Unused suppression** · default severity: `info`
+
+A codediag-ignore comment matches no finding or names an unknown rule, so it can be removed or corrected.

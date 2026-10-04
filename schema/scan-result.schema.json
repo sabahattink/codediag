@@ -57,6 +57,24 @@
         1,
         2
       ]
+    },
+    "baseline": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "matched",
+        "fixed"
+      ],
+      "properties": {
+        "matched": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "fixed": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
     }
   },
   "$defs": {
@@ -200,6 +218,26 @@
         "causedBy": {
           "type": "string",
           "minLength": 1
+        },
+        "suppression": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "justification"
+          ],
+          "properties": {
+            "kind": {
+              "const": "inSource"
+            },
+            "justification": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        "baseline": {
+          "type": "boolean"
         }
       }
     },

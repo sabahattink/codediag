@@ -133,6 +133,19 @@ export function buildSarif(result: ScanResult) {
       level: sarifLevel(issue.severity),
       message: { text: issue.message },
       ...(locations ? { locations } : {}),
+      ...(issue.suppression
+        ? {
+            suppressions: [
+              {
+                kind: issue.suppression.kind,
+                justification: issue.suppression.justification,
+              },
+            ],
+          }
+        : {}),
+      ...(result.baseline
+        ? { baselineState: issue.baseline ? "unchanged" : "new" }
+        : {}),
       partialFingerprints: {
         [FINGERPRINT_KEY]: issue.fingerprint ?? computeFingerprint(issue, null),
       },

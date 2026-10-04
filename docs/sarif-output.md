@@ -30,6 +30,12 @@ Each result carries a `codediagFinding/v2` partial fingerprint: a SHA-256
 digest of the rule, the file, and the flagged line's whitespace-normalized
 text. It does not include the line number, so alerts keep their identity when
 code above them moves. Only the digest is emitted, never the line text.
+
+Findings suppressed with a `codediag-ignore` comment carry
+`suppressions: [{ "kind": "inSource", "justification": "..." }]`. When the scan
+uses a baseline, every result has `baselineState` set to `"unchanged"` for
+baseline findings or `"new"` otherwise. See
+[suppressions and baselines](suppressions-and-baselines.md).
 Relative paths remain repository-relative and use forward slashes. Absolute
 paths are represented as `file:` URLs. CodeDiag does not include source file
 contents or credential values in SARIF output.

@@ -45,6 +45,7 @@ https://raw.githubusercontent.com/sabahattink/codediag/main/schema/scan-result.s
 | `grade` | string | `A+`, `A`, `B+`, `B`, `C`, `D`, or `F` |
 | `timestamp` | string | UTC ISO 8601 scan timestamp |
 | `scoringVersion` | integer | Scoring model used for analyzer scores: `1` or `2` |
+| `baseline` | object | Optional. `{ matched, fixed }` when the scan used a baseline |
 | `skipped` | object | Optional. Present only when source files were left out of analysis |
 
 `skipped` counts code files that were not analyzed: `tooLarge` (larger than
@@ -60,7 +61,12 @@ add up to `100 - score` before rounding and the floor at 0.
 
 `file`, `line`, `fix`, `fingerprint`, and `causedBy` are optional. `causedBy`
 names the reported rule a finding is a consequence of; such findings are
-`info` and are not penalized. Rule IDs and their
+`info` and are not penalized.
+
+`suppression` (`{ "kind": "inSource", "justification" }`) marks a finding
+suppressed by a `codediag-ignore` comment, and `baseline: true` marks a finding
+matched by the scan's baseline. Neither kind counts toward scores or
+thresholds; see [suppressions and baselines](suppressions-and-baselines.md). Rule IDs and their
 meaning are listed in [rules.md](rules.md).
 
 `fingerprint` is a SHA-256 hex digest that identifies a finding independently

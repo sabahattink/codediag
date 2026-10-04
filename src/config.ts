@@ -1,10 +1,12 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { parse } from "yaml";
+import { getRule } from "./rules/registry.js";
 import {
   type AnalyzerKey,
   type CodediagConfig,
   DEFAULT_CONFIG,
+  type RuleSetting,
   type ScoringVersion,
 } from "./types.js";
 
@@ -76,6 +78,28 @@ function readScoring(
   return { version: value.version as ScoringVersion };
 }
 
+const RULE_SETTINGS: RuleSetting[] = ["off", "info", "warning", "critical"];
+
+function readRules(value: unknown): Record<string, RuleSetting> {
+  if (value === undefined || value === null) return {};
+  if (!isRecord(value)) {
+    throw new Error("rules must be a map of rule IDs to settings");
+  }
+  const rules: Record<string, RuleSetting> = {};
+  for (const [id, setting] of Object.entries(value)) {
+    if (!getRule(id)) {
+      throw new Error(`unknown rule: ${id} (see docs/rules.md)`);
+    }
+    // YAML 1.1 parsers read a bare `off` as false; accept both spellings.
+    const normalized = setting === false ? "off" : setting;
+    if (!RULE_SETTINGS.includes(normalized as RuleSetting)) {
+      throw new Error(`rules.${id} must be one of ${RULE_SETTINGS.join(", ")}`);
+    }
+    rules[id] = normalized as RuleSetting;
+  }
+  return rules;
+}
+
 function readAnalyzers(
   value: unknown,
   fallback: CodediagConfig["analyzers"],
@@ -112,6 +136,7 @@ export function loadConfig(projectPath: string): CodediagConfig {
       ignore: [...DEFAULT_CONFIG.ignore],
       maxFileSizeKb: DEFAULT_CONFIG.maxFileSizeKb,
       scoring: { ...DEFAULT_CONFIG.scoring },
+      rules: {},
       analyzers: { ...DEFAULT_CONFIG.analyzers },
     };
   }
@@ -135,6 +160,7 @@ export function loadConfig(projectPath: string): CodediagConfig {
     "ignore",
     "maxFileSizeKb",
     "scoring",
+    "rules",
     "analyzers",
   ]);
   const unknownKeys = Object.keys(document).filter(
@@ -155,6 +181,7 @@ export function loadConfig(projectPath: string): CodediagConfig {
         DEFAULT_CONFIG.maxFileSizeKb,
       ),
       scoring: readScoring(document.scoring, DEFAULT_CONFIG.scoring),
+      rules: readRules(document.rules),
       analyzers: readAnalyzers(document.analyzers, DEFAULT_CONFIG.analyzers),
     };
   } catch (error) {

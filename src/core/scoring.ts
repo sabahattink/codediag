@@ -1,4 +1,5 @@
 import { getRule } from "../rules/registry.js";
+import { isActive } from "./issues.js";
 import type {
   AnalyzerResult,
   DiagnosticIssue,
@@ -52,7 +53,7 @@ function scoreIssues(issues: DiagnosticIssue[]): {
 } {
   const byRule = new Map<string, DiagnosticIssue[]>();
   for (const issue of issues) {
-    if (issue.causedBy) continue;
+    if (issue.causedBy || !isActive(issue)) continue;
     byRule.set(issue.rule, [...(byRule.get(issue.rule) ?? []), issue]);
   }
 

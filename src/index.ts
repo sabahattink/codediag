@@ -1,8 +1,9 @@
-import { existsSync, writeFileSync } from "node:fs";
-import { resolve } from "node:path";
+import { existsSync, mkdirSync, writeFileSync } from "node:fs";
+import { dirname, resolve } from "node:path";
 import chalk from "chalk";
 import { Command } from "commander";
 import { isBelowThreshold, loadConfig, parseThreshold } from "./config.js";
+import { loadBaseline } from "./core/baseline.js";
 import { formatPenalty } from "./core/scoring.js";
 import { renderHtml } from "./reporters/html.js";
 import { renderAiPrompt, renderFixPlan } from "./reporters/fix-plan.js";
@@ -88,6 +89,14 @@ program
   .option("--ci", "CI mode: JSON output + exit code")
   .option("--quiet", "Show score only")
   .option("--verbose", "Show all issues including info")
+  .option(
+    "--baseline <report>",
+    "JSON report whose findings are accepted and excluded from the score",
+  )
+  .option(
+    "--update-baseline <report>",
+    "Write the scan's JSON report to this path for use with --baseline",
+  )
   .action(async (path: string, options) => {
     const targetPath = resolve(path);
     const format = options.ci ? "json" : options.format;
@@ -107,7 +116,19 @@ program
           : options.ci || hasConfig
             ? config.threshold
             : null;
-      const result = await scan(targetPath, config);
+      const baseline = options.baseline
+        ? loadBaseline(resolve(options.baseline))
+        : undefined;
+      const result = await scan(targetPath, config, { baseline });
+      if (options.updateBaseline) {
+        const baselinePath = resolve(options.updateBaseline);
+        mkdirSync(dirname(baselinePath), { recursive: true });
+        writeFileSync(
+          baselinePath,
+          `${JSON.stringify(result, null, 2)}\n`,
+          "utf-8",
+        );
+      }
 
       switch (format) {
         case "json":

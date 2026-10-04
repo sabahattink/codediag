@@ -20,7 +20,20 @@ export interface DiagnosticIssue {
   fingerprint?: string;
   /** The reported rule this finding is a consequence of; it is not penalized. */
   causedBy?: string;
+  /** Set when a codediag-ignore comment suppresses the finding. */
+  suppression?: { kind: "inSource"; justification: string };
+  /** Set when the finding's fingerprint is in the baseline passed to the scan. */
+  baseline?: boolean;
 }
+
+export interface BaselineSummary {
+  /** Findings matched by the baseline. */
+  matched: number;
+  /** Baseline fingerprints that no longer match any finding. */
+  fixed: number;
+}
+
+export type RuleSetting = "off" | DiagnosticIssue["severity"];
 
 export interface ScoreBreakdownEntry {
   rule: string;
@@ -62,6 +75,7 @@ export interface ScanResult {
   grade: Grade;
   timestamp: string;
   scoringVersion?: ScoringVersion;
+  baseline?: BaselineSummary;
   skipped?: SkippedSummary;
 }
 
@@ -82,6 +96,7 @@ export interface CodediagConfig {
   ignore: string[];
   maxFileSizeKb: number;
   scoring: { version: ScoringVersion };
+  rules: Record<string, RuleSetting>;
   analyzers: {
     api: boolean;
     security: boolean;
@@ -98,6 +113,7 @@ export const DEFAULT_CONFIG: CodediagConfig = {
   ignore: ["node_modules", "dist", ".git", "coverage"],
   maxFileSizeKb: 512,
   scoring: { version: 2 },
+  rules: {},
   analyzers: {
     api: true,
     security: true,

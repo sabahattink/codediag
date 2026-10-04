@@ -1,3 +1,4 @@
+import { activeIssues, inactiveCounts } from "../core/issues.js";
 import { formatPenalty } from "../core/scoring.js";
 import type { AnalyzerResult, DiagnosticIssue, ScanResult } from "../types.js";
 
@@ -62,14 +63,20 @@ function renderIssue(issue: DiagnosticIssue, analyzerName: string): string {
   </article>`;
 }
 
+function notCounted(result: ScanResult): string {
+  const { suppressed, baseline } = inactiveCounts(result.analyzers);
+  if (suppressed === 0 && baseline === 0) return "";
+  return ` · ${suppressed} suppressed, ${baseline} in baseline`;
+}
+
 export function renderHtml(result: ScanResult): string {
   const analyzers = result.analyzers.map(renderAnalyzer).join("\n");
   const issues = result.analyzers.flatMap((analyzer) =>
-    analyzer.issues.map((issue) => renderIssue(issue, analyzer.name)),
+    activeIssues(analyzer).map((issue) => renderIssue(issue, analyzer.name)),
   );
   const counts = { critical: 0, warning: 0, info: 0 };
   for (const analyzer of result.analyzers) {
-    for (const issue of analyzer.issues) counts[issue.severity] += 1;
+    for (const issue of activeIssues(analyzer)) counts[issue.severity] += 1;
   }
   const stack = [
     result.stack.framework,
@@ -118,7 +125,7 @@ export function renderHtml(result: ScanResult): string {
 
   <section aria-labelledby="issues-title">
     <div class="section-head">
-      <div><h2 id="issues-title">Findings</h2><p>${issues.length} issues require review</p></div>
+      <div><h2 id="issues-title">Findings</h2><p>${issues.length} issues require review${notCounted(result)}</p></div>
       <div class="filters" role="group" aria-label="Filter findings by severity">
         <button type="button" data-filter="all" aria-pressed="true">All ${issues.length}</button>
         <button type="button" data-filter="critical" aria-pressed="false">Critical ${counts.critical}</button>

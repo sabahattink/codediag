@@ -1,6 +1,8 @@
 import { appendFileSync, mkdirSync, writeFileSync } from "node:fs";
 import { dirname, isAbsolute, resolve } from "node:path";
 import { isBelowThreshold, loadConfig, parseThreshold } from "./config.js";
+import { loadBaseline } from "./core/baseline.js";
+import { activeIssues, inactiveCounts } from "./core/issues.js";
 import { renderSarif } from "./reporters/sarif.js";
 import { scan } from "./scanner.js";
 import type { DiagnosticIssue, ScanResult } from "./types.js";
@@ -45,7 +47,7 @@ function issueAnnotation(issue: DiagnosticIssue): string {
 
 function emitAnnotations(result: ScanResult): void {
   const issues = result.analyzers
-    .flatMap((analyzer) => analyzer.issues)
+    .flatMap(activeIssues)
     .filter((issue) => issue.severity !== "info");
 
   for (const issue of issues.slice(0, MAX_ANNOTATIONS)) {
@@ -71,14 +73,21 @@ function renderSummary(result: ScanResult, threshold: number): string {
 
   for (const analyzer of result.analyzers) {
     lines.push(
-      `| ${markdownEscape(analyzer.name)} | ${analyzer.score}/100 | ${analyzer.issues.length} |`,
+      `| ${markdownEscape(analyzer.name)} | ${analyzer.score}/100 | ${activeIssues(analyzer).length} |`,
     );
   }
 
   lines.push("", `Required threshold: **${threshold}/100**`);
+  const inactive = inactiveCounts(result.analyzers);
+  if (inactive.suppressed > 0 || inactive.baseline > 0) {
+    lines.push(
+      "",
+      `Not counted: ${inactive.suppressed} suppressed in source, ${inactive.baseline} in the baseline.`,
+    );
+  }
 
   const actionable = result.analyzers.flatMap((analyzer) =>
-    analyzer.issues
+    activeIssues(analyzer)
       .filter((issue) => issue.severity !== "info")
       .map((issue) => ({ analyzer: analyzer.name, issue })),
   );
@@ -132,8 +141,17 @@ export async function runAction(): Promise<void> {
     }
 
     const threshold = parseThreshold(getInput("threshold", "70"));
+    const baselineInput = validatePathInput(
+      "baseline",
+      getInput("baseline", ""),
+    );
+    const baseline = baselineInput
+      ? loadBaseline(resolveWorkspacePath(workspace, baselineInput))
+      : undefined;
 
-    const result = await scan(projectPath, loadConfig(projectPath));
+    const result = await scan(projectPath, loadConfig(projectPath), {
+      baseline,
+    });
 
     mkdirSync(dirname(reportPath), { recursive: true });
     writeFileSync(reportPath, `${JSON.stringify(result, null, 2)}\n`, "utf8");

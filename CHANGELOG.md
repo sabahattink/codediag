@@ -24,6 +24,16 @@ All notable changes to CodeDiag are documented in this file.
   analyzer reports a `scoreBreakdown`, shown in JSON, HTML, Markdown, and
   `--verbose` terminal output, and results include `scoringVersion`.
 - `scoring.version` configuration.
+- Inline suppressions: `codediag-ignore-next-line` and `codediag-ignore-file`
+  comments with a required reason. Directives without a reason are not applied
+  (`suppression-missing-reason`) and stale ones are reported
+  (`unused-suppression`).
+- `rules` configuration to turn rules off or change their severity.
+- Baselines: `--baseline <report.json>` and `--update-baseline <path>`, plus a
+  `baseline` Action input. Baseline findings are marked `baseline: true` and do
+  not affect scores, thresholds, or annotations.
+- SARIF `suppressions` and `baselineState` for suppressed and baseline
+  findings.
 - AST-based security sink detection for runtime code execution, dynamic shell
   commands, dynamic SQL queries, and disabled TLS certificate verification.
 - SARIF 2.1.0 output through `--format sarif`, including stable rule IDs,

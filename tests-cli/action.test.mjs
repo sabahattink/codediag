@@ -159,3 +159,58 @@ test("GitHub Action reports invalid inputs as operational failures", () => {
   assert.match(result.stderr, /CodeDiag action failed/);
   assert.match(result.stderr, /between 0 and 100/);
 });
+
+test("GitHub Action excludes baseline findings from annotations and the gate", async () => {
+  const temporaryDirectory = await mkdtemp(
+    join(tmpdir(), "codediag-baseline-"),
+  );
+  const reportFile = join(temporaryDirectory, "report.json");
+  const run = (inputs) =>
+    spawnSync(process.execPath, [actionEntry], {
+      cwd: temporaryDirectory,
+      encoding: "utf8",
+      env: {
+        ...process.env,
+        GITHUB_WORKSPACE: temporaryDirectory,
+        INPUT_PATH: ".",
+        INPUT_THRESHOLD: "100",
+        INPUT_REPORT: reportFile,
+        INPUT_SARIF: join(temporaryDirectory, "report.sarif"),
+        ...inputs,
+      },
+    });
+
+  try {
+    await writeFile(join(temporaryDirectory, "package.json"), "{}\n", "utf8");
+    await writeFile(join(temporaryDirectory, ".gitignore"), ".env\n", "utf8");
+    await writeFile(join(temporaryDirectory, "run.js"), "eval(a);\n", "utf8");
+    await writeFile(
+      join(temporaryDirectory, ".codediag.yml"),
+      [
+        "analyzers:",
+        "  api: false",
+        "  security: true",
+        "  dependencies: false",
+        "  testing: false",
+        "  structure: false",
+        "",
+      ].join("\n"),
+      "utf8",
+    );
+
+    const first = run({});
+    assert.equal(first.status, 1, first.stdout);
+    assert.match(first.stdout, /::error file=run\.js,line=1/);
+    await writeFile(
+      join(temporaryDirectory, "baseline.json"),
+      await readFile(reportFile, "utf8"),
+      "utf8",
+    );
+
+    const second = run({ INPUT_BASELINE: "baseline.json" });
+    assert.equal(second.status, 0, second.stdout);
+    assert.doesNotMatch(second.stdout, /::error file=/);
+  } finally {
+    await rm(temporaryDirectory, { recursive: true, force: true });
+  }
+});

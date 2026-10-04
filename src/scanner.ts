@@ -10,9 +10,12 @@ import { analyzeSecurity } from "./analyzers/security.js";
 import { analyzeStructure } from "./analyzers/structure.js";
 import { analyzeTesting } from "./analyzers/testing.js";
 import { loadConfig } from "./config.js";
+import { applyBaseline } from "./core/baseline.js";
 import { assignFingerprints } from "./core/fingerprint.js";
+import { applyRuleOverrides } from "./core/rule-overrides.js";
 import { createScanContext } from "./core/scan-context.js";
 import { applyScoring } from "./core/scoring.js";
+import { applySuppressions } from "./core/suppressions.js";
 import { detectStack } from "./detectors/stack-detector.js";
 import type {
   AnalyzerResult,
@@ -32,6 +35,8 @@ const WEIGHTS: Record<string, number> = {
 export interface ScanOptions {
   interactive?: boolean;
   onProgress?: (message: string) => void;
+  /** Fingerprints of accepted findings, typically from loadBaseline(). */
+  baseline?: ReadonlySet<string>;
 }
 
 interface ProgressReporter {
@@ -146,12 +151,25 @@ export async function scan(
     progress.succeed(`Structure: ${findingCount(str)}`);
   }
 
-  const scored = applyScoring(results, config.scoring.version);
+  // Order matters: overrides run after suppressions so turning a rule off
+  // does not make its directives look unused, and baselines need fingerprints.
+  const configured = applyRuleOverrides(
+    applySuppressions(results, context),
+    config.rules,
+  );
+  const fingerprinted = assignFingerprints(configured, context.readText);
+  const baseline = options.baseline
+    ? applyBaseline(fingerprinted, options.baseline)
+    : undefined;
+  const analyzers = applyScoring(
+    baseline?.results ?? fingerprinted,
+    config.scoring.version,
+  );
 
   // Calculate total
   let totalWeight = 0;
   let weightedSum = 0;
-  for (const r of scored) {
+  for (const r of analyzers) {
     const w = WEIGHTS[r.name] || 10;
     weightedSum += r.score * w;
     totalWeight += w;
@@ -160,7 +178,6 @@ export async function scan(
   const totalScore =
     totalWeight > 0 ? Math.round(weightedSum / totalWeight) : 0;
   const grade = calculateGrade(totalScore);
-  const analyzers = assignFingerprints(scored, context.readText);
   const skipped = context.skipped();
 
   return {
@@ -171,6 +188,7 @@ export async function scan(
     grade,
     timestamp: new Date().toISOString(),
     scoringVersion: config.scoring.version,
+    ...(baseline ? { baseline: baseline.summary } : {}),
     ...(skipped.total > 0 ? { skipped } : {}),
   };
 }
