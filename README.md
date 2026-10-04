@@ -30,7 +30,8 @@
 npx @sabahattink/codediag scan .
 ```
 
-That's it. Configuration is optional. No account or server is required.
+That's it. Configuration is optional, no account or server is required, and
+`--no-audit` keeps the scan fully offline.
 
 Or install globally — this also puts the `codediag` command on your `PATH`,
 which every other example below assumes:
@@ -46,44 +47,55 @@ npm install -g @sabahattink/codediag
 
 ## What it checks
 
-codediag auto-detects your stack and runs 5 analyzers:
+codediag auto-detects your stack and runs 5 analyzers. Every finding has a
+stable rule ID ([rule reference](docs/rules.md)), a severity, a location when
+one exists, and a suggested fix.
 
 ### API Health `NestJS · Express · Next.js`
 
-Uses AST analysis (ts-morph, not regex) to inspect NestJS decorators and
-Express `app` or `router` routes. NestJS checks cover auth guards, typed DTOs,
-Swagger docs, and return types. Express checks cover recognizable auth and
-validation middleware, centralized error handling, and health endpoints.
-Next.js checks App Router and Pages Router API handlers without penalizing
-frontend-only projects.
+AST analysis (ts-morph, not regex) of the routes your app actually exposes.
+
+- **NestJS:** auth guards, including global guards (`useGlobalGuards`,
+  `APP_GUARD`), custom `UseGuards`-based decorators, and `@Public()`-style
+  opt-outs; DTO classes for request bodies (not `any`, `Record`, or
+  interfaces) and whether a `ValidationPipe` enforces them; Swagger docs and
+  return types.
+- **Express:** routers resolved from `express()`, `Router()`, and typed
+  parameters; auth and validation middleware on routes, earlier
+  `router.use()` calls, and `app.use(path, mw, router)` mounts across files;
+  centralized error handling and health endpoints.
+- **Next.js:** App Router and Pages Router API handlers, without penalizing
+  frontend-only projects.
 
 ### Security
 
-Scans source files for hardcoded API keys and credentials, validates that
-`.gitignore` protects `.env`, and verifies runtime use of Helmet and rate
-limiting in supported web servers. It also reports open CORS configuration,
-weak password hashes, direct password comparisons, and password persistence
-without recognizable hashing. AST-based runtime checks detect `eval` and the
-`Function` constructor, dynamic shell and SQL execution, and disabled TLS
-certificate verification while excluding test fixtures. See
-[Security analysis](docs/security-analysis.md) for rule behavior and scope.
+Hardcoded credentials, `.env` protection in `.gitignore`, Helmet, rate
+limiting, open CORS, weak password hashing, and direct password comparisons.
+Runtime sinks (`eval`, `new Function`, shell commands, raw SQL, disabled TLS
+verification) are found in the AST, and request data is traced through
+variables, destructuring, and reassignments, so `const cmd = req.query.cmd;
+exec(cmd)` is critical. See [Security analysis](docs/security-analysis.md).
 
 ### Dependencies
 
-Runs the matching npm, pnpm, Yarn Classic, or modern Yarn audit command,
-checks lock file existence, flags deprecated packages, and validates engine
-specs and essential package scripts. Monorepo lock files are detected up to
-three parent directories.
+Runs the matching npm, pnpm, Yarn Classic, or Yarn Berry audit (skipped with
+`--no-audit`), checks the lock file and `packageManager` consistency, flags
+deprecated packages, and validates engine specs and essential scripts.
+Monorepo lock files are found up to three parent directories.
 
 ### Testing
 
-Detects test files and frameworks (Jest, Vitest, Mocha, Ava), calculates the test-to-source ratio, and checks for e2e directories. When Jest, Vitest, or Istanbul produces `coverage/coverage-summary.json`, CodeDiag measures line and statement coverage against an 80% baseline and function and branch coverage against a 70% baseline. Without a report, it falls back to checking coverage configuration.
+Test files and frameworks (Jest, Vitest, Mocha, Ava, node:test), the
+test-to-source ratio, integration test directories, and coverage. A
+`coverage-summary.json` is measured against 80% lines/statements and 70%
+functions/branches; otherwise CodeDiag checks for a real coverage threshold in
+Jest, Vitest, node:test, c8, or nyc configuration.
 
 ### Structure
 
-Validates useful README content, workspace or package-level lint/format config,
+README content, lint and format config (also inherited from a workspace root),
 resolved TypeScript strict mode, NestJS feature modules, and environment
-templates such as `.env.example` or `.env.sample`.
+templates such as `.env.example`.
 
 ## Scoring
 
@@ -211,6 +223,16 @@ reports, and fails when the score is below the requested threshold. Its
 the [GitHub Action guide](docs/github-action.md) for all inputs, outputs, and a
 complete workflow.
 
+Adopting CodeDiag on an existing codebase? Commit a baseline so the gate only
+fails on new findings:
+
+```yaml
+- uses: sabahattink/codediag@main
+  with:
+    threshold: 80
+    baseline: .codediag-baseline.json   # created with --update-baseline
+```
+
 ```yaml
 # npm-based GitHub Actions step
 - run: npx @sabahattink/codediag scan . --ci --threshold 80
@@ -281,51 +303,35 @@ minified bundles are skipped and reported in the JSON `skipped` summary.
 | Express | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Node.js | — | ✅ | ✅ | ✅ | ✅ |
 
-## How it compares
+## Where CodeDiag fits
 
-| | codediag | SonarQube | Snyk | ESLint |
-|---|:---:|:---:|:---:|:---:|
-| Zero config | ✅ | ❌ | ❌ | ❌ |
-| NestJS-aware | ✅ | ❌ | ❌ | ❌ |
-| Security scan | ✅ | ✅ | ✅ | ❌ |
-| Dep audit | ✅ | ❌ | ✅ | ❌ |
-| Test check | ✅ | ✅ | ❌ | ❌ |
-| Unified score | ✅ | ✅ | ❌ | ❌ |
-| Offline | ✅ | ❌ | ❌ | ✅ |
-| Free | ✅ | Partial | Partial | ✅ |
+CodeDiag is a fast, explainable health check for Node.js backends, not a
+replacement for a linter or a full SAST platform. Use it alongside them:
+
+- **ESLint or Biome** catch code-level mistakes as you type; CodeDiag checks
+  project-level safeguards they do not see, such as whether a NestJS route is
+  covered by a global guard or an Express router is mounted behind auth.
+- **Semgrep, CodeQL, or SonarQube** run deep, language-wide rule sets;
+  CodeDiag focuses on a small set of framework-aware rules with low noise and
+  a score that explains every lost point.
+- **npm audit, Snyk, or Dependabot** track vulnerable dependencies; CodeDiag
+  runs your package manager's audit and folds it into the same report.
+
+Everything runs locally from one command, with SARIF output when you want
+results in GitHub Code Scanning.
 
 ## Roadmap
 
-CodeDiag is under active development. Existing analyzers are useful baseline
-checks, not a claim of complete framework or security coverage.
-
-### 0.2 - Reliable foundation
-
-- [x] NestJS API, security, dependency, testing, and structure analyzers
-- [x] Validated `.codediag.yml` configuration
-- [x] Deterministic threshold exit behavior
-- [x] npm, pnpm, and Yarn audit results preserved on vulnerability exit codes
-- [x] Automated regression tests
-- [x] `0.2.0` released as `@sabahattink/codediag` (legacy `codediag` npm name transfer still pending)
-
-### 0.3 - Framework depth
-
-- [x] Next.js analyzer
-- [x] Express analyzer
-- [x] Framework-specific fixtures and integration tests
-
-### 0.4 - CI distribution
-
-- [x] SVG badge generator
-- [x] Reusable GitHub Action
-- [x] Machine-readable schema documentation
-- [x] SARIF 2.1.0 and GitHub Code Scanning output
-
-### Later
-
-- [x] Portable HTML dashboard report
-- [x] VS Code extension with Problems, reports, and review artifacts
-- [x] Review-first fix plans and AI prompt export
+- **0.2:** analyzers for NestJS, Express, and Next.js; validated config; JSON
+  schema, SARIF, HTML, SVG badge, fix plans, GitHub Action, and VS Code
+  extension.
+- **0.3 "Reliable Engine":** gitignore-aware discovery that skips nested
+  dependencies and bundles (CodeDiag's own scan went from 15 s to 1.3 s), a
+  rule registry, explainable scoring, suppressions, baselines, offline
+  scans, and precision fixes for Express, NestJS, and security sinks. See the
+  [changelog](CHANGELOG.md).
+- **Next:** see [docs/roadmap.md](docs/roadmap.md) for planned framework
+  support, deeper security rules, monorepo scoring, and editor improvements.
 
 ## Contributing
 

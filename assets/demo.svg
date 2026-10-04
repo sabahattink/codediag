@@ -38,16 +38,16 @@
   <!-- Command -->
   <g class="l1">
     <text x="20" y="62" class="grn">$</text>
-    <text x="36" y="62" class="wht">npx codediag scan .</text>
+    <text x="36" y="62" class="wht">npx @sabahattink/codediag scan .</text>
   </g>
 
   <!-- Spinner results -->
   <g class="l2"><text x="20" y="90" class="dim">✔ Stack: nestjs + typescript + prisma</text></g>
-  <g class="l3"><text x="20" y="110" class="dim">✔ API Health: 78/100</text></g>
-  <g class="l4"><text x="20" y="130" class="dim">✔ Security: 92/100</text></g>
-  <g class="l5"><text x="20" y="150" class="dim">✔ Dependencies: 91/100</text></g>
-  <g class="l6"><text x="20" y="170" class="dim">✔ Testing: 82/100</text></g>
-  <g class="l7"><text x="20" y="190" class="dim">✔ Structure: 88/100</text></g>
+  <g class="l3"><text x="20" y="110" class="dim">✔ API Health: 2 findings</text></g>
+  <g class="l4"><text x="20" y="130" class="dim">✔ Security: 1 finding</text></g>
+  <g class="l5"><text x="20" y="150" class="dim">✔ Dependencies: 2 findings</text></g>
+  <g class="l6"><text x="20" y="170" class="dim">✔ Testing: 2 findings</text></g>
+  <g class="l7"><text x="20" y="190" class="dim">✔ Structure: 3 findings</text></g>
 
   <!-- Report header -->
   <g class="l8">
@@ -59,34 +59,34 @@
   <g class="l9">
     <text x="30" y="250" class="dim">Project:</text><text x="120" y="250" class="wht">my-nestjs-app</text>
     <text x="30" y="268" class="dim">Stack:</text><text x="120" y="268" class="wht">nestjs + typescript + prisma</text>
-    <text x="30" y="286" class="dim">Score:</text><text x="120" y="286" class="grn bld">B+</text><text x="150" y="286" class="dim">(87/100)</text>
+    <text x="30" y="286" class="dim">Score:</text><text x="120" y="286" class="grn bld">B+</text><text x="150" y="286" class="dim">(89/100)</text>
   </g>
 
   <!-- Score bars -->
   <g class="l10">
     <text x="30" y="316" class="dim">API Health</text>
-    <text x="160" y="316" class="grn">███████████████</text><text x="394" y="316" class="dim">░░░░░</text><text x="476" y="316" class="wht bld"> 78</text>
+    <rect x="160" y="305" width="300" height="12" rx="2" fill="#1f2937"/><rect x="160" y="305" width="252" height="12" rx="2" fill="#4ade80"/><text x="476" y="316" class="wht bld"> 84</text>
   </g>
   <g class="l11">
     <text x="30" y="336" class="dim">Security</text>
-    <text x="160" y="336" class="grn">██████████████████</text><text x="442" y="336" class="dim">░░</text><text x="476" y="336" class="wht bld"> 92</text>
+    <rect x="160" y="325" width="300" height="12" rx="2" fill="#1f2937"/><rect x="160" y="325" width="276" height="12" rx="2" fill="#4ade80"/><text x="476" y="336" class="wht bld"> 92</text>
   </g>
   <g class="l12">
     <text x="30" y="356" class="dim">Dependencies</text>
-    <text x="160" y="356" class="grn">██████████████████</text><text x="442" y="356" class="dim">░░</text><text x="476" y="356" class="wht bld"> 91</text>
+    <rect x="160" y="345" width="300" height="12" rx="2" fill="#1f2937"/><rect x="160" y="345" width="270" height="12" rx="2" fill="#4ade80"/><text x="476" y="356" class="wht bld"> 90</text>
   </g>
   <g class="l13">
     <text x="30" y="376" class="dim">Testing</text>
-    <text x="160" y="376" class="grn">████████████████</text><text x="410" y="376" class="dim">░░░░</text><text x="476" y="376" class="wht bld"> 82</text>
+    <rect x="160" y="365" width="300" height="12" rx="2" fill="#1f2937"/><rect x="160" y="365" width="270" height="12" rx="2" fill="#4ade80"/><text x="476" y="376" class="wht bld"> 90</text>
   </g>
 
   <!-- Issues -->
   <g class="l14">
-    <text x="30" y="410" class="red">✖</text><text x="48" y="410" class="wht">POST /users has no auth guard</text>
-    <text x="48" y="428" class="dim">→ Add @UseGuards(AuthGuard)</text>
+    <text x="30" y="410" class="ylw">⚠</text><text x="48" y="410" class="wht">POST /users has no auth guard</text><text x="290" y="410" class="dim">[missing-guard]</text>
+    <text x="48" y="428" class="dim">src/users/users.controller.ts:18</text>
   </g>
   <g class="l15">
-    <text x="30" y="456" class="ylw">⚠</text><text x="48" y="456" class="wht">No rate limiting detected</text>
-    <text x="48" y="474" class="dim">→ Install @nestjs/throttler</text>
+    <text x="30" y="456" class="ylw">⚠</text><text x="48" y="456" class="wht">Rate limiting is not configured</text><text x="306" y="456" class="dim">[no-rate-limiting]</text>
+    <text x="48" y="474" class="dim">→ Configure a rate limiter appropriate for the web framework</text>
   </g>
 </svg>
