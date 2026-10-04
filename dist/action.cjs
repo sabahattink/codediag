@@ -2042,7 +2042,7 @@ var require_YAMLMap = __commonJS({
       static from(schema, obj, ctx) {
         const { keepUndefined, replacer } = ctx;
         const map = new this(schema);
-        const add = (key, value) => {
+        const add2 = (key, value) => {
           if (typeof replacer === "function")
             value = replacer.call(obj, key, value);
           else if (Array.isArray(replacer) && !replacer.includes(key))
@@ -2052,10 +2052,10 @@ var require_YAMLMap = __commonJS({
         };
         if (obj instanceof Map) {
           for (const [key, value] of obj)
-            add(key, value);
+            add2(key, value);
         } else if (obj && typeof obj === "object") {
           for (const key of Object.keys(obj))
-            add(key, obj[key]);
+            add2(key, obj[key]);
         }
         if (typeof schema.sortMapEntries === "function") {
           map.items.sort(schema.sortMapEntries);
@@ -29514,7 +29514,7 @@ ${lanes.join("\n")}
         const fileDiagnostics = /* @__PURE__ */ new Map();
         let hasReadNonFileDiagnostics = false;
         return {
-          add,
+          add: add2,
           lookup,
           getGlobalDiagnostics,
           getDiagnostics: getDiagnostics2
@@ -29538,7 +29538,7 @@ ${lanes.join("\n")}
           }
           return void 0;
         }
-        function add(diagnostic) {
+        function add2(diagnostic) {
           let diagnostics;
           if (diagnostic.file) {
             diagnostics = fileDiagnostics.get(diagnostic.file.fileName);
@@ -70473,15 +70473,15 @@ ${lanes.join("\n")}
               var pushFakeScope = pushFakeScope2;
               cleanupParams = !some(expandedParams) ? void 0 : pushFakeScope2(
                 "params",
-                (add) => {
+                (add2) => {
                   if (!expandedParams) return;
                   for (let pIndex = 0; pIndex < expandedParams.length; pIndex++) {
                     const param = expandedParams[pIndex];
                     const originalParam = originalParameters == null ? void 0 : originalParameters[pIndex];
                     if (originalParameters && originalParam !== param) {
-                      add(param.escapedName, unknownSymbol);
+                      add2(param.escapedName, unknownSymbol);
                       if (originalParam) {
-                        add(originalParam.escapedName, unknownSymbol);
+                        add2(originalParam.escapedName, unknownSymbol);
                       }
                     } else if (!forEach(param.declarations, (d) => {
                       if (isParameter(d) && isBindingPattern(d.name)) {
@@ -70506,10 +70506,10 @@ ${lanes.join("\n")}
                           return bindPattern(e.name);
                         }
                         const symbol = getSymbolOfDeclaration(e);
-                        add(symbol.escapedName, symbol);
+                        add2(symbol.escapedName, symbol);
                       }
                     })) {
-                      add(param.escapedName, param);
+                      add2(param.escapedName, param);
                     }
                   }
                 }
@@ -70517,10 +70517,10 @@ ${lanes.join("\n")}
               if (context.flags & 4 && some(typeParameters)) {
                 cleanupTypeParams = pushFakeScope2(
                   "typeParams",
-                  (add) => {
+                  (add2) => {
                     for (const typeParam of typeParameters ?? emptyArray) {
                       const typeParamName = typeParameterToName(typeParam, context).escapedText;
-                      add(typeParamName, typeParam.symbol);
+                      add2(typeParamName, typeParam.symbol);
                     }
                   }
                 );
@@ -175756,8 +175756,8 @@ ${newComment.split("\n").map((c) => ` * ${c}`).join("\n")}
         return void 0;
       }
       function addUndefinedToOptionalProperty(changes, toAdd) {
-        for (const add of toAdd) {
-          const d = add.valueDeclaration;
+        for (const add2 of toAdd) {
+          const d = add2.valueDeclaration;
           if (d && (isPropertySignature(d) || isPropertyDeclaration(d)) && d.type) {
             const t = factory.createUnionTypeNode([
               ...d.type.kind === 193 ? d.type.types : [d.type],
@@ -191148,14 +191148,14 @@ ${newComment.split("\n").map((c) => ` * ${c}`).join("\n")}
       };
       function createNameAndKindSet() {
         const map2 = /* @__PURE__ */ new Map();
-        function add(value) {
+        function add2(value) {
           const existing = map2.get(value.name);
           if (!existing || kindPrecedence[existing.kind] < kindPrecedence[value.kind]) {
             map2.set(value.name, value);
           }
         }
         return {
-          add,
+          add: add2,
           has: map2.has.bind(map2),
           values: map2.values.bind(map2)
         };
@@ -255501,36 +255501,51 @@ function enclosingScope(node) {
     (ancestor) => import_ts_morph4.Node.isFunctionDeclaration(ancestor) || import_ts_morph4.Node.isFunctionExpression(ancestor) || import_ts_morph4.Node.isArrowFunction(ancestor) || import_ts_morph4.Node.isMethodDeclaration(ancestor) || import_ts_morph4.Node.isConstructorDeclaration(ancestor)
   ) ?? node.getSourceFile();
 }
-function bindsName(name, identifier) {
-  if (import_ts_morph4.Node.isIdentifier(name)) return name.getText() === identifier;
+function boundNames(name) {
+  if (import_ts_morph4.Node.isIdentifier(name)) return [name.getText()];
   if (import_ts_morph4.Node.isObjectBindingPattern(name) || import_ts_morph4.Node.isArrayBindingPattern(name)) {
-    return name.getDescendantsOfKind(import_ts_morph4.SyntaxKind.Identifier).some(
-      (element) => element.getText() === identifier && import_ts_morph4.Node.isBindingElement(element.getParent())
-    );
+    return name.getDescendantsOfKind(import_ts_morph4.SyntaxKind.Identifier).filter((element) => import_ts_morph4.Node.isBindingElement(element.getParent())).map((element) => element.getText());
   }
-  return false;
+  return [];
+}
+var scopeIndexes = /* @__PURE__ */ new WeakMap();
+function add(map, name, node) {
+  const list = map.get(name);
+  if (list) list.push(node);
+  else map.set(name, [node]);
+}
+function indexScope(scope) {
+  const existing = scopeIndexes.get(scope);
+  if (existing) return existing;
+  const index = { declarations: /* @__PURE__ */ new Map(), assignments: /* @__PURE__ */ new Map() };
+  for (const declaration of scope.getDescendantsOfKind(
+    import_ts_morph4.SyntaxKind.VariableDeclaration
+  )) {
+    if (enclosingScope(declaration) !== scope) continue;
+    for (const name of boundNames(declaration.getNameNode())) {
+      const initializer = declaration.getInitializer();
+      if (initializer) add(index.declarations, name, initializer);
+      else if (!index.declarations.has(name)) index.declarations.set(name, []);
+    }
+  }
+  for (const binary of scope.getDescendantsOfKind(
+    import_ts_morph4.SyntaxKind.BinaryExpression
+  )) {
+    if (binary.getOperatorToken().getKind() === import_ts_morph4.SyntaxKind.EqualsToken && import_ts_morph4.Node.isIdentifier(binary.getLeft())) {
+      add(index.assignments, binary.getLeft().getText(), binary.getRight());
+    }
+  }
+  scopeIndexes.set(scope, index);
+  return index;
 }
 function valueSources(identifier) {
   const name = identifier.getText();
   let scope = enclosingScope(identifier);
   while (scope) {
-    const current = scope;
-    const inScope = (node) => enclosingScope(node) === current;
-    const declarations = current.getDescendantsOfKind(import_ts_morph4.SyntaxKind.VariableDeclaration).filter(
-      (declaration) => inScope(declaration) && bindsName(declaration.getNameNode(), name)
-    );
-    if (declarations.length > 0) {
-      const assignments = current.getDescendantsOfKind(import_ts_morph4.SyntaxKind.BinaryExpression).filter(
-        (binary) => binary.getOperatorToken().getKind() === import_ts_morph4.SyntaxKind.EqualsToken && binary.getLeft().getText() === name
-      ).map((binary) => binary.getRight());
-      return [
-        ...declarations.flatMap(
-          (declaration) => declaration.getInitializer() ?? []
-        ),
-        ...assignments
-      ];
-    }
-    scope = import_ts_morph4.Node.isSourceFile(current) ? void 0 : enclosingScope(current);
+    const index = indexScope(scope);
+    const declared = index.declarations.get(name);
+    if (declared) return [...declared, ...index.assignments.get(name) ?? []];
+    scope = import_ts_morph4.Node.isSourceFile(scope) ? void 0 : enclosingScope(scope);
   }
   return [];
 }
@@ -255540,7 +255555,18 @@ function isPropertyName(identifier) {
     parent && import_ts_morph4.Node.isPropertyAccessExpression(parent) && parent.getNameNode() === identifier
   );
 }
+var taintCache = /* @__PURE__ */ new WeakMap();
 function isTainted(node, hops = 0, seen = /* @__PURE__ */ new Set()) {
+  if (hops === 0) {
+    const cached = taintCache.get(node);
+    if (cached !== void 0) return cached;
+    const tainted = traceTaint(node, 0, seen);
+    taintCache.set(node, tainted);
+    return tainted;
+  }
+  return traceTaint(node, hops, seen);
+}
+function traceTaint(node, hops, seen) {
   if (REQUEST_DATA.test(node.getText())) return true;
   if (hops >= MAX_TAINT_HOPS) return false;
   const identifiers = import_ts_morph4.Node.isIdentifier(node) ? [node] : node.getDescendantsOfKind(import_ts_morph4.SyntaxKind.Identifier);

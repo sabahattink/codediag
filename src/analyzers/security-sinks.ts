@@ -140,54 +140,75 @@ function enclosingScope(node: Node): ScopeNode {
   );
 }
 
-function bindsName(name: Node, identifier: string): boolean {
-  if (Node.isIdentifier(name)) return name.getText() === identifier;
+function boundNames(name: Node): string[] {
+  if (Node.isIdentifier(name)) return [name.getText()];
   if (Node.isObjectBindingPattern(name) || Node.isArrayBindingPattern(name)) {
     return name
       .getDescendantsOfKind(SyntaxKind.Identifier)
-      .some(
-        (element) =>
-          element.getText() === identifier &&
-          Node.isBindingElement(element.getParent()),
-      );
+      .filter((element) => Node.isBindingElement(element.getParent()))
+      .map((element) => element.getText());
   }
-  return false;
+  return [];
+}
+
+interface ScopeIndex {
+  /** Initializers of variables declared directly in this scope. */
+  declarations: Map<string, Node[]>;
+  /** Right-hand sides of plain `name = value` assignments in this scope. */
+  assignments: Map<string, Node[]>;
+}
+
+const scopeIndexes = new WeakMap<Node, ScopeIndex>();
+
+function add(map: Map<string, Node[]>, name: string, node: Node): void {
+  const list = map.get(name);
+  if (list) list.push(node);
+  else map.set(name, [node]);
+}
+
+/** Indexes a scope once, so taint lookups do not rescan it per identifier. */
+function indexScope(scope: ScopeNode): ScopeIndex {
+  const existing = scopeIndexes.get(scope);
+  if (existing) return existing;
+
+  const index: ScopeIndex = { declarations: new Map(), assignments: new Map() };
+  for (const declaration of scope.getDescendantsOfKind(
+    SyntaxKind.VariableDeclaration,
+  )) {
+    if (enclosingScope(declaration) !== scope) continue;
+    for (const name of boundNames(declaration.getNameNode())) {
+      // Destructuring propagates the whole initializer to every bound name.
+      const initializer = declaration.getInitializer();
+      if (initializer) add(index.declarations, name, initializer);
+      else if (!index.declarations.has(name)) index.declarations.set(name, []);
+    }
+  }
+  for (const binary of scope.getDescendantsOfKind(
+    SyntaxKind.BinaryExpression,
+  )) {
+    if (
+      binary.getOperatorToken().getKind() === SyntaxKind.EqualsToken &&
+      Node.isIdentifier(binary.getLeft())
+    ) {
+      add(index.assignments, binary.getLeft().getText(), binary.getRight());
+    }
+  }
+  scopeIndexes.set(scope, index);
+  return index;
 }
 
 /**
  * The expressions a variable can hold: initializers of its declaration in the
  * nearest scope that declares it, and plain reassignments in that scope.
- * Destructuring propagates the whole initializer.
  */
 function valueSources(identifier: Node): Node[] {
   const name = identifier.getText();
   let scope: ScopeNode | undefined = enclosingScope(identifier);
   while (scope) {
-    const current: ScopeNode = scope;
-    const inScope = (node: Node) => enclosingScope(node) === current;
-    const declarations = current
-      .getDescendantsOfKind(SyntaxKind.VariableDeclaration)
-      .filter(
-        (declaration) =>
-          inScope(declaration) && bindsName(declaration.getNameNode(), name),
-      );
-    if (declarations.length > 0) {
-      const assignments = current
-        .getDescendantsOfKind(SyntaxKind.BinaryExpression)
-        .filter(
-          (binary) =>
-            binary.getOperatorToken().getKind() === SyntaxKind.EqualsToken &&
-            binary.getLeft().getText() === name,
-        )
-        .map((binary) => binary.getRight());
-      return [
-        ...declarations.flatMap(
-          (declaration) => declaration.getInitializer() ?? [],
-        ),
-        ...assignments,
-      ];
-    }
-    scope = Node.isSourceFile(current) ? undefined : enclosingScope(current);
+    const index = indexScope(scope);
+    const declared = index.declarations.get(name);
+    if (declared) return [...declared, ...(index.assignments.get(name) ?? [])];
+    scope = Node.isSourceFile(scope) ? undefined : enclosingScope(scope);
   }
   return [];
 }
@@ -205,7 +226,20 @@ function isPropertyName(identifier: Node): boolean {
  * True when an expression visibly contains request data, directly or through
  * up to MAX_TAINT_HOPS variable assignments in enclosing scopes.
  */
+const taintCache = new WeakMap<Node, boolean>();
+
 function isTainted(node: Node, hops = 0, seen = new Set<Node>()): boolean {
+  if (hops === 0) {
+    const cached = taintCache.get(node);
+    if (cached !== undefined) return cached;
+    const tainted = traceTaint(node, 0, seen);
+    taintCache.set(node, tainted);
+    return tainted;
+  }
+  return traceTaint(node, hops, seen);
+}
+
+function traceTaint(node: Node, hops: number, seen: Set<Node>): boolean {
   if (REQUEST_DATA.test(node.getText())) return true;
   if (hops >= MAX_TAINT_HOPS) return false;
 
