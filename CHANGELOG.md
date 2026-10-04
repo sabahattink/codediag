@@ -19,7 +19,7 @@ precision fixes for Express, NestJS, and security sinks.
 - `maxFileSizeKb` configuration (default 512) and an optional `skipped` summary
   in JSON output for oversized, minified, or unreadable code files.
 - A rule registry (`src/rules/registry.ts`) with titles, descriptions, default
-  severities, CWE and OWASP mappings for all 62 rules, and generated rule
+  severities, CWE and OWASP mappings for all 66 rules, and generated rule
   documentation in `docs/rules.md`.
 - SARIF rules now use registry titles and descriptions and include `helpUri`,
   `help`, CWE tags, and OWASP mappings.
