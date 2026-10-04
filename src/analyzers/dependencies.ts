@@ -206,6 +206,70 @@ export function parseAuditSummary(output: string): AuditSummary {
   throw new Error("audit JSON did not include a vulnerability summary");
 }
 
+/** Runs the package manager audit, records its findings, and reports a pass. */
+function auditPasses(
+  projectPath: string,
+  auditCommand: AuditCommand,
+  issues: DiagnosticIssue[],
+): boolean {
+  let passed = false;
+  const auditProcess = spawnSync(auditCommand.command, auditCommand.args, {
+    cwd: projectPath,
+    timeout: 30000,
+    encoding: "utf-8",
+    stdio: ["ignore", "pipe", "pipe"],
+    shell: process.platform === "win32",
+  });
+
+  try {
+    if (auditProcess.error) throw auditProcess.error;
+    if (!auditProcess.stdout.trim()) {
+      throw new Error(
+        auditProcess.stderr.trim() ||
+          `${auditCommand.manager} audit returned no JSON`,
+      );
+    }
+
+    const { critical, high, moderate, low } = parseAuditSummary(
+      auditProcess.stdout,
+    );
+    if (critical + high + moderate + low === 0) {
+      passed = true;
+    } else {
+      if (critical > 0)
+        issues.push({
+          ...fromRule("vuln-critical"),
+          message: `${critical} critical vulnerabilit${critical > 1 ? "ies" : "y"}`,
+          fix: `Run ${auditCommand.fixCommand}`,
+        });
+      if (high > 0)
+        issues.push({
+          ...fromRule("vuln-high"),
+          message: `${high} high severity vulnerabilit${high > 1 ? "ies" : "y"}`,
+          fix: `Run ${auditCommand.fixCommand}`,
+        });
+      if (moderate > 0)
+        issues.push({
+          ...fromRule("vuln-moderate"),
+          message: `${moderate} moderate vulnerabilit${moderate > 1 ? "ies" : "y"}`,
+          fix: `Review ${auditCommand.manager} audit output`,
+        });
+      if (low > 0)
+        issues.push({
+          ...fromRule("vuln-low"),
+          message: `${low} low severity vulnerabilit${low > 1 ? "ies" : "y"}`,
+        });
+    }
+  } catch (error) {
+    issues.push({
+      ...fromRule("audit-unavailable"),
+      message: `${auditCommand.manager} audit could not be evaluated: ${error instanceof Error ? error.message : String(error)}`,
+      fix: `Run ${[auditCommand.manager, ...auditCommand.args].join(" ")} and resolve the reported error`,
+    });
+  }
+  return passed;
+}
+
 export async function analyzeDependencies(
   context: ScanContext,
 ): Promise<AnalyzerResult> {
@@ -262,66 +326,17 @@ export async function analyzeDependencies(
   } else {
     issues.push({
       ...fromRule("no-lock-file"),
-      message: "No lock file — builds not reproducible",
-      fix: `Run ${auditCommand.manager} install to generate a lock file`,
+      message:
+        "No lock file — builds are not reproducible and dependencies cannot be audited",
+      fix: `Run ${auditCommand.manager} install and commit the generated lock file`,
     });
   }
 
-  // 2. Package manager audit
+  // 2. Package manager audit. Audits need a lock file; without one the
+  // missing lock file is the finding and the check counts as failed.
   checksRun++;
-  const auditProcess = spawnSync(auditCommand.command, auditCommand.args, {
-    cwd: projectPath,
-    timeout: 30000,
-    encoding: "utf-8",
-    stdio: ["ignore", "pipe", "pipe"],
-    shell: process.platform === "win32",
-  });
-
-  try {
-    if (auditProcess.error) throw auditProcess.error;
-    if (!auditProcess.stdout.trim()) {
-      throw new Error(
-        auditProcess.stderr.trim() ||
-          `${auditCommand.manager} audit returned no JSON`,
-      );
-    }
-
-    const { critical, high, moderate, low } = parseAuditSummary(
-      auditProcess.stdout,
-    );
-    if (critical + high + moderate + low === 0) {
-      checksPassed++;
-    } else {
-      if (critical > 0)
-        issues.push({
-          ...fromRule("vuln-critical"),
-          message: `${critical} critical vulnerabilit${critical > 1 ? "ies" : "y"}`,
-          fix: `Run ${auditCommand.fixCommand}`,
-        });
-      if (high > 0)
-        issues.push({
-          ...fromRule("vuln-high"),
-          message: `${high} high severity vulnerabilit${high > 1 ? "ies" : "y"}`,
-          fix: `Run ${auditCommand.fixCommand}`,
-        });
-      if (moderate > 0)
-        issues.push({
-          ...fromRule("vuln-moderate"),
-          message: `${moderate} moderate vulnerabilit${moderate > 1 ? "ies" : "y"}`,
-          fix: `Review ${auditCommand.manager} audit output`,
-        });
-      if (low > 0)
-        issues.push({
-          ...fromRule("vuln-low"),
-          message: `${low} low severity vulnerabilit${low > 1 ? "ies" : "y"}`,
-        });
-    }
-  } catch (error) {
-    issues.push({
-      ...fromRule("audit-unavailable"),
-      message: `${auditCommand.manager} audit could not be evaluated: ${error instanceof Error ? error.message : String(error)}`,
-      fix: `Run ${[auditCommand.manager, ...auditCommand.args].join(" ")} and resolve the reported error`,
-    });
+  if (lockFile && auditPasses(projectPath, auditCommand, issues)) {
+    checksPassed++;
   }
 
   // 3. Engines field

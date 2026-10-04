@@ -4,9 +4,11 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 import {
+  analyzeDependencies,
   parseAuditSummary,
   resolveAuditCommand,
 } from "../src/analyzers/dependencies.js";
+import { createScanContext } from "../src/core/scan-context.js";
 
 function withTempProject(run: (directory: string) => void): void {
   const directory = mkdtempSync(join(tmpdir(), "codediag-dependencies-"));
@@ -149,4 +151,30 @@ test("detects modern Yarn configuration at the monorepo root", () => {
     assert.equal(command.manager, "yarn");
     assert.deepEqual(command.args, ["npm", "audit", "--json", "--recursive"]);
   });
+});
+
+test("a missing lock file skips the audit and reports one clear finding", async () => {
+  const directory = mkdtempSync(join(tmpdir(), "codediag-dependencies-"));
+  try {
+    writeFileSync(
+      join(directory, "package.json"),
+      JSON.stringify({
+        name: "app",
+        engines: { node: ">=20" },
+        scripts: { build: "tsc", start: "node ." },
+      }),
+    );
+
+    const result = await analyzeDependencies(createScanContext(directory));
+
+    assert.deepEqual(
+      result.issues.map((finding) => finding.rule),
+      ["no-lock-file"],
+    );
+    assert.match(result.issues[0].message, /cannot be audited/);
+    // The skipped audit still counts as a failed check in the analyzer score.
+    assert.equal(result.score, 60);
+  } finally {
+    rmSync(directory, { recursive: true, force: true });
+  }
 });

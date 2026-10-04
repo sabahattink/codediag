@@ -244,7 +244,7 @@ Code that handles passwords uses MD5 or SHA-1, which are fast general-purpose ha
 
 The package manager audit could not be run or its output could not be parsed, so known vulnerabilities were not checked.
 
-- Root cause: [`no-lock-file`](#no-lock-file)
+- Root cause: [`lock-file-manager-mismatch`](#lock-file-manager-mismatch)
 
 ### deprecated-dep
 

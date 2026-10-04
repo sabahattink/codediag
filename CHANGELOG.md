@@ -56,6 +56,9 @@ All notable changes to CodeDiag are documented in this file.
   includes the line number, so alerts no longer reopen when code moves. The
   `codediagFinding/v1` key is removed; existing Code Scanning alerts are
   matched anew once after upgrading.
+- Dependency audits are skipped when no lock file exists; the `no-lock-file`
+  finding now says that dependencies cannot be audited instead of a separate
+  misleading `audit-unavailable` warning.
 - Project ownership and links now use the canonical Sabahattin Kalkan identity.
 - CLI version is read from `package.json`.
 - Threshold failures now return exit code 1 in every output mode.

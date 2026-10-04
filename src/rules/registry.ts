@@ -316,7 +316,7 @@ export const RULES = {
     description:
       "The package manager audit could not be run or its output could not be parsed, so known vulnerabilities were not checked.",
     defaultSeverity: "warning",
-    rootCause: "no-lock-file",
+    rootCause: "lock-file-manager-mismatch",
   },
   "vuln-critical": {
     analyzer: "Dependencies",
