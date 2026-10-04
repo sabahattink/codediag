@@ -1,5 +1,5 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.5.4/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.5.15/schema.json",
   "formatter": {
     "enabled": true,
     "indentStyle": "space",
@@ -8,7 +8,7 @@
   "linter": {
     "enabled": true,
     "rules": {
-      "recommended": true
+      "preset": "recommended"
     }
   },
   "javascript": {
@@ -19,9 +19,7 @@
   },
   "overrides": [
     {
-      "includes": [
-        "tests/**"
-      ],
+      "includes": ["tests/**"],
       "linter": {
         "rules": {
           "suspicious": {
@@ -32,9 +30,6 @@
     }
   ],
   "files": {
-    "includes": [
-      "**",
-      "!tests/fixtures"
-    ]
+    "includes": ["**", "!tests/fixtures"]
   }
 }

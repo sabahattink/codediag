@@ -4,6 +4,10 @@ All notable changes to CodeDiag are documented in this file.
 
 ## [Unreleased]
 
+### Changed
+
+- Updated commander to 14, TypeScript to 6, and Biome to 2.5.15.
+
 ## [0.3.0] - 2026-10-04
 
 The "Reliable Engine" release: faster, gitignore-aware discovery, a rule

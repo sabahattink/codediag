@@ -8,6 +8,13 @@ updates:
       time: "06:00"
       timezone: Asia/Baku
     open-pull-requests-limit: 5
+    ignore:
+      # chalk 6 requires Node 22; CodeDiag supports Node 20.19 and newer.
+      - dependency-name: chalk
+        versions: [">=6"]
+      # Node type definitions follow the oldest supported Node major.
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
     labels:
       - dependencies
     commit-message:

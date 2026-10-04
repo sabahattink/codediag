@@ -252490,7 +252490,7 @@ var package_default = {
   dependencies: {
     chalk: "^5.3.0",
     "cli-table3": "^0.6.5",
-    commander: "^12.1.0",
+    commander: "^14.0.3",
     ignore: "^7.0.12",
     minimatch: "^10.2.6",
     ora: "^8.1.0",
@@ -252498,7 +252498,7 @@ var package_default = {
     yaml: "^2.8.1"
   },
   devDependencies: {
-    "@biomejs/biome": "^2.5.4",
+    "@biomejs/biome": "^2.5.15",
     "@types/node": "^22.0.0",
     "@types/vscode": "^1.95.0",
     "@vscode/vsce": "^3.9.2",
@@ -252506,7 +252506,7 @@ var package_default = {
     esbuild: "^0.28.1",
     tsup: "^8.3.0",
     tsx: "^4.20.6",
-    typescript: "^5.6.0"
+    typescript: "^6.0.3"
   }
 };
 
