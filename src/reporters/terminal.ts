@@ -130,8 +130,15 @@ export function renderTerminal(
       const cause = issue.causedBy
         ? chalk.dim(` (caused by ${issue.causedBy})`)
         : "";
-      console.log(`  ${severityIcon(issue.severity)} ${issue.message}${cause}`);
-      if (issue.file) console.log(chalk.dim(`    ${issue.file}`));
+      console.log(
+        `  ${severityIcon(issue.severity)} ${issue.message}${cause} ${chalk.dim(`[${issue.rule}]`)}`,
+      );
+      if (issue.file) {
+        const location = issue.line
+          ? `${issue.file}:${issue.line}`
+          : issue.file;
+        console.log(chalk.dim(`    ${location}`));
+      }
       if (issue.fix) console.log(chalk.dim(`    \u2192 ${issue.fix}`));
     }
 

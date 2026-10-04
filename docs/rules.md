@@ -38,7 +38,7 @@ A POST, PUT, PATCH, or DELETE route handler has no recognizable authentication c
 
 **Mutating route without auth middleware** · default severity: `warning`
 
-A POST, PUT, PATCH, or DELETE route has no recognizable authentication or authorization middleware.
+A POST, PUT, PATCH, or DELETE route has no recognizable authentication or authorization middleware on the route, in earlier pathless router.use() calls, or on every mount that reaches its router.
 
 - CWE: [CWE-306](https://cwe.mitre.org/data/definitions/306.html)
 - OWASP Top 10: A07:2021
@@ -47,7 +47,7 @@ A POST, PUT, PATCH, or DELETE route has no recognizable authentication or author
 
 **Request body without typed DTO** · default severity: `warning`
 
-A POST, PUT, or PATCH endpoint does not declare a typed @Body() parameter, so request input cannot be validated by a DTO class.
+A POST, PUT, or PATCH endpoint's @Body() type is not a class (for example any, Record<...>, Partial<...>, an inline type, or an interface), so ValidationPipe cannot validate the request body.
 
 - CWE: [CWE-20](https://cwe.mitre.org/data/definitions/20.html)
 - OWASP Top 10: A03:2021
@@ -64,7 +64,7 @@ No four-argument Express error handler is registered, so unhandled errors fall b
 
 **Mutating endpoint without auth guard** · default severity: `warning`
 
-A POST, PUT, PATCH, or DELETE endpoint has no @UseGuards() on the method or its controller, so it may be reachable without authentication.
+A POST, PUT, PATCH, or DELETE endpoint has no guard on the method or its controller (including custom decorators built on UseGuards), no global guard from useGlobalGuards() or APP_GUARD applies, and it is not marked public, so it may be reachable without authentication.
 
 - CWE: [CWE-306](https://cwe.mitre.org/data/definitions/306.html)
 - OWASP Top 10: A07:2021
@@ -141,7 +141,7 @@ Next.js API route files exist but export no detectable HTTP method handlers.
 
 **Dynamic shell command** · default severity: `warning`
 
-A shell is invoked through exec or execSync with a non-literal command. The finding is critical when the command visibly includes request data.
+A shell is invoked through exec or execSync with a non-literal command. The finding is critical when the command comes from request data, directly or through up to three variable assignments.
 
 - CWE: [CWE-78](https://cwe.mitre.org/data/definitions/78.html)
 - OWASP Top 10: A03:2021
@@ -150,7 +150,7 @@ A shell is invoked through exec or execSync with a non-literal command. The find
 
 **Dynamically built SQL query** · default severity: `warning`
 
-A raw SQL execution method receives a non-literal query. The finding is critical when the query visibly includes request data.
+A raw SQL execution method receives a non-literal query. The finding is critical when the query is built from request data, directly or through up to three variable assignments; queries built from request data are reported for any client variable name.
 
 - CWE: [CWE-89](https://cwe.mitre.org/data/definitions/89.html)
 - OWASP Top 10: A03:2021

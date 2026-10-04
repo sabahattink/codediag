@@ -65,7 +65,7 @@ export const RULES = {
     analyzer: "API Health",
     title: "Mutating endpoint without auth guard",
     description:
-      "A POST, PUT, PATCH, or DELETE endpoint has no @UseGuards() on the method or its controller, so it may be reachable without authentication.",
+      "A POST, PUT, PATCH, or DELETE endpoint has no guard on the method or its controller (including custom decorators built on UseGuards), no global guard from useGlobalGuards() or APP_GUARD applies, and it is not marked public, so it may be reachable without authentication.",
     defaultSeverity: "warning",
     cwe: ["CWE-306"],
     owasp: [OWASP.authentication],
@@ -74,7 +74,7 @@ export const RULES = {
     analyzer: "API Health",
     title: "Request body without typed DTO",
     description:
-      "A POST, PUT, or PATCH endpoint does not declare a typed @Body() parameter, so request input cannot be validated by a DTO class.",
+      "A POST, PUT, or PATCH endpoint's @Body() type is not a class (for example any, Record<...>, Partial<...>, an inline type, or an interface), so ValidationPipe cannot validate the request body.",
     defaultSeverity: "warning",
     cwe: ["CWE-20"],
     owasp: [OWASP.injection],
@@ -115,7 +115,7 @@ export const RULES = {
     analyzer: "API Health",
     title: "Mutating route without auth middleware",
     description:
-      "A POST, PUT, PATCH, or DELETE route has no recognizable authentication or authorization middleware.",
+      "A POST, PUT, PATCH, or DELETE route has no recognizable authentication or authorization middleware on the route, in earlier pathless router.use() calls, or on every mount that reaches its router.",
     defaultSeverity: "warning",
     cwe: ["CWE-306"],
     owasp: [OWASP.authentication],
@@ -249,7 +249,7 @@ export const RULES = {
     analyzer: "Security",
     title: "Dynamic shell command",
     description:
-      "A shell is invoked through exec or execSync with a non-literal command. The finding is critical when the command visibly includes request data.",
+      "A shell is invoked through exec or execSync with a non-literal command. The finding is critical when the command comes from request data, directly or through up to three variable assignments.",
     defaultSeverity: "warning",
     cwe: ["CWE-78"],
     owasp: [OWASP.injection],
@@ -258,7 +258,7 @@ export const RULES = {
     analyzer: "Security",
     title: "Dynamically built SQL query",
     description:
-      "A raw SQL execution method receives a non-literal query. The finding is critical when the query visibly includes request data.",
+      "A raw SQL execution method receives a non-literal query. The finding is critical when the query is built from request data, directly or through up to three variable assignments; queries built from request data are reported for any client variable name.",
     defaultSeverity: "warning",
     cwe: ["CWE-89"],
     owasp: [OWASP.injection],

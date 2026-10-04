@@ -8,6 +8,12 @@ import { renderHtml } from "./reporters/html.js";
 import { renderAiPrompt, renderFixPlan } from "./reporters/fix-plan.js";
 import { renderJson } from "./reporters/json.js";
 import { renderMarkdown } from "./reporters/markdown.js";
+import {
+  renderRuleExplanation,
+  renderRuleList,
+  ruleListJson,
+  suggestRules,
+} from "./reporters/rules.js";
 import { renderSarif } from "./reporters/sarif.js";
 import { renderSvg } from "./reporters/svg.js";
 import { renderTerminal } from "./reporters/terminal.js";
@@ -194,6 +200,34 @@ analyzers:
 
     writeFileSync(configPath, template, "utf-8");
     console.log(chalk.green(`\n  Created ${configPath}\n`));
+  });
+
+program
+  .command("rules")
+  .description("List every rule with its default severity")
+  .option("--json", "Print rule metadata as JSON")
+  .action((options: { json?: boolean }) => {
+    console.log(options.json ? ruleListJson() : renderRuleList());
+  });
+
+program
+  .command("explain")
+  .description("Explain a rule and how to suppress or reconfigure it")
+  .argument("<rule>", "Rule ID, for example dynamic-sql-query")
+  .action((rule: string) => {
+    const explanation = renderRuleExplanation(rule);
+    if (explanation) {
+      console.log(explanation);
+      return;
+    }
+    const suggestions = suggestRules(rule);
+    console.error(
+      chalk.red("\n  Error:"),
+      `Unknown rule "${rule}".${
+        suggestions.length > 0 ? ` Did you mean ${suggestions.join(", ")}?` : ""
+      } Run codediag rules to list them.\n`,
+    );
+    process.exitCode = 1;
   });
 
 program.parse();

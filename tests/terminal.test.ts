@@ -58,7 +58,10 @@ test("verbose terminal output lists points lost per rule and root causes", () =>
   const output = capture(() => renderTerminal(result, { verbose: true }));
 
   assert.match(output, /^\s+-25 {2}no-test-files ×1$/m);
-  assert.match(output, /No test ratio \(caused by no-test-files\)/);
+  assert.match(
+    output,
+    /No test ratio \(caused by no-test-files\) \[zero-test-ratio\]/,
+  );
 });
 
 test("default terminal output keeps the breakdown out of the summary", () => {

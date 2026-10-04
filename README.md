@@ -129,6 +129,8 @@ codediag scan . --verbose          # All issues and the score breakdown
 codediag scan . --no-audit         # Offline: skip the package manager audit
 codediag scan . --update-baseline .codediag-baseline.json  # Record accepted findings
 codediag scan . --ci --baseline .codediag-baseline.json    # Fail only on new findings
+codediag rules                     # List every rule
+codediag explain open-cors         # Explain a rule and how to suppress it
 codediag init                      # Create .codediag.yml
 ```
 

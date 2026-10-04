@@ -40,6 +40,10 @@ All notable changes to CodeDiag are documented in this file.
   findings.
 - `dto-not-validated`: reported once when DTO classes are used but no global,
   `APP_PIPE`, controller, method, or parameter `ValidationPipe` validates them.
+- `codediag rules` lists every rule (`--json` for metadata) and
+  `codediag explain <rule>` describes one, with suppression and configuration
+  snippets and suggestions for mistyped IDs. Terminal findings show their rule
+  ID and `file:line`.
 - Benchmark fixtures: realistic NestJS, Express, and Next.js applications that
   must score at least 85 with no critical findings, and defect applications
   that must keep producing specific findings.

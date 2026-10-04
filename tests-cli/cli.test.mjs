@@ -412,3 +412,26 @@ test("--no-audit scans offline and reports the skipped audit", () => {
     rmSync(directory, { recursive: true, force: true });
   }
 });
+
+test("rules lists the registry and explain describes or suggests rules", () => {
+  const list = runCli(["rules", "--json"]);
+  assert.equal(list.status, 0, list.stderr);
+  const rules = JSON.parse(list.stdout);
+  assert.ok(rules.length > 60);
+  assert.ok(
+    rules.some(
+      (rule) =>
+        rule.id === "dynamic-sql-query" &&
+        rule.docsUrl.endsWith("docs/rules.md#dynamic-sql-query"),
+    ),
+  );
+
+  const explained = runCli(["explain", "open-cors"]);
+  assert.equal(explained.status, 0, explained.stderr);
+  assert.match(explained.stdout, /CWE-942/);
+  assert.match(explained.stdout, /codediag-ignore-next-line open-cors --/);
+
+  const unknown = runCli(["explain", "open-cor"]);
+  assert.equal(unknown.status, 1);
+  assert.match(unknown.stderr, /Did you mean open-cors\?/);
+});
