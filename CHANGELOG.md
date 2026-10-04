@@ -34,6 +34,8 @@ All notable changes to CodeDiag are documented in this file.
   not affect scores, thresholds, or annotations.
 - SARIF `suppressions` and `baselineState` for suppressed and baseline
   findings.
+- An optional `confidence` on findings (`high`, `medium`, `low`), also emitted
+  as a SARIF result property.
 - AST-based security sink detection for runtime code execution, dynamic shell
   commands, dynamic SQL queries, and disabled TLS certificate verification.
 - SARIF 2.1.0 output through `--format sarif`, including stable rule IDs,
@@ -83,6 +85,15 @@ All notable changes to CodeDiag are documented in this file.
   finding now says that dependencies cannot be audited instead of a separate
   misleading `audit-unavailable` warning.
 - Scan progress lines report finding counts instead of preliminary scores.
+- Express routes are found on routers resolved from `express()`,
+  `express.Router()`, `Router()`, and `Express`/`Router`-typed parameters
+  instead of only on receivers named `app`, `api`, or `router`, including
+  `router.route(path).get(...)` chains. Middleware registered with
+  `router.use()` before a route, and middleware on `app.use(path, mw, router)`
+  mounts across ES module and CommonJS imports, now counts as protection;
+  messages show the mounted path. Receivers matched only by name produce
+  findings with `confidence: "low"`, and names declared as anything else, such
+  as an HTTP client called `api`, are no longer treated as routers.
 - Project ownership and links now use the canonical Sabahattin Kalkan identity.
 - CLI version is read from `package.json`.
 - Threshold failures now return exit code 1 in every output mode.

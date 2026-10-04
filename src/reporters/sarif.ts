@@ -153,6 +153,7 @@ export function buildSarif(result: ScanResult) {
         analyzer: analyzer.name,
         analyzerScore: analyzer.score,
         severity: issue.severity,
+        ...(issue.confidence ? { confidence: issue.confidence } : {}),
         ...(issue.fix ? { recommendation: issue.fix } : {}),
       },
     };

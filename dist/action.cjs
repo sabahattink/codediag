@@ -71175,10 +71175,10 @@ ${lanes.join("\n")}
                 }
                 let expression;
                 if (isSingleOrDoubleQuote(firstChar) && !(symbol2.flags & 8)) {
-                  const literalText = stripQuotes(symbolName2).replace(/\\./g, (s) => s.substring(1));
-                  context.approximateLength += literalText.length + 2;
+                  const literalText2 = stripQuotes(symbolName2).replace(/\\./g, (s) => s.substring(1));
+                  context.approximateLength += literalText2.length + 2;
                   expression = factory.createStringLiteral(
-                    literalText,
+                    literalText2,
                     firstChar === 39
                     /* singleQuote */
                   );
@@ -222561,7 +222561,7 @@ var require_path_browserify = __commonJS({
       }
       return dir + sep3 + base;
     }
-    var posix = {
+    var posix2 = {
       // path.resolve([from ...], to)
       resolve: function resolve3() {
         var resolvedPath = "";
@@ -222626,14 +222626,14 @@ var require_path_browserify = __commonJS({
         }
         if (joined === void 0)
           return ".";
-        return posix.normalize(joined);
+        return posix2.normalize(joined);
       },
       relative: function relative5(from, to) {
         assertPath(from);
         assertPath(to);
         if (from === to) return "";
-        from = posix.resolve(from);
-        to = posix.resolve(to);
+        from = posix2.resolve(from);
+        to = posix2.resolve(to);
         if (from === to) return "";
         var fromStart = 1;
         for (; fromStart < from.length; ++fromStart) {
@@ -222880,8 +222880,8 @@ var require_path_browserify = __commonJS({
       win32: null,
       posix: null
     };
-    posix.posix = posix;
-    module2.exports = posix;
+    posix2.posix = posix2;
+    module2.exports = posix2;
   }
 });
 
@@ -223986,9 +223986,9 @@ var require_parse = __commonJS({
                 const idx = prev.value.lastIndexOf("[");
                 const pre = prev.value.slice(0, idx);
                 const rest2 = prev.value.slice(idx + 2);
-                const posix = POSIX_REGEX_SOURCE[rest2];
-                if (posix) {
-                  prev.value = pre + posix;
+                const posix2 = POSIX_REGEX_SOURCE[rest2];
+                if (posix2) {
+                  prev.value = pre + posix2;
                   state.backtrack = true;
                   advance();
                   if (!bos.output && tokens.indexOf(prev) === 1) {
@@ -224504,7 +224504,7 @@ var require_picomatch = __commonJS({
         throw new TypeError("Expected pattern to be a non-empty string");
       }
       const opts = options || {};
-      const posix = opts.windows;
+      const posix2 = opts.windows;
       const regex2 = isState ? picomatch.compileRe(glob, options) : picomatch.makeRe(glob, options, false, true);
       const state = regex2.state;
       delete regex2.state;
@@ -224514,8 +224514,8 @@ var require_picomatch = __commonJS({
         isIgnored = picomatch(opts.ignore, ignoreOpts, returnState);
       }
       const matcher = (input, returnObject = false) => {
-        const { isMatch, match: match2, output } = picomatch.test(input, regex2, options, { glob, posix });
-        const result = { glob, state, regex: regex2, posix, input, output, match: match2, isMatch };
+        const { isMatch, match: match2, output } = picomatch.test(input, regex2, options, { glob, posix: posix2 });
+        const result = { glob, state, regex: regex2, posix: posix2, input, output, match: match2, isMatch };
         if (typeof opts.onResult === "function") {
           opts.onResult(result);
         }
@@ -224540,7 +224540,7 @@ var require_picomatch = __commonJS({
       }
       return matcher;
     };
-    picomatch.test = (input, regex2, options, { glob, posix } = {}) => {
+    picomatch.test = (input, regex2, options, { glob, posix: posix2 } = {}) => {
       if (typeof input !== "string") {
         throw new TypeError("Expected input to be a string");
       }
@@ -224548,7 +224548,7 @@ var require_picomatch = __commonJS({
         return { isMatch: false, output: "" };
       }
       const opts = options || {};
-      const format = opts.format || (posix ? utils.toPosixSlashes : null);
+      const format = opts.format || (posix2 ? utils.toPosixSlashes : null);
       let match2 = input === glob;
       let output = match2 && format ? format(input) : input;
       if (match2 === false) {
@@ -224557,7 +224557,7 @@ var require_picomatch = __commonJS({
       }
       if (match2 === false || opts.capture === true) {
         if (opts.matchBase === true || opts.basename === true) {
-          match2 = picomatch.matchBase(input, regex2, options, posix);
+          match2 = picomatch.matchBase(input, regex2, options, posix2);
         } else {
           match2 = regex2.exec(output);
         }
@@ -224693,7 +224693,7 @@ var require_dist2 = __commonJS({
         else return convertSlashes((0, path2.relative)(root, directoryPath), options.pathSeparator) + options.pathSeparator + filename;
       };
     }
-    function joinPath(filename) {
+    function joinPath2(filename) {
       return filename;
     }
     function joinDirectoryPath(filename, directoryPath, separator) {
@@ -224701,7 +224701,7 @@ var require_dist2 = __commonJS({
     }
     function build$7(root, options) {
       const { relativePaths, includeBasePath } = options;
-      return relativePaths && root ? joinPathWithRelativePath(root, options) : includeBasePath ? joinPathWithBasePath : joinPath;
+      return relativePaths && root ? joinPathWithRelativePath(root, options) : includeBasePath ? joinPathWithBasePath : joinPath2;
     }
     function pushDirectoryWithRelativePath(root) {
       return function(directoryPath, paths) {
@@ -232356,14 +232356,14 @@ Path: ` + sourceFile.getFilePath() + "\nText: " + JSON.stringify(textManipulator
         getArguments() {
           return this.compilerNode.arguments?.map((a) => this._getNodeFromCompilerNode(a)) ?? [];
         }
-        addArgument(argumentText2) {
-          return this.addArguments([argumentText2])[0];
+        addArgument(argumentText) {
+          return this.addArguments([argumentText])[0];
         }
         addArguments(argumentTexts) {
           return this.insertArguments(this.getArguments().length, argumentTexts);
         }
-        insertArgument(index, argumentText2) {
-          return this.insertArguments(index, [argumentText2])[0];
+        insertArgument(index, argumentText) {
+          return this.insertArguments(index, [argumentText])[0];
         }
         insertArguments(index, argumentTexts) {
           if (argumentTexts instanceof Function)
@@ -239951,14 +239951,14 @@ Node text: ${this.#forgottenText}`;
             return [];
           return this.compilerNode.typeArguments.map((a) => this._getNodeFromCompilerNode(a));
         }
-        addTypeArgument(argumentText2) {
-          return this.addTypeArguments([argumentText2])[0];
+        addTypeArgument(argumentText) {
+          return this.addTypeArguments([argumentText])[0];
         }
         addTypeArguments(argumentTexts) {
           return this.insertTypeArguments(this.getTypeArguments().length, argumentTexts);
         }
-        insertTypeArgument(index, argumentText2) {
-          return this.insertTypeArguments(index, [argumentText2])[0];
+        insertTypeArgument(index, argumentText) {
+          return this.insertTypeArguments(index, [argumentText])[0];
         }
         insertTypeArguments(index, argumentTexts) {
           if (common.ArrayUtils.isNullOrEmpty(argumentTexts))
@@ -244757,14 +244757,14 @@ Node text: ${this.#forgottenText}`;
       getTypeArguments() {
         return this.getCallExpression()?.getTypeArguments() ?? [];
       }
-      addTypeArgument(argumentText2) {
-        return this.getCallExpressionOrThrow().addTypeArgument(argumentText2);
+      addTypeArgument(argumentText) {
+        return this.getCallExpressionOrThrow().addTypeArgument(argumentText);
       }
       addTypeArguments(argumentTexts) {
         return this.getCallExpressionOrThrow().addTypeArguments(argumentTexts);
       }
-      insertTypeArgument(index, argumentText2) {
-        return this.getCallExpressionOrThrow().insertTypeArgument(index, argumentText2);
+      insertTypeArgument(index, argumentText) {
+        return this.getCallExpressionOrThrow().insertTypeArgument(index, argumentText);
       }
       insertTypeArguments(index, argumentTexts) {
         return this.getCallExpressionOrThrow().insertTypeArguments(index, argumentTexts);
@@ -244776,14 +244776,14 @@ Node text: ${this.#forgottenText}`;
         callExpression.removeTypeArgument(typeArgOrIndex);
         return this;
       }
-      addArgument(argumentText2) {
-        return this.addArguments([argumentText2])[0];
+      addArgument(argumentText) {
+        return this.addArguments([argumentText])[0];
       }
       addArguments(argumentTexts) {
         return this.insertArguments(this.getArguments().length, argumentTexts);
       }
-      insertArgument(index, argumentText2) {
-        return this.insertArguments(index, [argumentText2])[0];
+      insertArgument(index, argumentText) {
+        return this.insertArguments(index, [argumentText])[0];
       }
       insertArguments(index, argumentTexts) {
         this.setIsDecoratorFactory(true);
@@ -251605,7 +251605,7 @@ __export(action_exports, {
 });
 module.exports = __toCommonJS(action_exports);
 var import_node_fs10 = require("fs");
-var import_node_path10 = require("path");
+var import_node_path11 = require("path");
 
 // src/config.ts
 var import_node_fs = require("fs");
@@ -252600,6 +252600,7 @@ function buildSarif(result) {
         analyzer: analyzer.name,
         analyzerScore: analyzer.score,
         severity: issue.severity,
+        ...issue.confidence ? { confidence: issue.confidence } : {},
         ...issue.fix ? { recommendation: issue.fix } : {}
       }
     };
@@ -252641,7 +252642,7 @@ function renderSarif(result) {
 
 // src/scanner.ts
 var import_node_fs9 = require("fs");
-var import_node_path9 = require("path");
+var import_node_path10 = require("path");
 
 // node_modules/chalk/source/vendor/ansi-styles/index.js
 var ANSI_BACKGROUND_OFFSET = 10;
@@ -254361,6 +254362,7 @@ async function analyzeDependencies(context) {
 }
 
 // src/analyzers/express-api.ts
+var import_node_path4 = require("path");
 var import_ts_morph = __toESM(require_ts_morph(), 1);
 var HTTP_METHODS = /* @__PURE__ */ new Set([
   "all",
@@ -254374,78 +254376,328 @@ var HTTP_METHODS = /* @__PURE__ */ new Set([
 ]);
 var MUTATING_METHODS = /* @__PURE__ */ new Set(["delete", "patch", "post", "put"]);
 var BODY_METHODS = /* @__PURE__ */ new Set(["patch", "post", "put"]);
-var ROUTER_NAMES = /(?:^|\.)(?:app|api|router)$/i;
+var ROUTER_NAMES = /(?:^|\.)(?:app|api|router)$|router/i;
+var ROUTER_TYPES = /^(?:[A-Za-z_$][\w$]*\.)?(?:Express|Application|Router|IRouter)$/;
 var AUTH_NAMES = /auth|authenticate|authorize|permission|permit|protect|require.*(?:user|role|login)|jwt/i;
 var VALIDATION_NAMES = /valid|schema|sanitize|zod|joi|yup|ajv|check(?:body|params|query)/i;
 var ERROR_NAMES = /error|exception/i;
-function argumentText(call) {
-  const routeArguments = call.getArguments();
-  return routeArguments.slice(1, Math.max(1, routeArguments.length - 1)).map((argument) => argument.getText());
+var MODULE_EXTENSIONS = [
+  ".ts",
+  ".tsx",
+  ".js",
+  ".mjs",
+  ".cjs",
+  ".mts",
+  ".cts"
+];
+var SOURCE_PATTERN = "**/*.{ts,tsx,js,mjs,cjs}";
+function literalText(node) {
+  return node && (import_ts_morph.Node.isStringLiteral(node) || import_ts_morph.Node.isNoSubstitutionTemplateLiteral(node)) ? node.getLiteralText() : null;
 }
-function getLiteralPath(call) {
-  const firstArgument = call.getArguments()[0];
-  if (!firstArgument || !import_ts_morph.Node.isStringLiteral(firstArgument) && !import_ts_morph.Node.isNoSubstitutionTemplateLiteral(firstArgument)) {
-    return null;
+function requiredModule(node) {
+  if (!node || !import_ts_morph.Node.isCallExpression(node)) return null;
+  if (node.getExpression().getText() !== "require") return null;
+  return literalText(node.getArguments()[0]);
+}
+function expressBindings(sourceFile) {
+  const modules = /* @__PURE__ */ new Set();
+  const routerFactories = /* @__PURE__ */ new Set();
+  for (const declaration of sourceFile.getImportDeclarations()) {
+    if (declaration.getModuleSpecifierValue() !== "express") continue;
+    const defaultImport = declaration.getDefaultImport();
+    if (defaultImport) modules.add(defaultImport.getText());
+    const namespace = declaration.getNamespaceImport();
+    if (namespace) modules.add(namespace.getText());
+    for (const named of declaration.getNamedImports()) {
+      if (named.getName() === "Router") {
+        routerFactories.add(named.getAliasNode()?.getText() ?? "Router");
+      }
+    }
   }
-  return firstArgument.getLiteralText();
+  for (const declaration of sourceFile.getVariableDeclarations()) {
+    if (requiredModule(declaration.getInitializer()) !== "express") continue;
+    const name = declaration.getNameNode();
+    if (import_ts_morph.Node.isIdentifier(name)) {
+      modules.add(name.getText());
+    } else if (import_ts_morph.Node.isObjectBindingPattern(name)) {
+      for (const element of name.getElements()) {
+        const imported = element.getPropertyNameNode()?.getText() ?? element.getName();
+        if (imported === "Router") routerFactories.add(element.getName());
+      }
+    }
+  }
+  return { modules, routerFactories };
 }
-function isExpressReceiver(receiver) {
-  return ROUTER_NAMES.test(receiver) || /router/i.test(receiver);
+function createsRouter(expression, modules, routerFactories) {
+  if (!expression || !import_ts_morph.Node.isCallExpression(expression)) return false;
+  const callee = expression.getExpression();
+  if (import_ts_morph.Node.isIdentifier(callee)) {
+    return modules.has(callee.getText()) || routerFactories.has(callee.getText());
+  }
+  if (import_ts_morph.Node.isPropertyAccessExpression(callee) && callee.getName() === "Router") {
+    const owner = callee.getExpression();
+    return modules.has(owner.getText()) || requiredModule(owner) === "express";
+  }
+  return requiredModule(callee) === "express";
 }
-function findEndpoints(sourceFile, file) {
-  const endpoints = [];
+function collectRouters(sourceFile, file) {
+  const { modules, routerFactories } = expressBindings(sourceFile);
+  const locals = /* @__PURE__ */ new Map();
+  for (const declaration of sourceFile.getVariableDeclarations()) {
+    const name = declaration.getNameNode();
+    if (!import_ts_morph.Node.isIdentifier(name)) continue;
+    const typed = ROUTER_TYPES.test(declaration.getTypeNode()?.getText() ?? "");
+    if (typed || createsRouter(declaration.getInitializer(), modules, routerFactories)) {
+      locals.set(name.getText(), {
+        id: `${file}#${name.getText()}`,
+        confidence: "high"
+      });
+    }
+  }
+  for (const parameter of sourceFile.getDescendantsOfKind(
+    import_ts_morph.SyntaxKind.Parameter
+  )) {
+    const name = parameter.getNameNode();
+    if (import_ts_morph.Node.isIdentifier(name) && ROUTER_TYPES.test(parameter.getTypeNode()?.getText() ?? "")) {
+      locals.set(name.getText(), {
+        id: `${file}#${name.getText()}`,
+        confidence: "high"
+      });
+    }
+  }
+  const exports2 = /* @__PURE__ */ new Map();
+  for (const assignment of sourceFile.getExportAssignments()) {
+    const local = locals.get(assignment.getExpression().getText());
+    if (local) exports2.set("default", local.id);
+  }
+  for (const statement of sourceFile.getVariableStatements()) {
+    if (!statement.isExported()) continue;
+    for (const declaration of statement.getDeclarations()) {
+      const local = locals.get(declaration.getName());
+      if (local) exports2.set(declaration.getName(), local.id);
+    }
+  }
+  for (const binary of sourceFile.getDescendantsOfKind(
+    import_ts_morph.SyntaxKind.BinaryExpression
+  )) {
+    if (binary.getOperatorToken().getKind() !== import_ts_morph.SyntaxKind.EqualsToken)
+      continue;
+    const target = binary.getLeft().getText();
+    const local = locals.get(binary.getRight().getText());
+    if (!local) continue;
+    if (target === "module.exports") exports2.set("default", local.id);
+    const named = /^(?:module\.)?exports\.([A-Za-z_$][\w$]*)$/.exec(target);
+    if (named) exports2.set(named[1], local.id);
+  }
+  return { locals, exports: exports2 };
+}
+function resolveModule(fromFile, specifier, files) {
+  if (!specifier.startsWith(".")) return null;
+  const base = import_node_path4.posix.normalize(import_node_path4.posix.join(import_node_path4.posix.dirname(fromFile), specifier));
+  const stem = base.replace(/\.(?:[cm]?js|jsx)$/, "");
+  const candidates = [
+    base,
+    ...MODULE_EXTENSIONS.map((extension) => `${stem}${extension}`),
+    ...MODULE_EXTENSIONS.map((extension) => `${base}/index${extension}`)
+  ];
+  return candidates.find((candidate) => files.has(candidate)) ?? null;
+}
+function importedRouters(sourceFile, file, files, routers) {
+  const bindings = /* @__PURE__ */ new Map();
+  const bind = (local, target, exported) => {
+    const id = target ? routers.get(target)?.exports.get(exported) : void 0;
+    if (id) bindings.set(local, { id, confidence: "high" });
+  };
+  for (const declaration of sourceFile.getImportDeclarations()) {
+    const target = resolveModule(
+      file,
+      declaration.getModuleSpecifierValue(),
+      files
+    );
+    const defaultImport = declaration.getDefaultImport();
+    if (defaultImport) bind(defaultImport.getText(), target, "default");
+    for (const named of declaration.getNamedImports()) {
+      bind(
+        named.getAliasNode()?.getText() ?? named.getName(),
+        target,
+        named.getName()
+      );
+    }
+  }
+  for (const declaration of sourceFile.getVariableDeclarations()) {
+    const specifier = requiredModule(declaration.getInitializer());
+    const name = declaration.getNameNode();
+    if (!specifier || !import_ts_morph.Node.isIdentifier(name)) continue;
+    bind(name.getText(), resolveModule(file, specifier, files), "default");
+  }
+  return bindings;
+}
+function declaredNames(sourceFile) {
+  const names = /* @__PURE__ */ new Set();
+  for (const kind of [
+    import_ts_morph.SyntaxKind.VariableDeclaration,
+    import_ts_morph.SyntaxKind.Parameter,
+    import_ts_morph.SyntaxKind.ImportSpecifier,
+    import_ts_morph.SyntaxKind.ImportClause,
+    import_ts_morph.SyntaxKind.NamespaceImport
+  ]) {
+    for (const node of sourceFile.getDescendantsOfKind(kind)) {
+      const name = node.getNameNode?.();
+      if (name && import_ts_morph.Node.isIdentifier(name)) names.add(name.getText());
+      if (import_ts_morph.Node.isImportSpecifier(node)) {
+        names.add(node.getAliasNode()?.getText() ?? node.getName());
+      }
+    }
+  }
+  return names;
+}
+function resolveReceiver(receiver, scope) {
+  const text = receiver.getText();
+  const bound = import_ts_morph.Node.isIdentifier(receiver) ? scope.bindings.get(text) : void 0;
+  if (bound) return bound;
+  if (import_ts_morph.Node.isIdentifier(receiver) && scope.declared.has(text)) return null;
+  return ROUTER_NAMES.test(text) ? { id: `${scope.file}#${text}`, confidence: "low" } : null;
+}
+function mountedRouter(argument, scope) {
+  if (import_ts_morph.Node.isIdentifier(argument)) {
+    return scope.bindings.get(argument.getText())?.id ?? null;
+  }
+  const specifier = requiredModule(argument);
+  if (!specifier) return null;
+  const target = resolveModule(scope.file, specifier, scope.files);
+  return target ? scope.routers.get(target)?.exports.get("default") ?? null : null;
+}
+function collectCalls(sourceFile, scope) {
+  const routes = [];
+  const uses = [];
+  let errorHandler = false;
   for (const call of sourceFile.getDescendantsOfKind(
     import_ts_morph.SyntaxKind.CallExpression
   )) {
     const expression = call.getExpression();
     if (!import_ts_morph.Node.isPropertyAccessExpression(expression)) continue;
-    const method = expression.getName().toLowerCase();
-    if (!HTTP_METHODS.has(method)) continue;
-    const receiver = expression.getExpression().getText();
-    if (!isExpressReceiver(receiver)) continue;
-    const path2 = getLiteralPath(call);
-    if (path2 === null) continue;
-    const middleware = argumentText(call);
-    endpoints.push({
-      method,
-      path: path2,
-      file,
-      line: call.getStartLineNumber(),
-      hasAuth: middleware.some((argument) => AUTH_NAMES.test(argument)),
-      hasValidation: middleware.some(
-        (argument) => VALIDATION_NAMES.test(argument)
-      )
-    });
-  }
-  return endpoints;
-}
-function hasErrorMiddleware(sourceFiles) {
-  for (const sourceFile of sourceFiles) {
-    for (const call of sourceFile.getDescendantsOfKind(
-      import_ts_morph.SyntaxKind.CallExpression
-    )) {
-      const expression = call.getExpression();
-      if (!import_ts_morph.Node.isPropertyAccessExpression(expression) || expression.getName() !== "use" || !isExpressReceiver(expression.getExpression().getText())) {
-        continue;
-      }
-      for (const argument of call.getArguments()) {
-        if (import_ts_morph.Node.isArrowFunction(argument) || import_ts_morph.Node.isFunctionExpression(argument)) {
-          const parameters = argument.getParameters();
+    const name = expression.getName().toLowerCase();
+    if (name === "use") {
+      const router2 = resolveReceiver(expression.getExpression(), scope);
+      if (!router2) continue;
+      const [first, ...rest] = call.getArguments();
+      const path3 = literalText(first);
+      const handlers2 = path3 === null ? call.getArguments() : rest;
+      const middleware = [];
+      const mounts = [];
+      for (const handler of handlers2) {
+        const mounted = mountedRouter(handler, scope);
+        if (mounted) {
+          mounts.push(mounted);
+          continue;
+        }
+        middleware.push(handler.getText());
+        if (import_ts_morph.Node.isArrowFunction(handler) || import_ts_morph.Node.isFunctionExpression(handler)) {
+          const parameters = handler.getParameters();
           if (parameters.length === 4 && /err|error/i.test(parameters[0]?.getName() ?? "")) {
-            return true;
+            errorHandler = true;
           }
-        } else if (ERROR_NAMES.test(argument.getText())) {
-          return true;
+        } else if (ERROR_NAMES.test(handler.getText())) {
+          errorHandler = true;
         }
       }
+      uses.push({
+        router: router2.id,
+        file: scope.file,
+        position: call.getStart(),
+        path: path3 ?? "",
+        middleware,
+        mounts
+      });
+      continue;
     }
+    if (!HTTP_METHODS.has(name)) continue;
+    const receiver = expression.getExpression();
+    let router;
+    let path2;
+    let handlers;
+    let chain = receiver;
+    while (import_ts_morph.Node.isCallExpression(chain)) {
+      const callee = chain.getExpression();
+      if (!import_ts_morph.Node.isPropertyAccessExpression(callee) || !HTTP_METHODS.has(callee.getName().toLowerCase())) {
+        break;
+      }
+      chain = callee.getExpression();
+    }
+    const routeCall = import_ts_morph.Node.isCallExpression(chain) ? chain : null;
+    const routeAccess = routeCall?.getExpression();
+    if (routeCall && routeAccess && import_ts_morph.Node.isPropertyAccessExpression(routeAccess) && routeAccess.getName() === "route") {
+      router = resolveReceiver(routeAccess.getExpression(), scope);
+      path2 = literalText(routeCall.getArguments()[0]);
+      handlers = call.getArguments();
+    } else {
+      router = resolveReceiver(receiver, scope);
+      path2 = literalText(call.getArguments()[0]);
+      handlers = call.getArguments().slice(1);
+    }
+    if (!router || path2 === null) continue;
+    routes.push({
+      router: router.id,
+      confidence: router.confidence,
+      method: name,
+      path: path2,
+      file: scope.file,
+      line: call.getStartLineNumber(),
+      position: call.getStart(),
+      // The last handler answers the request; the ones before it run first.
+      middleware: handlers.slice(0, -1).map((handler) => handler.getText())
+    });
   }
-  return false;
+  return { routes, uses, errorHandler };
+}
+function protects(middleware) {
+  return {
+    auth: middleware.some((text) => AUTH_NAMES.test(text)),
+    validation: middleware.some((text) => VALIDATION_NAMES.test(text))
+  };
+}
+function either(left, right) {
+  return {
+    auth: left.auth || right.auth,
+    validation: left.validation || right.validation
+  };
+}
+function routerMiddlewareBefore(uses, router, file, position) {
+  return protects(
+    uses.filter(
+      (use) => use.router === router && use.file === file && use.position < position && (use.path === "" || use.path === "/")
+    ).flatMap((use) => use.middleware)
+  );
+}
+function inherited(router, uses, visiting) {
+  const mounts = uses.filter((use) => use.mounts.includes(router));
+  if (mounts.length === 0 || visiting.has(router)) {
+    return { auth: false, validation: false, prefix: "" };
+  }
+  visiting.add(router);
+  const paths = mounts.map((mount) => {
+    const parent = inherited(mount.router, uses, visiting);
+    const protection = either(
+      either(protects(mount.middleware), parent),
+      routerMiddlewareBefore(uses, mount.router, mount.file, mount.position)
+    );
+    return { ...protection, prefix: `${parent.prefix}${mount.path}` };
+  });
+  visiting.delete(router);
+  return {
+    auth: paths.every((path2) => path2.auth),
+    validation: paths.every((path2) => path2.validation),
+    prefix: paths.length === 1 ? paths[0].prefix : ""
+  };
+}
+function joinPath(prefix, path2) {
+  const joined = `${prefix}/${path2}`.replace(/\/+/g, "/");
+  return joined.length > 1 ? joined.replace(/\/$/, "") : joined;
 }
 async function analyzeExpressApi(context) {
   const issues = [];
   const sources = [];
-  for (const file of context.matchFiles("**/*.{ts,tsx,js,mjs,cjs}", {
+  for (const file of context.matchFiles(SOURCE_PATTERN, {
     exclude: [
       "**/*.test.{ts,tsx,js,mjs,cjs}",
       "**/*.spec.{ts,tsx,js,mjs,cjs}",
@@ -254455,11 +254707,33 @@ async function analyzeExpressApi(context) {
     const sourceFile = context.getSourceFile(file);
     if (sourceFile) sources.push({ file, sourceFile });
   }
-  const sourceFiles = sources.map(({ sourceFile }) => sourceFile);
-  const endpoints = sources.flatMap(
-    ({ file, sourceFile }) => findEndpoints(sourceFile, file)
+  const files = new Set(sources.map(({ file }) => file));
+  const routers = new Map(
+    sources.map(({ file, sourceFile }) => [
+      file,
+      collectRouters(sourceFile, file)
+    ])
   );
-  if (endpoints.length === 0) {
+  const routes = [];
+  const uses = [];
+  let errorMiddleware = false;
+  for (const { file, sourceFile } of sources) {
+    const bindings = new Map([
+      ...importedRouters(sourceFile, file, files, routers),
+      ...routers.get(file)?.locals ?? []
+    ]);
+    const calls = collectCalls(sourceFile, {
+      file,
+      bindings,
+      declared: declaredNames(sourceFile),
+      files,
+      routers
+    });
+    routes.push(...calls.routes);
+    uses.push(...calls.uses);
+    errorMiddleware ||= calls.errorHandler;
+  }
+  if (routes.length === 0) {
     return {
       name: "API Health",
       score: 0,
@@ -254472,6 +254746,18 @@ async function analyzeExpressApi(context) {
       summary: "No Express endpoints detected"
     };
   }
+  const endpoints = routes.map((route) => {
+    const parent = inherited(route.router, uses, /* @__PURE__ */ new Set());
+    const protection = either(
+      either(protects(route.middleware), parent),
+      routerMiddlewareBefore(uses, route.router, route.file, route.position)
+    );
+    return {
+      ...route,
+      ...protection,
+      path: joinPath(parent.prefix, route.path)
+    };
+  });
   const mutatingEndpoints = endpoints.filter(
     (endpoint) => MUTATING_METHODS.has(endpoint.method)
   );
@@ -254479,28 +254765,29 @@ async function analyzeExpressApi(context) {
     (endpoint) => BODY_METHODS.has(endpoint.method)
   );
   for (const endpoint of mutatingEndpoints) {
-    if (!endpoint.hasAuth) {
+    if (!endpoint.auth) {
       issues.push({
         ...fromRule("missing-auth-middleware"),
         message: `${endpoint.method.toUpperCase()} ${endpoint.path} has no recognizable auth middleware`,
         file: endpoint.file,
         line: endpoint.line,
-        fix: "Add explicit authentication or authorization middleware"
+        fix: "Add explicit authentication or authorization middleware",
+        confidence: endpoint.confidence
       });
     }
   }
   for (const endpoint of bodyEndpoints) {
-    if (!endpoint.hasValidation) {
+    if (!endpoint.validation) {
       issues.push({
         ...fromRule("missing-validation-middleware"),
         message: `${endpoint.method.toUpperCase()} ${endpoint.path} has no recognizable validation middleware`,
         file: endpoint.file,
         line: endpoint.line,
-        fix: "Validate request input with a schema or validation middleware"
+        fix: "Validate request input with a schema or validation middleware",
+        confidence: endpoint.confidence
       });
     }
   }
-  const errorMiddleware = hasErrorMiddleware(sourceFiles);
   if (!errorMiddleware) {
     issues.push({
       ...fromRule("missing-error-middleware"),
@@ -254520,8 +254807,8 @@ async function analyzeExpressApi(context) {
       fix: "Expose a lightweight health endpoint for runtime monitoring"
     });
   }
-  const authRate = mutatingEndpoints.length === 0 ? 1 : mutatingEndpoints.filter((endpoint) => endpoint.hasAuth).length / mutatingEndpoints.length;
-  const validationRate = bodyEndpoints.length === 0 ? 1 : bodyEndpoints.filter((endpoint) => endpoint.hasValidation).length / bodyEndpoints.length;
+  const authRate = mutatingEndpoints.length === 0 ? 1 : mutatingEndpoints.filter((endpoint) => endpoint.auth).length / mutatingEndpoints.length;
+  const validationRate = bodyEndpoints.length === 0 ? 1 : bodyEndpoints.filter((endpoint) => endpoint.validation).length / bodyEndpoints.length;
   const score = Math.round(
     authRate * 35 + validationRate * 30 + (errorMiddleware ? 20 : 0) + (hasHealthEndpoint ? 15 : 0)
   );
@@ -254529,7 +254816,7 @@ async function analyzeExpressApi(context) {
     name: "API Health",
     score,
     issues,
-    summary: `${endpoints.length} Express endpoints across ${sourceFiles.length} source files`
+    summary: `${endpoints.length} Express endpoints across ${sources.length} source files`
   };
 }
 
@@ -254876,11 +255163,11 @@ async function analyzeNextjsApi(context) {
 
 // src/analyzers/security.ts
 var import_node_fs4 = require("fs");
-var import_node_path4 = require("path");
+var import_node_path5 = require("path");
 
 // src/analyzers/security-sinks.ts
 var import_ts_morph3 = __toESM(require_ts_morph(), 1);
-var SOURCE_PATTERN = "**/*.{ts,tsx,js,jsx,mjs,cjs}";
+var SOURCE_PATTERN2 = "**/*.{ts,tsx,js,jsx,mjs,cjs}";
 var RUNTIME_IGNORES = [
   "**/*.test.{ts,tsx,js,jsx,mjs,cjs}",
   "**/*.spec.{ts,tsx,js,jsx,mjs,cjs}",
@@ -255061,7 +255348,7 @@ function inspectSourceFile(sourceFile, file) {
 }
 async function analyzeSecuritySinks(context) {
   const issues = [];
-  for (const file of context.matchFiles(SOURCE_PATTERN, {
+  for (const file of context.matchFiles(SOURCE_PATTERN2, {
     exclude: RUNTIME_IGNORES
   })) {
     const sourceFile = context.getSourceFile(file);
@@ -255094,7 +255381,7 @@ var SECRET_PATTERNS = [
     name: "AWS Key"
   }
 ];
-var SOURCE_PATTERN2 = "**/*.{ts,tsx,js,jsx,mjs,cjs}";
+var SOURCE_PATTERN3 = "**/*.{ts,tsx,js,jsx,mjs,cjs}";
 var RUNTIME_IGNORES2 = [
   "**/*.test.{ts,tsx,js,jsx,mjs,cjs}",
   "**/*.spec.{ts,tsx,js,jsx,mjs,cjs}",
@@ -255331,11 +255618,11 @@ function passwordIssues(sources) {
 }
 function readSources(context) {
   const runtimeFiles = new Set(
-    context.matchFiles(SOURCE_PATTERN2, { exclude: RUNTIME_IGNORES2 })
+    context.matchFiles(SOURCE_PATTERN3, { exclude: RUNTIME_IGNORES2 })
   );
   const allSources = [];
   const runtimeSources = [];
-  for (const file of context.matchFiles(SOURCE_PATTERN2)) {
+  for (const file of context.matchFiles(SOURCE_PATTERN3)) {
     const content = context.readText(file);
     if (content === null) continue;
     const source = { file, content: stripComments(content) };
@@ -255365,7 +255652,7 @@ async function analyzeSecurity(context) {
     let foundGitignore = false;
     let directory = projectPath;
     for (let depth = 0; depth <= 3; depth++) {
-      const gitignorePath = (0, import_node_path4.join)(directory, ".gitignore");
+      const gitignorePath = (0, import_node_path5.join)(directory, ".gitignore");
       if ((0, import_node_fs4.existsSync)(gitignorePath)) {
         foundGitignore = true;
         const content = (0, import_node_fs4.readFileSync)(gitignorePath, "utf-8");
@@ -255375,13 +255662,13 @@ async function analyzeSecurity(context) {
           issues.push({
             ...fromRule("env-not-gitignored"),
             message: ".env is not ignored by .gitignore \u2014 secrets may be committed",
-            file: (0, import_node_path4.relative)(projectPath, gitignorePath).replace(/\\/g, "/"),
+            file: (0, import_node_path5.relative)(projectPath, gitignorePath).replace(/\\/g, "/"),
             fix: "Add .env or .env* to your .gitignore"
           });
         }
         break;
       }
-      const parent = (0, import_node_path4.dirname)(directory);
+      const parent = (0, import_node_path5.dirname)(directory);
       if (parent === directory) break;
       directory = parent;
     }
@@ -255468,7 +255755,7 @@ async function analyzeSecurity(context) {
 
 // src/analyzers/structure.ts
 var import_node_fs5 = require("fs");
-var import_node_path5 = require("path");
+var import_node_path6 = require("path");
 var LINTER_CONFIGS = [
   "eslint.config.js",
   "eslint.config.cjs",
@@ -255507,10 +255794,10 @@ function findConfigUp(projectPath, fileNames, maxParentDepth = 3) {
   let directory = projectPath;
   for (let depth = 0; depth <= maxParentDepth; depth++) {
     for (const fileName of fileNames) {
-      const candidate = (0, import_node_path5.join)(directory, fileName);
+      const candidate = (0, import_node_path6.join)(directory, fileName);
       if ((0, import_node_fs5.existsSync)(candidate)) return candidate;
     }
-    const parent = (0, import_node_path5.dirname)(directory);
+    const parent = (0, import_node_path6.dirname)(directory);
     if (parent === directory) break;
     directory = parent;
   }
@@ -255531,7 +255818,7 @@ function findReadme(projectPath) {
     );
     for (const name of preferredNames) {
       const actualName = byLowerName.get(name);
-      if (actualName) return (0, import_node_path5.join)(projectPath, actualName);
+      if (actualName) return (0, import_node_path6.join)(projectPath, actualName);
     }
   } catch {
     return void 0;
@@ -255542,7 +255829,7 @@ function meaningfulReadmeLength(content) {
   return content.replace(/<!--[\s\S]*?-->/g, " ").replace(/!\[[^\]]*\]\([^)]*\)/g, " ").replace(/\[([^\]]+)\]\([^)]*\)/g, "$1").replace(/<[^>]+>/g, " ").replace(/[`#>*_|~=-]/g, " ").replace(/\s+/g, " ").trim().length;
 }
 function displayPath(projectPath, filePath) {
-  return (0, import_node_path5.relative)(projectPath, filePath).replace(/\\/g, "/") || ".";
+  return (0, import_node_path6.relative)(projectPath, filePath).replace(/\\/g, "/") || ".";
 }
 function rootEnvFiles(projectPath) {
   try {
@@ -255554,7 +255841,7 @@ function rootEnvFiles(projectPath) {
   }
 }
 function analyzeNestOrganization(context, issues) {
-  const srcPath = (0, import_node_path5.join)(context.projectPath, "src");
+  const srcPath = (0, import_node_path6.join)(context.projectPath, "src");
   if (!(0, import_node_fs5.existsSync)(srcPath)) {
     issues.push({
       ...fromRule("no-src-dir"),
@@ -255587,11 +255874,11 @@ function analyzeNestOrganization(context, issues) {
       return false;
     }
     const moduleDirectories = new Set(
-      moduleFiles.map((file) => (0, import_node_path5.dirname)(file).replace(/\\/g, "/"))
+      moduleFiles.map((file) => (0, import_node_path6.dirname)(file).replace(/\\/g, "/"))
     );
     const featureDirectories = new Set(
       [...controllerFiles, ...serviceFiles].map(
-        (file) => (0, import_node_path5.dirname)(file).replace(/\\/g, "/")
+        (file) => (0, import_node_path6.dirname)(file).replace(/\\/g, "/")
       )
     );
     if (featureDirectories.size === 0) return true;
@@ -255599,7 +255886,7 @@ function analyzeNestOrganization(context, issues) {
       let directory = featureDirectory;
       while (directory !== "src" && directory !== ".") {
         if (moduleDirectories.has(directory)) return true;
-        directory = (0, import_node_path5.dirname)(directory).replace(/\\/g, "/");
+        directory = (0, import_node_path6.dirname)(directory).replace(/\\/g, "/");
       }
       return featureDirectory === "src" && moduleDirectories.has("src");
     };
@@ -255632,7 +255919,7 @@ async function analyzeStructure(context) {
   const pkg = context.packageJson ?? {};
   const hasDependency = (name) => Boolean(pkg.dependencies?.[name] || pkg.devDependencies?.[name]);
   const isNestjs = hasDependency("@nestjs/core");
-  const tsconfigPath = (0, import_node_path5.join)(projectPath, "tsconfig.json");
+  const tsconfigPath = (0, import_node_path6.join)(projectPath, "tsconfig.json");
   const isTypescript = (0, import_node_fs5.existsSync)(tsconfigPath) || hasDependency("typescript");
   checksRun++;
   const readmePath = findReadme(projectPath);
@@ -255721,7 +256008,7 @@ async function analyzeStructure(context) {
   checksRun++;
   const envFiles = rootEnvFiles(projectPath);
   const envTemplate = ENV_TEMPLATES.find(
-    (name) => (0, import_node_fs5.existsSync)((0, import_node_path5.join)(projectPath, name))
+    (name) => (0, import_node_fs5.existsSync)((0, import_node_path6.join)(projectPath, name))
   );
   if (envFiles.length === 0 || envTemplate) {
     checksPassed++;
@@ -255744,7 +256031,7 @@ async function analyzeStructure(context) {
 
 // src/analyzers/testing.ts
 var import_node_fs6 = require("fs");
-var import_node_path6 = require("path");
+var import_node_path7 = require("path");
 var TEST_CONFIG_FILES = ["jest", "vitest"].flatMap(
   (tool) => ["ts", "js", "mjs", "mts"].map((extension) => `${tool}.config.${extension}`)
 );
@@ -255769,8 +256056,8 @@ function parseCoverageMetric(value) {
 }
 function readCoverageReport(projectPath) {
   const candidates = [
-    (0, import_node_path6.join)(projectPath, "coverage", "coverage-summary.json"),
-    (0, import_node_path6.join)(projectPath, "coverage-summary.json")
+    (0, import_node_path7.join)(projectPath, "coverage", "coverage-summary.json"),
+    (0, import_node_path7.join)(projectPath, "coverage-summary.json")
   ];
   const reportPath = candidates.find((candidate) => (0, import_node_fs6.existsSync)(candidate));
   if (!reportPath) return null;
@@ -255788,7 +256075,7 @@ function readCoverageReport(projectPath) {
     Object.values(metrics).reduce((sum, metric) => sum + metric.pct, 0) / Object.keys(metrics).length
   );
   return {
-    file: (0, import_node_path6.relative)(projectPath, reportPath).replace(/\\/g, "/"),
+    file: (0, import_node_path7.relative)(projectPath, reportPath).replace(/\\/g, "/"),
     metrics,
     score
   };
@@ -255851,7 +256138,7 @@ async function analyzeTesting(context) {
   }
   checksRun++;
   const hasE2e = ["test", "tests", "e2e", "__tests__"].some(
-    (dir) => (0, import_node_fs6.existsSync)((0, import_node_path6.join)(projectPath, dir))
+    (dir) => (0, import_node_fs6.existsSync)((0, import_node_path7.join)(projectPath, dir))
   );
   if (hasE2e) {
     checksPassed++;
@@ -255863,7 +256150,7 @@ async function analyzeTesting(context) {
     });
   }
   checksRun++;
-  const hasConfig = (0, import_node_fs6.existsSync)((0, import_node_path6.join)(projectPath, "jest.config.js")) || (0, import_node_fs6.existsSync)((0, import_node_path6.join)(projectPath, "jest.config.ts")) || (0, import_node_fs6.existsSync)((0, import_node_path6.join)(projectPath, "jest.config.mjs")) || (0, import_node_fs6.existsSync)((0, import_node_path6.join)(projectPath, "vitest.config.ts")) || (0, import_node_fs6.existsSync)((0, import_node_path6.join)(projectPath, "vitest.config.js")) || (0, import_node_fs6.existsSync)((0, import_node_path6.join)(projectPath, "vitest.config.mts"));
+  const hasConfig = (0, import_node_fs6.existsSync)((0, import_node_path7.join)(projectPath, "jest.config.js")) || (0, import_node_fs6.existsSync)((0, import_node_path7.join)(projectPath, "jest.config.ts")) || (0, import_node_fs6.existsSync)((0, import_node_path7.join)(projectPath, "jest.config.mjs")) || (0, import_node_fs6.existsSync)((0, import_node_path7.join)(projectPath, "vitest.config.ts")) || (0, import_node_fs6.existsSync)((0, import_node_path7.join)(projectPath, "vitest.config.js")) || (0, import_node_fs6.existsSync)((0, import_node_path7.join)(projectPath, "vitest.config.mts"));
   if (hasConfig || framework === "node:test") {
     checksPassed++;
   } else {
@@ -255878,7 +256165,7 @@ async function analyzeTesting(context) {
   checksRun++;
   let hasCoverageConfig = Boolean(pkg?.jest?.coverageThreshold);
   const configFiles = TEST_CONFIG_FILES.map(
-    (name) => (0, import_node_path6.join)(projectPath, name)
+    (name) => (0, import_node_path7.join)(projectPath, name)
   ).filter((path2) => (0, import_node_fs6.existsSync)(path2));
   for (const cf of configFiles) {
     try {
@@ -255898,7 +256185,7 @@ async function analyzeTesting(context) {
     issues.push({
       ...fromRule("invalid-coverage-report"),
       message: `Coverage summary could not be read: ${error instanceof Error ? error.message : String(error)}`,
-      file: (0, import_node_fs6.existsSync)((0, import_node_path6.join)(projectPath, "coverage", "coverage-summary.json")) ? "coverage/coverage-summary.json" : "coverage-summary.json",
+      file: (0, import_node_fs6.existsSync)((0, import_node_path7.join)(projectPath, "coverage", "coverage-summary.json")) ? "coverage/coverage-summary.json" : "coverage-summary.json",
       fix: "Regenerate coverage-summary.json with Jest, Vitest, or Istanbul"
     });
   }
@@ -255956,7 +256243,7 @@ function applyRuleOverrides(results, rules) {
 
 // src/core/scan-context.ts
 var import_node_fs8 = require("fs");
-var import_node_path8 = require("path");
+var import_node_path9 = require("path");
 var import_ignore = __toESM(require_ignore(), 1);
 
 // node_modules/balanced-match/dist/esm/index.js
@@ -257834,7 +258121,7 @@ var import_ts_morph4 = __toESM(require_ts_morph(), 1);
 
 // src/detectors/stack-detector.ts
 var import_node_fs7 = require("fs");
-var import_node_path7 = require("path");
+var import_node_path8 = require("path");
 function detectStack(projectPath) {
   const info = {
     framework: "unknown",
@@ -257846,7 +258133,7 @@ function detectStack(projectPath) {
     hasTests: false,
     packageManager: "unknown"
   };
-  const pkgPath = (0, import_node_path7.join)(projectPath, "package.json");
+  const pkgPath = (0, import_node_path8.join)(projectPath, "package.json");
   if (!(0, import_node_fs7.existsSync)(pkgPath)) return info;
   let pkg;
   try {
@@ -257858,19 +258145,19 @@ function detectStack(projectPath) {
     ...pkg.dependencies || {},
     ...pkg.devDependencies || {}
   };
-  if (allDeps.typescript || (0, import_node_fs7.existsSync)((0, import_node_path7.join)(projectPath, "tsconfig.json"))) {
+  if (allDeps.typescript || (0, import_node_fs7.existsSync)((0, import_node_path8.join)(projectPath, "tsconfig.json"))) {
     info.language = "typescript";
   }
-  if (allDeps["@nestjs/core"] || (0, import_node_fs7.existsSync)((0, import_node_path7.join)(projectPath, "nest-cli.json"))) {
+  if (allDeps["@nestjs/core"] || (0, import_node_fs7.existsSync)((0, import_node_path8.join)(projectPath, "nest-cli.json"))) {
     info.framework = "nestjs";
-  } else if (allDeps.next || (0, import_node_fs7.existsSync)((0, import_node_path7.join)(projectPath, "next.config.js")) || (0, import_node_fs7.existsSync)((0, import_node_path7.join)(projectPath, "next.config.mjs")) || (0, import_node_fs7.existsSync)((0, import_node_path7.join)(projectPath, "next.config.ts"))) {
+  } else if (allDeps.next || (0, import_node_fs7.existsSync)((0, import_node_path8.join)(projectPath, "next.config.js")) || (0, import_node_fs7.existsSync)((0, import_node_path8.join)(projectPath, "next.config.mjs")) || (0, import_node_fs7.existsSync)((0, import_node_path8.join)(projectPath, "next.config.ts"))) {
     info.framework = "nextjs";
   } else if (allDeps.express) {
     info.framework = "express";
   } else if (pkg.dependencies || pkg.devDependencies) {
     info.framework = "generic";
   }
-  if (allDeps.prisma || allDeps["@prisma/client"] || (0, import_node_fs7.existsSync)((0, import_node_path7.join)(projectPath, "prisma", "schema.prisma"))) {
+  if (allDeps.prisma || allDeps["@prisma/client"] || (0, import_node_fs7.existsSync)((0, import_node_path8.join)(projectPath, "prisma", "schema.prisma"))) {
     info.orm = "prisma";
     info.hasPrisma = true;
   } else if (allDeps.typeorm) {
@@ -257882,14 +258169,14 @@ function detectStack(projectPath) {
   } else if (allDeps["drizzle-orm"]) {
     info.orm = "drizzle";
   }
-  info.hasDocker = (0, import_node_fs7.existsSync)((0, import_node_path7.join)(projectPath, "Dockerfile")) || (0, import_node_fs7.existsSync)((0, import_node_path7.join)(projectPath, "docker-compose.yml")) || (0, import_node_fs7.existsSync)((0, import_node_path7.join)(projectPath, "docker-compose.yaml"));
-  info.hasEnvFile = (0, import_node_fs7.existsSync)((0, import_node_path7.join)(projectPath, ".env")) || (0, import_node_fs7.existsSync)((0, import_node_path7.join)(projectPath, ".env.local")) || (0, import_node_fs7.existsSync)((0, import_node_path7.join)(projectPath, ".env.example"));
-  info.hasTests = (0, import_node_fs7.existsSync)((0, import_node_path7.join)(projectPath, "test")) || (0, import_node_fs7.existsSync)((0, import_node_path7.join)(projectPath, "tests")) || (0, import_node_fs7.existsSync)((0, import_node_path7.join)(projectPath, "__tests__")) || (0, import_node_fs7.existsSync)((0, import_node_path7.join)(projectPath, "e2e"));
-  if ((0, import_node_fs7.existsSync)((0, import_node_path7.join)(projectPath, "pnpm-lock.yaml"))) {
+  info.hasDocker = (0, import_node_fs7.existsSync)((0, import_node_path8.join)(projectPath, "Dockerfile")) || (0, import_node_fs7.existsSync)((0, import_node_path8.join)(projectPath, "docker-compose.yml")) || (0, import_node_fs7.existsSync)((0, import_node_path8.join)(projectPath, "docker-compose.yaml"));
+  info.hasEnvFile = (0, import_node_fs7.existsSync)((0, import_node_path8.join)(projectPath, ".env")) || (0, import_node_fs7.existsSync)((0, import_node_path8.join)(projectPath, ".env.local")) || (0, import_node_fs7.existsSync)((0, import_node_path8.join)(projectPath, ".env.example"));
+  info.hasTests = (0, import_node_fs7.existsSync)((0, import_node_path8.join)(projectPath, "test")) || (0, import_node_fs7.existsSync)((0, import_node_path8.join)(projectPath, "tests")) || (0, import_node_fs7.existsSync)((0, import_node_path8.join)(projectPath, "__tests__")) || (0, import_node_fs7.existsSync)((0, import_node_path8.join)(projectPath, "e2e"));
+  if ((0, import_node_fs7.existsSync)((0, import_node_path8.join)(projectPath, "pnpm-lock.yaml"))) {
     info.packageManager = "pnpm";
-  } else if ((0, import_node_fs7.existsSync)((0, import_node_path7.join)(projectPath, "yarn.lock"))) {
+  } else if ((0, import_node_fs7.existsSync)((0, import_node_path8.join)(projectPath, "yarn.lock"))) {
     info.packageManager = "yarn";
-  } else if ((0, import_node_fs7.existsSync)((0, import_node_path7.join)(projectPath, "package-lock.json"))) {
+  } else if ((0, import_node_fs7.existsSync)((0, import_node_path8.join)(projectPath, "package-lock.json"))) {
     info.packageManager = "npm";
   }
   return info;
@@ -257913,10 +258200,10 @@ var MINIFIED_AVERAGE_LINE_LENGTH = 500;
 var MAX_LISTED_SKIPPED_FILES = 50;
 var CHILD_PROBE = "codediag-probe";
 function toPosix(path2) {
-  return path2.split(import_node_path8.sep).join("/");
+  return path2.split(import_node_path9.sep).join("/");
 }
 function readGitignore(directory) {
-  const path2 = (0, import_node_path8.join)(directory, ".gitignore");
+  const path2 = (0, import_node_path9.join)(directory, ".gitignore");
   if (!(0, import_node_fs8.existsSync)(path2)) return null;
   try {
     return (0, import_ignore.default)().add((0, import_node_fs8.readFileSync)(path2, "utf-8"));
@@ -257927,8 +258214,8 @@ function readGitignore(directory) {
 function findGitRoot(projectPath) {
   let directory = projectPath;
   while (true) {
-    if ((0, import_node_fs8.existsSync)((0, import_node_path8.join)(directory, ".git"))) return directory;
-    const parent = (0, import_node_path8.dirname)(directory);
+    if ((0, import_node_fs8.existsSync)((0, import_node_path9.join)(directory, ".git"))) return directory;
+    const parent = (0, import_node_path9.dirname)(directory);
     if (parent === directory) return null;
     directory = parent;
   }
@@ -257937,11 +258224,11 @@ function ancestorGitignores(projectPath) {
   const gitRoot = findGitRoot(projectPath);
   if (!gitRoot || gitRoot === projectPath) return [];
   const directories = [];
-  let directory = (0, import_node_path8.dirname)(projectPath);
+  let directory = (0, import_node_path9.dirname)(projectPath);
   while (true) {
     directories.unshift(directory);
     if (directory === gitRoot) break;
-    const parent = (0, import_node_path8.dirname)(directory);
+    const parent = (0, import_node_path9.dirname)(directory);
     if (parent === directory) break;
     directory = parent;
   }
@@ -257951,7 +258238,7 @@ function ancestorGitignores(projectPath) {
       {
         matcher,
         base: "",
-        prefix: toPosix((0, import_node_path8.relative)(ancestor, projectPath))
+        prefix: toPosix((0, import_node_path9.relative)(ancestor, projectPath))
       }
     ] : [];
   });
@@ -257975,7 +258262,7 @@ function isMinified(content) {
   return content.length / lines > MINIFIED_AVERAGE_LINE_LENGTH;
 }
 function readPackageJson(projectPath) {
-  const path2 = (0, import_node_path8.join)(projectPath, "package.json");
+  const path2 = (0, import_node_path9.join)(projectPath, "package.json");
   if (!(0, import_node_fs8.existsSync)(path2)) return { status: "missing", value: null };
   try {
     const value = JSON.parse((0, import_node_fs8.readFileSync)(path2, "utf-8"));
@@ -257988,7 +258275,7 @@ function readPackageJson(projectPath) {
   }
 }
 function createScanContext(projectPath, config = loadConfig(projectPath), options = {}) {
-  const root = (0, import_node_path8.resolve)(projectPath);
+  const root = (0, import_node_path9.resolve)(projectPath);
   const maxFileBytes = config.maxFileSizeKb * 1024;
   const userIgnores = normalizeIgnorePatterns(config.ignore).map(
     (pattern) => new Minimatch(pattern, { dot: true })
@@ -258003,15 +258290,15 @@ function createScanContext(projectPath, config = loadConfig(projectPath), option
   let realRoot;
   let project;
   let typescriptConfig;
-  const absolutePath = (file) => (0, import_node_path8.join)(root, file);
+  const absolutePath = (file) => (0, import_node_path9.join)(root, file);
   const isUserIgnored = (file, isDirectory) => userIgnores.some(
     (pattern) => pattern.match(isDirectory ? `${file}/${CHILD_PROBE}` : file)
   );
   const isInsideRoot = (path2) => {
     try {
       realRoot ??= (0, import_node_fs8.realpathSync)(root);
-      const target = (0, import_node_path8.relative)(realRoot, (0, import_node_fs8.realpathSync)(path2));
-      return target !== "" && !target.startsWith("..") && !(0, import_node_path8.isAbsolute)(target);
+      const target = (0, import_node_path9.relative)(realRoot, (0, import_node_fs8.realpathSync)(path2));
+      return target !== "" && !target.startsWith("..") && !(0, import_node_path9.isAbsolute)(target);
     } catch {
       return false;
     }
@@ -258043,7 +258330,7 @@ function createScanContext(projectPath, config = loadConfig(projectPath), option
     }
     return content !== null;
   };
-  const walk = (directory, relativeDirectory, inherited, found) => {
+  const walk = (directory, relativeDirectory, inherited2, found) => {
     let entries;
     try {
       entries = (0, import_node_fs8.readdirSync)(directory, { withFileTypes: true });
@@ -258054,11 +258341,11 @@ function createScanContext(projectPath, config = loadConfig(projectPath), option
       (left, right) => left.name < right.name ? -1 : left.name > right.name ? 1 : 0
     );
     const local = readGitignore(directory);
-    const matchers = local ? [...inherited, { matcher: local, base: relativeDirectory, prefix: "" }] : inherited;
+    const matchers = local ? [...inherited2, { matcher: local, base: relativeDirectory, prefix: "" }] : inherited2;
     for (const entry of entries) {
       if (entry.name.startsWith(".")) continue;
       const file = relativeDirectory ? `${relativeDirectory}/${entry.name}` : entry.name;
-      const path2 = (0, import_node_path8.join)(directory, entry.name);
+      const path2 = (0, import_node_path9.join)(directory, entry.name);
       let isDirectory = entry.isDirectory();
       let isFile = entry.isFile();
       if (entry.isSymbolicLink()) {
@@ -258138,7 +258425,7 @@ function createScanContext(projectPath, config = loadConfig(projectPath), option
   };
   const resolveTypeScriptConfig = () => {
     if (typescriptConfig) return typescriptConfig;
-    const tsconfigPath = (0, import_node_path8.join)(root, "tsconfig.json");
+    const tsconfigPath = (0, import_node_path9.join)(root, "tsconfig.json");
     if (!(0, import_node_fs8.existsSync)(tsconfigPath)) {
       typescriptConfig = { status: "missing" };
     } else {
@@ -258243,7 +258530,7 @@ function applyScoring(results, version) {
 }
 
 // src/core/suppressions.ts
-var SOURCE_PATTERN3 = "**/*.{ts,tsx,js,jsx,mjs,cjs,mts,cts}";
+var SOURCE_PATTERN4 = "**/*.{ts,tsx,js,jsx,mjs,cjs,mts,cts}";
 var MARKER = "codediag-ignore";
 var DIRECTIVE = /^\s*(?:\/\/|\/\*+)\s*codediag-ignore-(next-line|file)\b(.*?)(?:\*\/)?\s*$/;
 function parseDirectives(file, content) {
@@ -258306,7 +258593,7 @@ function directiveIssue(directive) {
   };
 }
 function applySuppressions(results, context) {
-  const directives = context.matchFiles(SOURCE_PATTERN3).flatMap((file) => {
+  const directives = context.matchFiles(SOURCE_PATTERN4).flatMap((file) => {
     const content = context.readText(file);
     return content?.includes(MARKER) ? parseDirectives(file, content) : [];
   });
@@ -258438,7 +258725,7 @@ async function scan(projectPath, config = loadConfig(projectPath), options = {})
   const grade = calculateGrade(totalScore);
   const skipped = context.skipped();
   return {
-    project: (0, import_node_path9.basename)(projectPath),
+    project: (0, import_node_path10.basename)(projectPath),
     stack,
     analyzers,
     totalScore,
@@ -258527,7 +258814,7 @@ function renderSummary(result, threshold) {
 `;
 }
 function resolveWorkspacePath(workspace, value) {
-  return (0, import_node_path10.isAbsolute)(value) ? (0, import_node_path10.resolve)(value) : (0, import_node_path10.resolve)(workspace, value);
+  return (0, import_node_path11.isAbsolute)(value) ? (0, import_node_path11.resolve)(value) : (0, import_node_path11.resolve)(workspace, value);
 }
 function validatePathInput(name, value) {
   if (/[\r\n]/.test(value)) {
@@ -258537,7 +258824,7 @@ function validatePathInput(name, value) {
 }
 async function runAction() {
   try {
-    const workspace = (0, import_node_path10.resolve)(process.env.GITHUB_WORKSPACE || process.cwd());
+    const workspace = (0, import_node_path11.resolve)(process.env.GITHUB_WORKSPACE || process.cwd());
     const projectPath = resolveWorkspacePath(
       workspace,
       validatePathInput("path", getInput("path", "."))
@@ -258562,10 +258849,10 @@ async function runAction() {
     const result = await scan(projectPath, loadConfig(projectPath), {
       baseline
     });
-    (0, import_node_fs10.mkdirSync)((0, import_node_path10.dirname)(reportPath), { recursive: true });
+    (0, import_node_fs10.mkdirSync)((0, import_node_path11.dirname)(reportPath), { recursive: true });
     (0, import_node_fs10.writeFileSync)(reportPath, `${JSON.stringify(result, null, 2)}
 `, "utf8");
-    (0, import_node_fs10.mkdirSync)((0, import_node_path10.dirname)(sarifPath), { recursive: true });
+    (0, import_node_fs10.mkdirSync)((0, import_node_path11.dirname)(sarifPath), { recursive: true });
     (0, import_node_fs10.writeFileSync)(sarifPath, renderSarif(result), "utf8");
     writeOutput("score", String(result.totalScore));
     writeOutput("grade", result.grade);

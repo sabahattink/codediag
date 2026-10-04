@@ -24,6 +24,8 @@ export interface DiagnosticIssue {
   suppression?: { kind: "inSource"; justification: string };
   /** Set when the finding's fingerprint is in the baseline passed to the scan. */
   baseline?: boolean;
+  /** How certain the analyzer is; "low" findings rely on naming heuristics. */
+  confidence?: "high" | "medium" | "low";
 }
 
 export interface BaselineSummary {
