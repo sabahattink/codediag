@@ -45,7 +45,8 @@ test("scan ignores dependency and build directories at any depth", async () => {
   try {
     writeFiles(directory, {
       "package.json": JSON.stringify({ name: "mono", devDependencies: {} }),
-      ".gitignore": ".env\n",
+      // Build output is skipped through .gitignore, as in real projects.
+      ".gitignore": ".env\nbuild/\nout/\n",
       "src/index.ts": "export const ok = true;\n",
       "packages/a/src/vulnerable.js": VULNERABLE_SOURCE,
       "packages/a/node_modules/lib/index.js": VULNERABLE_SOURCE,

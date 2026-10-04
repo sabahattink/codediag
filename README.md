@@ -287,12 +287,12 @@ problems:
 
 See [suppressions, rule settings, and baselines](docs/suppressions-and-baselines.md).
 
-Source discovery always skips `node_modules`, `dist`, `build`, `out`,
-`coverage`, `.next`, and `.turbo` directories at any depth, `*.min.js` and
-`*.map` files, dot directories, and everything matched by the project's
-`.gitignore` files (including nested ones and those in parent directories up
-to the Git root). Code files larger than `maxFileSizeKb` or that look like
-minified bundles are skipped and reported in the JSON `skipped` summary.
+Source discovery always skips `node_modules`, `dist`, `coverage`, `.next`, and
+`.turbo` directories at any depth, `*.min.js` and `*.map` files, dot
+directories, and everything matched by the project's `.gitignore` files
+(including nested ones and those in parent directories up to the Git root).
+Code files larger than `maxFileSizeKb` or that look like minified bundles are
+skipped and reported in the JSON `skipped` summary.
 
 ## Supported stacks
 

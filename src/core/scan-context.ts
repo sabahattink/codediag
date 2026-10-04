@@ -20,12 +20,14 @@ import type {
   StackInfo,
 } from "../types.js";
 
-/** Directory names that never contain first-party source, at any depth. */
+/**
+ * Directory names that never contain first-party source, at any depth.
+ * `build` and `out` are deliberately absent: they are often real source
+ * folders, and build output there is normally covered by .gitignore.
+ */
 const BUILTIN_IGNORED_DIRECTORIES = new Set([
   "node_modules",
   "dist",
-  "build",
-  "out",
   "coverage",
   ".next",
   ".turbo",

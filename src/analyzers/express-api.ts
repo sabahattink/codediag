@@ -272,32 +272,44 @@ function importedRouters(
 interface FileScope {
   file: string;
   bindings: Map<string, RouterBinding>;
-  /** Every name declared in the file; declared non-routers never fall back. */
-  declared: ReadonlySet<string>;
+  /** Names bound to HTTP clients; they never fall back to name matching. */
+  nonRouters: ReadonlySet<string>;
   files: ReadonlySet<string>;
   routers: ReadonlyMap<string, FileRouters>;
 }
 
-function declaredNames(sourceFile: SourceFile): Set<string> {
+/** Variables initialized from an HTTP client, such as `axios.create()`. */
+const HTTP_CLIENT =
+  /\b(?:axios|got|ky|superagent|ofetch|undici|needle)\b|\bfetch\s*\(|\.create\s*\(/;
+
+/** Names that are clearly not routers, so name matching must not apply. */
+function nonRouterNames(sourceFile: SourceFile): Set<string> {
   const names = new Set<string>();
-  for (const kind of [
-    SyntaxKind.VariableDeclaration,
-    SyntaxKind.Parameter,
-    SyntaxKind.ImportSpecifier,
-    SyntaxKind.ImportClause,
-    SyntaxKind.NamespaceImport,
-  ]) {
-    for (const node of sourceFile.getDescendantsOfKind(kind)) {
-      const name = (
-        node as Node & { getNameNode?(): Node | undefined }
-      ).getNameNode?.();
-      if (name && Node.isIdentifier(name)) names.add(name.getText());
-      if (Node.isImportSpecifier(node)) {
-        names.add(node.getAliasNode()?.getText() ?? node.getName());
-      }
+  for (const declaration of sourceFile.getVariableDeclarations()) {
+    const name = declaration.getNameNode();
+    const initializer = declaration.getInitializer()?.getText() ?? "";
+    if (Node.isIdentifier(name) && HTTP_CLIENT.test(initializer)) {
+      names.add(name.getText());
     }
   }
   return names;
+}
+
+/**
+ * A route registration passes at least one handler after the path. Express's
+ * one-argument settings getter (`app.get("port")`) and HTTP client calls with
+ * a payload (`api.post("/users", { name })`) do not.
+ */
+function hasHandler(handlers: Node[]): boolean {
+  const last = handlers.at(-1);
+  return Boolean(
+    last &&
+      !Node.isObjectLiteralExpression(last) &&
+      !Node.isStringLiteral(last) &&
+      !Node.isNoSubstitutionTemplateLiteral(last) &&
+      !Node.isTemplateExpression(last) &&
+      !Node.isNumericLiteral(last),
+  );
 }
 
 function resolveReceiver(
@@ -309,7 +321,7 @@ function resolveReceiver(
     ? scope.bindings.get(text)
     : undefined;
   if (bound) return bound;
-  if (Node.isIdentifier(receiver) && scope.declared.has(text)) return null;
+  if (Node.isIdentifier(receiver) && scope.nonRouters.has(text)) return null;
   return ROUTER_NAMES.test(text)
     ? { id: `${scope.file}#${text}`, confidence: "low" }
     : null;
@@ -418,7 +430,7 @@ function collectCalls(
       path = literalText(call.getArguments()[0]);
       handlers = call.getArguments().slice(1);
     }
-    if (!router || path === null) continue;
+    if (!router || path === null || !hasHandler(handlers)) continue;
 
     routes.push({
       router: router.id,
@@ -546,7 +558,7 @@ export async function analyzeExpressApi(
     const calls = collectCalls(sourceFile, {
       file,
       bindings,
-      declared: declaredNames(sourceFile),
+      nonRouters: nonRouterNames(sourceFile),
       files,
       routers,
     });

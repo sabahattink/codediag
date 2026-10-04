@@ -254564,30 +254564,29 @@ function importedRouters(sourceFile, file, files, routers) {
   }
   return bindings;
 }
-function declaredNames(sourceFile) {
+var HTTP_CLIENT = /\b(?:axios|got|ky|superagent|ofetch|undici|needle)\b|\bfetch\s*\(|\.create\s*\(/;
+function nonRouterNames(sourceFile) {
   const names = /* @__PURE__ */ new Set();
-  for (const kind of [
-    import_ts_morph.SyntaxKind.VariableDeclaration,
-    import_ts_morph.SyntaxKind.Parameter,
-    import_ts_morph.SyntaxKind.ImportSpecifier,
-    import_ts_morph.SyntaxKind.ImportClause,
-    import_ts_morph.SyntaxKind.NamespaceImport
-  ]) {
-    for (const node of sourceFile.getDescendantsOfKind(kind)) {
-      const name = node.getNameNode?.();
-      if (name && import_ts_morph.Node.isIdentifier(name)) names.add(name.getText());
-      if (import_ts_morph.Node.isImportSpecifier(node)) {
-        names.add(node.getAliasNode()?.getText() ?? node.getName());
-      }
+  for (const declaration of sourceFile.getVariableDeclarations()) {
+    const name = declaration.getNameNode();
+    const initializer = declaration.getInitializer()?.getText() ?? "";
+    if (import_ts_morph.Node.isIdentifier(name) && HTTP_CLIENT.test(initializer)) {
+      names.add(name.getText());
     }
   }
   return names;
+}
+function hasHandler(handlers) {
+  const last = handlers.at(-1);
+  return Boolean(
+    last && !import_ts_morph.Node.isObjectLiteralExpression(last) && !import_ts_morph.Node.isStringLiteral(last) && !import_ts_morph.Node.isNoSubstitutionTemplateLiteral(last) && !import_ts_morph.Node.isTemplateExpression(last) && !import_ts_morph.Node.isNumericLiteral(last)
+  );
 }
 function resolveReceiver(receiver, scope) {
   const text = receiver.getText();
   const bound = import_ts_morph.Node.isIdentifier(receiver) ? scope.bindings.get(text) : void 0;
   if (bound) return bound;
-  if (import_ts_morph.Node.isIdentifier(receiver) && scope.declared.has(text)) return null;
+  if (import_ts_morph.Node.isIdentifier(receiver) && scope.nonRouters.has(text)) return null;
   return ROUTER_NAMES.test(text) ? { id: `${scope.file}#${text}`, confidence: "low" } : null;
 }
 function mountedRouter(argument, scope) {
@@ -254667,7 +254666,7 @@ function collectCalls(sourceFile, scope) {
       path2 = literalText(call.getArguments()[0]);
       handlers = call.getArguments().slice(1);
     }
-    if (!router || path2 === null) continue;
+    if (!router || path2 === null || !hasHandler(handlers)) continue;
     routes.push({
       router: router.id,
       confidence: router.confidence,
@@ -254757,7 +254756,7 @@ async function analyzeExpressApi(context) {
     const calls = collectCalls(sourceFile, {
       file,
       bindings,
-      declared: declaredNames(sourceFile),
+      nonRouters: nonRouterNames(sourceFile),
       files,
       routers
     });
@@ -254875,6 +254874,7 @@ var SWAGGER_METHOD_DECORATORS = [
 var PUBLIC_METADATA = /public|skip.?auth|allow.?anonymous|no.?auth/i;
 var KNOWN_PUBLIC_DECORATORS = ["Public", "SkipAuth", "AllowAnonymous"];
 var NON_DTO_TYPES = /* @__PURE__ */ new Set(["any", "unknown", "object", "Object"]);
+var PRIMITIVE_BODY_TYPES = /* @__PURE__ */ new Set(["string", "number", "boolean"]);
 var STRUCTURAL_GENERICS = /* @__PURE__ */ new Set([
   "Record",
   "Partial",
@@ -255014,6 +255014,7 @@ function classifyBodyType(typeNode, facts) {
       validated: false
     };
   }
+  if (PRIMITIVE_BODY_TYPES.has(typeNode.getText())) return { kind: "none" };
   return { kind: "structural", description: typeNode.getText() };
 }
 function bodyCheck(method, controller, facts) {
@@ -255021,6 +255022,12 @@ function bodyCheck(method, controller, facts) {
     (parameter) => parameter.getDecorators().some((decorator) => decorator.getName() === "Body")
   );
   if (!body) return { kind: "none" };
+  const bodyArguments = body.getDecorators().find((decorator) => decorator.getName() === "Body")?.getArguments();
+  if (bodyArguments?.some(
+    (argument) => import_ts_morph2.Node.isStringLiteral(argument) || import_ts_morph2.Node.isNoSubstitutionTemplateLiteral(argument)
+  )) {
+    return { kind: "none" };
+  }
   const result = classifyBodyType(body.getTypeNode(), facts);
   if (result.kind !== "dto") return result;
   const bodyDecorator = body.getDecorators().find((decorator) => decorator.getName() === "Body");
@@ -258509,8 +258516,6 @@ function detectStack(projectPath) {
 var BUILTIN_IGNORED_DIRECTORIES = /* @__PURE__ */ new Set([
   "node_modules",
   "dist",
-  "build",
-  "out",
   "coverage",
   ".next",
   ".turbo",

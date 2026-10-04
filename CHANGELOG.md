@@ -79,8 +79,8 @@ All notable changes to CodeDiag are documented in this file.
 
 ### Changed
 
-- `node_modules`, `dist`, `build`, `out`, `coverage`, `.next`, and `.turbo`
-  directories plus `*.min.js` and `*.map` files are now ignored at any depth,
+- `node_modules`, `dist`, `coverage`, `.next`, and `.turbo` directories plus
+  `*.min.js` and `*.map` files are now ignored at any depth,
   not only at the project root. Monorepo scans no longer report findings from
   nested dependencies or build output.
 - Replaced the `glob` runtime dependency with `minimatch` and `ignore`.
@@ -117,15 +117,18 @@ All notable changes to CodeDiag are documented in this file.
   mounts across ES module and CommonJS imports, now counts as protection;
   messages show the mounted path. Receivers matched only by name produce
   findings with `confidence: "low"`, and names declared as anything else, such
-  as an HTTP client called `api`, are no longer treated as routers.
+  as an HTTP client called `api`, are no longer treated as routers. Untyped
+  `app` parameters and factory-created apps fall back to low-confidence
+  routes, and one-argument calls such as `app.get("port")` are not routes.
 - NestJS endpoints are guarded by `app.useGlobalGuards()`, `APP_GUARD`
   providers, and custom decorators built on `UseGuards` (such as
   `applyDecorators`), and routes marked with `@Public()`, `@SkipAuth()`, or any
   decorator that sets public metadata are treated as intentionally open.
   `missing-dto` now requires a class body type: `any`, `Record<...>`,
   `Partial<...>`, inline types, and interfaces are reported, while endpoints
-  without `@Body()` are not. `@Controller({ path })` and path arrays resolve to
-  real routes.
+  without `@Body()`, single-field `@Body("name")` extractions, and primitive
+  `string`/`number`/`boolean` bodies are not. `@Controller({ path })` and path
+  arrays resolve to real routes.
 - Shell and SQL sinks follow variables back through declarations,
   destructuring, and reassignments (up to three hops) to decide whether a value
   comes from request data, including Next.js `request.json()` and

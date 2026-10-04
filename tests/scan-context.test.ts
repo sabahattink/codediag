@@ -38,8 +38,6 @@ test("file index skips built-in output directories and dot entries at any depth"
       "packages/a/src/index.ts": "",
       "packages/a/node_modules/lib/index.js": "",
       "packages/a/dist/index.js": "",
-      "packages/a/build/index.js": "",
-      "packages/a/out/index.js": "",
       "packages/a/coverage/index.js": "",
       "apps/web/.next/server/chunk.js": "",
       "apps/web/.turbo/cache.js": "",
@@ -51,6 +49,23 @@ test("file index skips built-in output directories and dot entries at any depth"
       assert.deepEqual(createScanContext(directory).files(), [
         "packages/a/src/index.ts",
         "src/index.ts",
+      ]);
+    },
+  );
+});
+
+test("build and out directories are scanned unless .gitignore excludes them", () => {
+  withProject(
+    {
+      ".gitignore": "/build/\n",
+      "build/bundle.js": "",
+      "src/build/plan.ts": "",
+      "app/api/out/route.ts": "",
+    },
+    (directory) => {
+      assert.deepEqual(createScanContext(directory).files(), [
+        "app/api/out/route.ts",
+        "src/build/plan.ts",
       ]);
     },
   );

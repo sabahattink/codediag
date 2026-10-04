@@ -182,3 +182,21 @@ test("controller object arguments and route arrays produce real paths", async ()
     "missing-guard: DELETE /files/purge has no auth guard",
   ]);
 });
+
+test("single extracted fields and primitive bodies need no DTO", async () => {
+  const result = await analyze({
+    "src/main.ts": "app.useGlobalPipes(new ValidationPipe());\n",
+    "src/notes.controller.ts": [
+      '@UseGuards(JwtGuard) @Controller("notes")',
+      "export class NotesController {",
+      '  @Post() a(@Body("title") title: string): void {}',
+      '  @Put("raw") b(@Body() text: string): void {}',
+      '  @Patch("any") c(@Body() body: unknown): void {}',
+      "}",
+    ].join("\n"),
+  });
+
+  assert.deepEqual(rulesAndMessages(result), [
+    "missing-dto: PATCH /notes/any uses unknown for its request body; declare a DTO class",
+  ]);
+});

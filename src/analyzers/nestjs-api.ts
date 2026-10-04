@@ -33,6 +33,7 @@ const SWAGGER_METHOD_DECORATORS = [
 const PUBLIC_METADATA = /public|skip.?auth|allow.?anonymous|no.?auth/i;
 const KNOWN_PUBLIC_DECORATORS = ["Public", "SkipAuth", "AllowAnonymous"];
 const NON_DTO_TYPES = new Set(["any", "unknown", "object", "Object"]);
+const PRIMITIVE_BODY_TYPES = new Set(["string", "number", "boolean"]);
 const STRUCTURAL_GENERICS = new Set([
   "Record",
   "Partial",
@@ -242,6 +243,8 @@ function classifyBodyType(
       validated: false,
     };
   }
+  // Raw text, numeric, or boolean bodies are deliberate and need no DTO.
+  if (PRIMITIVE_BODY_TYPES.has(typeNode.getText())) return { kind: "none" };
   return { kind: "structural", description: typeNode.getText() };
 }
 
@@ -258,6 +261,20 @@ function bodyCheck(
         .some((decorator) => decorator.getName() === "Body"),
     );
   if (!body) return { kind: "none" };
+  const bodyArguments = body
+    .getDecorators()
+    .find((decorator) => decorator.getName() === "Body")
+    ?.getArguments();
+  // @Body("field") extracts one property; it is not a request body DTO.
+  if (
+    bodyArguments?.some(
+      (argument) =>
+        Node.isStringLiteral(argument) ||
+        Node.isNoSubstitutionTemplateLiteral(argument),
+    )
+  ) {
+    return { kind: "none" };
+  }
 
   const result = classifyBodyType(body.getTypeNode(), facts);
   if (result.kind !== "dto") return result;

@@ -199,3 +199,33 @@ test("declared non-router clients named like routers are not routes", async () =
   assert.match(result.summary, /^1 Express endpoints/);
   assert.deepEqual(routeFindings(result), []);
 });
+
+test("untyped and factory-made apps fall back to low-confidence routes", async () => {
+  const result = await analyze({
+    "src/routes.js": [
+      "module.exports = (app) => {",
+      '  app.post("/users", createUser);',
+      "};",
+    ].join("\n"),
+    "src/server.js": [
+      "const app = createApp();",
+      'app.set("port", 3000);',
+      'const port = app.get("port");',
+      'app.delete("/sessions/:id", endSession);',
+    ].join("\n"),
+  });
+
+  assert.match(result.summary, /^2 Express endpoints/);
+  assert.deepEqual(routeFindings(result), [
+    {
+      message: "POST /users has no recognizable auth middleware",
+      file: "src/routes.js",
+      confidence: "low",
+    },
+    {
+      message: "DELETE /sessions/:id has no recognizable auth middleware",
+      file: "src/server.js",
+      confidence: "low",
+    },
+  ]);
+});
