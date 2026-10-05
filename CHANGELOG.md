@@ -4,6 +4,13 @@ All notable changes to CodeDiag are documented in this file.
 
 ## [Unreleased]
 
+### Fixed
+
+- The `bin` path in `package.json` no longer triggers npm's "script name was
+  invalid" warning when publishing.
+- The Action bundle embeds only the package version instead of the whole
+  `package.json`, so dependency updates no longer require a rebuilt bundle.
+
 ## [0.5.0] - 2026-10-04
 
 Pull request comments: the GitHub Action can keep one comment on each pull
