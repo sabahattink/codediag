@@ -305,3 +305,20 @@ test("GitHub Action creates, then updates, one pull request comment", async () =
     await rm(temporaryDirectory, { recursive: true, force: true });
   }
 });
+
+test("the Action bundle does not embed package.json dependencies", async () => {
+  // Otherwise every dependency update changes the committed bundle.
+  const bundle = await readFile(actionEntry, "utf8");
+  const metadata = JSON.parse(
+    await readFile(join(repositoryRoot, "package.json"), "utf8"),
+  );
+  for (const name of Object.keys(metadata.devDependencies)) {
+    assert.ok(
+      !bundle.includes(`"${name}": "${metadata.devDependencies[name]}"`) &&
+        !bundle.includes(
+          `${JSON.stringify(name)}: ${JSON.stringify(metadata.devDependencies[name])}`,
+        ),
+      `${name} is embedded in dist/action.cjs`,
+    );
+  }
+});
