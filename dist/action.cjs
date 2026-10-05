@@ -326,13 +326,13 @@ var require_directives = __commonJS({
               onError(0, "%YAML directive should contain exactly one part");
               return false;
             }
-            const [version] = parts;
-            if (version === "1.1" || version === "1.2") {
-              this.yaml.version = version;
+            const [version2] = parts;
+            if (version2 === "1.1" || version2 === "1.2") {
+              this.yaml.version = version2;
               return true;
             } else {
-              const isValid = /^\d+\.\d+$/.test(version);
-              onError(6, `Unsupported YAML version ${version}`, isValid);
+              const isValid = /^\d+\.\d+$/.test(version2);
+              onError(6, `Unsupported YAML version ${version2}`, isValid);
               return false;
             }
           }
@@ -3432,14 +3432,14 @@ var require_Document = __commonJS({
           version: "1.2"
         }, options);
         this.options = opt;
-        let { version } = opt;
+        let { version: version2 } = opt;
         if (options?._directives) {
           this.directives = options._directives.atDocument();
           if (this.directives.yaml.explicit)
-            version = this.directives.yaml.version;
+            version2 = this.directives.yaml.version;
         } else
-          this.directives = new directives.Directives({ version });
-        this.setSchema(version, options);
+          this.directives = new directives.Directives({ version: version2 });
+        this.setSchema(version2, options);
         this.contents = value === void 0 ? null : this.createNode(value, _replacer, options);
       }
       /**
@@ -3619,11 +3619,11 @@ var require_Document = __commonJS({
        *
        * Overrides all previously set schema options.
        */
-      setSchema(version, options = {}) {
-        if (typeof version === "number")
-          version = String(version);
+      setSchema(version2, options = {}) {
+        if (typeof version2 === "number")
+          version2 = String(version2);
         let opt;
-        switch (version) {
+        switch (version2) {
           case "1.1":
             if (this.directives)
               this.directives.yaml.version = "1.1";
@@ -3634,9 +3634,9 @@ var require_Document = __commonJS({
           case "1.2":
           case "next":
             if (this.directives)
-              this.directives.yaml.version = version;
+              this.directives.yaml.version = version2;
             else
-              this.directives = new directives.Directives({ version });
+              this.directives = new directives.Directives({ version: version2 });
             opt = { resolveKnownTags: true, schema: "core" };
             break;
           case null:
@@ -3645,7 +3645,7 @@ var require_Document = __commonJS({
             opt = null;
             break;
           default: {
-            const sv = JSON.stringify(version);
+            const sv = JSON.stringify(version2);
             throw new Error(`Expected '1.1', '1.2' or null as first argument, but found: ${sv}`);
           }
         }
@@ -11259,7 +11259,7 @@ var require_typescript = __commonJS({
         usingSingleLineStringWriter: () => usingSingleLineStringWriter,
         utf16EncodeAsString: () => utf16EncodeAsString,
         validateLocaleAndSetLanguage: () => validateLocaleAndSetLanguage,
-        version: () => version,
+        version: () => version2,
         versionMajorMinor: () => versionMajorMinor,
         visitArray: () => visitArray,
         visitCommaListElements: () => visitCommaListElements,
@@ -11283,7 +11283,7 @@ var require_typescript = __commonJS({
       });
       module3.exports = __toCommonJS2(typescript_exports);
       var versionMajorMinor = "6.0";
-      var version = "6.0.2";
+      var version2 = "6.0.2";
       var Comparison = /* @__PURE__ */ ((Comparison3) => {
         Comparison3[Comparison3["LessThan"] = -1] = "LessThan";
         Comparison3[Comparison3["EqualTo"] = 0] = "EqualTo";
@@ -13919,9 +13919,9 @@ ${lanes.join("\n")}
          * Tests whether a version matches the range. This is equivalent to `satisfies(version, range, { includePrerelease: true })`.
          * in `node-semver`.
          */
-        test(version2) {
-          if (typeof version2 === "string") version2 = new Version(version2);
-          return testDisjunction(version2, this._alternatives);
+        test(version22) {
+          if (typeof version22 === "string") version22 = new Version(version22);
+          return testDisjunction(version22, this._alternatives);
         }
         toString() {
           return formatDisjunction(this._alternatives);
@@ -13955,14 +13955,14 @@ ${lanes.join("\n")}
         const match2 = partialRegExp.exec(text);
         if (!match2) return void 0;
         const [, major, minor = "*", patch = "*", prerelease, build2] = match2;
-        const version2 = new Version(
+        const version22 = new Version(
           isWildcard(major) ? 0 : parseInt(major, 10),
           isWildcard(major) || isWildcard(minor) ? 0 : parseInt(minor, 10),
           isWildcard(major) || isWildcard(minor) || isWildcard(patch) ? 0 : parseInt(patch, 10),
           prerelease,
           build2
         );
-        return { version: version2, major, minor, patch };
+        return { version: version22, major, minor, patch };
       }
       function parseHyphen(left, right, comparators) {
         const leftResult = parsePartial(left);
@@ -13982,46 +13982,46 @@ ${lanes.join("\n")}
       function parseComparator(operator, text, comparators) {
         const result = parsePartial(text);
         if (!result) return false;
-        const { version: version2, major, minor, patch } = result;
+        const { version: version22, major, minor, patch } = result;
         if (!isWildcard(major)) {
           switch (operator) {
             case "~":
-              comparators.push(createComparator(">=", version2));
+              comparators.push(createComparator(">=", version22));
               comparators.push(createComparator(
                 "<",
-                version2.increment(
+                version22.increment(
                   isWildcard(minor) ? "major" : "minor"
                 )
               ));
               break;
             case "^":
-              comparators.push(createComparator(">=", version2));
+              comparators.push(createComparator(">=", version22));
               comparators.push(createComparator(
                 "<",
-                version2.increment(
-                  version2.major > 0 || isWildcard(minor) ? "major" : version2.minor > 0 || isWildcard(patch) ? "minor" : "patch"
+                version22.increment(
+                  version22.major > 0 || isWildcard(minor) ? "major" : version22.minor > 0 || isWildcard(patch) ? "minor" : "patch"
                 )
               ));
               break;
             case "<":
             case ">=":
               comparators.push(
-                isWildcard(minor) || isWildcard(patch) ? createComparator(operator, version2.with({ prerelease: "0" })) : createComparator(operator, version2)
+                isWildcard(minor) || isWildcard(patch) ? createComparator(operator, version22.with({ prerelease: "0" })) : createComparator(operator, version22)
               );
               break;
             case "<=":
             case ">":
               comparators.push(
-                isWildcard(minor) ? createComparator(operator === "<=" ? "<" : ">=", version2.increment("major").with({ prerelease: "0" })) : isWildcard(patch) ? createComparator(operator === "<=" ? "<" : ">=", version2.increment("minor").with({ prerelease: "0" })) : createComparator(operator, version2)
+                isWildcard(minor) ? createComparator(operator === "<=" ? "<" : ">=", version22.increment("major").with({ prerelease: "0" })) : isWildcard(patch) ? createComparator(operator === "<=" ? "<" : ">=", version22.increment("minor").with({ prerelease: "0" })) : createComparator(operator, version22)
               );
               break;
             case "=":
             case void 0:
               if (isWildcard(minor) || isWildcard(patch)) {
-                comparators.push(createComparator(">=", version2.with({ prerelease: "0" })));
-                comparators.push(createComparator("<", version2.increment(isWildcard(minor) ? "major" : "minor").with({ prerelease: "0" })));
+                comparators.push(createComparator(">=", version22.with({ prerelease: "0" })));
+                comparators.push(createComparator("<", version22.increment(isWildcard(minor) ? "major" : "minor").with({ prerelease: "0" })));
               } else {
-                comparators.push(createComparator("=", version2));
+                comparators.push(createComparator("=", version22));
               }
               break;
             default:
@@ -14038,21 +14038,21 @@ ${lanes.join("\n")}
       function createComparator(operator, operand) {
         return { operator, operand };
       }
-      function testDisjunction(version2, alternatives) {
+      function testDisjunction(version22, alternatives) {
         if (alternatives.length === 0) return true;
         for (const alternative of alternatives) {
-          if (testAlternative(version2, alternative)) return true;
+          if (testAlternative(version22, alternative)) return true;
         }
         return false;
       }
-      function testAlternative(version2, comparators) {
+      function testAlternative(version22, comparators) {
         for (const comparator of comparators) {
-          if (!testComparator(version2, comparator.operator, comparator.operand)) return false;
+          if (!testComparator(version22, comparator.operator, comparator.operand)) return false;
         }
         return true;
       }
-      function testComparator(version2, operator, operand) {
-        const cmp = version2.compareTo(operand);
+      function testComparator(version22, operator, operand) {
+        const cmp = version22.compareTo(operand);
         switch (operator) {
           case "<":
             return cmp < 0;
@@ -56529,7 +56529,7 @@ ${lanes.join("\n")}
       }
       var typeScriptVersion;
       function getPackageJsonTypesVersionsPaths(typesVersions) {
-        if (!typeScriptVersion) typeScriptVersion = new Version(version);
+        if (!typeScriptVersion) typeScriptVersion = new Version(version2);
         for (const key in typesVersions) {
           if (!hasProperty(typesVersions, key)) continue;
           const keyRange = VersionRange.tryParse(key);
@@ -58078,9 +58078,9 @@ ${lanes.join("\n")}
               state
             );
             if (peerPackageJson) {
-              const version2 = peerPackageJson.contents.packageJsonContent.version;
-              result += `+${key}@${version2}`;
-              if (state.traceEnabled) trace(state.host, Diagnostics.Found_peerDependency_0_with_1_version, key, version2);
+              const version22 = peerPackageJson.contents.packageJsonContent.version;
+              result += `+${key}@${version22}`;
+              if (state.traceEnabled) trace(state.host, Diagnostics.Found_peerDependency_0_with_1_version, key, version22);
             } else {
               if (state.traceEnabled) trace(state.host, Diagnostics.Failed_to_find_peerDependency_0, key);
             }
@@ -58178,7 +58178,7 @@ ${lanes.join("\n")}
             false
           );
           if (state.traceEnabled) {
-            trace(state.host, Diagnostics.package_json_has_a_typesVersions_entry_0_that_matches_compiler_version_1_looking_for_a_pattern_to_match_module_name_2, versionPaths.version, version, moduleName);
+            trace(state.host, Diagnostics.package_json_has_a_typesVersions_entry_0_that_matches_compiler_version_1_looking_for_a_pattern_to_match_module_name_2, versionPaths.version, version2, moduleName);
           }
           const pathPatterns = tryParsePatterns(versionPaths.paths);
           const result = tryLoadModuleUsingPaths(extensions, moduleName, candidate, versionPaths.paths, pathPatterns, loader, onlyRecordFailuresForPackageFile || onlyRecordFailuresForIndex, state);
@@ -58659,7 +58659,7 @@ ${lanes.join("\n")}
         if (!startsWith(key, "types@")) return false;
         const range2 = VersionRange.tryParse(key.substring("types@".length));
         if (!range2) return false;
-        return range2.test(version);
+        return range2.test(version2);
       }
       function loadModuleFromNearestNodeModulesDirectory(extensions, moduleName, directory, state, cache, redirectedReference) {
         return loadModuleFromNearestNodeModulesDirectoryWorker(
@@ -58795,7 +58795,7 @@ ${lanes.join("\n")}
         const versionPaths = rest !== "" && packageInfo ? getVersionPathsOfPackageJsonInfo(packageInfo, state) : void 0;
         if (versionPaths) {
           if (state.traceEnabled) {
-            trace(state.host, Diagnostics.package_json_has_a_typesVersions_entry_0_that_matches_compiler_version_1_looking_for_a_pattern_to_match_module_name_2, versionPaths.version, version, rest);
+            trace(state.host, Diagnostics.package_json_has_a_typesVersions_entry_0_that_matches_compiler_version_1_looking_for_a_pattern_to_match_module_name_2, versionPaths.version, version2, rest);
           }
           const packageDirectoryExists = nodeModulesDirectoryExists && directoryProbablyExists(packageDirectory, state.host);
           const pathPatterns = tryParsePatterns(versionPaths.paths);
@@ -139252,7 +139252,7 @@ ${lanes.join("\n")}
             emitSkipped = true;
             return;
           }
-          const buildInfo = host.getBuildInfo() || { version };
+          const buildInfo = host.getBuildInfo() || { version: version2 };
           writeFile(
             host,
             emitterDiagnostics,
@@ -149245,7 +149245,7 @@ ${lanes.join("\n")}
           const useOldState = canReuseOldState(referencedMap, oldState);
           newProgram.getTypeChecker();
           for (const sourceFile of newProgram.getSourceFiles()) {
-            const version2 = Debug.checkDefined(sourceFile.version, "Program intended to be used with Builder should have source files with versions set");
+            const version22 = Debug.checkDefined(sourceFile.version, "Program intended to be used with Builder should have source files with versions set");
             const oldUncommittedSignature = useOldState ? (_a2 = oldState.oldSignatures) == null ? void 0 : _a2.get(sourceFile.resolvedPath) : void 0;
             const signature = oldUncommittedSignature === void 0 ? useOldState ? (_b = oldState.fileInfos.get(sourceFile.resolvedPath)) == null ? void 0 : _b.signature : void 0 : oldUncommittedSignature || void 0;
             if (referencedMap) {
@@ -149255,7 +149255,7 @@ ${lanes.join("\n")}
               }
             }
             fileInfos.set(sourceFile.resolvedPath, {
-              version: version2,
+              version: version22,
               signature,
               // No need to calculate affectsGlobalScope with --out since its not used at all
               affectsGlobalScope: !options.outFile ? isFileAffectingGlobalScope(sourceFile) || void 0 : void 0,
@@ -150059,7 +150059,7 @@ ${lanes.join("\n")}
             root: arrayFrom(rootFileNames, (r) => relativeToBuildInfo(r)),
             errors: state.hasErrors ? true : void 0,
             checkPending: state.checkPending,
-            version
+            version: version2
           };
           return buildInfo2;
         }
@@ -150091,7 +150091,7 @@ ${lanes.join("\n")}
             // Actual value
             errors: state.hasErrors ? true : void 0,
             checkPending: state.checkPending,
-            version
+            version: version2
           };
           return buildInfo2;
         }
@@ -150188,7 +150188,7 @@ ${lanes.join("\n")}
           latestChangedDtsFile,
           errors: state.hasErrors ? true : void 0,
           checkPending: state.checkPending,
-          version
+          version: version2
         };
         return buildInfo;
         function relativeToBuildInfoEnsuringAbsolutePath(path2) {
@@ -150965,8 +150965,8 @@ ${lanes.join("\n")}
         const resolvedRoots = new Map(program.resolvedRoot);
         program.fileInfos.forEach((fileInfo, index) => {
           const path2 = toPath(program.fileNames[index], buildInfoDirectory, getCanonicalFileName);
-          const version2 = isString(fileInfo) ? fileInfo : fileInfo.version;
-          fileInfos.set(path2, version2);
+          const version22 = isString(fileInfo) ? fileInfo : fileInfo.version;
+          fileInfos.set(path2, version22);
           if (rootIndex < program.root.length) {
             const current = program.root[rootIndex];
             const fileId = index + 1;
@@ -152877,7 +152877,7 @@ ${lanes.join("\n")}
           if (!content) return void 0;
           buildInfo = getBuildInfo(buildInfoPath, content);
         }
-        if (!buildInfo || buildInfo.version !== version || !isIncrementalBuildInfo(buildInfo)) return void 0;
+        if (!buildInfo || buildInfo.version !== version2 || !isIncrementalBuildInfo(buildInfo)) return void 0;
         return createBuilderProgramUsingIncrementalBuildInfo(buildInfo, buildInfoPath, host);
       }
       function createIncrementalCompilerHost(options, system = sys) {
@@ -154580,7 +154580,7 @@ ${lanes.join("\n")}
           };
         }
         const incrementalBuildInfo = isIncremental && isIncrementalBuildInfo(buildInfo) ? buildInfo : void 0;
-        if ((incrementalBuildInfo || !isIncremental) && buildInfo.version !== version) {
+        if ((incrementalBuildInfo || !isIncremental) && buildInfo.version !== version2) {
           return {
             type: 14,
             version: buildInfo.version
@@ -154636,17 +154636,17 @@ ${lanes.join("\n")}
           }
           const inputPath = toPath2(state, inputFile);
           if (buildInfoTime < inputTime) {
-            let version2;
+            let version22;
             let currentVersion;
             if (incrementalBuildInfo) {
               if (!buildInfoVersionMap) buildInfoVersionMap = getBuildInfoFileVersionMap(incrementalBuildInfo, buildInfoPath, host);
               const resolvedInputPath = buildInfoVersionMap.roots.get(inputPath);
-              version2 = buildInfoVersionMap.fileInfos.get(resolvedInputPath ?? inputPath);
-              const text = version2 ? state.readFileWithCache(resolvedInputPath ?? inputFile) : void 0;
+              version22 = buildInfoVersionMap.fileInfos.get(resolvedInputPath ?? inputPath);
+              const text = version22 ? state.readFileWithCache(resolvedInputPath ?? inputFile) : void 0;
               currentVersion = text !== void 0 ? getSourceFileVersionAsHashFromText(host, text) : void 0;
-              if (version2 && version2 === currentVersion) pseudoInputUpToDate = true;
+              if (version22 && version22 === currentVersion) pseudoInputUpToDate = true;
             }
-            if (!version2 || version2 !== currentVersion) {
+            if (!version22 || version22 !== currentVersion) {
               return {
                 type: 5,
                 outOfDateOutputFileName: buildInfoPath,
@@ -155399,7 +155399,7 @@ ${lanes.join("\n")}
               Diagnostics.Project_0_is_out_of_date_because_output_for_it_was_generated_with_version_1_that_differs_with_current_version_2,
               relName(state, configFileName),
               status.version,
-              version
+              version2
             );
           case 17:
             return reportStatus(
@@ -155494,7 +155494,7 @@ ${lanes.join("\n")}
         return !!commandLine.options.all ? toSorted(helpOptions, (a, b) => compareStringsCaseInsensitive(a.name, b.name)) : filter2(helpOptions, (v) => !!v.showInSimplifiedHelpView);
       }
       function printVersion(sys2) {
-        sys2.write(getDiagnosticText(Diagnostics.Version_0, version) + sys2.newLine);
+        sys2.write(getDiagnosticText(Diagnostics.Version_0, version2) + sys2.newLine);
       }
       function createColors(sys2) {
         const showColors = defaultIsPretty(sys2);
@@ -155746,7 +155746,7 @@ ${lanes.join("\n")}
       }
       function printEasyHelp(sys2, simpleOptions) {
         const colors = createColors(sys2);
-        let output = [...getHeader(sys2, `${getDiagnosticText(Diagnostics.tsc_Colon_The_TypeScript_Compiler)} - ${getDiagnosticText(Diagnostics.Version_0, version)}`)];
+        let output = [...getHeader(sys2, `${getDiagnosticText(Diagnostics.tsc_Colon_The_TypeScript_Compiler)} - ${getDiagnosticText(Diagnostics.Version_0, version2)}`)];
         output.push(colors.bold(getDiagnosticText(Diagnostics.COMMON_COMMANDS)) + sys2.newLine + sys2.newLine);
         example("tsc", Diagnostics.Compiles_the_current_project_tsconfig_json_in_the_working_directory);
         example("tsc app.ts util.ts", Diagnostics.Ignoring_tsconfig_json_compiles_the_specified_files_with_default_compiler_options);
@@ -155793,7 +155793,7 @@ ${lanes.join("\n")}
         }
       }
       function printAllHelp(sys2, compilerOptions, buildOptions, watchOptions) {
-        let output = [...getHeader(sys2, `${getDiagnosticText(Diagnostics.tsc_Colon_The_TypeScript_Compiler)} - ${getDiagnosticText(Diagnostics.Version_0, version)}`)];
+        let output = [...getHeader(sys2, `${getDiagnosticText(Diagnostics.tsc_Colon_The_TypeScript_Compiler)} - ${getDiagnosticText(Diagnostics.Version_0, version2)}`)];
         output = [...output, ...generateSectionOptionsOutput(
           sys2,
           getDiagnosticText(Diagnostics.ALL_COMPILER_OPTIONS),
@@ -155825,7 +155825,7 @@ ${lanes.join("\n")}
         }
       }
       function printBuildHelp(sys2, buildOptions) {
-        let output = [...getHeader(sys2, `${getDiagnosticText(Diagnostics.tsc_Colon_The_TypeScript_Compiler)} - ${getDiagnosticText(Diagnostics.Version_0, version)}`)];
+        let output = [...getHeader(sys2, `${getDiagnosticText(Diagnostics.tsc_Colon_The_TypeScript_Compiler)} - ${getDiagnosticText(Diagnostics.Version_0, version2)}`)];
         output = [...output, ...generateSectionOptionsOutput(
           sys2,
           getDiagnosticText(Diagnostics.BUILD_OPTIONS),
@@ -163366,38 +163366,38 @@ ${lanes.join("\n")}
           }
           return settingsOrHost;
         }
-        function acquireDocument(fileName, compilationSettings, scriptSnapshot, version2, scriptKind, languageVersionOrOptions) {
+        function acquireDocument(fileName, compilationSettings, scriptSnapshot, version22, scriptKind, languageVersionOrOptions) {
           const path2 = toPath(fileName, currentDirectory, getCanonicalFileName);
           const key = getKeyForCompilationSettings(getCompilationSettings(compilationSettings));
-          return acquireDocumentWithKey(fileName, path2, compilationSettings, key, scriptSnapshot, version2, scriptKind, languageVersionOrOptions);
+          return acquireDocumentWithKey(fileName, path2, compilationSettings, key, scriptSnapshot, version22, scriptKind, languageVersionOrOptions);
         }
-        function acquireDocumentWithKey(fileName, path2, compilationSettings, key, scriptSnapshot, version2, scriptKind, languageVersionOrOptions) {
+        function acquireDocumentWithKey(fileName, path2, compilationSettings, key, scriptSnapshot, version22, scriptKind, languageVersionOrOptions) {
           return acquireOrUpdateDocument(
             fileName,
             path2,
             compilationSettings,
             key,
             scriptSnapshot,
-            version2,
+            version22,
             /*acquiring*/
             true,
             scriptKind,
             languageVersionOrOptions
           );
         }
-        function updateDocument(fileName, compilationSettings, scriptSnapshot, version2, scriptKind, languageVersionOrOptions) {
+        function updateDocument(fileName, compilationSettings, scriptSnapshot, version22, scriptKind, languageVersionOrOptions) {
           const path2 = toPath(fileName, currentDirectory, getCanonicalFileName);
           const key = getKeyForCompilationSettings(getCompilationSettings(compilationSettings));
-          return updateDocumentWithKey(fileName, path2, compilationSettings, key, scriptSnapshot, version2, scriptKind, languageVersionOrOptions);
+          return updateDocumentWithKey(fileName, path2, compilationSettings, key, scriptSnapshot, version22, scriptKind, languageVersionOrOptions);
         }
-        function updateDocumentWithKey(fileName, path2, compilationSettings, key, scriptSnapshot, version2, scriptKind, languageVersionOrOptions) {
+        function updateDocumentWithKey(fileName, path2, compilationSettings, key, scriptSnapshot, version22, scriptKind, languageVersionOrOptions) {
           return acquireOrUpdateDocument(
             fileName,
             path2,
             getCompilationSettings(compilationSettings),
             key,
             scriptSnapshot,
-            version2,
+            version22,
             /*acquiring*/
             false,
             scriptKind,
@@ -163409,7 +163409,7 @@ ${lanes.join("\n")}
           Debug.assert(scriptKind === void 0 || !entry || entry.sourceFile.scriptKind === scriptKind, `Script kind should match provided ScriptKind:${scriptKind} and sourceFile.scriptKind: ${entry == null ? void 0 : entry.sourceFile.scriptKind}, !entry: ${!entry}`);
           return entry;
         }
-        function acquireOrUpdateDocument(fileName, path2, compilationSettingsOrHost, key, scriptSnapshot, version2, acquiring, scriptKind, languageVersionOrOptions) {
+        function acquireOrUpdateDocument(fileName, path2, compilationSettingsOrHost, key, scriptSnapshot, version22, acquiring, scriptKind, languageVersionOrOptions) {
           var _a2, _b, _c, _d;
           scriptKind = ensureScriptKind(fileName, scriptKind);
           const compilationSettings = getCompilationSettings(compilationSettingsOrHost);
@@ -163453,7 +163453,7 @@ ${lanes.join("\n")}
               fileName,
               scriptSnapshot,
               sourceFileOptions,
-              version2,
+              version22,
               /*setNodeParents*/
               false,
               scriptKind
@@ -163467,8 +163467,8 @@ ${lanes.join("\n")}
             };
             setBucketEntry();
           } else {
-            if (entry.sourceFile.version !== version2) {
-              entry.sourceFile = updateLanguageServiceSourceFile(entry.sourceFile, scriptSnapshot, version2, scriptSnapshot.getChangeRange(entry.sourceFile.scriptSnapshot));
+            if (entry.sourceFile.version !== version22) {
+              entry.sourceFile = updateLanguageServiceSourceFile(entry.sourceFile, scriptSnapshot, version22, scriptSnapshot.getChangeRange(entry.sourceFile.scriptSnapshot));
               if (externalCache) {
                 externalCache.setDocument(keyWithMode, path2, entry.sourceFile);
               }
@@ -172311,7 +172311,7 @@ ${newComment.split("\n").map((c) => ` * ${c}`).join("\n")}
             throw new Error("Could not find file: '" + fileName + "'.");
           }
           const scriptKind = getScriptKind(fileName, this.host);
-          const version2 = this.host.getScriptVersion(fileName);
+          const version22 = this.host.getScriptVersion(fileName);
           let sourceFile;
           if (this.currentFileName !== fileName) {
             const options = {
@@ -172331,17 +172331,17 @@ ${newComment.split("\n").map((c) => ` * ${c}`).join("\n")}
               fileName,
               scriptSnapshot,
               options,
-              version2,
+              version22,
               /*setNodeParents*/
               true,
               scriptKind
             );
-          } else if (this.currentFileVersion !== version2) {
+          } else if (this.currentFileVersion !== version22) {
             const editRange = scriptSnapshot.getChangeRange(this.currentFileScriptSnapshot);
-            sourceFile = updateLanguageServiceSourceFile(this.currentSourceFile, scriptSnapshot, version2, editRange);
+            sourceFile = updateLanguageServiceSourceFile(this.currentSourceFile, scriptSnapshot, version22, editRange);
           }
           if (sourceFile) {
-            this.currentFileVersion = version2;
+            this.currentFileVersion = version22;
             this.currentFileName = fileName;
             this.currentFileScriptSnapshot = scriptSnapshot;
             this.currentSourceFile = sourceFile;
@@ -172349,18 +172349,18 @@ ${newComment.split("\n").map((c) => ` * ${c}`).join("\n")}
           return this.currentSourceFile;
         }
       };
-      function setSourceFileFields(sourceFile, scriptSnapshot, version2) {
-        sourceFile.version = version2;
+      function setSourceFileFields(sourceFile, scriptSnapshot, version22) {
+        sourceFile.version = version22;
         sourceFile.scriptSnapshot = scriptSnapshot;
       }
-      function createLanguageServiceSourceFile(fileName, scriptSnapshot, scriptTargetOrOptions, version2, setNodeParents, scriptKind) {
+      function createLanguageServiceSourceFile(fileName, scriptSnapshot, scriptTargetOrOptions, version22, setNodeParents, scriptKind) {
         const sourceFile = createSourceFile(fileName, getSnapshotText(scriptSnapshot), scriptTargetOrOptions, setNodeParents, scriptKind);
-        setSourceFileFields(sourceFile, scriptSnapshot, version2);
+        setSourceFileFields(sourceFile, scriptSnapshot, version22);
         return sourceFile;
       }
-      function updateLanguageServiceSourceFile(sourceFile, scriptSnapshot, version2, textChangeRange, aggressiveChecks) {
+      function updateLanguageServiceSourceFile(sourceFile, scriptSnapshot, version22, textChangeRange, aggressiveChecks) {
         if (textChangeRange) {
-          if (version2 !== sourceFile.version) {
+          if (version22 !== sourceFile.version) {
             let newText;
             const prefix = textChangeRange.span.start !== 0 ? sourceFile.text.substr(0, textChangeRange.span.start) : "";
             const suffix = textSpanEnd(textChangeRange.span) !== sourceFile.text.length ? sourceFile.text.substr(textSpanEnd(textChangeRange.span)) : "";
@@ -172371,7 +172371,7 @@ ${newComment.split("\n").map((c) => ` * ${c}`).join("\n")}
               newText = prefix && suffix ? prefix + changedText + suffix : prefix ? prefix + changedText : changedText + suffix;
             }
             const newSourceFile = updateSourceFile(sourceFile, newText, textChangeRange, aggressiveChecks);
-            setSourceFileFields(newSourceFile, scriptSnapshot, version2);
+            setSourceFileFields(newSourceFile, scriptSnapshot, version22);
             newSourceFile.nameTable = void 0;
             if (sourceFile !== newSourceFile && sourceFile.scriptSnapshot) {
               if (sourceFile.scriptSnapshot.dispose) {
@@ -172392,7 +172392,7 @@ ${newComment.split("\n").map((c) => ` * ${c}`).join("\n")}
           sourceFile.fileName,
           scriptSnapshot,
           options,
-          version2,
+          version22,
           /*setNodeParents*/
           true,
           sourceFile.scriptKind
@@ -207510,7 +207510,7 @@ ${options.prefix}` : "\n" : options.prefix
         usingSingleLineStringWriter: () => usingSingleLineStringWriter,
         utf16EncodeAsString: () => utf16EncodeAsString,
         validateLocaleAndSetLanguage: () => validateLocaleAndSetLanguage,
-        version: () => version,
+        version: () => version2,
         versionMajorMinor: () => versionMajorMinor,
         visitArray: () => visitArray,
         visitCommaListElements: () => visitCommaListElements,
@@ -207535,7 +207535,7 @@ ${options.prefix}` : "\n" : options.prefix
       var enableDeprecationWarnings = true;
       var typeScriptVersion2;
       function getTypeScriptVersion() {
-        return typeScriptVersion2 ?? (typeScriptVersion2 = new Version(version));
+        return typeScriptVersion2 ?? (typeScriptVersion2 = new Version(version2));
       }
       function formatDeprecationMessage(name, error2, errorAfter, since, message) {
         let deprecationMessage = error2 ? "DeprecationError: " : "DeprecationWarning: ";
@@ -207575,12 +207575,12 @@ ${options.prefix}` : "\n" : options.prefix
         };
       }
       function createDeprecation(name, options = {}) {
-        const version2 = typeof options.typeScriptVersion === "string" ? new Version(options.typeScriptVersion) : options.typeScriptVersion ?? getTypeScriptVersion();
+        const version22 = typeof options.typeScriptVersion === "string" ? new Version(options.typeScriptVersion) : options.typeScriptVersion ?? getTypeScriptVersion();
         const errorAfter = typeof options.errorAfter === "string" ? new Version(options.errorAfter) : options.errorAfter;
         const warnAfter = typeof options.warnAfter === "string" ? new Version(options.warnAfter) : options.warnAfter;
         const since = typeof options.since === "string" ? new Version(options.since) : options.since ?? warnAfter;
-        const error2 = options.error || errorAfter && version2.compareTo(errorAfter) >= 0;
-        const warn = !warnAfter || version2.compareTo(warnAfter) >= 0;
+        const error2 = options.error || errorAfter && version22.compareTo(errorAfter) >= 0;
+        const warn = !warnAfter || version22.compareTo(warnAfter) >= 0;
         return error2 ? createErrorDeprecation(name, errorAfter, since, options.message) : warn ? createWarningDeprecation(name, errorAfter, since, options.message) : noop;
       }
       function wrapFunction(deprecation, func) {
@@ -207975,11 +207975,11 @@ ${options.prefix}` : "\n" : options.prefix
                   this.log.writeLine(`Adding entry into typings cache: '${packageName}' => '${typingFile}'`);
                 }
                 const info = npmLock.packages && getProperty(npmLock.packages, `node_modules/${key}`) || getProperty(npmLock.dependencies, key);
-                const version2 = info && info.version;
-                if (!version2) {
+                const version22 = info && info.version;
+                if (!version22) {
                   continue;
                 }
-                const newTyping = { typingLocation: typingFile, version: new Version(version2) };
+                const newTyping = { typingLocation: typingFile, version: new Version(version22) };
                 this.packageNameToTypingLocation.set(packageName, newTyping);
               }
             }
@@ -208044,7 +208044,7 @@ ${options.prefix}` : "\n" : options.prefix
           this.sendResponse({
             kind: EventBeginInstallTypes,
             eventId: requestId,
-            typingsInstallerVersion: version,
+            typingsInstallerVersion: version2,
             projectName: req.projectName
           });
           const scopedTypings = filteredTypings.map(typingsName);
@@ -208086,7 +208086,7 @@ ${options.prefix}` : "\n" : options.prefix
                 projectName: req.projectName,
                 packagesToInstall: scopedTypings,
                 installSuccess: ok,
-                typingsInstallerVersion: version
+                typingsInstallerVersion: version2
               };
               this.sendResponse(response);
             }
@@ -213142,7 +213142,7 @@ ${options.prefix}` : "\n" : options.prefix
             configFileName: configFileName(),
             projectType: project instanceof ExternalProject ? "external" : "configured",
             languageServiceEnabled: project.languageServiceEnabled,
-            version
+            version: version2
           };
           this.eventHandler({ eventName: ProjectInfoTelemetryEvent, data });
           function configFileName() {
@@ -216110,7 +216110,7 @@ ${json}${newLine}`;
               "status"
               /* Status */
             ]: () => {
-              const response = { version };
+              const response = { version: version2 };
               return this.requiredResponse(response);
             },
             [
@@ -219668,11 +219668,11 @@ Additional information: BADCLIENT: Bad error code, ${badCode} not found in range
           this.minVersion = 0;
           this.currentVersion = 0;
         }
-        versionToIndex(version2) {
-          if (version2 < this.minVersion || version2 > this.currentVersion) {
+        versionToIndex(version22) {
+          if (version22 < this.minVersion || version22 > this.currentVersion) {
             return void 0;
           }
-          return version2 % _ScriptVersionCache2.maxVersions;
+          return version22 % _ScriptVersionCache2.maxVersions;
         }
         currentVersionToIndex() {
           return this.currentVersion % _ScriptVersionCache2.maxVersions;
@@ -219757,8 +219757,8 @@ Additional information: BADCLIENT: Bad error code, ${badCode} not found in range
       _ScriptVersionCache.maxVersions = 8;
       var ScriptVersionCache = _ScriptVersionCache;
       var LineIndexSnapshot = class _LineIndexSnapshot {
-        constructor(version2, cache, index, changesSincePreviousVersion = emptyArray2) {
-          this.version = version2;
+        constructor(version22, cache, index, changesSincePreviousVersion = emptyArray2) {
+          this.version = version22;
           this.cache = cache;
           this.index = index;
           this.changesSincePreviousVersion = changesSincePreviousVersion;
@@ -226261,8 +226261,8 @@ ${nodeLocation}` : message;
         this.#cacheItems.delete(key);
       }
     };
-    function createCompilerSourceFile(filePath, scriptSnapshot, optionsOrScriptTarget, version, setParentNodes, scriptKind) {
-      return ts__namespace.createLanguageServiceSourceFile(filePath, scriptSnapshot, optionsOrScriptTarget ?? ts__namespace.ScriptTarget.Latest, version, setParentNodes, scriptKind);
+    function createCompilerSourceFile(filePath, scriptSnapshot, optionsOrScriptTarget, version2, setParentNodes, scriptKind) {
+      return ts__namespace.createLanguageServiceSourceFile(filePath, scriptSnapshot, optionsOrScriptTarget ?? ts__namespace.ScriptTarget.Latest, version2, setParentNodes, scriptKind);
     }
     function createDocumentCache(files) {
       const cache = new InternalDocumentCache();
@@ -226907,7 +226907,7 @@ ${nodeLocation}` : message;
     }
     function createHosts(options) {
       const { transactionalFileSystem, sourceFileContainer, compilerOptions, getNewLine, resolutionHost, getProjectVersion, isKnownTypesPackageName } = options;
-      let version = 0;
+      let version2 = 0;
       const libFolderPath = transactionalFileSystem.getStandardizedAbsolutePath(getLibFolderPath(options));
       const fileExistsSync = (path3) => sourceFileContainer.containsSourceFileAtPath(path3) || transactionalFileSystem.fileExistsSync(path3);
       const languageServiceHost = {
@@ -226919,7 +226919,7 @@ ${nodeLocation}` : message;
           const filePath = transactionalFileSystem.getStandardizedAbsolutePath(fileName);
           const sourceFile = sourceFileContainer.getSourceFileFromCacheFromFilePath(filePath);
           if (sourceFile == null)
-            return (version++).toString();
+            return (version2++).toString();
           return sourceFileContainer.getSourceFileVersion(sourceFile);
         },
         getScriptSnapshot: (fileName) => {
@@ -228324,21 +228324,21 @@ ${nodeLocation}` : message;
       removeSourceFile(fileName) {
         this.#sourceFileCacheByFilePath.delete(fileName);
       }
-      acquireDocument(fileName, compilationSettings, scriptSnapshot, version, scriptKind) {
+      acquireDocument(fileName, compilationSettings, scriptSnapshot, version2, scriptKind) {
         const standardizedFilePath = this.#transactionalFileSystem.getStandardizedAbsolutePath(fileName);
         let sourceFile = this.#sourceFileCacheByFilePath.get(standardizedFilePath);
-        if (sourceFile == null || this.getSourceFileVersion(sourceFile) !== version)
-          sourceFile = this.#updateSourceFile(standardizedFilePath, compilationSettings, scriptSnapshot, version, scriptKind);
+        if (sourceFile == null || this.getSourceFileVersion(sourceFile) !== version2)
+          sourceFile = this.#updateSourceFile(standardizedFilePath, compilationSettings, scriptSnapshot, version2, scriptKind);
         return sourceFile;
       }
-      acquireDocumentWithKey(fileName, path3, compilationSettings, key, scriptSnapshot, version, scriptKind) {
-        return this.acquireDocument(fileName, compilationSettings, scriptSnapshot, version, scriptKind);
+      acquireDocumentWithKey(fileName, path3, compilationSettings, key, scriptSnapshot, version2, scriptKind) {
+        return this.acquireDocument(fileName, compilationSettings, scriptSnapshot, version2, scriptKind);
       }
-      updateDocument(fileName, compilationSettings, scriptSnapshot, version, scriptKind) {
-        return this.acquireDocument(fileName, compilationSettings, scriptSnapshot, version, scriptKind);
+      updateDocument(fileName, compilationSettings, scriptSnapshot, version2, scriptKind) {
+        return this.acquireDocument(fileName, compilationSettings, scriptSnapshot, version2, scriptKind);
       }
-      updateDocumentWithKey(fileName, path3, compilationSettings, key, scriptSnapshot, version, scriptKind) {
-        return this.updateDocument(fileName, compilationSettings, scriptSnapshot, version, scriptKind);
+      updateDocumentWithKey(fileName, path3, compilationSettings, key, scriptSnapshot, version2, scriptKind) {
+        return this.updateDocument(fileName, compilationSettings, scriptSnapshot, version2, scriptKind);
       }
       getKeyForCompilationSettings(settings) {
         return "defaultKey";
@@ -228357,8 +228357,8 @@ ${nodeLocation}` : message;
         const currentVersion = parseInt(this.getSourceFileVersion(sourceFile), 10) || 0;
         return (currentVersion + 1).toString();
       }
-      #updateSourceFile(fileName, compilationSettings, scriptSnapshot, version, scriptKind) {
-        const newSourceFile = createCompilerSourceFile(fileName, scriptSnapshot, compilationSettings.target, version, true, scriptKind);
+      #updateSourceFile(fileName, compilationSettings, scriptSnapshot, version2, scriptKind) {
+        const newSourceFile = createCompilerSourceFile(fileName, scriptSnapshot, compilationSettings.target, version2, true, scriptKind);
         this.#sourceFileCacheByFilePath.set(fileName, newSourceFile);
         return newSourceFile;
       }
@@ -252635,103 +252635,14 @@ function assignFingerprints(results, readText) {
 }
 
 // package.json
-var package_default = {
-  name: "@sabahattink/codediag",
-  version: "0.5.0",
-  description: "Automated project health scanner for Node.js, NestJS, Express, and Next.js projects.",
-  author: "Sabahattin Kalkan <hello@sabahattinkalkan.com> (https://sabahattinkalkan.com)",
-  license: "MIT",
-  type: "module",
-  bin: {
-    codediag: "dist/index.js"
-  },
-  main: "./dist/index.js",
-  files: [
-    "dist/index.js",
-    "dist/index.js.map",
-    "schema"
-  ],
-  scripts: {
-    build: `node -e "require('node:fs').rmSync('dist',{recursive:true,force:true})" && tsup && node scripts/normalize-action-legal.mjs`,
-    "bundle:check": "git diff --exit-code -- dist/action.cjs dist/action.cjs.LEGAL.txt",
-    dev: "tsup --watch",
-    start: "node dist/index.js",
-    "docs:rules": "tsx scripts/generate-rules-doc.ts",
-    "extension:build": "node scripts/build-vscode-extension.mjs",
-    "extension:typecheck": "tsc --noEmit -p extensions/vscode/tsconfig.json",
-    "extension:check": "npm run extension:typecheck && npm run extension:build",
-    "extension:package": "npm run extension:check && node scripts/package-vscode-extension.mjs",
-    lint: "biome lint src tests tests-cli extensions/vscode/src scripts",
-    format: "biome format --write src tests tests-cli extensions/vscode/src scripts",
-    "format:check": "biome format src tests tests-cli extensions/vscode/src scripts",
-    test: "tsx --test tests/*.test.ts",
-    "test:cli": "node --test tests-cli/*.test.mjs",
-    check: "npm run lint && npm run format:check && npm run typecheck && npm run extension:check && npm test && npm run build && npm run bundle:check && npm run test:cli",
-    typecheck: "tsc --noEmit",
-    prepublishOnly: "npm run check"
-  },
-  repository: {
-    type: "git",
-    url: "git+https://github.com/sabahattink/codediag.git"
-  },
-  homepage: "https://sabahattink.github.io/codediag/",
-  bugs: {
-    url: "https://github.com/sabahattink/codediag/issues"
-  },
-  keywords: [
-    "code-quality",
-    "diagnostics",
-    "nestjs",
-    "nextjs",
-    "express",
-    "security",
-    "audit",
-    "cli",
-    "health-check",
-    "static-analysis",
-    "devtools",
-    "testing"
-  ],
-  publishConfig: {
-    access: "public"
-  },
-  overrides: {
-    tsup: {
-      esbuild: "^0.28.1"
-    }
-  },
-  engines: {
-    node: ">=20.19.0"
-  },
-  dependencies: {
-    chalk: "^5.3.0",
-    "cli-table3": "^0.6.5",
-    commander: "^14.0.3",
-    ignore: "^7.0.12",
-    minimatch: "^10.2.6",
-    ora: "^8.1.0",
-    "ts-morph": "^28.0.0",
-    yaml: "^2.8.1"
-  },
-  devDependencies: {
-    "@biomejs/biome": "^2.5.15",
-    "@types/node": "^22.0.0",
-    "@types/vscode": "^1.95.0",
-    "@vscode/vsce": "^3.9.2",
-    ajv: "^8.20.0",
-    esbuild: "^0.28.1",
-    tsup: "^8.3.0",
-    tsx: "^4.20.6",
-    typescript: "^6.0.3"
-  }
-};
+var version = "0.5.0";
 
 // src/version.ts
 function getPackageVersion() {
-  if (typeof package_default.version !== "string" || package_default.version.length === 0) {
+  if (typeof version !== "string" || version.length === 0) {
     throw new Error("package.json does not contain a valid version");
   }
-  return package_default.version;
+  return version;
 }
 
 // src/reporters/sarif.ts
@@ -253174,10 +253085,10 @@ function _supportsColor(haveStream, { streamIsTTY, sniffFlags = true } = {}) {
     return 3;
   }
   if ("TERM_PROGRAM" in env) {
-    const version = Number.parseInt((env.TERM_PROGRAM_VERSION || "").split(".")[0], 10);
+    const version2 = Number.parseInt((env.TERM_PROGRAM_VERSION || "").split(".")[0], 10);
     switch (env.TERM_PROGRAM) {
       case "iTerm.app": {
-        return version >= 3 ? 3 : 2;
+        return version2 >= 3 ? 3 : 2;
       }
       case "Apple_Terminal": {
         return 2;
@@ -254344,8 +254255,8 @@ function declaredManager(value) {
   return match2?.[1]?.toLowerCase() ?? null;
 }
 function isModernYarn(projectPath, packageManager, lockDirectory) {
-  const version = /^yarn@(\d+)/i.exec(packageManager ?? "")?.[1];
-  if (version && Number(version) >= 2) return true;
+  const version2 = /^yarn@(\d+)/i.exec(packageManager ?? "")?.[1];
+  if (version2 && Number(version2) >= 2) return true;
   let directory = projectPath;
   for (let depth = 0; depth <= 3; depth++) {
     if ((0, import_node_fs4.existsSync)((0, import_node_path4.join)(directory, ".yarnrc.yml"))) return true;
@@ -259470,8 +259381,8 @@ function scoreIssues(issues, rules) {
     scoreBreakdown
   };
 }
-function applyScoring(results, version, rules = {}) {
-  if (version === 1) return results;
+function applyScoring(results, version2, rules = {}) {
+  if (version2 === 1) return results;
   return linkRootCauses(results).map((result) => ({
     ...result,
     summary: CHECKS_SUMMARY.test(result.summary) ? findingSummary(result.issues) : result.summary,
