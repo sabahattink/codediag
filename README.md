@@ -229,6 +229,32 @@ push, and the findings in the files the pull request changes. Its
 the [GitHub Action guide](docs/github-action.md) for all inputs, outputs, and a
 complete workflow.
 
+<details>
+<summary>Example pull request comment</summary>
+
+> ## ✅ CodeDiag: 88/100 (B+)
+>
+> ▲ +4 since the last run · threshold 80
+>
+> | Analyzer | Score | Findings |
+> | --- | ---: | ---: |
+> | API Health | 92/100 | 1 |
+> | Security | 75/100 | 2 |
+> | Dependencies | 100/100 | 0 |
+> | Testing | 90/100 | 1 |
+> | Structure | 100/100 | 0 |
+>
+> ### Findings in changed files (2)
+>
+> | | Rule | Location | Finding |
+> | --- | --- | --- | --- |
+> | 🔴 | [`reflected-xss`](docs/rules.md#reflected-xss) | `src/routes/search.ts:14` | Request data is written into an HTML response without escaping |
+> | 🟡 | [`open-redirect`](docs/rules.md#open-redirect) | `src/routes/auth.ts:31` | A redirect target comes from request data |
+>
+> Not listed: 2 findings elsewhere in the project.
+
+</details>
+
 Adopting CodeDiag on an existing codebase? Commit a baseline so the gate only
 fails on new findings:
 

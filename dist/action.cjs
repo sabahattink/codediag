@@ -252643,7 +252643,7 @@ var package_default = {
   license: "MIT",
   type: "module",
   bin: {
-    codediag: "./dist/index.js"
+    codediag: "dist/index.js"
   },
   main: "./dist/index.js",
   files: [
