@@ -32,6 +32,38 @@ The status bar item runs a workspace scan. Multi-root workspaces use the
 folder containing the active editor, or show a folder picker when no active
 editor identifies one.
 
+## Quick fixes
+
+Every CodeDiag problem offers code actions of kind Quick Fix:
+
+| Action | Effect |
+| --- | --- |
+| Suppress `<rule>` on this line | Inserts `// codediag-ignore-next-line <rule> -- reason` above the finding with the same indentation. |
+| Suppress `<rule>` in this file | Inserts `// codediag-ignore-file <rule> -- reason` after the shebang and leading comments. |
+| Explain `<rule>` | Opens the rule's section of the [rule reference](rules.md). |
+
+Directives are inserted as snippets with `reason` selected, so you type the
+justification over it. CodeDiag does not apply a directive without a reason
+and reports it as `suppression-missing-reason`; see
+[Suppressions, rule settings, and baselines](suppressions-and-baselines.md).
+
+Suppression actions follow the scanner, not a copy of its rules: before
+offering one, the extension runs CodeDiag's suppression pass on the open
+document, with and without the new directive. As a result they are:
+
+- offered only in files the scanner reads directives from (JavaScript and
+  TypeScript), never in `package.json`, `.env`, YAML, or Dockerfiles;
+- offered only for findings that no directive in the current text already
+  suppresses;
+- not offered for `suppression-missing-reason` and `unused-suppression`, which
+  are fixed by correcting the directive;
+- offered per line only for findings that have a line.
+
+Applying a suppression removes the finding from the Problems panel and moves
+the file's later findings down one line; the next scan confirms the result.
+Suppressions are never marked as the preferred fix, so auto-fix commands do
+not apply them. Each problem's rule ID also links to the rule reference.
+
 ## Scan on save
 
 `codediag.scanOnSave` is off by default. Enabling it starts a debounced scan
