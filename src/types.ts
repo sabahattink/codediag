@@ -1,5 +1,11 @@
 export interface StackInfo {
-  framework: "nestjs" | "nextjs" | "express" | "generic" | "unknown";
+  framework:
+    | "nestjs"
+    | "nextjs"
+    | "express"
+    | "fastify"
+    | "generic"
+    | "unknown";
   language: "typescript" | "javascript";
   orm: string | null;
   hasDocker: boolean;

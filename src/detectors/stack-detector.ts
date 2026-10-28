@@ -52,6 +52,10 @@ export function detectStack(projectPath: string): StackInfo {
     existsSync(join(projectPath, "next.config.ts"))
   ) {
     info.framework = "nextjs";
+  } else if (allDeps.fastify) {
+    // Checked before Express: Fastify apps may depend on express through
+    // @fastify/express, while Express apps have no reason to install Fastify.
+    info.framework = "fastify";
   } else if (allDeps.express) {
     info.framework = "express";
   } else if (pkg.dependencies || pkg.devDependencies) {

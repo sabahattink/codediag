@@ -34,6 +34,15 @@ A POST, PUT, PATCH, or DELETE route handler has no recognizable authentication c
 - CWE: [CWE-306](https://cwe.mitre.org/data/definitions/306.html)
 - OWASP Top 10: A07:2021
 
+### missing-auth-hook
+
+**Mutating route without auth hook** · default severity: `warning`
+
+A POST, PUT, PATCH, or DELETE route has no recognizable authentication hook (onRequest, preParsing, preValidation, or preHandler) in its route options, in addHook() calls of its plugin or of fastify-plugin plugins sharing that context, or inherited from every place the plugin is registered.
+
+- CWE: [CWE-306](https://cwe.mitre.org/data/definitions/306.html)
+- OWASP Top 10: A07:2021
+
 ### missing-auth-middleware
 
 **Mutating route without auth middleware** · default severity: `warning`
@@ -51,6 +60,14 @@ A POST, PUT, or PATCH endpoint's @Body() type is not a class (for example any, R
 
 - CWE: [CWE-20](https://cwe.mitre.org/data/definitions/20.html)
 - OWASP Top 10: A03:2021
+
+### missing-error-handler
+
+**No custom error handler** · default severity: `warning`
+
+No setErrorHandler() call was found, so Fastify's default handler replies with the message of every error, including unexpected 500 errors.
+
+- CWE: [CWE-209](https://cwe.mitre.org/data/definitions/209.html)
 
 ### missing-error-middleware
 
@@ -90,6 +107,15 @@ A POST, PUT, or PATCH route handler has no recognizable schema validation of its
 
 The handler relies on an inferred return type, which makes accidental response shape changes harder to notice.
 
+### missing-route-schema
+
+**Route without body schema** · default severity: `warning`
+
+A POST, PUT, or PATCH route declares no schema.body (JSON Schema, TypeBox, or a Zod type provider schema) and no recognizable validation hook, so Fastify does not validate the request body.
+
+- CWE: [CWE-20](https://cwe.mitre.org/data/definitions/20.html)
+- OWASP Top 10: A03:2021
+
 ### missing-swagger
 
 **Endpoint without OpenAPI documentation** · default severity: `info`
@@ -124,6 +150,14 @@ Controller classes exist but none of their methods use an HTTP method decorator 
 **No Express routes** · default severity: `critical`
 
 The project depends on Express but no app or router route registrations with a literal path were detected.
+
+- Scoring: sets the analyzer score to 0 (nothing to evaluate)
+
+### no-fastify-routes
+
+**No Fastify routes** · default severity: `critical`
+
+The project depends on Fastify but no route registrations with a literal path were detected.
 
 - Scoring: sets the analyzer score to 0 (nothing to evaluate)
 
