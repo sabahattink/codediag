@@ -69,3 +69,47 @@ test("default terminal output keeps the breakdown out of the summary", () => {
 
   assert.doesNotMatch(output, /no-test-files ×1/);
 });
+
+test("terminal output shows the change since a previous scan and the scope", () => {
+  const compared: ScanResult = {
+    ...result,
+    analyzers: [
+      {
+        ...result.analyzers[0],
+        issues: [{ ...result.analyzers[0].issues[0], isNew: true }],
+      },
+    ],
+    scope: { changedSince: "origin/main", files: 2, excludedFindings: 5 },
+    comparison: {
+      previousTimestamp: "2025-12-20T00:00:00.000Z",
+      previousScore: 72,
+      previousGrade: "C",
+      scoreDelta: -5,
+      analyzers: [{ name: "Testing", previous: 72, current: 67, delta: -5 }],
+      newFindings: 1,
+      fixedFindings: 1,
+      fixed: [
+        {
+          analyzer: "Testing",
+          rule: "low-test-ratio",
+          severity: "warning",
+          message: "Low test ratio",
+        },
+      ],
+    },
+  };
+
+  const output = capture(() => renderTerminal(compared, { verbose: true }));
+
+  assert.match(
+    output,
+    /Scope: {4}2 files changed since origin\/main \(5 findings elsewhere not scored\)/,
+  );
+  assert.match(
+    output,
+    /Change: {3}▼ −5 since 2025-12-20 \(72 → 67\) · 1 new · 1 fixed/,
+  );
+  assert.match(output, /Testing .* 67 −5$/m);
+  assert.match(output, /✖ NEW No tests \[no-test-files\]/);
+  assert.match(output, /✔ Low test ratio \[low-test-ratio\]/);
+});

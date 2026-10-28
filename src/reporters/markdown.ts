@@ -1,9 +1,47 @@
+import { formatDelta } from "../core/compare.js";
 import { activeIssues, inactiveCounts } from "../core/issues.js";
 import { formatPenalty } from "../core/scoring.js";
-import type { ScanResult } from "../types.js";
+import type { ComparisonSummary, ScanResult } from "../types.js";
+
+const MAX_LISTED_FIXED = 25;
 
 function escapeCell(value: string): string {
   return value.replaceAll("|", "\\|").replace(/\r?\n/g, " ");
+}
+
+function comparisonSection(
+  comparison: ComparisonSummary,
+  score: number,
+): string[] {
+  const lines = [
+    `### Changes since ${comparison.previousTimestamp.slice(0, 10)}`,
+    ``,
+    `Score ${comparison.previousScore} → ${score} (**${formatDelta(comparison.scoreDelta)}**) · ${comparison.newFindings} new · ${comparison.fixedFindings} fixed`,
+    ``,
+    `| Analyzer | Before | Now | Change |`,
+    `|----------|-------:|----:|-------:|`,
+    ...comparison.analyzers.map(
+      (entry) =>
+        `| ${escapeCell(entry.name)} | ${entry.previous ?? "—"} | ${entry.current ?? "—"} | ${entry.delta === null ? "—" : formatDelta(entry.delta)} |`,
+    ),
+    ``,
+  ];
+  if (comparison.fixed.length > 0) {
+    lines.push(`**Fixed:**`, ``);
+    for (const finding of comparison.fixed.slice(0, MAX_LISTED_FIXED)) {
+      const location = finding.file
+        ? ` (\`${finding.line ? `${finding.file}:${finding.line}` : finding.file}\`)`
+        : "";
+      lines.push(
+        `- ✅ ${escapeCell(finding.message)} \`${finding.rule}\`${location}`,
+      );
+    }
+    if (comparison.fixed.length > MAX_LISTED_FIXED) {
+      lines.push(`- …and ${comparison.fixed.length - MAX_LISTED_FIXED} more`);
+    }
+    lines.push(``);
+  }
+  return lines;
 }
 
 /** A compact report for pull request comments and job summaries. */
@@ -22,6 +60,15 @@ export function renderMarkdown(result: ScanResult): string {
 
   lines.push(`| **Total** | **${result.totalScore}/100 (${result.grade})** |`);
   lines.push(``);
+  if (result.scope) {
+    lines.push(
+      `> Scoped to ${result.scope.files} file${result.scope.files === 1 ? "" : "s"} changed since \`${result.scope.changedSince}\`; ${result.scope.excludedFindings} finding${result.scope.excludedFindings === 1 ? "" : "s"} elsewhere were not scored.`,
+      ``,
+    );
+  }
+  if (result.comparison) {
+    lines.push(...comparisonSection(result.comparison, result.totalScore));
+  }
 
   const counts = { critical: 0, warning: 0, info: 0 };
   for (const analyzer of result.analyzers) {

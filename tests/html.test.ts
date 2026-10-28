@@ -68,6 +68,51 @@ test("HTML reporter renders a complete interactive dashboard", () => {
   assert.match(html, /<\/html>$/);
 });
 
+test("HTML reporter shows changes since a previous scan and new findings", () => {
+  const result = fixture();
+  result.analyzers[0].issues[0].isNew = true;
+  result.comparison = {
+    previousTimestamp: "2025-12-24T00:00:00.000Z",
+    previousScore: 64,
+    previousGrade: "D",
+    scoreDelta: 6,
+    analyzers: [{ name: "Security", previous: 64, current: 70, delta: 6 }],
+    newFindings: 1,
+    fixedFindings: 1,
+    fixed: [
+      {
+        analyzer: "Security",
+        rule: "open-cors",
+        severity: "warning",
+        message: "CORS <open>",
+        file: "src/main.ts",
+        line: 4,
+      },
+    ],
+  };
+
+  const html = renderHtml(result);
+
+  assert.match(html, /<h2 id="changes-title">Changes<\/h2>/);
+  assert.match(html, /<span class="delta up"[^>]*>\+6<\/span>/);
+  assert.match(html, /data-filter="new" aria-pressed="false">New 1</);
+  assert.match(html, /data-new="true"/);
+  assert.match(html, /<span class="tag new">new<\/span>/);
+  assert.match(html, /CORS &lt;open&gt;/);
+  assert.match(html, /src\/main\.ts:4/);
+  assert.doesNotMatch(renderHtml(fixture()), /data-filter="new"/);
+});
+
+test("HTML reporter explains a scan limited to changed files", () => {
+  const result = fixture();
+  result.scope = { changedSince: "origin/main", files: 3, excludedFindings: 9 };
+
+  assert.match(
+    renderHtml(result),
+    /3 files changed since <code>origin\/main<\/code> are reported and scored; 9 findings elsewhere were left out/,
+  );
+});
+
 test("HTML reporter escapes untrusted report content", () => {
   const html = renderHtml(fixture());
 

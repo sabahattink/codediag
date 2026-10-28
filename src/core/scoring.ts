@@ -8,6 +8,16 @@ import type {
   ScoringVersion,
 } from "../types.js";
 
+/** Each analyzer's share of the total score; others weigh 10. */
+export const ANALYZER_WEIGHTS: Readonly<Record<string, number>> = {
+  "API Health": 25,
+  Security: 30,
+  Dependencies: 20,
+  Testing: 15,
+  Structure: 10,
+};
+export const DEFAULT_ANALYZER_WEIGHT = 10;
+
 export const SEVERITY_WEIGHTS: Record<DiagnosticIssue["severity"], number> = {
   critical: 25,
   warning: 8,

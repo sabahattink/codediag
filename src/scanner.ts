@@ -11,10 +11,15 @@ import { analyzeStructure } from "./analyzers/structure.js";
 import { analyzeTesting } from "./analyzers/testing.js";
 import { loadConfig } from "./config.js";
 import { applyBaseline } from "./core/baseline.js";
+import { limitToFiles } from "./core/changed-files.js";
 import { assignFingerprints } from "./core/fingerprint.js";
 import { applyRuleOverrides } from "./core/rule-overrides.js";
 import { createScanContext } from "./core/scan-context.js";
-import { applyScoring } from "./core/scoring.js";
+import {
+  ANALYZER_WEIGHTS,
+  applyScoring,
+  DEFAULT_ANALYZER_WEIGHT,
+} from "./core/scoring.js";
 import { applySuppressions } from "./core/suppressions.js";
 import { detectStack } from "./detectors/stack-detector.js";
 import type {
@@ -23,14 +28,6 @@ import type {
   Grade,
   ScanResult,
 } from "./types.js";
-
-const WEIGHTS: Record<string, number> = {
-  "API Health": 25,
-  Security: 30,
-  Dependencies: 20,
-  Testing: 15,
-  Structure: 10,
-};
 
 export interface ScanOptions {
   interactive?: boolean;
@@ -42,6 +39,11 @@ export interface ScanOptions {
    * "cached" reuses this process's earlier audit of the same lock file.
    */
   audit?: boolean | "cached";
+  /**
+   * Reports and scores only findings in these project-relative files,
+   * typically from changedFilesSince().
+   */
+  scope?: { changedSince: string; files: ReadonlySet<string> };
 }
 
 interface ProgressReporter {
@@ -163,11 +165,15 @@ export async function scan(
     config.rules,
   );
   const fingerprinted = assignFingerprints(configured, context.readText);
+  const scoped = options.scope
+    ? limitToFiles(fingerprinted, options.scope.files)
+    : undefined;
+  const inScope = scoped?.results ?? fingerprinted;
   const baseline = options.baseline
-    ? applyBaseline(fingerprinted, options.baseline)
+    ? applyBaseline(inScope, options.baseline)
     : undefined;
   const analyzers = applyScoring(
-    baseline?.results ?? fingerprinted,
+    baseline?.results ?? inScope,
     config.scoring.version,
     config.rules,
   );
@@ -176,7 +182,7 @@ export async function scan(
   let totalWeight = 0;
   let weightedSum = 0;
   for (const r of analyzers) {
-    const w = WEIGHTS[r.name] || 10;
+    const w = ANALYZER_WEIGHTS[r.name] ?? DEFAULT_ANALYZER_WEIGHT;
     weightedSum += r.score * w;
     totalWeight += w;
   }
@@ -196,5 +202,14 @@ export async function scan(
     scoringVersion: config.scoring.version,
     ...(baseline ? { baseline: baseline.summary } : {}),
     ...(skipped.total > 0 ? { skipped } : {}),
+    ...(options.scope && scoped
+      ? {
+          scope: {
+            changedSince: options.scope.changedSince,
+            files: options.scope.files.size,
+            excludedFindings: scoped.excluded,
+          },
+        }
+      : {}),
   };
 }

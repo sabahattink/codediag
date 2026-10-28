@@ -75,6 +75,12 @@
           "minimum": 0
         }
       }
+    },
+    "scope": {
+      "$ref": "#/$defs/scanScope"
+    },
+    "comparison": {
+      "$ref": "#/$defs/comparison"
     }
   },
   "$defs": {
@@ -246,6 +252,10 @@
             "medium",
             "low"
           ]
+        },
+        "isNew": {
+          "type": "boolean",
+          "description": "Set by --compare: the finding was not in the previous report."
         }
       }
     },
@@ -325,6 +335,166 @@
           "type": "number",
           "minimum": 0,
           "maximum": 100
+        }
+      }
+    },
+    "scanScope": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Present with --changed-since: only findings in changed files are reported and scored.",
+      "required": [
+        "changedSince",
+        "files",
+        "excludedFindings"
+      ],
+      "properties": {
+        "changedSince": {
+          "type": "string",
+          "minLength": 1
+        },
+        "files": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "excludedFindings": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "comparison": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Present with --compare: changes since an earlier JSON report, matched by finding fingerprint.",
+      "required": [
+        "previousTimestamp",
+        "previousScore",
+        "previousGrade",
+        "scoreDelta",
+        "analyzers",
+        "newFindings",
+        "fixedFindings",
+        "fixed"
+      ],
+      "properties": {
+        "previousTimestamp": {
+          "type": "string",
+          "minLength": 1
+        },
+        "previousScore": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "previousGrade": {
+          "type": "string",
+          "minLength": 1
+        },
+        "scoreDelta": {
+          "type": "number"
+        },
+        "analyzers": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "name",
+              "previous",
+              "current",
+              "delta"
+            ],
+            "properties": {
+              "name": {
+                "type": "string",
+                "minLength": 1
+              },
+              "previous": {
+                "anyOf": [
+                  {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 100
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "current": {
+                "anyOf": [
+                  {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 100
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "delta": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "newFindings": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "fixedFindings": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "fixed": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "analyzer",
+              "rule",
+              "severity",
+              "message"
+            ],
+            "properties": {
+              "analyzer": {
+                "type": "string",
+                "minLength": 1
+              },
+              "rule": {
+                "type": "string",
+                "minLength": 1
+              },
+              "severity": {
+                "type": "string",
+                "enum": [
+                  "critical",
+                  "warning",
+                  "info"
+                ]
+              },
+              "message": {
+                "type": "string"
+              },
+              "file": {
+                "type": "string",
+                "minLength": 1
+              },
+              "line": {
+                "type": "integer",
+                "minimum": 1
+              }
+            }
+          }
         }
       }
     }

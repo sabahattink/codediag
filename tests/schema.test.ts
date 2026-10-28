@@ -124,3 +124,35 @@ test("JSON schema rejects unknown fields", () => {
     validate.errors?.some((error) => error.keyword === "additionalProperties"),
   );
 });
+
+test("JSON schema accepts a compared, scoped scan with new findings", () => {
+  const result = validResult();
+  const [analyzer] = result.analyzers;
+  assert.ok(analyzer);
+  analyzer.issues = analyzer.issues.map((issue) => ({ ...issue, isNew: true }));
+  result.scope = { changedSince: "origin/main", files: 4, excludedFindings: 2 };
+  result.comparison = {
+    previousTimestamp: "2026-07-10T10:20:30.000Z",
+    previousScore: 80,
+    previousGrade: "B",
+    scoreDelta: 4,
+    analyzers: [
+      { name: "API Health", previous: 80, current: 84, delta: 4 },
+      { name: "Testing", previous: 90, current: null, delta: null },
+    ],
+    newFindings: 1,
+    fixedFindings: 1,
+    fixed: [
+      {
+        analyzer: "API Health",
+        rule: "missing-guard",
+        severity: "warning",
+        message: "POST /users has no guard",
+        file: "src/users.controller.ts",
+        line: 9,
+      },
+    ],
+  };
+
+  assert.equal(validate(result), true, JSON.stringify(validate.errors));
+});

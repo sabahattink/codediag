@@ -4,6 +4,8 @@ import chalk from "chalk";
 import { Command } from "commander";
 import { isBelowThreshold, loadConfig, parseThreshold } from "./config.js";
 import { loadBaseline } from "./core/baseline.js";
+import { changedFilesSince } from "./core/changed-files.js";
+import { compareWithPrevious, loadReport } from "./core/compare.js";
 import { renderHtml } from "./reporters/html.js";
 import { renderAiPrompt, renderFixPlan } from "./reporters/fix-plan.js";
 import { renderJson } from "./reporters/json.js";
@@ -68,6 +70,14 @@ program
     "--update-baseline <report>",
     "Write the scan's JSON report to this path for use with --baseline",
   )
+  .option(
+    "--compare <report>",
+    "Show score changes and new or fixed findings since an earlier JSON report",
+  )
+  .option(
+    "--changed-since <revision>",
+    "Report and score only findings in files changed since a Git revision",
+  )
   .action(async (path: string, options, command: Command) => {
     const targetPath = resolve(path);
     // --ci implies JSON only when no output format was chosen explicitly.
@@ -89,15 +99,33 @@ program
           : options.ci || hasConfig
             ? config.threshold
             : null;
+      if (options.changedSince && options.updateBaseline) {
+        throw new Error(
+          "--update-baseline records the whole project and cannot be combined with --changed-since",
+        );
+      }
       const baseline = options.baseline
         ? loadBaseline(resolve(options.baseline))
         : undefined;
-      const result = await scan(targetPath, config, {
+      const previous = options.compare
+        ? loadReport(resolve(options.compare))
+        : undefined;
+      const scope = options.changedSince
+        ? {
+            changedSince: options.changedSince as string,
+            files: changedFilesSince(targetPath, options.changedSince),
+          }
+        : undefined;
+      const scanned = await scan(targetPath, config, {
         baseline,
+        scope,
         // --no-audit overrides the config; otherwise the config decides.
         audit:
           command.getOptionValueSource("audit") === "cli" ? false : undefined,
       });
+      const result = previous
+        ? compareWithPrevious(scanned, previous, scope?.files)
+        : scanned;
       if (options.updateBaseline) {
         const baselinePath = resolve(options.updateBaseline);
         mkdirSync(dirname(baselinePath), { recursive: true });

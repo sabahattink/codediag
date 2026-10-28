@@ -26,6 +26,8 @@ export interface DiagnosticIssue {
   baseline?: boolean;
   /** How certain the analyzer is; "low" findings rely on naming heuristics. */
   confidence?: "high" | "medium" | "low";
+  /** Set by a comparison: the finding was not in the previous report. */
+  isNew?: boolean;
 }
 
 export interface BaselineSummary {
@@ -33,6 +35,47 @@ export interface BaselineSummary {
   matched: number;
   /** Baseline fingerprints that no longer match any finding. */
   fixed: number;
+}
+
+/** A finding of the previous report that no longer occurs. */
+export interface FixedFinding {
+  analyzer: string;
+  rule: string;
+  severity: DiagnosticIssue["severity"];
+  message: string;
+  file?: string;
+  line?: number;
+}
+
+export interface AnalyzerDelta {
+  name: string;
+  /** Null when the analyzer did not run in that scan. */
+  previous: number | null;
+  current: number | null;
+  delta: number | null;
+}
+
+/** Changes since an earlier JSON report, matched by finding fingerprint. */
+export interface ComparisonSummary {
+  previousTimestamp: string;
+  previousScore: number;
+  previousGrade: string;
+  scoreDelta: number;
+  analyzers: AnalyzerDelta[];
+  /** Active findings whose fingerprint the previous report did not have. */
+  newFindings: number;
+  /** Active findings of the previous report that no longer occur. */
+  fixedFindings: number;
+  fixed: FixedFinding[];
+}
+
+/** Limits a scan to the files changed since a Git revision. */
+export interface ScanScope {
+  changedSince: string;
+  /** Changed files inside the project. */
+  files: number;
+  /** Findings outside those files that were not reported or scored. */
+  excludedFindings: number;
 }
 
 export type RuleSetting = "off" | DiagnosticIssue["severity"];
@@ -79,6 +122,8 @@ export interface ScanResult {
   scoringVersion?: ScoringVersion;
   baseline?: BaselineSummary;
   skipped?: SkippedSummary;
+  scope?: ScanScope;
+  comparison?: ComparisonSummary;
 }
 
 export interface PackageJson {

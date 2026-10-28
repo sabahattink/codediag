@@ -435,3 +435,68 @@ test("rules lists the registry and explain describes or suggests rules", () => {
   assert.equal(unknown.status, 1);
   assert.match(unknown.stderr, /Did you mean open-cors\?/);
 });
+
+test("--compare reports the score change and new or fixed findings", () => {
+  const directory = mkdtempSync(join(tmpdir(), "codediag-cli-"));
+  try {
+    writeFileSync(join(directory, "package.json"), "{}");
+    writeFileSync(join(directory, ".gitignore"), ".env\n");
+    writeFileSync(join(directory, "run.js"), "eval(a);\n");
+    writeFileSync(
+      join(directory, ".codediag.yml"),
+      [
+        "analyzers:",
+        "  api: false",
+        "  dependencies: false",
+        "  testing: false",
+        "  structure: false",
+      ].join("\n"),
+    );
+    const before = runCli(["scan", ".", "--format", "json"], directory);
+    writeFileSync(join(directory, "previous.json"), before.stdout);
+
+    writeFileSync(join(directory, "run.js"), "new Function(a);\n");
+    const compared = runCli(
+      ["scan", ".", "--format", "json", "--compare", "previous.json"],
+      directory,
+    );
+    assert.equal(compared.status, 0, compared.stderr);
+    const report = JSON.parse(compared.stdout);
+    assert.equal(validateScanResult(report), true);
+    assert.equal(report.comparison.newFindings, 1);
+    assert.equal(report.comparison.fixedFindings, 1);
+    assert.equal(
+      report.comparison.fixed[0].message,
+      "Runtime code execution uses eval()",
+    );
+    assert.equal(report.analyzers[0].issues[0].isNew, true);
+
+    const terminal = runCli(
+      ["scan", ".", "--compare", "previous.json"],
+      directory,
+    );
+    assert.match(terminal.stdout, /Change: .* 1 new .* 1 fixed/);
+
+    const invalid = runCli(
+      ["scan", ".", "--compare", "package.json"],
+      directory,
+    );
+    assert.equal(invalid.status, 1);
+    assert.match(invalid.stderr, /not a CodeDiag JSON report/);
+  } finally {
+    rmSync(directory, { recursive: true, force: true });
+  }
+});
+
+test("--changed-since cannot rewrite a whole-project baseline", () => {
+  const result = runCli([
+    "scan",
+    ".",
+    "--changed-since",
+    "HEAD",
+    "--update-baseline",
+    "baseline.json",
+  ]);
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /cannot be combined with --changed-since/);
+});

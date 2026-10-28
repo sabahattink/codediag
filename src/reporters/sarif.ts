@@ -145,7 +145,9 @@ export function buildSarif(result: ScanResult) {
         : {}),
       ...(result.baseline
         ? { baselineState: issue.baseline ? "unchanged" : "new" }
-        : {}),
+        : result.comparison
+          ? { baselineState: issue.isNew ? "new" : "unchanged" }
+          : {}),
       partialFingerprints: {
         [FINGERPRINT_KEY]: issue.fingerprint ?? computeFingerprint(issue, null),
       },

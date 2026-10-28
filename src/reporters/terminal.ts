@@ -1,7 +1,8 @@
 import chalk from "chalk";
+import { formatDelta } from "../core/compare.js";
 import { activeIssues, inactiveCounts } from "../core/issues.js";
 import { formatPenalty } from "../core/scoring.js";
-import type { ScanResult } from "../types.js";
+import type { ComparisonSummary, ScanResult } from "../types.js";
 
 function scoreBar(score: number, width = 20): string {
   const filled = Math.round((score / 100) * width);
@@ -30,6 +31,47 @@ function severityIcon(severity: string): string {
     default:
       return "\u00B7";
   }
+}
+
+function deltaText(delta: number | null | undefined): string {
+  if (delta === null || delta === undefined) return "";
+  const text = formatDelta(delta);
+  if (delta > 0) return chalk.green(text);
+  if (delta < 0) return chalk.red(text);
+  return chalk.dim(text);
+}
+
+function comparisonLine(comparison: ComparisonSummary, score: number): string {
+  const arrow =
+    comparison.scoreDelta > 0
+      ? chalk.green("▲")
+      : comparison.scoreDelta < 0
+        ? chalk.red("▼")
+        : chalk.dim("=");
+  return [
+    `${arrow} ${deltaText(comparison.scoreDelta)} since ${comparison.previousTimestamp.slice(0, 10)}` +
+      chalk.dim(` (${comparison.previousScore} → ${score})`),
+    comparison.newFindings > 0
+      ? chalk.magenta(`${comparison.newFindings} new`)
+      : chalk.dim("0 new"),
+    comparison.fixedFindings > 0
+      ? chalk.green(`${comparison.fixedFindings} fixed`)
+      : chalk.dim("0 fixed"),
+  ].join(chalk.dim(" · "));
+}
+
+function renderFixed(comparison: ComparisonSummary): void {
+  if (comparison.fixed.length === 0) return;
+  console.log(chalk.green("  Fixed since the previous scan"));
+  for (const finding of comparison.fixed) {
+    const location = finding.file
+      ? ` ${finding.line ? `${finding.file}:${finding.line}` : finding.file}`
+      : "";
+    console.log(
+      `  ${chalk.green("✔")} ${chalk.dim(`${finding.message} [${finding.rule}]${location}`)}`,
+    );
+  }
+  console.log();
 }
 
 export function renderTerminal(
@@ -73,14 +115,33 @@ export function renderTerminal(
       gradeColor(result.grade) +
       chalk.dim(` (${result.totalScore}/100)`),
   );
+  if (result.scope) {
+    const { changedSince, files, excludedFindings } = result.scope;
+    console.log(
+      chalk.dim("  Scope:    ") +
+        `${files} file${files === 1 ? "" : "s"} changed since ${changedSince}` +
+        chalk.dim(
+          ` (${excludedFindings} finding${excludedFindings === 1 ? "" : "s"} elsewhere not scored)`,
+        ),
+    );
+  }
+  if (result.comparison) {
+    console.log(
+      chalk.dim("  Change:   ") +
+        comparisonLine(result.comparison, result.totalScore),
+    );
+  }
   console.log();
 
   // Scores
   for (const a of result.analyzers) {
     const bar = scoreBar(a.score);
     const scoreStr = String(a.score).padStart(3);
+    const delta = result.comparison?.analyzers.find(
+      (entry) => entry.name === a.name,
+    )?.delta;
     console.log(
-      `  ${chalk.dim(a.name.padEnd(16))} ${bar} ${chalk.bold(scoreStr)}`,
+      `  ${chalk.dim(a.name.padEnd(16))} ${bar} ${chalk.bold(scoreStr)}${delta ? ` ${deltaText(delta)}` : ""}`,
     );
     if (options.verbose) {
       for (const entry of a.scoreBreakdown ?? []) {
@@ -130,8 +191,9 @@ export function renderTerminal(
       const cause = issue.causedBy
         ? chalk.dim(` (caused by ${issue.causedBy})`)
         : "";
+      const badge = issue.isNew ? `${chalk.magenta.bold("NEW")} ` : "";
       console.log(
-        `  ${severityIcon(issue.severity)} ${issue.message}${cause} ${chalk.dim(`[${issue.rule}]`)}`,
+        `  ${severityIcon(issue.severity)} ${badge}${issue.message}${cause} ${chalk.dim(`[${issue.rule}]`)}`,
       );
       if (issue.file) {
         const location = issue.line
@@ -152,6 +214,7 @@ export function renderTerminal(
         );
     }
     console.log();
+    if (options.verbose && result.comparison) renderFixed(result.comparison);
   } else {
     console.log(chalk.green("  \u2714 No issues found. Ship it!"));
     if (notCounted.length > 0) {
