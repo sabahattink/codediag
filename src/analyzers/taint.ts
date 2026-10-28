@@ -1,0 +1,487 @@
+import {
+  type CallExpression,
+  type Decorator,
+  type Expression,
+  Node,
+  type SourceFile,
+  SyntaxKind,
+} from "ts-morph";
+
+/**
+ * Request-data taint tracking shared by the security sink rules: which local
+ * names a module's functions are bound to, which expressions a variable can
+ * hold, and whether a value comes from the request.
+ */
+
+export const SOURCE_PATTERN = "**/*.{ts,tsx,js,jsx,mjs,cjs}";
+
+export const RUNTIME_IGNORES = [
+  "**/*.test.{ts,tsx,js,jsx,mjs,cjs}",
+  "**/*.spec.{ts,tsx,js,jsx,mjs,cjs}",
+  "**/__tests__/**",
+  "**/test/**",
+  "**/tests/**",
+];
+
+export const REQUEST_DATA =
+  /\b(?:req(?:uest)?|ctx)\s*(?:\.|\[)|\bprocess\s*\.\s*argv\b|\b(?:body|params|query)\s*(?:\.|\[)|\bsearchParams\b/i;
+
+/** How many variable assignments taint tracking follows back from a sink. */
+export const MAX_TAINT_HOPS = 3;
+
+export function isModuleCall(
+  expression: Expression,
+  modules: Set<string>,
+): boolean {
+  if (!Node.isCallExpression(expression)) return false;
+  if (expression.getExpression().getText() !== "require") return false;
+  const moduleArgument = expression.getArguments()[0];
+  return (
+    Node.isStringLiteral(moduleArgument) &&
+    modules.has(moduleArgument.getLiteralText())
+  );
+}
+
+export interface ModuleBindings {
+  /** Local names bound to the module's sink functions. */
+  functions: Set<string>;
+  /** Local names bound to the whole module (or its `promises` API). */
+  namespaces: Set<string>;
+}
+
+export function moduleBindings(
+  sourceFile: SourceFile,
+  modules: Set<string>,
+  sinkFunctions: Set<string>,
+): ModuleBindings {
+  const functions = new Set<string>();
+  const namespaces = new Set<string>();
+
+  for (const declaration of sourceFile.getImportDeclarations()) {
+    if (!modules.has(declaration.getModuleSpecifierValue())) continue;
+
+    const namespace = declaration.getNamespaceImport();
+    if (namespace) namespaces.add(namespace.getText());
+    const defaultImport = declaration.getDefaultImport();
+    if (defaultImport) namespaces.add(defaultImport.getText());
+
+    for (const namedImport of declaration.getNamedImports()) {
+      const local =
+        namedImport.getAliasNode()?.getText() ?? namedImport.getName();
+      if (sinkFunctions.has(namedImport.getName())) functions.add(local);
+      if (namedImport.getName() === "promises") namespaces.add(local);
+    }
+  }
+
+  for (const declaration of sourceFile.getVariableDeclarations()) {
+    const initializer = declaration.getInitializer();
+    if (!initializer || !isModuleCall(initializer, modules)) continue;
+
+    const nameNode = declaration.getNameNode();
+    if (Node.isIdentifier(nameNode)) {
+      namespaces.add(nameNode.getText());
+      continue;
+    }
+    if (!Node.isObjectBindingPattern(nameNode)) continue;
+
+    for (const element of nameNode.getElements()) {
+      const importedName =
+        element.getPropertyNameNode()?.getText() ?? element.getName();
+      if (sinkFunctions.has(importedName)) functions.add(element.getName());
+      if (importedName === "promises") namespaces.add(element.getName());
+    }
+  }
+
+  return { functions, namespaces };
+}
+
+export function moduleCall(
+  call: CallExpression,
+  bindings: ModuleBindings,
+  modules: Set<string>,
+  sinkFunctions: Set<string>,
+): boolean {
+  const expression = call.getExpression();
+  if (Node.isIdentifier(expression)) {
+    return bindings.functions.has(expression.getText());
+  }
+  if (!Node.isPropertyAccessExpression(expression)) return false;
+  if (!sinkFunctions.has(expression.getName())) return false;
+
+  const receiver = expression.getExpression();
+  const namespace = receiver.getText().replace(/\.promises$/, "");
+  return (
+    bindings.namespaces.has(namespace) ||
+    isModuleCall(receiver, modules) ||
+    (Node.isPropertyAccessExpression(receiver) &&
+      receiver.getName() === "promises" &&
+      isModuleCall(receiver.getExpression(), modules))
+  );
+}
+
+export function isStaticString(node: Node | undefined): boolean {
+  return Boolean(
+    node &&
+      (Node.isStringLiteral(node) ||
+        Node.isNoSubstitutionTemplateLiteral(node)),
+  );
+}
+
+type ScopeNode = Node;
+
+export function enclosingScope(node: Node): ScopeNode {
+  return (
+    node.getFirstAncestor(
+      (ancestor) =>
+        Node.isFunctionDeclaration(ancestor) ||
+        Node.isFunctionExpression(ancestor) ||
+        Node.isArrowFunction(ancestor) ||
+        Node.isMethodDeclaration(ancestor) ||
+        Node.isConstructorDeclaration(ancestor),
+    ) ?? node.getSourceFile()
+  );
+}
+
+function boundNames(name: Node): string[] {
+  if (Node.isIdentifier(name)) return [name.getText()];
+  if (Node.isObjectBindingPattern(name) || Node.isArrayBindingPattern(name)) {
+    return name
+      .getDescendantsOfKind(SyntaxKind.Identifier)
+      .filter((element) => Node.isBindingElement(element.getParent()))
+      .map((element) => element.getText());
+  }
+  return [];
+}
+
+interface ScopeIndex {
+  /** Initializers of variables declared directly in this scope. */
+  declarations: Map<string, Node[]>;
+  /** Right-hand sides of plain `name = value` assignments in this scope. */
+  assignments: Map<string, Node[]>;
+}
+
+const scopeIndexes = new WeakMap<Node, ScopeIndex>();
+
+function add(map: Map<string, Node[]>, name: string, node: Node): void {
+  const list = map.get(name);
+  if (list) list.push(node);
+  else map.set(name, [node]);
+}
+
+/** Indexes a scope once, so taint lookups do not rescan it per identifier. */
+function indexScope(scope: ScopeNode): ScopeIndex {
+  const existing = scopeIndexes.get(scope);
+  if (existing) return existing;
+
+  const index: ScopeIndex = { declarations: new Map(), assignments: new Map() };
+  for (const declaration of scope.getDescendantsOfKind(
+    SyntaxKind.VariableDeclaration,
+  )) {
+    if (enclosingScope(declaration) !== scope) continue;
+    for (const name of boundNames(declaration.getNameNode())) {
+      // Destructuring propagates the whole initializer to every bound name.
+      const initializer = declaration.getInitializer();
+      if (initializer) add(index.declarations, name, initializer);
+      else if (!index.declarations.has(name)) index.declarations.set(name, []);
+    }
+  }
+  for (const binary of scope.getDescendantsOfKind(
+    SyntaxKind.BinaryExpression,
+  )) {
+    if (
+      binary.getOperatorToken().getKind() === SyntaxKind.EqualsToken &&
+      Node.isIdentifier(binary.getLeft())
+    ) {
+      add(index.assignments, binary.getLeft().getText(), binary.getRight());
+    }
+  }
+  scopeIndexes.set(scope, index);
+  return index;
+}
+
+/**
+ * The expressions a variable can hold: initializers of its declaration in the
+ * nearest scope that declares it, and plain reassignments in that scope.
+ */
+export function valueSources(identifier: Node): Node[] {
+  const name = identifier.getText();
+  let scope: ScopeNode | undefined = enclosingScope(identifier);
+  while (scope) {
+    const index = indexScope(scope);
+    const declared = index.declarations.get(name);
+    if (declared) return [...declared, ...(index.assignments.get(name) ?? [])];
+    scope = Node.isSourceFile(scope) ? undefined : enclosingScope(scope);
+  }
+  return [];
+}
+
+function isPropertyName(identifier: Node): boolean {
+  const parent = identifier.getParent();
+  return Boolean(
+    parent &&
+      Node.isPropertyAccessExpression(parent) &&
+      parent.getNameNode() === identifier,
+  );
+}
+
+/**
+ * True when an expression visibly contains request data, directly or through
+ * up to MAX_TAINT_HOPS variable assignments in enclosing scopes.
+ */
+const taintCache = new WeakMap<Node, boolean>();
+
+export function isTainted(
+  node: Node,
+  hops = 0,
+  seen = new Set<Node>(),
+): boolean {
+  if (hops === 0) {
+    const cached = taintCache.get(node);
+    if (cached !== undefined) return cached;
+    const tainted = traceTaint(node, 0, seen);
+    taintCache.set(node, tainted);
+    return tainted;
+  }
+  return traceTaint(node, hops, seen);
+}
+
+function traceTaint(node: Node, hops: number, seen: Set<Node>): boolean {
+  if (REQUEST_DATA.test(node.getText())) return true;
+  if (hops >= MAX_TAINT_HOPS) return false;
+
+  const identifiers = Node.isIdentifier(node)
+    ? [node]
+    : node.getDescendantsOfKind(SyntaxKind.Identifier);
+  for (const identifier of identifiers) {
+    if (isPropertyName(identifier)) continue;
+    for (const source of valueSources(identifier)) {
+      if (seen.has(source)) continue;
+      seen.add(source);
+      if (isTainted(source, hops + 1, seen)) return true;
+    }
+  }
+  return false;
+}
+
+/** A template with substitutions or a `+` concatenation, seen through variables. */
+export function dynamicStringShape(node: Node, hops = 0): Node | null {
+  if (Node.isTemplateExpression(node)) return node;
+  if (
+    Node.isBinaryExpression(node) &&
+    node.getOperatorToken().getKind() === SyntaxKind.PlusToken
+  ) {
+    return node;
+  }
+  if (Node.isIdentifier(node) && hops < MAX_TAINT_HOPS) {
+    for (const source of valueSources(node)) {
+      const shape = dynamicStringShape(source, hops + 1);
+      if (shape) return shape;
+    }
+  }
+  return null;
+}
+
+/** Calls on a request value that return part of it: `query.get("x").trim()`. */
+const REQUEST_VALUE_METHODS = new Set([
+  "at",
+  "formData",
+  "get",
+  "getAll",
+  "json",
+  "replace",
+  "replaceAll",
+  "slice",
+  "substring",
+  "text",
+  "toLowerCase",
+  "toString",
+  "toUpperCase",
+  "trim",
+  "trimEnd",
+  "trimStart",
+]);
+/** Functions whose result still carries a request value passed to them. */
+const REQUEST_VALUE_FUNCTIONS = new Set([
+  "String",
+  "decodeURI",
+  "decodeURIComponent",
+  "join",
+  "normalize",
+  "resolve",
+]);
+
+/**
+ * Request properties the server fills in rather than the client: upload temp
+ * files (multer), the authenticated user, the session, and connection facts.
+ */
+const SERVER_SET_REQUEST_DATA =
+  /\b(?:req(?:uest)?|ctx)\s*\.\s*(?:app|auth|file|files|ip|ips|method|protocol|secure|session|state|user)\b/;
+
+export const REQUEST_OBJECT = /^(?:req|request|ctx)$/;
+/** NestJS parameter decorators that inject request data. */
+const REQUEST_DECORATORS = new Set(["Body", "Headers", "Param", "Query"]);
+
+/**
+ * The NestJS decorator that injects a parameter from the request:
+ * `@Query("q") q` (one field) or `@Body() dto` (the parsed object).
+ */
+export function requestDecorator(identifier: Node): Decorator | undefined {
+  for (const declaration of identifier.getSymbol()?.getDeclarations() ?? []) {
+    if (!Node.isParameterDeclaration(declaration)) continue;
+    const decorator = declaration
+      .getDecorators()
+      .find((candidate) => REQUEST_DECORATORS.has(candidate.getName()));
+    if (decorator) return decorator;
+  }
+  return undefined;
+}
+
+export function unwrap(node: Node): Node {
+  let current = node;
+  while (
+    Node.isAwaitExpression(current) ||
+    Node.isParenthesizedExpression(current) ||
+    Node.isAsExpression(current) ||
+    Node.isNonNullExpression(current)
+  ) {
+    current = current.getExpression();
+  }
+  return current;
+}
+
+/**
+ * True when the expression evaluates to request data itself, not to the
+ * result of an arbitrary function given request data. Unlike `isTainted`, a
+ * lookup such as `db.find(req.params.id)` is not request data, and wrapping
+ * the value in `basename()`, `escapeHtml()`, `Number()`, or
+ * `encodeURIComponent()` ends the trace, because those calls are not
+ * pass-throughs.
+ */
+export function isRequestValue(node: Node, hops = 0): boolean {
+  const value = unwrap(node);
+
+  if (Node.isIdentifier(value)) {
+    if (requestDecorator(value)) return true;
+    if (hops >= MAX_TAINT_HOPS) return false;
+    return valueSources(value).some((source) =>
+      isRequestValue(source, hops + 1),
+    );
+  }
+  if (
+    Node.isPropertyAccessExpression(value) ||
+    Node.isElementAccessExpression(value)
+  ) {
+    const text = value.getText();
+    if (SERVER_SET_REQUEST_DATA.test(text)) return false;
+    if (REQUEST_DATA.test(text) && !hasCallInside(value)) return true;
+    return isRequestValue(value.getExpression(), hops);
+  }
+  if (Node.isCallExpression(value)) {
+    const callee = value.getExpression();
+    if (
+      Node.isPropertyAccessExpression(callee) &&
+      REQUEST_VALUE_METHODS.has(callee.getName())
+    ) {
+      const receiver = unwrap(callee.getExpression());
+      // `request.json()`, `req.get("host")`: a method of the request itself.
+      if (
+        Node.isIdentifier(receiver) &&
+        REQUEST_OBJECT.test(receiver.getText())
+      ) {
+        return true;
+      }
+      return isRequestValue(receiver, hops);
+    }
+    return (
+      REQUEST_VALUE_FUNCTIONS.has(calleeName(value)) &&
+      value.getArguments().some((argument) => isRequestValue(argument, hops))
+    );
+  }
+  if (Node.isNewExpression(value)) {
+    return (
+      value.getExpression().getText() === "URL" &&
+      isRequestValue(value.getArguments()[0] ?? value, hops)
+    );
+  }
+  if (Node.isConditionalExpression(value)) {
+    return (
+      isRequestValue(value.getWhenTrue(), hops) ||
+      isRequestValue(value.getWhenFalse(), hops)
+    );
+  }
+  if (
+    Node.isTemplateExpression(value) ||
+    (Node.isBinaryExpression(value) &&
+      value.getOperatorToken().getKind() === SyntaxKind.PlusToken)
+  ) {
+    return stringParts(value).some(
+      (part) => typeof part !== "string" && isRequestValue(part, hops),
+    );
+  }
+  return false;
+}
+
+export function hasCallInside(node: Node): boolean {
+  return node.getDescendantsOfKind(SyntaxKind.CallExpression).length > 0;
+}
+
+/** The called function's own name: `basename` for `path.basename(x)`. */
+export function calleeName(call: CallExpression): string {
+  const expression = call.getExpression();
+  return Node.isPropertyAccessExpression(expression)
+    ? expression.getName()
+    : expression.getText();
+}
+
+/**
+ * A string's pieces from left to right: literal text, or the expression that
+ * fills a slot. Single-assignment variables are followed.
+ */
+export function stringParts(node: Node, hops = 0): Array<string | Node> {
+  const value = unwrap(node);
+  if (
+    Node.isStringLiteral(value) ||
+    Node.isNoSubstitutionTemplateLiteral(value)
+  ) {
+    return [value.getLiteralText()];
+  }
+  if (Node.isTemplateExpression(value)) {
+    const parts: Array<string | Node> = [value.getHead().getLiteralText()];
+    for (const span of value.getTemplateSpans()) {
+      parts.push(...stringParts(span.getExpression(), hops));
+      parts.push(span.getLiteral().getLiteralText());
+    }
+    return parts;
+  }
+  if (
+    Node.isBinaryExpression(value) &&
+    value.getOperatorToken().getKind() === SyntaxKind.PlusToken
+  ) {
+    return [
+      ...stringParts(value.getLeft(), hops),
+      ...stringParts(value.getRight(), hops),
+    ];
+  }
+  if (Node.isIdentifier(value) && hops < MAX_TAINT_HOPS) {
+    const sources = valueSources(value);
+    if (sources.length === 1) return stringParts(sources[0], hops + 1);
+  }
+  return [value];
+}
+
+export function objectProperty(
+  node: Node | undefined,
+  names: string[],
+): Node | null {
+  if (!node || !Node.isObjectLiteralExpression(node)) return null;
+  for (const name of names) {
+    const property = node.getProperty(name);
+    if (Node.isPropertyAssignment(property)) {
+      return property.getInitializer() ?? null;
+    }
+    if (Node.isShorthandPropertyAssignment(property)) {
+      return property.getNameNode();
+    }
+  }
+  return null;
+}
