@@ -38,12 +38,12 @@ Every CodeDiag problem offers code actions of kind Quick Fix:
 
 | Action | Effect |
 | --- | --- |
-| Suppress `<rule>` on this line | Inserts `// codediag-ignore-next-line <rule> -- reason` above the finding with the same indentation. |
-| Suppress `<rule>` in this file | Inserts `// codediag-ignore-file <rule> -- reason` after the shebang and leading comments. |
+| Suppress `<rule>` on this line | Inserts `// codediag-ignore-next-line <rule> -- ` above the finding with the same indentation. |
+| Suppress `<rule>` in this file | Inserts `// codediag-ignore-file <rule> -- ` after the shebang and leading comments. |
 | Explain `<rule>` | Opens the rule's section of the [rule reference](rules.md). |
 
-Directives are inserted as snippets with `reason` selected, so you type the
-justification over it. CodeDiag does not apply a directive without a reason
+Directives are inserted with the cursor right after `--`, so you type the
+justification there. CodeDiag does not apply a directive without a reason
 and reports it as `suppression-missing-reason`; see
 [Suppressions, rule settings, and baselines](suppressions-and-baselines.md).
 

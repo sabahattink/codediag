@@ -115,7 +115,7 @@ export interface SuppressionRequest {
   fileLevel: boolean;
 }
 
-/** A directive line, inserted as a snippet so the user types the reason. */
+/** A directive line, inserted as a snippet with the cursor where the reason goes. */
 export interface SuppressionEdit {
   scope: SuppressionScope;
   rule: string;
@@ -137,7 +137,8 @@ const SCOPE_LABELS: Record<SuppressionScope, string> = {
   line: "on this line",
   file: "in this file",
 };
-const REASON_PLACEHOLDER = "reason";
+/** Stands in for the reason the user types when checking the scanner applies a directive. */
+const PROBE_REASON = "reason";
 
 /**
  * Findings about directives are added after suppressions apply, so no
@@ -268,7 +269,7 @@ export function suppressionEdit(
   edited.splice(
     insertion.line,
     0,
-    directiveLine(request, insertion.indent, REASON_PLACEHOLDER),
+    directiveLine(request, insertion.indent, PROBE_REASON),
   );
   const movedLine =
     findingLine === undefined || findingLine < insertion.line
@@ -278,10 +279,12 @@ export function suppressionEdit(
     return null;
   }
 
+  // An empty tab stop: a reason left blank is not applied by the scanner,
+  // whereas a placeholder word left in place would be.
   const snippet = directiveLine(
     { ...request, rule: escapeSnippet(rule) },
     insertion.indent,
-    `\${1:${REASON_PLACEHOLDER}}`,
+    "$1",
   );
   return {
     scope: request.scope,

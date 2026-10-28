@@ -30,7 +30,7 @@ import type { CodediagConfig, ScanResult } from "../src/types.js";
 // Directive text is assembled at runtime so this file holds no real directives.
 const NEXT_LINE = ["codediag", "ignore-next-line"].join("-");
 const FILE = ["codediag", "ignore-file"].join("-");
-const PLACEHOLDER = "${1:reason}";
+const PLACEHOLDER = "$1";
 const SOURCE_FILE = join(resolve("workspace-fixture"), "src", "run.ts");
 const SOURCE = [
   "export function run(plugin: string) {",

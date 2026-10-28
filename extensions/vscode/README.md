@@ -22,16 +22,16 @@ CodeDiag problems offer quick fixes from the light bulb, `Ctrl+.`, or the
 Problems panel:
 
 - **Suppress `<rule>` on this line** inserts
-  `// codediag-ignore-next-line <rule> -- reason` above the finding, indented
+  `// codediag-ignore-next-line <rule> -- ` above the finding, indented
   like the flagged line.
 - **Suppress `<rule>` in this file** inserts
-  `// codediag-ignore-file <rule> -- reason` after the shebang and leading
+  `// codediag-ignore-file <rule> -- ` after the shebang and leading
   comments, so pragmas such as Jest docblocks stay first.
 - **Explain `<rule>`** opens the rule's section of the rule reference. The rule
   ID in the Problems panel and hovers links there too.
 
-The placeholder `reason` is selected after insertion: type over it with why
-the finding is acceptable. A directive without a reason is not applied.
+The cursor is placed after `--`: type why the finding is acceptable. A
+directive left without a reason is not applied.
 
 Suppressions are offered only where the scanner reads directives (JavaScript
 and TypeScript files) and only for findings that are not already suppressed.

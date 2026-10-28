@@ -263,7 +263,7 @@ function findingsIn(
 }
 
 /**
- * Inserts the directive as a snippet with the reason selected, then updates
+ * Inserts the directive with the cursor after `--` for the reason, then updates
  * the file's findings until the next scan confirms the suppression.
  */
 async function insertSuppression(
