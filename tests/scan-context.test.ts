@@ -14,6 +14,23 @@ import test from "node:test";
 import { loadConfig } from "../src/config.js";
 import { createScanContext } from "../src/core/scan-context.js";
 
+/**
+ * Windows only allows symbolic links with Developer Mode or elevation, so the
+ * symlink test is skipped where the platform refuses to create one.
+ */
+function symlinkSupport(): true | string {
+  const directory = mkdtempSync(join(tmpdir(), "codediag-symlink-"));
+  try {
+    writeFileSync(join(directory, "target"), "");
+    symlinkSync(join(directory, "target"), join(directory, "link"));
+    return true;
+  } catch (error) {
+    return `symbolic links are unavailable: ${(error as NodeJS.ErrnoException).code}`;
+  } finally {
+    rmSync(directory, { recursive: true, force: true });
+  }
+}
+
 function withProject(
   files: Record<string, string>,
   run: (directory: string) => void,
@@ -135,7 +152,11 @@ test("user ignore entries keep glob semantics relative to the project root", () 
   );
 });
 
-test("file index does not follow symlinked directories or links outside the project", () => {
+const symlinks = symlinkSupport();
+
+test("file index does not follow symlinked directories or links outside the project", {
+  skip: symlinks === true ? false : symlinks,
+}, () => {
   const outside = mkdtempSync(join(tmpdir(), "codediag-outside-"));
   try {
     writeFileSync(join(outside, "secret.ts"), "");
