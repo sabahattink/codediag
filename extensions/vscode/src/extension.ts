@@ -8,7 +8,17 @@ import {
 import { renderHtml } from "../../../src/reporters/html.js";
 import { scan } from "../../../src/scanner.js";
 import type { ScanResult } from "../../../src/types.js";
-import { collectEditorDiagnostics, countSeverities } from "./core.js";
+import {
+  afterSuppression,
+  collectEditorDiagnostics,
+  countSeverities,
+  type EditorDiagnostic,
+  isSuppressionRequest,
+  type QuickFix,
+  quickFixes,
+  ruleDocumentationUrl,
+  suppressionEdit,
+} from "./core.js";
 
 const COMMANDS = {
   scan: "codediag.scanWorkspace",
@@ -16,6 +26,8 @@ const COMMANDS = {
   fixes: "codediag.showFixPlan",
   prompt: "codediag.createAiPrompt",
   clear: "codediag.clearDiagnostics",
+  // Internal: run by the suppression quick fixes, so not contributed.
+  suppress: "codediag.insertSuppression",
 } as const;
 
 interface LatestScan {
@@ -67,6 +79,30 @@ async function selectWorkspaceRoot(): Promise<string | undefined> {
   return selected?.root;
 }
 
+/**
+ * A published finding. Code action contexts hand back these same objects, so
+ * quick fixes read the finding instead of parsing the diagnostic.
+ */
+class CodeDiagDiagnostic extends vscode.Diagnostic {
+  readonly finding: EditorDiagnostic;
+
+  constructor(finding: EditorDiagnostic) {
+    super(
+      new vscode.Range(finding.line, 0, finding.line, 0),
+      finding.fix
+        ? `${finding.message}\nSuggested fix: ${finding.fix}`
+        : finding.message,
+      diagnosticSeverity(finding.severity),
+    );
+    this.finding = finding;
+    this.source = `CodeDiag · ${finding.analyzer}`;
+    this.code = {
+      value: finding.rule,
+      target: vscode.Uri.parse(ruleDocumentationUrl(finding.rule)),
+    };
+  }
+}
+
 function publishDiagnostics(
   collection: vscode.DiagnosticCollection,
   result: ScanResult,
@@ -78,20 +114,8 @@ function publishDiagnostics(
   const grouped = new Map<string, vscode.Diagnostic[]>();
 
   for (const item of summary.diagnostics) {
-    const range = new vscode.Range(item.line, 0, item.line, 0);
-    const message = item.fix
-      ? `${item.message}\nSuggested fix: ${item.fix}`
-      : item.message;
-    const diagnostic = new vscode.Diagnostic(
-      range,
-      message,
-      diagnosticSeverity(item.severity),
-    );
-    diagnostic.source = `CodeDiag · ${item.analyzer}`;
-    diagnostic.code = item.rule;
-
     const existing = grouped.get(item.filePath) ?? [];
-    existing.push(diagnostic);
+    existing.push(new CodeDiagDiagnostic(item));
     grouped.set(item.filePath, existing);
   }
 
@@ -187,6 +211,98 @@ async function openGeneratedDocument(
   await vscode.window.showTextDocument(document, { preview: true });
 }
 
+function codeAction(
+  fix: QuickFix,
+  diagnostic: vscode.Diagnostic,
+): vscode.CodeAction {
+  const action = new vscode.CodeAction(
+    fix.title,
+    vscode.CodeActionKind.QuickFix,
+  );
+  action.diagnostics = [diagnostic];
+  // Suppressing is a deliberate decision, never the automatic fix.
+  action.isPreferred = false;
+  action.command =
+    fix.kind === "suppress"
+      ? {
+          command: COMMANDS.suppress,
+          title: fix.title,
+          arguments: [fix.request],
+        }
+      : {
+          command: "vscode.open",
+          title: fix.title,
+          arguments: [vscode.Uri.parse(fix.url)],
+        };
+  return action;
+}
+
+const quickFixProvider: vscode.CodeActionProvider = {
+  provideCodeActions(document, _range, context) {
+    const findings = context.diagnostics.filter(
+      (diagnostic): diagnostic is CodeDiagDiagnostic =>
+        diagnostic instanceof CodeDiagDiagnostic,
+    );
+    if (findings.length === 0) return [];
+    const text = document.getText();
+    return findings.flatMap((diagnostic) =>
+      quickFixes(diagnostic.finding, text).map((fix) =>
+        codeAction(fix, diagnostic),
+      ),
+    );
+  },
+};
+
+function findingsIn(
+  collection: vscode.DiagnosticCollection,
+  uri: vscode.Uri,
+): EditorDiagnostic[] {
+  return (collection.get(uri) ?? []).flatMap((diagnostic) =>
+    diagnostic instanceof CodeDiagDiagnostic ? [diagnostic.finding] : [],
+  );
+}
+
+/**
+ * Inserts the directive as a snippet with the reason selected, then updates
+ * the file's findings until the next scan confirms the suppression.
+ */
+async function insertSuppression(
+  collection: vscode.DiagnosticCollection,
+  request: unknown,
+): Promise<void> {
+  if (!isSuppressionRequest(request)) {
+    throw new Error(`${COMMANDS.suppress} expects a suppression request`);
+  }
+  const uri = vscode.Uri.file(request.filePath);
+  const document = await vscode.workspace.openTextDocument(uri);
+  const edit = suppressionEdit(request, document.getText());
+  if (!edit) {
+    void vscode.window.showInformationMessage(
+      `CodeDiag cannot suppress ${request.rule} here any more. Scan again to refresh the findings.`,
+    );
+    return;
+  }
+
+  const visible = vscode.window.visibleTextEditors.find(
+    (editor) => editor.document === document,
+  );
+  const editor = await vscode.window.showTextDocument(
+    document,
+    visible?.viewColumn,
+  );
+  const inserted = await editor.insertSnippet(
+    new vscode.SnippetString(edit.snippet),
+    new vscode.Position(edit.line, 0),
+  );
+  if (!inserted) return;
+  collection.set(
+    uri,
+    afterSuppression(findingsIn(collection, uri), edit).map(
+      (finding) => new CodeDiagDiagnostic(finding),
+    ),
+  );
+}
+
 export function activate(context: vscode.ExtensionContext): void {
   const diagnostics = vscode.languages.createDiagnosticCollection("codediag");
   const output = vscode.window.createOutputChannel("CodeDiag");
@@ -237,6 +353,14 @@ export function activate(context: vscode.ExtensionContext): void {
       status.tooltip = "Scan the current workspace with CodeDiag";
       status.backgroundColor = undefined;
     }),
+    vscode.commands.registerCommand(COMMANDS.suppress, (request: unknown) =>
+      insertSuppression(diagnostics, request),
+    ),
+    vscode.languages.registerCodeActionsProvider(
+      { scheme: "file" },
+      quickFixProvider,
+      { providedCodeActionKinds: [vscode.CodeActionKind.QuickFix] },
+    ),
   );
 
   const saveTimers = new Map<string, NodeJS.Timeout>();
