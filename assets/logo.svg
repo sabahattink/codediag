@@ -1,19 +1,12 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none">
-  <rect width="120" height="120" rx="24" fill="#1a1a2e"/>
-  <g transform="translate(24, 28)">
-    <!-- Stethoscope shape - code diagnostics metaphor -->
-    <!-- Top arc -->
-    <path d="M20 8 C20 8 20 0 28 0 L44 0 C52 0 52 8 52 8" stroke="#6ee7b7" stroke-width="4" stroke-linecap="round" fill="none"/>
-    <!-- Left tube -->
-    <line x1="20" y1="8" x2="20" y2="36" stroke="#6ee7b7" stroke-width="4" stroke-linecap="round"/>
-    <!-- Right tube -->
-    <line x1="52" y1="8" x2="52" y2="28" stroke="#6ee7b7" stroke-width="4" stroke-linecap="round"/>
-    <!-- Merge point -->
-    <path d="M20 36 Q20 48 36 48 Q52 48 52 28" stroke="#6ee7b7" stroke-width="4" stroke-linecap="round" fill="none"/>
-    <!-- Chest piece (circle) -->
-    <circle cx="36" cy="56" r="8" stroke="#6ee7b7" stroke-width="4" fill="none"/>
-    <line x1="36" y1="48" x2="36" y2="48" stroke="#6ee7b7" stroke-width="4" stroke-linecap="round"/>
-    <!-- Code brackets inside circle -->
-    <text x="36" y="60" text-anchor="middle" font-family="monospace" font-size="10" font-weight="bold" fill="#6ee7b7">&lt;/&gt;</text>
-  </g>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120" role="img" aria-labelledby="t">
+  <title id="t">codediag</title>
+  <defs>
+    <clipPath id="c"><rect width="120" height="120" rx="22"/></clipPath>
+  </defs>
+  <rect width="120" height="120" rx="22" fill="#101c16"/>
+  <!-- chart-recorder grid -->
+  <path clip-path="url(#c)" d="M0 24H120M0 48H120M0 72H120M0 96H120M24 0V120M48 0V120M72 0V120M96 0V120" stroke="#74d6a0" stroke-opacity=".16" stroke-width="1.5"/>
+  <!-- one clean beat, ending at the pen -->
+  <path d="M13 68H38L47 27L58 94L67 56L73 68H92" fill="none" stroke="#f5f8f2" stroke-width="8.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="103" cy="68" r="8.5" fill="#74d6a0"/>
 </svg>
