@@ -137,11 +137,20 @@ Next.js API route files exist but export no detectable HTTP method handlers.
 
 ## Security
 
+### committed-env-secret
+
+**Secret in a committed .env file** · default severity: `critical`
+
+A .env file tracked by Git contains a provider token or a long, high-entropy value for a secret-like key. Ignoring the file afterwards does not remove it from history: rotate the secret, then untrack the file with `git rm --cached`.
+
+- CWE: [CWE-538](https://cwe.mitre.org/data/definitions/538.html), [CWE-798](https://cwe.mitre.org/data/definitions/798.html)
+- OWASP Top 10: A05:2021
+
 ### dynamic-command-execution
 
 **Dynamic shell command** · default severity: `warning`
 
-A shell is invoked through exec or execSync with a non-literal command. The finding is critical when the command comes from request data, directly or through up to three variable assignments.
+A shell is invoked through exec or execSync, or through spawn, spawnSync, execFile, or execFileSync with a `shell` option, with a non-literal command or argument. The finding is critical when the command comes from request data, directly or through up to three variable assignments.
 
 - CWE: [CWE-78](https://cwe.mitre.org/data/definitions/78.html)
 - OWASP Top 10: A03:2021
@@ -168,10 +177,37 @@ The nearest .gitignore does not ignore .env files, so environment secrets can be
 
 **Hardcoded secret** · default severity: `critical`
 
-Source code contains a value that matches a credential pattern such as an API key, password, or provider token.
+Source code or a configuration file (JSON, YAML, TOML, INI, XML, properties, Dockerfile, or .npmrc) contains a value that matches a credential pattern such as an API key, password, or provider token. In configuration files, keys such as `password` or `clientSecret` are reported only for long, high-entropy values that are not placeholders or environment variable references. Findings never include the value itself.
 
 - CWE: [CWE-798](https://cwe.mitre.org/data/definitions/798.html)
 - OWASP Top 10: A07:2021
+
+### insecure-cookie
+
+**Session cookie without httpOnly or secure** · default severity: `warning`
+
+A cookie whose name suggests a session or token (session, sid, token, jwt, auth) is set with res.cookie(), reply.setCookie(), or cookies().set() without `httpOnly: true` and `secure: true`, or session middleware (express-session, cookie-session, @fastify/session) sets `httpOnly: false` or `secure: false`. Scripts can then read the cookie, or it is sent over plain HTTP. Non-literal values such as `secure: isProduction` count as set.
+
+- CWE: [CWE-1004](https://cwe.mitre.org/data/definitions/1004.html), [CWE-614](https://cwe.mitre.org/data/definitions/614.html)
+- OWASP Top 10: A05:2021
+
+### jwt-expiration-ignored
+
+**JWT expiration ignored** · default severity: `warning`
+
+JWT verification sets `ignoreExpiration: true` (jsonwebtoken, passport-jwt, @nestjs/jwt), so a stolen token stays valid forever.
+
+- CWE: [CWE-613](https://cwe.mitre.org/data/definitions/613.html)
+- OWASP Top 10: A07:2021
+
+### jwt-none-algorithm
+
+**JWT accepts the none algorithm** · default severity: `critical`
+
+JWT options list `none` in `algorithms` or set `algorithm: 'none'`, or jose's UnsecuredJWT is used, so tokens without a signature are created or accepted and anyone can forge one.
+
+- CWE: [CWE-347](https://cwe.mitre.org/data/definitions/347.html)
+- OWASP Top 10: A02:2021
 
 ### no-gitignore
 
@@ -245,6 +281,15 @@ Password values are compared with an equality operator, which suggests plaintext
 - CWE: [CWE-256](https://cwe.mitre.org/data/definitions/256.html), [CWE-208](https://cwe.mitre.org/data/definitions/208.html)
 - OWASP Top 10: A07:2021
 
+### prototype-pollution
+
+**Prototype pollution** · default severity: `critical`
+
+A nested write such as `target[a][b] = value` uses a key from request data, or a recursive merge copies keys without rejecting `__proto__`, `constructor`, and `prototype`. A key of `__proto__` then changes Object.prototype for the whole process. Nested writes from request data are critical; unguarded recursive merges are warnings. Current versions of lodash and deepmerge guard these keys and are not reported.
+
+- CWE: [CWE-1321](https://cwe.mitre.org/data/definitions/1321.html)
+- OWASP Top 10: A08:2021
+
 ### reflected-xss
 
 **Request data in an HTML response** · default severity: `critical`
@@ -262,6 +307,15 @@ fetch, axios, got, ky, needle, http(s), superagent, undici, or NestJS HttpServic
 
 - CWE: [CWE-918](https://cwe.mitre.org/data/definitions/918.html)
 - OWASP Top 10: A10:2021
+
+### server-side-template-injection
+
+**Template compiled from request data** · default severity: `critical`
+
+EJS, Pug, Handlebars, Nunjucks, Eta, doT, or lodash compiles or renders a template whose source comes from request data. Template languages can run code on the server, so the caller controls what executes. Passing request data as template variables is not reported.
+
+- CWE: [CWE-1336](https://cwe.mitre.org/data/definitions/1336.html), [CWE-94](https://cwe.mitre.org/data/definitions/94.html)
+- OWASP Top 10: A03:2021
 
 ### tls-verification-disabled
 

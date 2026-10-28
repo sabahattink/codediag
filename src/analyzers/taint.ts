@@ -318,6 +318,8 @@ const SERVER_SET_REQUEST_DATA =
   /\b(?:req(?:uest)?|ctx)\s*\.\s*(?:app|auth|file|files|ip|ips|method|protocol|secure|session|state|user)\b/;
 
 export const REQUEST_OBJECT = /^(?:req|request|ctx)$/;
+/** Express-style response objects, possibly behind chained calls. */
+export const RESPONSE_OBJECT = /^(?:res|response|reply)$/;
 /** NestJS parameter decorators that inject request data. */
 const REQUEST_DECORATORS = new Set(["Body", "Headers", "Param", "Query"]);
 

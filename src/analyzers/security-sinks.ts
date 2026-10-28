@@ -8,6 +8,8 @@ import {
 import type { ScanContext } from "../core/scan-context.js";
 import { fromRule } from "../rules/registry.js";
 import type { DiagnosticIssue } from "../types.js";
+import { inspectAuthConfiguration } from "./security-auth.js";
+import { inspectInjection } from "./security-injection.js";
 import {
   calleeName,
   dynamicStringShape,
@@ -20,6 +22,7 @@ import {
   moduleCall,
   objectProperty,
   RUNTIME_IGNORES,
+  RESPONSE_OBJECT,
   requestDecorator,
   SOURCE_PATTERN,
   stringParts,
@@ -28,6 +31,13 @@ import {
 
 const CHILD_PROCESS_MODULES = new Set(["child_process", "node:child_process"]);
 const COMMAND_FUNCTIONS = new Set(["exec", "execSync"]);
+/** Functions that run an executable directly unless a `shell` option is set. */
+const SPAWN_FUNCTIONS = new Set([
+  "execFile",
+  "execFileSync",
+  "spawn",
+  "spawnSync",
+]);
 const FS_MODULES = new Set([
   "fs",
   "node:fs",
@@ -79,8 +89,6 @@ const HTTP_CLIENT_METHODS = new Set([
   "request",
   "stream",
 ]);
-/** Express-style response objects, possibly behind chained calls. */
-const RESPONSE_OBJECT = /^(?:res|response|reply)$/;
 const SQL_METHODS = new Set([
   "$executeRawUnsafe",
   "$queryRawUnsafe",
@@ -299,6 +307,32 @@ function reflectedResponseBody(call: CallExpression): Node | null {
   return body && reflectsRequestData(body) ? body : null;
 }
 
+/** True when a spawn options object turns on a shell: `{ shell: true }`. */
+function enablesShell(options: Node): boolean {
+  const shell = objectProperty(options, ["shell"]);
+  return Boolean(
+    shell &&
+      (shell.getKind() === SyntaxKind.TrueKeyword ||
+        (Node.isStringLiteral(shell) && shell.getLiteralText() !== "")),
+  );
+}
+
+/**
+ * The non-literal command and argument expressions of `spawn(cmd, args,
+ * { shell: true })`, which a shell joins into one command line.
+ */
+function shellCommandParts(call: CallExpression): Node[] {
+  const [command, second] = call.getArguments();
+  if (!command || !call.getArguments().some(enablesShell)) return [];
+  const parts: Node[] = [command];
+  if (second && Node.isArrayLiteralExpression(second)) {
+    parts.push(...second.getElements());
+  } else if (second && !Node.isObjectLiteralExpression(second)) {
+    parts.push(second);
+  }
+  return parts.filter((part) => !isStaticString(part));
+}
+
 function severityForDynamicInput(
   node: Node | undefined,
 ): DiagnosticIssue["severity"] {
@@ -314,6 +348,11 @@ function inspectSourceFile(
     sourceFile,
     CHILD_PROCESS_MODULES,
     COMMAND_FUNCTIONS,
+  );
+  const spawns = moduleBindings(
+    sourceFile,
+    CHILD_PROCESS_MODULES,
+    SPAWN_FUNCTIONS,
   );
   const files = moduleBindings(sourceFile, FS_MODULES, FILE_FUNCTIONS);
 
@@ -346,6 +385,21 @@ function inspectSourceFile(
           message: "Shell execution receives a non-literal command",
           ...sourceLocation(file, call.getStartLineNumber()),
           fix: "Avoid a shell; use execFile or spawn with a fixed executable and validated argument array",
+        });
+      }
+    }
+
+    if (moduleCall(call, spawns, CHILD_PROCESS_MODULES, SPAWN_FUNCTIONS)) {
+      const parts = shellCommandParts(call);
+      if (parts.length > 0) {
+        issues.push({
+          ...fromRule("dynamic-command-execution"),
+          severity: parts.some((part) => isTainted(part))
+            ? "critical"
+            : "warning",
+          message: "A shell runs a command built from non-literal arguments",
+          ...sourceLocation(file, call.getStartLineNumber()),
+          fix: "Remove the shell option and pass a fixed executable with a validated argument array",
         });
       }
     }
@@ -491,7 +545,11 @@ export async function analyzeSecuritySinks(
     const sourceFile = context.getSourceFile(file);
     if (!sourceFile) continue;
     try {
-      issues.push(...inspectSourceFile(sourceFile, file));
+      issues.push(
+        ...inspectSourceFile(sourceFile, file),
+        ...inspectInjection(sourceFile, file),
+        ...inspectAuthConfiguration(sourceFile, file),
+      );
     } catch {
       // A malformed source file should not stop the scan.
     }

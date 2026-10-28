@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { renderSarif } from "../src/reporters/sarif.js";
+import { RULES } from "../src/rules/registry.js";
 import type { ScanResult } from "../src/types.js";
 
 interface SarifView {
@@ -182,12 +183,12 @@ test("SARIF rules describe registered rules instead of the first finding", () =>
       name: "hardcoded-secret",
       shortDescription: { text: "Hardcoded secret" },
       fullDescription: {
-        text: "Source code contains a value that matches a credential pattern such as an API key, password, or provider token.",
+        text: RULES["hardcoded-secret"].description,
       },
       helpUri:
         "https://github.com/sabahattink/codediag/blob/main/docs/rules.md#hardcoded-secret",
       help: {
-        text: "Source code contains a value that matches a credential pattern such as an API key, password, or provider token. See https://github.com/sabahattink/codediag/blob/main/docs/rules.md#hardcoded-secret",
+        text: `${RULES["hardcoded-secret"].description} See https://github.com/sabahattink/codediag/blob/main/docs/rules.md#hardcoded-secret`,
       },
       defaultConfiguration: { level: "error" },
       properties: {

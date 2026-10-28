@@ -3,6 +3,7 @@ import { dirname, join, relative } from "node:path";
 import type { ScanContext } from "../core/scan-context.js";
 import { fromRule } from "../rules/registry.js";
 import type { AnalyzerResult, DiagnosticIssue } from "../types.js";
+import { findConfigSecrets } from "./secrets.js";
 import { analyzeSecuritySinks } from "./security-sinks.js";
 
 interface SourceRecord {
@@ -419,7 +420,9 @@ export async function analyzeSecurity(
       });
     }
   }
-  if (!secretsFound) checksPassed++;
+  const configSecrets = findConfigSecrets(context);
+  issues.push(...configSecrets);
+  if (!secretsFound && configSecrets.length === 0) checksPassed++;
 
   const detectedPasswordIssues = passwordIssues(runtimeSources);
   if (
