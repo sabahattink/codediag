@@ -4,6 +4,7 @@ import chalk from "chalk";
 import ora from "ora";
 import { analyzeDependencies } from "./analyzers/dependencies.js";
 import { analyzeExpressApi } from "./analyzers/express-api.js";
+import { analyzeFastifyApi } from "./analyzers/fastify-api.js";
 import { analyzeNestjsApi } from "./analyzers/nestjs-api.js";
 import { analyzeNextjsApi } from "./analyzers/nextjs-api.js";
 import { analyzeSecurity } from "./analyzers/security.js";
@@ -13,7 +14,7 @@ import { loadConfig } from "./config.js";
 import { applyBaseline } from "./core/baseline.js";
 import { assignFingerprints } from "./core/fingerprint.js";
 import { applyRuleOverrides } from "./core/rule-overrides.js";
-import { createScanContext } from "./core/scan-context.js";
+import { createScanContext, type ScanContext } from "./core/scan-context.js";
 import { applyScoring } from "./core/scoring.js";
 import { applySuppressions } from "./core/suppressions.js";
 import { detectStack } from "./detectors/stack-detector.js";
@@ -22,7 +23,21 @@ import type {
   CodediagConfig,
   Grade,
   ScanResult,
+  StackInfo,
 } from "./types.js";
+
+/** API Health analyzers by detected framework; other stacks skip it. */
+const API_ANALYZERS: Partial<
+  Record<
+    StackInfo["framework"],
+    (context: ScanContext) => Promise<AnalyzerResult | null>
+  >
+> = {
+  nestjs: analyzeNestjsApi,
+  express: analyzeExpressApi,
+  fastify: analyzeFastifyApi,
+  nextjs: analyzeNextjsApi,
+};
 
 const WEIGHTS: Record<string, number> = {
   "API Health": 25,
@@ -103,19 +118,10 @@ export async function scan(
   const context = createScanContext(projectPath, config, { stack });
 
   // Framework-specific API health
-  if (
-    config.analyzers.api &&
-    (stack.framework === "nestjs" ||
-      stack.framework === "express" ||
-      stack.framework === "nextjs")
-  ) {
+  const analyzeApi = API_ANALYZERS[stack.framework];
+  if (config.analyzers.api && analyzeApi) {
     progress.start("Analyzing API health...");
-    const r =
-      stack.framework === "nestjs"
-        ? await analyzeNestjsApi(context)
-        : stack.framework === "express"
-          ? await analyzeExpressApi(context)
-          : await analyzeNextjsApi(context);
+    const r = await analyzeApi(context);
     if (r) {
       results.push(r);
       progress.succeed(`API Health: ${findingCount(r)}`);

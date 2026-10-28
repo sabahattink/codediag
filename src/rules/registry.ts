@@ -143,6 +143,41 @@ export const RULES = {
     defaultSeverity: "warning",
     cwe: ["CWE-209"],
   },
+  // API Health: Fastify
+  "no-fastify-routes": {
+    analyzer: "API Health",
+    title: "No Fastify routes",
+    description:
+      "The project depends on Fastify but no route registrations with a literal path were detected.",
+    defaultSeverity: "critical",
+    failsAnalyzer: true,
+  },
+  "missing-auth-hook": {
+    analyzer: "API Health",
+    title: "Mutating route without auth hook",
+    description:
+      "A POST, PUT, PATCH, or DELETE route has no recognizable authentication hook (onRequest, preParsing, preValidation, or preHandler) in its route options, in addHook() calls of its plugin or of fastify-plugin plugins sharing that context, or inherited from every place the plugin is registered.",
+    defaultSeverity: "warning",
+    cwe: ["CWE-306"],
+    owasp: [OWASP.authentication],
+  },
+  "missing-route-schema": {
+    analyzer: "API Health",
+    title: "Route without body schema",
+    description:
+      "A POST, PUT, or PATCH route declares no schema.body (JSON Schema, TypeBox, or a Zod type provider schema) and no recognizable validation hook, so Fastify does not validate the request body.",
+    defaultSeverity: "warning",
+    cwe: ["CWE-20"],
+    owasp: [OWASP.injection],
+  },
+  "missing-error-handler": {
+    analyzer: "API Health",
+    title: "No custom error handler",
+    description:
+      "No setErrorHandler() call was found, so Fastify's default handler replies with the message of every error, including unexpected 500 errors.",
+    defaultSeverity: "warning",
+    cwe: ["CWE-209"],
+  },
   // API Health: Next.js
   "no-nextjs-handlers": {
     analyzer: "API Health",
