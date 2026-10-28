@@ -34,16 +34,14 @@ export interface ScanResult {
   timestamp: string;
 }
 
+export const ANALYZER_KEYS = ["api", "security", "dependencies", "testing", "structure"] as const;
+
+export type AnalyzerKey = (typeof ANALYZER_KEYS)[number];
+
 export interface CodediagConfig {
   threshold: number;
   ignore: string[];
-  analyzers: {
-    api: boolean;
-    security: boolean;
-    dependencies: boolean;
-    testing: boolean;
-    structure: boolean;
-  };
+  analyzers: Record<AnalyzerKey, boolean>;
 }
 
 export const DEFAULT_CONFIG: CodediagConfig = {
@@ -57,3 +55,16 @@ export const DEFAULT_CONFIG: CodediagConfig = {
     structure: true,
   },
 };
+
+/** Shared inputs for analyzers that walk the project tree. */
+export interface AnalyzerContext {
+  /** Entries from `.codediag.yml` `ignore` (always includes the defaults). */
+  ignore: readonly string[];
+  stack: StackInfo;
+}
+
+/** Receives progress updates while a scan runs (the CLI maps this to a spinner). */
+export interface ProgressReporter {
+  start(text: string): void;
+  succeed(text: string): void;
+}
