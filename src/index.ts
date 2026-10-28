@@ -6,8 +6,7 @@ import { scan } from "./scanner.js";
 import { renderTerminal } from "./reporters/terminal.js";
 import { renderJson } from "./reporters/json.js";
 import type { ScanResult } from "./types.js";
-
-const VERSION = "0.1.0";
+import { VERSION } from "./version.js";
 
 function renderMarkdown(result: ScanResult): string {
   const lines = [
