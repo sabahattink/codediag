@@ -1,284 +1,984 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>codediag — Diagnose your code before you ship</title>
-<meta name="description" content="One command. Five analyzers. One score. Project health analysis for Node.js, NestJS, Express, and Next.js.">
-<meta property="og:title" content="codediag — Diagnose your code before you ship">
-<meta property="og:description" content="One command. Five analyzers. One score. Know exactly what's wrong with your project before your users do.">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CodeDiag — Diagnose your code before you ship</title>
+<meta name="description" content="CodeDiag scans Node.js, NestJS, Express, and Next.js projects on your machine and returns a 0–100 health score that explains every lost point, with stable rule IDs, SARIF output, a GitHub Action, and a VS Code extension.">
+<link rel="canonical" href="https://sabahattink.github.io/codediag/">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#f5f8f2" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0b1310" media="(prefers-color-scheme: dark)">
 <meta property="og:type" content="website">
+<meta property="og:site_name" content="CodeDiag">
+<meta property="og:title" content="CodeDiag — Diagnose your code before you ship">
+<meta property="og:description" content="One command. Five analyzers. One score that explains every lost point. Local health checks for Node.js, NestJS, Express, and Next.js.">
 <meta property="og:url" content="https://sabahattink.github.io/codediag/">
-<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="CodeDiag — Diagnose your code before you ship">
+<meta name="twitter:description" content="One command. Five analyzers. One score that explains every lost point. Your code never leaves your machine.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23101c16'/%3E%3Cpath d='M7 36h13l5-22 6 36 5-20 3 6h11' fill='none' stroke='%23f5f8f2' stroke-width='4.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='55' cy='36' r='4.5' fill='%2374d6a0'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Satoshi:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=Martian+Mono:wdth,wght@75..112.5,400..700&display=swap">
+<script>try{var t=localStorage.getItem("codediag-theme");if(t==="light"||t==="dark")document.documentElement.setAttribute("data-theme",t)}catch(e){}</script>
 <style>
-*{margin:0;padding:0;box-sizing:border-box}
 :root{
-  --bg:#0a0a0f;
-  --bg2:#12121a;
-  --bg3:#1a1a26;
-  --text:#e4e4ec;
-  --text2:#9494a8;
-  --text3:#5c5c6e;
-  --green:#4ade80;
-  --green2:#22c55e;
-  --green-dim:rgba(74,222,128,0.08);
-  --red:#f87171;
-  --yellow:#fbbf24;
-  --blue:#60a5fa;
-  --border:#1e1e2e;
-  --mono:'JetBrains Mono',monospace;
-  --sans:'Satoshi',system-ui,sans-serif;
+ --paper:#f5f8f2;--sheet:#fbfdf9;--ink:#101c16;--ink-2:#3a4d43;--ink-3:#53675c;
+ --rule:#c4d4c9;--rule-2:#9cb3a5;--gmin:rgba(30,110,64,.08);--gmaj:rgba(30,110,64,.16);--gbody:rgba(30,110,64,.06);
+ --band:rgba(30,110,64,.07);--trace:#101c16;--ok:#16653c;--crit:#b3261e;--warn:#8a5600;--info:#1d59b5;
+ --tape:#101c16;--tape-ink:#eef4ef;--tape-dim:#a7bcaf;--tape-ok:#86d9a8;--sel:rgba(22,101,60,.2);
+ --display:"Archivo","Arial Narrow",Arial,sans-serif;
+ --mono:"Martian Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+ --glyph:"Segoe UI Symbol","DejaVu Sans","Noto Sans Symbols 2",ui-monospace,monospace;
+ color-scheme:light;
 }
-html{scroll-behavior:smooth}
-body{background:var(--bg);color:var(--text);font-family:var(--sans);line-height:1.7;overflow-x:hidden}
+@media (prefers-color-scheme:dark){
+ :root:not([data-theme="light"]){
+  --paper:#0b1310;--sheet:#0f1914;--ink:#e3ede6;--ink-2:#b2c5ba;--ink-3:#92a99c;
+  --rule:#24352c;--rule-2:#3b5547;--gmin:rgba(120,210,160,.045);--gmaj:rgba(120,210,160,.1);--gbody:rgba(120,210,160,.04);
+  --band:rgba(120,210,160,.05);--trace:#a6e8c2;--ok:#74d6a0;--crit:#ff8b7c;--warn:#efb54e;--info:#8fb9ff;
+  --tape:#1a2a21;--tape-ink:#e8f2eb;--tape-dim:#9fb7a9;--tape-ok:#86d9a8;--sel:rgba(116,214,160,.25);
+  color-scheme:dark;
+ }
+ :root:not([data-theme="light"]) .i-moon{display:none}
+ :root:not([data-theme="light"]) .i-sun{display:block}
+}
+:root[data-theme="dark"]{
+ --paper:#0b1310;--sheet:#0f1914;--ink:#e3ede6;--ink-2:#b2c5ba;--ink-3:#92a99c;
+ --rule:#24352c;--rule-2:#3b5547;--gmin:rgba(120,210,160,.045);--gmaj:rgba(120,210,160,.1);--gbody:rgba(120,210,160,.04);
+ --band:rgba(120,210,160,.05);--trace:#a6e8c2;--ok:#74d6a0;--crit:#ff8b7c;--warn:#efb54e;--info:#8fb9ff;
+ --tape:#1a2a21;--tape-ink:#e8f2eb;--tape-dim:#9fb7a9;--tape-ok:#86d9a8;--sel:rgba(116,214,160,.25);
+ color-scheme:dark;
+}
+:root[data-theme="dark"] .i-moon{display:none}
+:root[data-theme="dark"] .i-sun{display:block}
 
-/* Grain overlay */
-body::before{content:'';position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;opacity:0.03;z-index:999;
-background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;scroll-padding-top:76px;scrollbar-color:var(--rule-2) var(--paper)}
+body{margin:0;background:var(--paper);color:var(--ink);font:400 1.0625rem/1.6 var(--display);
+ background-image:linear-gradient(var(--gbody) 1px,transparent 1px),linear-gradient(90deg,var(--gbody) 1px,transparent 1px);
+ background-size:40px 40px;text-rendering:optimizeLegibility;overflow-wrap:break-word}
+::selection{background:var(--sel);color:inherit}
+:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
+a{color:inherit;text-decoration:underline;text-decoration-color:var(--ok);text-decoration-thickness:1px;text-underline-offset:.22em}
+a:hover{text-decoration-thickness:2px}
+code,kbd{font-family:var(--mono);font-size:.84em;font-stretch:87.5%}
+p code,li code,td code,dd code{background:var(--band);padding:.08em .3em;border-radius:2px;white-space:nowrap}
+code.w{white-space:normal}
+h1,h2,h3{font-family:var(--display);margin:0;text-wrap:balance}
+h2{font-size:clamp(1.85rem,1.2rem + 2.3vw,3rem);font-weight:780;font-stretch:112%;line-height:1.02;letter-spacing:-.018em}
+h3{font-size:1.125rem;font-weight:700;line-height:1.3}
+p{margin:0}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+.wrap{max-width:1200px;margin-inline:auto;padding-inline:clamp(16px,4vw,40px)}
+.skip{position:absolute;left:12px;top:-60px;background:var(--ink);color:var(--paper);padding:8px 12px;z-index:20}
+.skip:focus{top:12px}
+.num,.big,.cv{font-variant-numeric:tabular-nums}
+svg.ic{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;flex:none}
 
-/* Nav */
-nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:16px 0;backdrop-filter:blur(12px);background:rgba(10,10,15,0.8);border-bottom:1px solid var(--border)}
-.nav-inner{max-width:1080px;margin:0 auto;padding:0 24px;display:flex;align-items:center;justify-content:space-between}
-.logo{font-family:var(--mono);font-weight:700;font-size:18px;color:var(--green);text-decoration:none;letter-spacing:-0.5px}
-.nav-links{display:flex;gap:28px;align-items:center}
-.nav-links a{color:var(--text2);text-decoration:none;font-size:14px;font-weight:500;transition:color 0.2s}
-.nav-links a:hover{color:var(--text)}
-.nav-cta{background:var(--green2);color:#000;padding:8px 18px;border-radius:6px;font-weight:700;font-size:13px;text-decoration:none;transition:transform 0.15s,box-shadow 0.15s}
-.nav-cta:hover{transform:translateY(-1px);box-shadow:0 4px 20px rgba(34,197,94,0.3);color:#000}
+/* header */
+.top{position:sticky;top:0;z-index:10;background:var(--paper);border-bottom:1px solid var(--rule)}
+.top-in{display:flex;align-items:center;gap:24px;height:60px}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;font:700 1.05rem/1 var(--mono);font-stretch:87.5%;letter-spacing:-.01em}
+.brand svg{width:28px;height:28px}
+.top nav{margin-left:auto}
+.top nav ul{display:flex;gap:22px;list-style:none;margin:0;padding:0}
+.top nav a,.gh{font:500 .78rem/1 var(--mono);font-stretch:87.5%;text-decoration:none;color:var(--ink-2)}
+.top nav a:hover,.gh:hover{color:var(--ink);text-decoration:underline;text-decoration-color:var(--ok)}
+.top-act{display:flex;align-items:center;gap:14px}
+.gh{display:flex;align-items:center;gap:7px;color:var(--ink)}
+.gh svg{width:17px;height:17px;fill:currentColor}
+.theme{display:grid;place-items:center;width:38px;height:38px;border:1px solid var(--rule-2);background:var(--sheet);color:var(--ink);cursor:pointer;border-radius:2px}
+.theme:hover{border-color:var(--ink)}
+.i-sun{display:none}
 
-/* Hero */
-.hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:120px 24px 80px;position:relative}
-.hero::after{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:600px;height:600px;background:radial-gradient(circle,rgba(74,222,128,0.06) 0%,transparent 70%);pointer-events:none}
-.badge{font-family:var(--mono);font-size:12px;color:var(--green);border:1px solid rgba(74,222,128,0.2);padding:6px 16px;border-radius:100px;margin-bottom:32px;display:inline-block;background:var(--green-dim);letter-spacing:0.5px}
-h1{font-size:clamp(42px,7vw,72px);font-weight:900;line-height:1.05;letter-spacing:-2px;margin-bottom:20px;background:linear-gradient(180deg,#fff 40%,var(--text2) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-.subtitle{font-size:clamp(16px,2.5vw,20px);color:var(--text2);max-width:520px;margin:0 auto 40px;line-height:1.6}
-.hero-cmd{font-family:var(--mono);font-size:clamp(14px,2vw,18px);background:var(--bg2);border:1px solid var(--border);padding:14px 28px;border-radius:10px;display:inline-flex;align-items:center;gap:12px;cursor:pointer;transition:border-color 0.2s,box-shadow 0.2s;position:relative}
-.hero-cmd:hover{border-color:var(--green);box-shadow:0 0 30px rgba(74,222,128,0.08)}
-.hero-cmd .prompt{color:var(--green)}
-.hero-cmd .cmd-text{color:var(--text)}
-.hero-cmd .copy{color:var(--text3);font-size:12px;margin-left:12px;padding:4px 10px;border:1px solid var(--border);border-radius:4px;transition:color 0.2s}
-.hero-cmd:hover .copy{color:var(--text2)}
+/* hero */
+.hero{padding-top:clamp(36px,5.5vw,72px)}
+.hero-in{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,.8fr);gap:clamp(32px,5vw,72px);align-items:start}
+h1{font-size:clamp(2.7rem,1.3rem + 4.4vw,4.7rem);font-weight:820;font-stretch:106%;line-height:.94;letter-spacing:-.03em}
+.lede{margin-top:22px;font-size:clamp(1.25rem,1rem + .8vw,1.6rem);font-weight:620;font-stretch:104%;line-height:1.25}
+.intro{margin-top:14px;max-width:56ch;color:var(--ink-2)}
+.tape{display:flex;align-items:center;gap:12px;margin-top:28px;background:var(--tape);color:var(--tape-ink);padding:6px 6px 6px 18px;max-width:560px;border-radius:2px}
+.tape code{flex:1;min-width:0;font-size:clamp(.8rem,.7rem + .35vw,.98rem);font-stretch:87.5%;background:none;padding:0;white-space:nowrap;overflow-x:auto;scrollbar-width:none}
+.tape .ps{color:var(--tape-ok);margin-right:.7ch;user-select:none}
+.copy{display:inline-flex;align-items:center;gap:7px;font:600 .78rem/1 var(--mono);font-stretch:87.5%;padding:10px 12px;border:1px solid currentColor;background:transparent;color:inherit;cursor:pointer;border-radius:2px;flex:none}
+.tape .copy{color:var(--tape-dim)}
+.tape .copy:hover,.tape .copy[data-done]{color:var(--tape-ink)}
+.tape .copy:focus-visible{outline-color:var(--tape-ink);outline-offset:2px}
+.alt{margin-top:12px;font-size:.92rem;color:var(--ink-2)}
+.specs{display:flex;flex-wrap:wrap;gap:6px 18px;margin:22px 0 0;padding:0;list-style:none;font:500 .78rem/1.4 var(--mono);font-stretch:87.5%;color:var(--ink-2)}
+.specs li{display:flex;align-items:center;gap:8px}
+.specs code{background:none;padding:0;font-size:1em}
+.specs li::before{content:"";width:6px;height:6px;background:var(--ok);border-radius:50%}
 
-/* Terminal demo */
-.terminal{max-width:680px;width:100%;margin:60px auto 0;background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden;text-align:left;box-shadow:0 20px 60px rgba(0,0,0,0.4)}
-.terminal-bar{padding:12px 16px;background:var(--bg3);border-bottom:1px solid var(--border);display:flex;gap:8px;align-items:center}
-.terminal-dot{width:12px;height:12px;border-radius:50%}
-.terminal-dot.r{background:#ff5f56}.terminal-dot.y{background:#ffbd2e}.terminal-dot.g{background:#27c93f}
-.terminal-title{color:var(--text3);font-size:12px;font-family:var(--mono);margin-left:8px}
-.terminal-body{padding:20px;font-family:var(--mono);font-size:13px;line-height:1.9;overflow-x:auto}
-.t-dim{color:var(--text3)}.t-green{color:var(--green)}.t-red{color:var(--red)}.t-yellow{color:var(--yellow)}.t-blue{color:var(--blue)}.t-white{color:var(--text)}.t-bold{font-weight:700}
+/* monitor */
+.monitor{margin:6px 0 0;background:var(--sheet);border:1.5px solid var(--ink);padding:18px 20px 16px}
+.mon-head{display:flex;flex-wrap:wrap;gap:10px 14px;justify-content:space-between;align-items:center;padding-bottom:14px;border-bottom:1px solid var(--rule)}
+.mon-title{font:600 .72rem/1 var(--mono);font-stretch:87.5%;text-transform:uppercase;letter-spacing:.06em}
+.seg{display:flex;flex-wrap:wrap;border:0;margin:0;padding:0 0 0 1px}
+.seg label{position:relative;display:block}
+.seg input{position:absolute;inset:0;opacity:0;margin:0;cursor:pointer;width:100%;height:100%}
+.seg span{display:block;font:500 .72rem/1 var(--mono);font-stretch:75%;padding:8px 7px;border:1px solid var(--ink-3);margin-left:-1px;color:var(--ink-2)}
+.seg input:hover+span{color:var(--ink);border-color:var(--ink-3)}
+.seg input:checked+span{background:var(--ink);border-color:var(--ink);color:var(--paper)}
+.seg input:focus-visible+span{outline:2px solid var(--ink);outline-offset:2px;position:relative;z-index:1}
+.mon-read{display:flex;flex-wrap:wrap;align-items:flex-end;gap:4px 14px;margin:18px 0 18px}
+.big{font:820 clamp(4.6rem,3rem + 5vw,7rem)/.8 var(--display);font-stretch:62%;letter-spacing:-.01em}
+.of{font:500 .9rem/1 var(--mono);font-stretch:87.5%;color:var(--ink-3);margin-left:-8px;padding-bottom:4px}
+.grade{margin-left:auto;font:800 2.1rem/1 var(--display);font-stretch:90%;border:2px solid currentColor;padding:6px 10px 5px;min-width:2.4em;text-align:center}
+.counts{flex-basis:100%;margin-top:10px;font:500 .78rem/1.4 var(--mono);font-stretch:87.5%;color:var(--ink-2)}
+.t-ok{color:var(--ok)}.t-crit{color:var(--crit)}.t-warn{color:var(--warn)}.t-info{color:var(--info)}
+.scale{position:relative;margin:26px 0 30px}
+.bands{display:flex;height:24px;border:1px solid var(--ink)}
+.bands span{flex:var(--w);display:grid;place-items:center;font:600 .62rem/1 var(--mono);font-stretch:80%;border-left:1px solid var(--ink);color:var(--ink-2);min-width:0}
+.bands span:first-child{border-left:0}
+.b-f{background:color-mix(in srgb,var(--crit) 11%,transparent)}
+.b-d,.b-c{background:color-mix(in srgb,var(--warn) 12%,transparent)}
+.b-b{background:color-mix(in srgb,var(--info) 9%,transparent)}
+.b-a{background:color-mix(in srgb,var(--ok) 13%,transparent)}
+.ticks{position:relative;height:16px;font:500 .66rem/1 var(--mono);font-stretch:80%;color:var(--ink-3)}
+.ticks span{position:absolute;top:6px;transform:translateX(-50%)}
+.ticks span:first-child{transform:none}.ticks span:last-child{transform:translateX(-100%)}
+.track{position:absolute;top:-12px;left:-8px;right:-8px;height:42px;overflow:hidden;pointer-events:none}
+.ptr{position:absolute;top:0;left:8px;right:8px;height:100%;transform:translateX(calc(var(--v) * 1%));transition:transform .8s cubic-bezier(.16,1,.3,1)}
+.ptr::before{content:"";position:absolute;top:0;left:-6px;border:6px solid transparent;border-top:7px solid var(--ink);border-bottom:0}
+.ptr::after{content:"";position:absolute;top:0;bottom:0;left:-1px;width:2px;background:var(--ink)}
+.thr{position:absolute;left:70%;top:-14px;bottom:14px;border-left:1.5px dashed var(--ink-3)}
+.thr span{position:absolute;bottom:calc(100% - 9px);left:6px;font:500 .6rem/1 var(--mono);font-stretch:80%;color:var(--ink-3);white-space:nowrap}
+.chan{list-style:none;margin:0;padding:12px 0 0;border-top:1px solid var(--rule);display:grid;gap:9px}
+.chan li{display:grid;grid-template-columns:minmax(0,7.6rem) 3.2rem minmax(60px,1fr) 2.6ch;gap:12px;align-items:center;font:500 .78rem/1.2 var(--mono);font-stretch:85%}
+.cw{color:var(--ink-3)}
+.cb{height:11px;background:linear-gradient(90deg,var(--rule) calc(100% - 2px),transparent 0) 0 0/5% 100% repeat-x}
+.cb i{display:block;height:100%;background:linear-gradient(90deg,var(--tone) calc(100% - 2px),transparent 0) 0 0/5% 100% repeat-x;clip-path:inset(0 calc(100% - var(--c) * 5%) 0 0);transition:clip-path .6s cubic-bezier(.16,1,.3,1)}
+.cv{text-align:right;font-weight:700}
+.chan [data-t="ok"]{--tone:var(--ok)}.chan [data-t="warn"]{--tone:var(--warn)}.chan [data-t="crit"]{--tone:var(--crit)}
+.mon-cap{margin-top:16px;font-size:.8rem;line-height:1.45;color:var(--ink-3)}
 
-/* Sections */
-section{max-width:1080px;margin:0 auto;padding:120px 24px}
-h2{font-size:clamp(28px,4vw,40px);font-weight:900;letter-spacing:-1px;margin-bottom:16px}
-.section-sub{color:var(--text2);font-size:17px;max-width:560px;margin-bottom:56px}
+/* strip */
+.strip{margin:clamp(40px,6vw,72px) 0 0}
+.strip-paper{position:relative;height:clamp(180px,16vw,236px);background-color:var(--sheet);border-block:1.5px solid var(--ink);overflow:hidden}
+.chart,.strip-paper,.monitor{background-image:linear-gradient(var(--gmaj) 1px,transparent 1px),linear-gradient(90deg,var(--gmaj) 1px,transparent 1px),linear-gradient(var(--gmin) 1px,transparent 1px),linear-gradient(90deg,var(--gmin) 1px,transparent 1px);background-size:40px 40px,40px 40px,8px 8px,8px 8px}
+.strip-paper svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.trace{fill:none;stroke:var(--trace);stroke-width:1.7;stroke-linejoin:round;stroke-linecap:round}
+.lead{stroke:var(--rule-2);stroke-width:1;stroke-dasharray:2 3}
+.mark{stroke:var(--ink-3);stroke-width:1.2;stroke-dasharray:4 4}
+.lbl{font-family:var(--mono);font-size:10.5px;font-stretch:80%;fill:var(--ink-2);paint-order:stroke;stroke:var(--sheet);stroke-width:4px;stroke-linejoin:round}
+.lbl-b{font-weight:700;fill:var(--ink)}
+.fx{transition:opacity .4s ease-out}
+.pending .fx{opacity:0}
+.pending .fx.on{opacity:1}
+.dot-crit{fill:var(--crit)}.dot-warn{fill:var(--warn)}
+.pen{fill:var(--ink)}
+.strip figcaption{margin-top:14px;font-size:.84rem;line-height:1.5;color:var(--ink-3)}
+.strip figcaption p{max-width:100ch}
 
-/* Features grid */
-.features{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px}
-.feature{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:28px;transition:border-color 0.2s,transform 0.2s}
-.feature:hover{border-color:var(--green);transform:translateY(-2px)}
-.feature-icon{width:40px;height:40px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;margin-bottom:16px;background:var(--green-dim);color:var(--green);font-family:var(--mono);font-weight:700}
-.feature h3{font-size:16px;font-weight:700;margin-bottom:8px}
-.feature p{color:var(--text2);font-size:14px;line-height:1.6}
+/* sections */
+.sec{padding-block:clamp(72px,10vw,128px);border-top:1px solid var(--rule)}
+.hero+.sec{border-top:0}
+.sec-head{max-width:62ch;margin-bottom:clamp(32px,4vw,52px)}
+.sec-head p{margin-top:16px;color:var(--ink-2);font-size:1.08rem}
 
-/* Score visual */
-.score-section{text-align:center}
-.score-section .section-sub{margin-left:auto;margin-right:auto}
-.grades{display:flex;justify-content:center;gap:16px;flex-wrap:wrap;margin-top:40px}
-.grade-pill{font-family:var(--mono);font-size:20px;font-weight:700;width:56px;height:56px;border-radius:12px;display:flex;align-items:center;justify-content:center;border:1px solid var(--border)}
-.grade-pill.ga{background:rgba(74,222,128,0.1);color:var(--green);border-color:rgba(74,222,128,0.3)}
-.grade-pill.gb{background:rgba(96,165,250,0.1);color:var(--blue);border-color:rgba(96,165,250,0.3)}
-.grade-pill.gc{background:rgba(251,191,36,0.1);color:var(--yellow);border-color:rgba(251,191,36,0.3)}
-.grade-pill.gf{background:rgba(248,113,113,0.1);color:var(--red);border-color:rgba(248,113,113,0.3)}
+/* printout */
+.readout{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,19rem);gap:clamp(24px,4vw,56px);align-items:start}
+.printout{margin:0}
+.paper{position:relative;padding:0 34px;background:var(--sheet);border:1px solid var(--rule-2)}
+.paper::before,.paper::after{content:"";position:absolute;top:0;bottom:0;width:34px;background:radial-gradient(circle,var(--paper) 0 5px,var(--rule-2) 5.5px 6.4px,transparent 7px) 50% 10px/34px 26px repeat-y}
+.paper::before{left:0;border-right:1px dashed var(--rule-2)}
+.paper::after{right:0;border-left:1px dashed var(--rule-2)}
+.term{--lh:1.5rem;padding:calc(var(--lh)) 18px;font:400 .78rem/var(--lh) var(--mono);font-stretch:80%;color:var(--ink);
+ background:repeating-linear-gradient(var(--band) 0 calc(var(--lh) * 3),transparent calc(var(--lh) * 3) calc(var(--lh) * 6)) 0 var(--lh)/100% calc(var(--lh) * 6)}
+.ln{display:block;white-space:pre-wrap;padding-left:4ch;text-indent:-4ch;min-height:var(--lh)}
+.term b{font-weight:700}
+.dm{color:var(--ink-3)}.ok{color:var(--ok)}.cr{color:var(--crit)}.wa{color:var(--warn)}.in{color:var(--info)}
+.g{font-family:var(--glyph);font-variant-emoji:text;display:inline-block;width:2ch;text-indent:0;font-size:1.12em;line-height:0}
+.bar{display:inline-block;width:20ch;height:.95em;vertical-align:-.12em;text-indent:0;
+ background:linear-gradient(90deg,var(--tone,var(--ok)) 0 calc(var(--f) * 5%),transparent 0),repeating-linear-gradient(90deg,var(--rule-2) 0 1px,transparent 1px 3px)}
+.bar.ok{--tone:var(--ok)}.bar.wa{--tone:var(--warn)}.bar.cr{--tone:var(--crit)}
+.ln.m{position:relative;padding-right:2.6em}
+.mk{position:absolute;right:0;top:calc((var(--lh) - 1.7em) / 2);display:grid;place-items:center;width:1.7em;height:1.7em;border-radius:50%;background:var(--ink);color:var(--paper);font:700 .62rem/1 var(--mono);text-indent:0;vertical-align:.05em}
+.trim{display:block;margin:6px 0;padding:4px 10px;border:1px dashed var(--rule-2);font:italic 500 .82rem/1.4 var(--display);color:var(--ink-3);text-indent:0;white-space:normal;background:var(--sheet)}
+.cap{margin-top:12px;font-size:.84rem;line-height:1.5;color:var(--ink-3)}
+.notes{list-style:none;margin:0;padding:0;counter-reset:n;display:grid;gap:0}
+.notes li{counter-increment:n;position:relative;padding:16px 0 16px 40px;border-top:1px solid var(--rule);font-size:.97rem;line-height:1.5}
+.notes li:last-child{border-bottom:1px solid var(--rule)}
+.notes li::before{content:counter(n);position:absolute;left:0;top:16px;display:grid;place-items:center;width:24px;height:24px;border-radius:50%;background:var(--ink);color:var(--paper);font:700 .66rem/1 var(--mono)}
 
-/* CI section */
-.ci-block{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:24px;font-family:var(--mono);font-size:13px;line-height:1.8;color:var(--text2);overflow-x:auto;max-width:600px}
+/* analyzers */
+.weights{display:flex;height:76px;border:1.5px solid var(--ink);margin-bottom:8px}
+.weights div{flex:var(--w);position:relative;border-left:1px solid var(--ink);background:repeating-linear-gradient(-45deg,var(--ink) 0 1px,transparent 1px var(--h));min-width:0}
+.weights div:first-child{border-left:0}
+.weights b{position:absolute;left:0;bottom:0;background:var(--paper);padding:6px 9px 5px;font:600 .72rem/1 var(--mono);font-stretch:80%;border-top:1px solid var(--ink);border-right:1px solid var(--ink);white-space:nowrap}
+table{width:100%;border-collapse:collapse;font-size:.97rem;line-height:1.5}
+th,td{text-align:left;vertical-align:top;padding:16px 16px 16px 0}
+thead th{font:600 .7rem/1.2 var(--mono);font-stretch:87.5%;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-3);border-bottom:1.5px solid var(--ink);padding-top:12px;padding-bottom:10px}
+tbody tr{border-bottom:1px solid var(--rule)}
+tbody th{font-weight:700;font-stretch:104%;white-space:nowrap}
+td.num{font:700 1.1rem/1.3 var(--mono);font-stretch:80%}
+.ids{display:flex;flex-wrap:wrap;gap:6px}
+.ids code{font-size:.74rem;background:none;border:1px solid var(--rule-2);padding:3px 6px;white-space:nowrap}
+.panel td:nth-child(3){max-width:52ch;color:var(--ink-2)}
 
-/* CTA */
-.cta{text-align:center;padding:100px 24px;margin:0 auto;max-width:1080px}
-.cta h2{margin-bottom:24px}
-.cta-cmd{font-family:var(--mono);font-size:24px;color:var(--green);margin-bottom:40px}
-.cta-links{display:flex;gap:16px;justify-content:center;flex-wrap:wrap}
-.cta-links a{padding:14px 32px;border-radius:8px;text-decoration:none;font-weight:700;font-size:15px;transition:transform 0.15s,box-shadow 0.15s}
-.cta-links a:hover{transform:translateY(-2px)}
-.cta-primary{background:var(--green2);color:#000}
-.cta-primary:hover{box-shadow:0 4px 24px rgba(34,197,94,0.3)}
-.cta-secondary{background:var(--bg2);color:var(--text);border:1px solid var(--border)}
-.cta-secondary:hover{border-color:var(--text3);box-shadow:0 4px 24px rgba(0,0,0,0.3)}
+/* scoring */
+.scoring{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:clamp(28px,5vw,64px);align-items:start}
+.method{list-style:none;margin:0;padding:0;counter-reset:m}
+.method li{counter-increment:m;display:grid;grid-template-columns:2.4rem 1fr;gap:4px;padding:14px 0;border-top:1px solid var(--rule)}
+.method li::before{content:counter(m);font:700 .8rem/1.6 var(--mono);color:var(--ink-3)}
+.method strong{font-weight:700}
+.weights-eq{margin-top:22px;padding:14px 16px;border:1.5px solid var(--ink);background:var(--sheet);font:500 .78rem/1.7 var(--mono);font-stretch:80%}
+.weights-eq b{font-size:1rem}
+.gscale{margin-top:clamp(36px,5vw,56px)}
+.gscale .bands{height:44px}
+.gscale .bands span{font-size:.78rem;font-weight:700;color:var(--ink)}
+.gscale .ticks{height:20px;font-size:.68rem}
 
-/* Footer */
-footer{border-top:1px solid var(--border);padding:40px 24px;text-align:center}
-footer p{color:var(--text3);font-size:13px}
-footer a{color:var(--text2);text-decoration:none}
-footer a:hover{color:var(--green)}
+/* formats */
+.fmt td:first-child{white-space:nowrap}
+.fmt td:first-child code{font-size:.84rem;font-weight:600;background:none;padding:0}
+.fmt td:last-child{color:var(--ink-3);font-size:.9rem;white-space:nowrap}
 
-/* Animations */
-@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
-.hero .badge{animation:fadeUp 0.6s ease both;animation-delay:0.1s}
-.hero h1{animation:fadeUp 0.6s ease both;animation-delay:0.2s}
-.hero .subtitle{animation:fadeUp 0.6s ease both;animation-delay:0.3s}
-.hero .hero-cmd{animation:fadeUp 0.6s ease both;animation-delay:0.4s}
-.hero .terminal{animation:fadeUp 0.8s ease both;animation-delay:0.6s}
+/* ci */
+.ci{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:clamp(28px,4vw,56px);align-items:start}
+.code{position:relative;background:var(--sheet);border:1px solid var(--rule-2)}
+.code-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 8px 8px 16px;border-bottom:1px solid var(--rule);font:500 .72rem/1 var(--mono);font-stretch:87.5%;color:var(--ink-3)}
+.code .copy{color:var(--ink-2);padding:8px 10px}
+.code .copy:hover,.code .copy[data-done]{color:var(--ink)}
+.code pre{margin:0;padding:16px;overflow-x:auto;font:400 .8rem/1.7 var(--mono);font-stretch:80%}
+.code pre code{font-size:inherit;font-stretch:inherit}
+.k{color:var(--info)}.s{color:var(--ok)}.c{color:var(--ink-3)}
+.facts{list-style:none;margin:22px 0 0;padding:0}
+.facts li{padding:10px 0 10px 20px;border-top:1px solid var(--rule);position:relative;font-size:.97rem}
+.facts li::before{content:"";position:absolute;left:0;top:1.05em;width:9px;height:1.5px;background:var(--ink)}
+.prc{border:1px solid var(--rule-2);background:var(--sheet);padding:20px 22px;font-size:.92rem}
+.prc h3{display:flex;align-items:center;gap:10px;font-size:1.25rem;font-stretch:104%}
+.prc h3 svg{width:22px;height:22px;stroke:var(--ok);stroke-width:2.2}
+.prc .delta{margin-top:6px;font:500 .78rem/1.4 var(--mono);font-stretch:87.5%;color:var(--ink-2)}
+.prc table{margin-top:14px;font-size:.84rem}
+.prc th,.prc td{padding:7px 10px 7px 0}
+.prc thead th{font-size:.7rem}
+.prc .r{text-align:right}
+.prc td.num{font:500 .8rem/1.4 var(--mono);font-stretch:80%}
+.prc h4{margin:18px 0 0;font-size:1.06rem}
+.sv{display:inline-block;width:9px;height:9px;border-radius:50%}
+.sv.cr{background:var(--crit)}.sv.wa{background:var(--warn)}
+.prc code{background:none;padding:0;font-size:.74rem;white-space:nowrap}
+.prc .foot{margin-top:12px;color:var(--ink-3);font-size:.84rem}
+.prc-cap{margin-top:10px;font-size:.84rem;color:var(--ink-3)}
 
-/* Responsive */
-@media(max-width:640px){
-  .nav-links a:not(.nav-cta){display:none}
-  section{padding:80px 20px}
-  .features{grid-template-columns:1fr}
-  .terminal-body{font-size:11px;padding:14px}
-  .grades{gap:10px}
-  .grade-pill{width:44px;height:44px;font-size:16px}
+/* suppressions */
+.rows{margin:0;border-top:1.5px solid var(--ink)}
+.rows>div{display:grid;grid-template-columns:minmax(0,15rem) minmax(0,1fr);gap:12px clamp(20px,4vw,48px);padding:24px 0;border-bottom:1px solid var(--rule)}
+.rows dt{font-weight:700;font-size:1.08rem;font-stretch:104%;line-height:1.35}
+.rows dd{margin:0;min-width:0}
+.rows pre:focus-visible{outline-offset:2px}
+.rows pre{margin:0 0 12px;padding:12px 14px;background:var(--sheet);border:1px solid var(--rule);overflow-x:auto;font:400 .8rem/1.7 var(--mono);font-stretch:80%}
+.rows pre code{white-space:pre;background:none;padding:0;font-size:inherit;overflow-wrap:normal}
+.rows dd p{color:var(--ink-2);max-width:68ch}
+
+/* vscode */
+.vs{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:clamp(28px,4vw,56px);align-items:start}
+.palette{border:1.5px solid var(--ink);background:var(--sheet);font:500 .8rem/1.3 var(--mono);font-stretch:80%}
+.palette .q{padding:12px 14px;border-bottom:1px solid var(--rule);color:var(--ink-2)}
+.palette .q span{color:var(--ink)}
+.palette ul{list-style:none;margin:0;padding:6px 0}
+.palette li{padding:9px 14px;display:flex;justify-content:space-between;gap:12px}
+.palette li:first-child{background:var(--band);box-shadow:inset 2px 0 0 var(--ink)}
+.palette li small{color:var(--ink-3);font-size:.7rem;white-space:nowrap}
+
+/* addendum (0.6) */
+.add{background:var(--tape);color:var(--tape-ink);border-top:0}
+.add .sec-head p{color:var(--tape-dim)}
+.add code{background:rgba(255,255,255,.08)!important;color:var(--tape-ink)}
+.items{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 clamp(28px,4vw,56px);list-style:none;margin:0;padding:0}
+.items li{padding:22px 0;border-top:1px solid rgba(232,242,235,.18)}
+.items h3{font-size:1.18rem;font-stretch:106%}
+.items p{margin-top:8px;color:var(--tape-dim);font-size:.98rem}
+.items .flag{display:inline-block;margin-top:12px;font:600 .8rem/1 var(--mono);font-stretch:80%;color:var(--tape-ok)}
+
+/* fit */
+.fit th[scope="row"]{white-space:normal;min-width:10rem}
+.fit td:nth-child(2){color:var(--ink-2);min-width:11rem}
+
+/* privacy + close */
+.promises{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 clamp(28px,4vw,56px);list-style:none;margin:0;padding:0}
+.promises li{padding:22px 0;border-top:1.5px solid var(--ink)}
+.promises h3{font-size:1.2rem;font-stretch:106%}
+.promises p{margin-top:8px;color:var(--ink-2)}
+.close{margin-top:clamp(64px,8vw,104px);display:grid;grid-template-columns:minmax(0,1fr) auto;gap:20px 40px;align-items:end}
+.close h2{font-size:clamp(1.7rem,1.2rem + 2vw,2.6rem)}
+.close .tape{margin-top:20px}
+.links{display:flex;flex-wrap:wrap;gap:10px 22px;list-style:none;margin:0;padding:0;font:500 .82rem/1.3 var(--mono);font-stretch:87.5%}
+
+footer{border-top:1.5px solid var(--ink);padding-block:28px 40px;font-size:.88rem;color:var(--ink-2)}
+.foot-in{display:flex;flex-wrap:wrap;gap:16px 32px;justify-content:space-between;align-items:center}
+footer .links{font-size:.76rem}
+
+@media (max-width:1020px){
+ .hero-in,.readout,.scoring,.ci,.vs{grid-template-columns:minmax(0,1fr)}
+ .monitor{max-width:620px}
+ .notes{grid-template-columns:repeat(2,minmax(0,1fr));column-gap:28px}
+ .notes li:nth-last-child(2){border-bottom:1px solid var(--rule)}
+}
+@media (max-width:760px){
+ .top nav{display:none}
+ .top-act{margin-left:auto}
+ .notes{grid-template-columns:minmax(0,1fr)}
+ .notes li:nth-last-child(2){border-bottom:0}
+ .items,.promises{grid-template-columns:minmax(0,1fr)}
+ .rows>div{grid-template-columns:minmax(0,1fr)}
+ .close{grid-template-columns:minmax(0,1fr)}
+ .weights b{font-size:.62rem;padding:5px 6px 4px}
+ .weights div:nth-child(n+4) b span{display:none}
+ .panel thead,.fmt thead,.fit thead{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+ .panel tr,.fmt tr,.fit tr{display:grid;grid-template-columns:minmax(0,1fr);padding:14px 0}
+ .panel th,.panel td,.fmt td,.fit th,.fit td{padding:4px 0}
+ .panel td.num{position:absolute;right:0;top:14px}
+ .panel tr{position:relative}
+ .fmt td:last-child{white-space:normal}
+ .fit td::before{content:attr(data-l);display:block;font:600 .64rem/1.4 var(--mono);text-transform:uppercase;letter-spacing:.06em;color:var(--ink-3)}
+}
+@media (max-width:520px){
+ body{font-size:1rem}
+ .paper{padding:0 12px}
+ .paper::before,.paper::after{width:12px;background-size:12px 20px;background-image:radial-gradient(circle,var(--paper) 0 2.5px,var(--rule-2) 2.9px 3.5px,transparent 4px)}
+ .term{font-size:.7rem;font-stretch:75%;--lh:1.35rem;padding-inline:8px}
+ .term .bar{width:14ch}
+ .ln.m{padding-right:2.2em}
+ .monitor{padding:14px 14px 12px}
+ .chan li{grid-template-columns:minmax(0,6.6rem) 2.8rem minmax(40px,1fr) 2.6ch;gap:8px;font-size:.72rem}
+ .tape{padding-left:12px}
+ .copy .cl{display:none}
+ .gh span{display:none}
+ .gscale .ticks span:nth-child(5),.gscale .ticks span:nth-child(7){display:none}
+ .weights div:nth-child(n+2) b span{display:none}
+}
+@media (prefers-reduced-motion:reduce){
+ *,*::before,*::after{transition:none!important;animation:none!important;scroll-behavior:auto!important}
 }
 </style>
 </head>
 <body>
-
-<nav>
-  <div class="nav-inner">
-    <a href="#" class="logo">&lt;/&gt; codediag</a>
-    <div class="nav-links">
-      <a href="#features">Features</a>
-      <a href="#install">Install</a>
-      <a href="https://github.com/sabahattink/codediag" class="nav-cta" target="_blank">GitHub</a>
-    </div>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top">
+ <div class="wrap top-in">
+  <a class="brand" href="#main" aria-label="CodeDiag, back to top">
+   <svg viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="12" style="fill:var(--ink)"/><path d="M7 36h13l5-22 6 36 5-20 3 6h11" fill="none" style="stroke:var(--paper)" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="55" cy="36" r="4.5" style="fill:var(--ok)"/></svg>
+   <span>codediag</span>
+  </a>
+  <nav aria-label="Sections">
+   <ul>
+    <li><a href="#readout">Readout</a></li>
+    <li><a href="#analyzers">Analyzers</a></li>
+    <li><a href="#scoring">Scoring</a></li>
+    <li><a href="#ci">CI</a></li>
+    <li><a href="#new">New in 0.6</a></li>
+   </ul>
+  </nav>
+  <div class="top-act">
+   <a class="gh" href="https://github.com/sabahattink/codediag"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg><span>GitHub</span></a>
+   <button class="theme" id="theme" type="button" aria-label="Switch to dark theme">
+    <svg class="ic i-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg>
+    <svg class="ic i-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg>
+   </button>
   </div>
-</nav>
+ </div>
+</header>
 
-<section class="hero">
-  <div class="badge">Open source &mdash; Available on npm</div>
-  <h1>Diagnose your code<br>before you ship.</h1>
-  <p class="subtitle">One command. Five analyzers. One score.<br>Know exactly what's wrong — before your users do.</p>
-
-  <div class="hero-cmd" onclick="navigator.clipboard.writeText('npx @sabahattink/codediag scan .');this.querySelector('.copy').textContent='Copied!'">
-    <span class="prompt">$</span>
-    <span class="cmd-text">npx @sabahattink/codediag scan .</span>
-    <span class="copy">Copy</span>
+<main id="main">
+<section class="hero chart" aria-labelledby="h-hero">
+ <div class="wrap hero-in">
+  <div>
+   <h1 id="h-hero">Diagnose your code before you ship.</h1>
+   <p class="lede">One command. Five analyzers. One score.</p>
+   <p class="intro">CodeDiag reads a Node.js, NestJS, Express, or Next.js project on your machine and returns a 0–100 health score that accounts for every point it takes. Each finding carries a stable rule ID, a file and line when there is one, and a suggested fix.</p>
+   <div class="tape">
+    <code><span class="ps" aria-hidden="true">$</span><span id="cmd-1">npx @sabahattink/codediag scan .</span></code>
+    <button class="copy" type="button" data-copy="cmd-1" aria-label="Copy the scan command"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="1"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/></svg><span class="cl">Copy</span></button>
+   </div>
+   <p class="alt">Or <code>npm install -g @sabahattink/codediag</code> for a global <code>codediag</code> command.</p>
+   <ul class="specs">
+    <li>Node.js 20.19+</li>
+    <li>No account, no upload</li>
+    <li>Offline with <code>--no-audit</code></li>
+    <li>MIT licensed</li>
+   </ul>
   </div>
 
-  <div class="terminal">
-    <div class="terminal-bar">
-      <div class="terminal-dot r"></div>
-      <div class="terminal-dot y"></div>
-      <div class="terminal-dot g"></div>
-      <span class="terminal-title">codediag &mdash; Terminal</span>
-    </div>
-    <div class="terminal-body">
-      <span class="t-dim">&check;</span> <span class="t-dim">Stack: nestjs + typescript + prisma</span><br>
-      <span class="t-dim">&check;</span> <span class="t-dim">Security: 92/100</span><br>
-      <span class="t-dim">&check;</span> <span class="t-dim">Dependencies: 91/100</span><br>
-      <span class="t-dim">&check;</span> <span class="t-dim">Testing: 82/100</span><br>
-      <span class="t-dim">&check;</span> <span class="t-dim">Structure: 88/100</span><br>
-      <br>
-      <span class="t-white t-bold">  codediag</span> <span class="t-dim">&mdash; Diagnostic Report</span><br>
-      <br>
-      <span class="t-dim">  Project:  </span><span class="t-white">my-nestjs-app</span><br>
-      <span class="t-dim">  Stack:    </span><span class="t-white">nestjs</span> <span class="t-dim">+</span> <span class="t-white">typescript</span> <span class="t-dim">+</span> <span class="t-white">prisma</span><br>
-      <span class="t-dim">  Score:    </span><span class="t-green t-bold">B+</span> <span class="t-dim">(87/100)</span><br>
-      <br>
-      <span class="t-dim">  API Health       </span><span class="t-green">&block;&block;&block;&block;&block;&block;&block;&block;&block;&block;&block;&block;&block;&block;&block;</span><span class="t-dim">&block;&block;&block;&block;&block;</span> <span class="t-white t-bold"> 78</span><br>
-      <span class="t-dim">  Security         </span><span class="t-green">&block;&block;&block;&block;&block;&block;&block;&block;&block;&block;&block;&block;&block;&block;&block;&block;&block;&block;</span><span class="t-dim">&block;&block;</span> <span class="t-white t-bold"> 92</span><br>
-      <span class="t-dim">  Dependencies     </span><span class="t-green">&block;&block;&block;&block;&block;&block;&block;&block;&block;&block;&block;&block;&block;&block;&block;&block;&block;&block;</span><span class="t-dim">&block;&block;</span> <span class="t-white t-bold"> 91</span><br>
-      <span class="t-dim">  Testing          </span><span class="t-green">&block;&block;&block;&block;&block;&block;&block;&block;&block;&block;&block;&block;&block;&block;&block;&block;</span><span class="t-dim">&block;&block;&block;&block;</span> <span class="t-white t-bold"> 82</span><br>
-      <span class="t-dim">  Structure        </span><span class="t-green">&block;&block;&block;&block;&block;&block;&block;&block;&block;&block;&block;&block;&block;&block;&block;&block;&block;</span><span class="t-dim">&block;&block;&block;</span> <span class="t-white t-bold"> 88</span><br>
-      <br>
-      <span class="t-red">&cross;</span> <span class="t-white">POST /users has no auth guard</span><br>
-      <span class="t-dim">    src/users/users.controller.ts</span><br>
-      <span class="t-dim">    &rarr; Add @UseGuards(AuthGuard)</span><br>
-      <br>
-      <span class="t-yellow">&telrec;</span> <span class="t-white">Rate limiting is not configured in runtime source</span><br>
-      <span class="t-dim">    &rarr; Configure a framework-appropriate rate limiter</span><br>
-    </div>
+  <figure class="monitor" id="monitor" aria-labelledby="mon-cap">
+   <div class="mon-head">
+    <p class="mon-title" id="mon-title">Health score</p>
+    <fieldset class="seg">
+     <legend class="sr-only">Sample project</legend>
+     <label><input type="radio" name="spec" value="0" checked><span>defects/express</span></label>
+     <label><input type="radio" name="spec" value="1"><span>defects/nestjs</span></label>
+     <label><input type="radio" name="spec" value="2"><span>realistic/express</span></label>
+    </fieldset>
+   </div>
+   <div class="mon-read" aria-live="polite" aria-atomic="true">
+    <span class="big" id="m-score">41</span><span class="of">/100</span>
+    <span class="sr-only">grade</span><span class="grade t-crit" id="m-grade">F</span>
+    <span class="counts" id="m-counts">6 critical · 10 warnings · 8 info</span>
+   </div>
+   <div class="scale" id="m-scale" style="--v:41" aria-hidden="true">
+    <div class="bands"><span class="b-f" style="--w:60">F</span><span class="b-d" style="--w:10">D</span><span class="b-c" style="--w:10">C</span><span class="b-b" style="--w:5">B</span><span class="b-b" style="--w:5">B+</span><span class="b-a" style="--w:5">A</span><span class="b-a" style="--w:5">A+</span></div>
+    <span class="thr"><span>--ci 70</span></span>
+    <span class="track"><span class="ptr"></span></span>
+    <div class="ticks"><span style="left:0">0</span><span style="left:60%">60</span><span style="left:70%">70</span><span style="left:80%">80</span><span style="left:90%">90</span><span style="left:100%">100</span></div>
+   </div>
+   <ul class="chan" id="m-chan">
+    <li data-t="ok" style="--c:16"><span>API Health</span><span class="cw">×0.25</span><span class="cb"><i></i></span><span class="cv">82</span></li>
+    <li data-t="crit" style="--c:0"><span>Security</span><span class="cw">×0.30</span><span class="cb"><i></i></span><span class="cv">0</span></li>
+    <li data-t="warn" style="--c:13"><span>Dependencies</span><span class="cw">×0.20</span><span class="cb"><i></i></span><span class="cv">63</span></li>
+    <li data-t="crit" style="--c:0"><span>Testing</span><span class="cw">×0.15</span><span class="cb"><i></i></span><span class="cv">0</span></li>
+    <li data-t="ok" style="--c:16"><span>Structure</span><span class="cw">×0.10</span><span class="cb"><i></i></span><span class="cv">80</span></li>
+   </ul>
+   <figcaption class="mon-cap" id="mon-cap">Health score of three of CodeDiag’s own benchmark fixtures, scanned with <code>--no-audit</code>. Pick one to see how five analyzer scores weigh into the total.</figcaption>
+  </figure>
+ </div>
+
+ <figure class="strip">
+  <div class="strip-paper" id="strip">
+   <svg id="ecg" role="img" aria-labelledby="ecg-cap" focusable="false"></svg>
   </div>
+  <figcaption class="wrap" id="ecg-cap"><p>The Security channel, drawn as a strip. On <code>defects/express</code> each spike is one finding and its height the points it costs: <code>dynamic-command-execution</code>, <code>dynamic-sql-query</code>, <code>path-traversal</code>, and <code>reflected-xss</code> at −25; <code>server-side-request-forgery</code>, <code>open-redirect</code>, <code>no-helmet</code>, and <code>no-rate-limiting</code> at −8. Security bottoms out at 0. The same channel on <code>realistic/express</code> runs clean at 100.</p></figcaption>
+ </figure>
 </section>
 
-<section id="features">
-  <h2>Five analyzers.<br>Zero config.</h2>
-  <p class="section-sub">codediag auto-detects Node.js, NestJS, Express, and Next.js projects, then applies framework-aware checks.</p>
-
-  <div class="features">
-    <div class="feature">
-      <div class="feature-icon">API</div>
-      <h3>API Health</h3>
-      <p>Inspects NestJS, Express, and Next.js APIs. Checks authentication, validation, documentation, error handling, and health routes.</p>
-    </div>
-    <div class="feature">
-      <div class="feature-icon">&lbrace;&rbrace;</div>
-      <h3>Security</h3>
-      <p>Finds hardcoded secrets, unsafe .env tracking, open CORS, missing runtime Helmet or rate limiting, and weak password handling.</p>
-    </div>
-    <div class="feature">
-      <div class="feature-icon">pkg</div>
-      <h3>Dependencies</h3>
-      <p>Runs the matching npm, pnpm, or Yarn audit, then checks lock files, deprecated packages, engine specs, and essential scripts.</p>
-    </div>
-    <div class="feature">
-      <div class="feature-icon">tst</div>
-      <h3>Testing</h3>
-      <p>Measures line, statement, function, and branch coverage from Istanbul reports, with static test checks as a fallback.</p>
-    </div>
-    <div class="feature">
-      <div class="feature-icon">src</div>
-      <h3>Structure</h3>
-      <p>Validates useful README content, inherited lint and format config, resolved TypeScript strict mode, NestJS feature modules, and environment templates.</p>
-    </div>
-    <div class="feature">
-      <div class="feature-icon">fix</div>
-      <h3>Review-first fixes</h3>
-      <p>Turns findings into a prioritized checklist or a structured AI handoff. It never edits files or applies a recommendation without explicit approval.</p>
-    </div>
-    <div class="feature">
-      <div class="feature-icon">VS</div>
-      <h3>VS Code</h3>
-      <p>Publishes findings to Problems and opens local reports, fix plans, and AI review prompts without leaving the editor.</p>
-    </div>
+<section class="sec" id="readout" aria-labelledby="h-readout">
+ <div class="wrap">
+  <div class="sec-head">
+   <h2 id="h-readout">A readout that shows its work</h2>
+   <p>The terminal report leads with the grade and the weighted score, then one bar per analyzer, then critical findings and warnings with their location and fix. <code>--verbose</code> adds info findings and the per-rule breakdown behind each bar.</p>
   </div>
+  <div class="readout">
+   <figure class="printout">
+    <div class="paper"><div class="term" role="group" aria-label="Terminal output">
+<span class="ln"><span class="dm">$</span> npx @sabahattink/codediag scan . --no-audit</span>
+<span class="ln"><span class="g ok">✔</span>Stack: express + javascript</span>
+<span class="ln"><span class="g ok">✔</span>API Health: 3 findings</span>
+<span class="ln"><span class="g ok">✔</span>Security: 8 findings</span>
+<span class="ln"><span class="g ok">✔</span>Dependencies: 4 findings</span>
+<span class="ln"><span class="g ok">✔</span>Testing: 5 findings</span>
+<span class="ln"><span class="g ok">✔</span>Structure: 4 findings</span>
+<span class="ln"></span>
+<span class="ln">  <b>codediag</b><span class="dm"> — Diagnostic Report</span></span>
+<span class="ln"></span>
+<span class="ln"><span class="dm">  Project:  </span>express</span>
+<span class="ln"><span class="dm">  Stack:    </span>express + javascript</span>
+<span class="ln m"><span class="dm">  Score:    </span><b class="cr">F</b><span class="dm"> (41/100)</span><span class="mk" aria-hidden="true">1</span></span>
+<span class="ln"></span>
+<span class="ln m"><span class="dm">  API Health      </span> <span class="bar ok" style="--f:16"></span> <b> 82</b><span class="mk" aria-hidden="true">2</span></span>
+<span class="ln"><span class="dm">  Security        </span> <span class="bar cr" style="--f:0"></span> <b>  0</b></span>
+<span class="ln"><span class="dm">  Dependencies    </span> <span class="bar wa" style="--f:13"></span> <b> 63</b></span>
+<span class="ln"><span class="dm">  Testing         </span> <span class="bar cr" style="--f:0"></span> <b>  0</b></span>
+<span class="ln"><span class="dm">  Structure       </span> <span class="bar ok" style="--f:16"></span> <b> 80</b></span>
+<span class="ln"></span>
+<span class="ln m">  <span class="cr">6 critical</span><span class="dm"> · </span><span class="wa">10 warnings</span><span class="dm"> · </span><span class="in">8 info</span><span class="mk" aria-hidden="true">3</span></span>
+<span class="ln"></span>
+<span class="ln">  <span class="g cr">✖</span>Shell execution receives a non-literal command <span class="dm">[dynamic-command-execution]</span></span>
+<span class="ln dm">    src/app.js:11</span>
+<span class="ln dm">    → Avoid a shell; use execFile or spawn with a fixed executable and validated argument array</span>
+<span class="ln m">  <span class="g cr">✖</span>SQL execution uses a dynamically constructed query <span class="dm">[dynamic-sql-query]</span><span class="mk" aria-hidden="true">4</span></span>
+<span class="ln m dm">    src/app.js:17<span class="mk" aria-hidden="true">5</span></span>
+<span class="ln dm">    → Use parameterized queries or the ORM's safe tagged-template API</span>
+<span class="ln">  <span class="g cr">✖</span>A file path is built from request data <span class="dm">[path-traversal]</span></span>
+<span class="ln dm">    src/app.js:23</span>
+<span class="ln dm">    → Resolve the path against a fixed base directory and reject it unless it stays inside, or use path.basename() for plain file names</span>
+<span class="trim">Trimmed for this page: three more critical findings and four warnings.</span>
+<span class="ln dm">  ... and 6 more issues</span>
+<span class="ln dm">  8 info issues hidden (use --verbose)</span>
+</div></div>
+    <figcaption class="cap">Real output on CodeDiag’s <code>defects/express</code> test fixture. Spinner lines are shown as they finish in a terminal.</figcaption>
+   </figure>
+   <ol class="notes" aria-label="Annotations">
+    <li><strong>Grade and weighted total.</strong> 82×0.25 + 0×0.30 + 63×0.20 + 0×0.15 + 80×0.10 = 41.1, rounded to 41.</li>
+    <li><strong>One bar per analyzer,</strong> each scored 0–100 on its own: twenty cells, five points each.</li>
+    <li><strong>Counts by severity.</strong> Info findings stay folded until you pass <code>--verbose</code>.</li>
+    <li><strong>A stable rule ID.</strong> <code>codediag explain dynamic-sql-query</code> describes the rule and shows how to suppress it.</li>
+    <li><strong>Location and fix.</strong> CodeDiag recommends; it never edits your files.</li>
+   </ol>
+  </div>
+ </div>
 </section>
 
-<section class="score-section" id="scoring">
-  <h2>One unified score.</h2>
-  <p class="section-sub">Every analyzer contributes to a weighted total. Security counts most, because shipping vulnerable code is the worst bug.</p>
-  <div class="grades">
-    <div class="grade-pill ga">A+</div>
-    <div class="grade-pill ga">A</div>
-    <div class="grade-pill gb">B+</div>
-    <div class="grade-pill gb">B</div>
-    <div class="grade-pill gc">C</div>
-    <div class="grade-pill gc">D</div>
-    <div class="grade-pill gf">F</div>
+<section class="sec" id="analyzers" aria-labelledby="h-analyzers">
+ <div class="wrap">
+  <div class="sec-head">
+   <h2 id="h-analyzers">Five analyzers, weighted by what breaks in production</h2>
+   <p>CodeDiag detects the stack, walks the files once, and parses them into one <code>ts-morph</code> project that every analyzer shares. Routes and security sinks come from the syntax tree, not regular expressions. NestJS, Express, and Next.js get all five analyzers; plain Node.js projects get everything except API Health.</p>
   </div>
+  <div class="weights" aria-hidden="true">
+   <div style="--w:30;--h:5px"><b><span>Security </span>30</b></div>
+   <div style="--w:25;--h:7px"><b><span>API Health </span>25</b></div>
+   <div style="--w:20;--h:10px"><b><span>Dependencies </span>20</b></div>
+   <div style="--w:15;--h:14px"><b><span>Testing </span>15</b></div>
+   <div style="--w:10;--h:20px"><b><span>Structure </span>10</b></div>
+  </div>
+  <table class="panel">
+   <caption class="sr-only">Analyzers, their weight in the total score, and what they examine</caption>
+   <thead><tr><th scope="col">Analyzer</th><th scope="col">Weight</th><th scope="col">Examines</th><th scope="col">Rule IDs include</th></tr></thead>
+   <tbody>
+    <tr><th scope="row">Security</th><td class="num">30%</td><td>Request data traced through variables, destructuring, and reassignments into shell commands, raw SQL, file paths, outgoing requests, redirects, and HTML responses. Plus hardcoded credentials, Helmet, rate limiting, open CORS, weak password hashing, and disabled TLS verification.</td><td><span class="ids"><code>dynamic-sql-query</code><code>path-traversal</code><code>reflected-xss</code></span></td></tr>
+    <tr><th scope="row">API Health</th><td class="num">25%</td><td>The routes your app actually exposes: NestJS guards, including global guards and <code>@Public()</code> opt-outs, DTOs and <code>ValidationPipe</code>; Express auth and validation middleware across router mounts and files; error handlers, health endpoints, and Next.js App and Pages Router handlers.</td><td><span class="ids"><code>missing-guard</code><code>missing-auth-middleware</code><code>dto-not-validated</code></span></td></tr>
+    <tr><th scope="row">Dependencies</th><td class="num">20%</td><td>Your package manager’s own audit (npm, pnpm, Yarn Classic, Yarn Berry), lock file and <code>packageManager</code> consistency, deprecated packages, engines, and essential scripts.</td><td><span class="ids"><code>vuln-critical</code><code>no-lock-file</code><code>deprecated-dep</code></span></td></tr>
+    <tr><th scope="row">Testing</th><td class="num">15%</td><td>Test files and frameworks (Jest, Vitest, Mocha, Ava, node:test), the test-to-source ratio, integration directories, and coverage measured against 80% lines and 70% branches, or a configured threshold.</td><td><span class="ids"><code>no-test-files</code><code>coverage-below-threshold</code></span></td></tr>
+    <tr><th scope="row">Structure</th><td class="num">10%</td><td>README, lint and format config (also inherited from a workspace root), resolved TypeScript strict mode, NestJS feature modules, and environment templates.</td><td><span class="ids"><code>no-strict-mode</code><code>no-linter</code><code>no-env-example</code></span></td></tr>
+   </tbody>
+  </table>
+  <p class="cap">Every rule, with its default severity and CWE and OWASP mappings, is in the <a href="https://github.com/sabahattink/codediag/blob/main/docs/rules.md">rule reference</a>; <code>codediag rules</code> lists them in your terminal.</p>
+ </div>
 </section>
 
-<section id="install">
-  <h2>Works in CI too.</h2>
-  <p class="section-sub">Add one line to your pipeline. codediag exits with code 1 if the score drops below your threshold.</p>
-  <div class="ci-block">
-    <span class="t-dim"># GitHub Actions</span><br>
-    <span class="t-yellow">- name:</span> <span class="t-white">Code Diagnostics</span><br>
-    <span class="t-yellow">&nbsp; run:</span> <span class="t-green">npx @sabahattink/codediag scan . --ci --threshold 80</span><br>
-    <br>
-    <span class="t-dim"># Reports and score badge</span><br>
-    <span class="t-green">npx @sabahattink/codediag scan . --format json</span><br>
-    <span class="t-green">npx @sabahattink/codediag scan . --format svg &gt; codediag.svg</span><br>
-    <span class="t-green">npx @sabahattink/codediag scan . --format html &gt; codediag-report.html</span><br>
-    <span class="t-green">npx @sabahattink/codediag scan . --format fixes &gt; codediag-fixes.md</span><br>
-    <span class="t-green">npx @sabahattink/codediag scan . --format prompt &gt; codediag-prompt.txt</span>
+<section class="sec" id="scoring" aria-labelledby="h-scoring">
+ <div class="wrap">
+  <div class="sec-head">
+   <h2 id="h-scoring">The score is arithmetic you can check</h2>
+   <p>No model, no percentile, no hidden weighting. Recompute any score by hand from the report, or read <code>scoreBreakdown</code> in the JSON output.</p>
   </div>
+  <div class="scoring">
+   <div>
+    <ol class="method">
+     <li><span><strong>Every analyzer starts at 100.</strong></span></li>
+     <li><span><strong>Each finding subtracts its severity weight:</strong> critical 25, warning 8, info 2.</span></li>
+     <li><span><strong>Repeats of one rule cost half the previous one,</strong> so a rule never costs more than twice its weight. Three critical <code>dynamic-sql-query</code> findings cost 25 + 12.5 + 6.25, reported as −43.8.</span></li>
+     <li><span><strong>One problem is penalized once.</strong> A finding whose root cause is also reported drops to info, is linked with <code>causedBy</code>, and costs nothing.</span></li>
+     <li><span><strong>Nothing to evaluate scores 0.</strong> A missing <code>package.json</code>, or no test files at all, sets that analyzer to 0.</span></li>
+     <li><span><strong>The total is the weighted average,</strong> rounded and graded.</span></li>
+    </ol>
+    <p class="weights-eq">API×0.25 + Security×0.30 + Dependencies×0.20<br>+ Testing×0.15 + Structure×0.10 = <b>total</b></p>
+   </div>
+   <figure class="printout">
+    <div class="paper"><div class="term" role="group" aria-label="Verbose score breakdown">
+<span class="ln"><span class="dm">  Security        </span> <span class="bar cr" style="--f:0"></span> <b>  0</b></span>
+<span class="ln dm">       -25  dynamic-command-execution ×1</span>
+<span class="ln dm">       -25  dynamic-sql-query ×1</span>
+<span class="ln dm">       -25  path-traversal ×1</span>
+<span class="ln dm">       -25  reflected-xss ×1</span>
+<span class="ln dm">        -8  no-helmet ×1</span>
+<span class="ln dm">        -8  no-rate-limiting ×1</span>
+<span class="ln dm">        -8  open-redirect ×1</span>
+<span class="ln dm">        -8  server-side-request-forgery ×1</span>
+<span class="ln"><span class="dm">  Testing         </span> <span class="bar cr" style="--f:0"></span> <b>  0</b></span>
+<span class="ln dm">      -100  no-test-files ×1</span>
+<span class="ln dm">        -8  no-test-framework ×1</span>
+<span class="ln"></span>
+<span class="ln">  <span class="g in">ℹ</span>No e2e/test directory found<span class="dm"> (caused by no-test-files) [no-e2e-dir]</span></span>
+<span class="ln">  <span class="g in">ℹ</span>No coverage threshold configured<span class="dm"> (caused by no-test-files) [no-coverage-config]</span></span>
+</div></div>
+    <figcaption class="cap">From <code>--verbose</code> on the same fixture. Security’s penalties add up to 132 and the analyzer stops at 0; the findings caused by <code>no-test-files</code> cost nothing.</figcaption>
+   </figure>
+  </div>
+  <div class="scale gscale" aria-hidden="true">
+   <div class="bands"><span class="b-f" style="--w:60">F</span><span class="b-d" style="--w:10">D</span><span class="b-c" style="--w:10">C</span><span class="b-b" style="--w:5">B</span><span class="b-b" style="--w:5">B+</span><span class="b-a" style="--w:5">A</span><span class="b-a" style="--w:5">A+</span></div>
+   <div class="ticks"><span style="left:0">0</span><span style="left:60%">60</span><span style="left:70%">70</span><span style="left:80%">80</span><span style="left:85%">85</span><span style="left:90%">90</span><span style="left:95%">95</span><span style="left:100%">100</span></div>
+  </div>
+  <p class="sr-only">Grades: A+ from 95, A from 90, B+ from 85, B from 80, C from 70, D from 60, F below 60.</p>
+ </div>
 </section>
 
-<section class="cta">
-  <h2>Ship with confidence.</h2>
-  <p class="cta-cmd">npx @sabahattink/codediag scan .</p>
-  <div class="cta-links">
-    <a href="https://www.npmjs.com/package/@sabahattink/codediag" class="cta-primary" target="_blank">Install from npm</a>
-    <a href="https://github.com/sabahattink/codediag" class="cta-secondary" target="_blank">View on GitHub</a>
+<section class="sec" id="outputs" aria-labelledby="h-outputs">
+ <div class="wrap">
+  <div class="sec-head">
+   <h2 id="h-outputs">One scan, eight report formats</h2>
+   <p>Choose one with <code>--format</code>. <code>--ci</code> switches to JSON unless you pick another format, and <code>--threshold 80</code> exits with 1 below 80 in any of them.</p>
   </div>
+  <table class="fmt">
+   <caption class="sr-only">Output formats</caption>
+   <thead><tr><th scope="col">--format</th><th scope="col">What you get</th><th scope="col">Where it goes</th></tr></thead>
+   <tbody>
+    <tr><td><code>terminal</code></td><td>The default readout: grade, bars, findings, locations, fixes.</td><td>Your shell</td></tr>
+    <tr><td><code>json</code></td><td>A versioned contract (<a href="https://github.com/sabahattink/codediag/blob/main/schema/scan-result.schema.json">scan-result.schema.json</a>) with score breakdowns and line-independent fingerprints.</td><td>Scripts, baselines</td></tr>
+    <tr><td><code>sarif</code></td><td>SARIF 2.1.0 with rule IDs, CWE and OWASP tags, fingerprints, suppressions, and baseline state.</td><td>GitHub Code Scanning</td></tr>
+    <tr><td><code>html</code></td><td>An interactive report in a single file, generated locally.</td><td>A browser, CI artifacts</td></tr>
+    <tr><td><code>md</code></td><td>A Markdown report.</td><td>Pull requests, wikis</td></tr>
+    <tr><td><code>svg</code></td><td>A score badge.</td><td>Your README</td></tr>
+    <tr><td><code>fixes</code></td><td>A prioritized remediation checklist. Every item starts unchecked and requires review.</td><td>Code review</td></tr>
+    <tr><td><code>prompt</code></td><td>A review-only handoff for a coding agent: diagnostic metadata, no source contents or secrets, no edits until you approve.</td><td>Your AI assistant</td></tr>
+   </tbody>
+  </table>
+ </div>
 </section>
+
+<section class="sec" id="ci" aria-labelledby="h-ci">
+ <div class="wrap">
+  <div class="sec-head">
+   <h2 id="h-ci">Gate pull requests on the score</h2>
+   <p>The GitHub Action carries its own bundle: no npm install, no secrets, and no write access beyond the pull request comment you opt into.</p>
+  </div>
+  <div class="ci">
+   <div>
+    <div class="code">
+     <div class="code-bar"><span>.github/workflows/codediag.yml</span><button class="copy" type="button" data-copy="yml-ci" aria-label="Copy workflow"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="1"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/></svg><span class="cl">Copy</span></button></div>
+<pre><code id="yml-ci"><span class="k">on</span>:
+  <span class="k">pull_request</span>:
+
+<span class="k">permissions</span>:
+  <span class="k">contents</span>: read
+  <span class="k">pull-requests</span>: write
+
+<span class="k">jobs</span>:
+  <span class="k">codediag</span>:
+    <span class="k">runs-on</span>: ubuntu-latest
+    <span class="k">steps</span>:
+      - <span class="k">uses</span>: <span class="s">actions/checkout@v7</span>
+      - <span class="k">uses</span>: <span class="s">sabahattink/codediag@v0</span>
+        <span class="k">with</span>:
+          <span class="k">threshold</span>: 80
+          <span class="k">comment</span>: true</code></pre>
+    </div>
+    <ul class="facts">
+     <li>Critical findings and warnings become annotations, up to 50 per run, next to a job summary.</li>
+     <li>JSON and SARIF reports, plus <code>score</code>, <code>grade</code>, <code>report</code>, and <code>sarif</code> outputs for later steps.</li>
+     <li>Exit 1 below the threshold, 2 when configuration or scanning fails.</li>
+     <li>Elsewhere: <code class="w">npx @sabahattink/codediag scan . --ci --threshold 80</code>. <a href="https://github.com/sabahattink/codediag/blob/main/docs/github-action.md">Action guide</a></li>
+    </ul>
+   </div>
+   <div>
+    <div class="prc">
+     <h3><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 12.5l5 5 10-11"/></svg>CodeDiag: 88/100 (B+)</h3>
+     <p class="delta">▲ +4 since the last run · threshold 80</p>
+     <table>
+      <thead><tr><th scope="col">Analyzer</th><th scope="col" class="r">Score</th><th scope="col" class="r">Findings</th></tr></thead>
+      <tbody>
+       <tr><td>API Health</td><td class="r num">92/100</td><td class="r num">1</td></tr>
+       <tr><td>Security</td><td class="r num">67/100</td><td class="r num">2</td></tr>
+       <tr><td>Dependencies</td><td class="r num">100/100</td><td class="r num">0</td></tr>
+       <tr><td>Testing</td><td class="r num">98/100</td><td class="r num">1</td></tr>
+       <tr><td>Structure</td><td class="r num">100/100</td><td class="r num">0</td></tr>
+      </tbody>
+     </table>
+     <h4>Findings in changed files (2)</h4>
+     <table>
+      <thead><tr><th scope="col"><span class="sr-only">Severity</span></th><th scope="col">Rule</th><th scope="col">Location</th></tr></thead>
+      <tbody>
+       <tr><td><span class="sv cr" role="img" aria-label="critical"></span></td><td><code>reflected-xss</code></td><td><code>src/routes/search.ts:14</code></td></tr>
+       <tr><td><span class="sv wa" role="img" aria-label="warning"></span></td><td><code>open-redirect</code></td><td><code>src/routes/auth.ts:31</code></td></tr>
+      </tbody>
+     </table>
+     <p class="foot">Not listed: 2 findings elsewhere in the project.</p>
+    </div>
+    <p class="prc-cap">An example pull request comment with <code>comment: true</code>. Later pushes update the same comment.</p>
+   </div>
+  </div>
+ </div>
+</section>
+
+<section class="sec" id="suppressions" aria-labelledby="h-supp">
+ <div class="wrap">
+  <div class="sec-head">
+   <h2 id="h-supp">Accept findings on the record</h2>
+   <p>Three ways to decide which findings count, and none of them hides anything. Suppressed and baseline findings stay in the JSON and SARIF reports; they stop affecting the score, thresholds, and annotations.</p>
+  </div>
+  <dl class="rows">
+   <div>
+    <dt>In source, with a reason</dt>
+    <dd><pre tabindex="0"><code><span class="c">// codediag-ignore-next-line unsafe-dynamic-code -- plugin code is signed and sandboxed</span></code></pre>
+    <p>No reason, no suppression: a directive without one is not applied and is reported as <code>suppression-missing-reason</code>. One that matches nothing becomes <code>unused-suppression</code>.</p></dd>
+   </div>
+   <div>
+    <dt>For the whole project</dt>
+    <dd><pre tabindex="0"><code><span class="k">rules</span>:
+  <span class="k">missing-swagger</span>: off      <span class="c"># internal service without public API docs</span>
+  <span class="k">open-cors</span>: critical       <span class="c"># stricter than the default warning</span></code></pre>
+    <p>In <code>.codediag.yml</code>: <code>off</code>, <code>info</code>, <code>warning</code>, or <code>critical</code>. An unknown rule ID fails the scan instead of being ignored.</p></dd>
+   </div>
+   <div>
+    <dt>For code that already exists</dt>
+    <dd><pre tabindex="0"><code>codediag scan . --update-baseline .codediag-baseline.json
+codediag scan . --ci --threshold 80 --baseline .codediag-baseline.json</code></pre>
+    <p>Findings are matched by a line-independent fingerprint, so moving code keeps them matched and only new findings fail the gate. The Action takes the same file as <code>baseline:</code>. <a href="https://github.com/sabahattink/codediag/blob/main/docs/suppressions-and-baselines.md">Suppressions and baselines</a></p></dd>
+   </div>
+  </dl>
+ </div>
+</section>
+
+<section class="sec" id="vscode" aria-labelledby="h-vs">
+ <div class="wrap vs">
+  <div>
+   <div class="sec-head">
+    <h2 id="h-vs">The same engine, inside VS Code</h2>
+    <p>The extension runs the analyzers locally and publishes located findings to the Problems panel. The HTML report, the fix plan, and the AI review prompt open in the editor.</p>
+   </div>
+   <ul class="facts">
+    <li>Scan on save is opt-in (<code>codediag.scanOnSave</code>) and never runs the package manager; it reuses the last audit, so scores stay consistent.</li>
+    <li>Disabled in untrusted and virtual workspaces. Findings outside the workspace are not published.</li>
+    <li>New in 0.6: quick fixes that suppress a finding with a reason or explain its rule.</li>
+    <li>Until Marketplace publishing, install the <code>.vsix</code> from a CI run. <a href="https://github.com/sabahattink/codediag/blob/main/docs/vscode-extension.md">Extension guide</a></li>
+   </ul>
+  </div>
+  <div class="palette" role="group" aria-label="CodeDiag commands in the VS Code command palette">
+   <p class="q">&gt; <span>CodeDiag:</span></p>
+   <ul>
+    <li><span>CodeDiag: Scan Workspace</span><small>Problems panel</small></li>
+    <li><span>CodeDiag: Scan and Show HTML Report</span></li>
+    <li><span>CodeDiag: Scan and Open Fix Plan</span></li>
+    <li><span>CodeDiag: Scan and Create AI Review Prompt</span></li>
+    <li><span>CodeDiag: Clear Diagnostics</span></li>
+   </ul>
+  </div>
+ </div>
+</section>
+
+<section class="sec add" id="new" aria-labelledby="h-new">
+ <div class="wrap">
+  <div class="sec-head">
+   <h2 id="h-new">New in 0.6</h2>
+   <p>More frameworks and sinks, secrets outside code, and reports you can compare over time.</p>
+  </div>
+  <ul class="items">
+   <li><h3>Fastify API analysis</h3><p>Fastify routes join NestJS, Express, and Next.js in the API Health analyzer.</p></li>
+   <li><h3>JWT and session misconfiguration</h3><p><code>algorithms: ['none']</code>, <code>ignoreExpiration: true</code>, and cookies set without <code>httpOnly</code> or <code>secure</code>.</p></li>
+   <li><h3>More taint-tracked sinks</h3><p>Request data that reaches a deep merge (prototype pollution), a server-side template, or <code>spawn(..., { shell: true })</code>.</p></li>
+   <li><h3>Secrets in config files</h3><p>JSON, YAML, Dockerfiles, <code>.npmrc</code>, and committed <code>.env</code> files, with the secret values redacted in reports.</p></li>
+   <li><h3>Compare two scans</h3><p>The score delta and the new and fixed findings since a previous JSON report, in the terminal and the HTML report.</p><span class="flag">--compare previous.json</span></li>
+   <li><h3>Changed files only</h3><p>Report findings only in the files changed since a Git ref, such as <code>origin/main</code>.</p><span class="flag">--changed-since &lt;git-ref&gt;</span></li>
+   <li><h3>VS Code quick fixes</h3><p>Suppress a finding with a reason, or explain its rule, straight from the editor’s quick fix menu.</p></li>
+  </ul>
+ </div>
+</section>
+
+<section class="sec" id="fit" aria-labelledby="h-fit">
+ <div class="wrap">
+  <div class="sec-head">
+   <h2 id="h-fit">Where CodeDiag fits</h2>
+   <p>A fast, explainable health check for Node.js backends, not a replacement for a linter or a full SAST platform. Run it next to them.</p>
+  </div>
+  <table class="fit">
+   <caption class="sr-only">How CodeDiag compares with other tools</caption>
+   <thead><tr><th scope="col">Alongside</th><th scope="col">They are best at</th><th scope="col">CodeDiag adds</th></tr></thead>
+   <tbody>
+    <tr><th scope="row">ESLint, Biome</th><td data-l="Best at">Code-level mistakes as you type.</td><td data-l="CodeDiag adds">Project-level safeguards a linter does not see: whether a NestJS route is covered by a global guard, or an Express router is mounted behind auth.</td></tr>
+    <tr><th scope="row">Semgrep, CodeQL, SonarQube</th><td data-l="Best at">Deep, language-wide rule sets.</td><td data-l="CodeDiag adds">A small set of framework-aware rules with low noise, and a score that explains every lost point. SARIF puts both in GitHub Code Scanning.</td></tr>
+    <tr><th scope="row">npm audit, Snyk, Dependabot</th><td data-l="Best at">Vulnerable dependencies.</td><td data-l="CodeDiag adds">Runs your package manager’s audit and folds it into the same report and score.</td></tr>
+   </tbody>
+  </table>
+ </div>
+</section>
+
+<section class="sec" id="privacy" aria-labelledby="h-privacy">
+ <div class="wrap">
+  <div class="sec-head">
+   <h2 id="h-privacy">Your code stays on your machine</h2>
+  </div>
+  <ul class="promises">
+   <li><h3>No upload, no account</h3><p>Analysis runs in your own Node.js process. There is no server to sign up for and nothing to send.</p></li>
+   <li><h3>Offline when you need it</h3><p>The only network traffic is your package manager’s own audit. <code>--no-audit</code> or <code>audit: false</code> skips it.</p></li>
+   <li><h3>Nothing changes without you</h3><p>Fix plans and AI prompts are review-only. Prompts carry diagnostic metadata, never source contents or secrets.</p></li>
+   <li><h3>No secrets in CI</h3><p>The Action needs none. With <code>comment: true</code> it uses the job token to read changed files and write one comment.</p></li>
+  </ul>
+  <div class="close">
+   <div>
+    <h2>Run it on your project</h2>
+    <div class="tape">
+     <code><span class="ps" aria-hidden="true">$</span><span id="cmd-2">npx @sabahattink/codediag scan .</span></code>
+     <button class="copy" type="button" data-copy="cmd-2" aria-label="Copy the scan command"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="1"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/></svg><span class="cl">Copy</span></button>
+    </div>
+   </div>
+   <ul class="links">
+    <li><a href="https://github.com/sabahattink/codediag">Source on GitHub</a></li>
+    <li><a href="https://www.npmjs.com/package/@sabahattink/codediag">npm package</a></li>
+    <li><a href="https://github.com/sabahattink/codediag/blob/main/docs/rules.md">Rule reference</a></li>
+    <li><a href="https://github.com/sabahattink/codediag/blob/main/CHANGELOG.md">Changelog</a></li>
+   </ul>
+  </div>
+ </div>
+</section>
+</main>
 
 <footer>
-  <p>Built by <a href="https://sabahattinkalkan.com" target="_blank">Sabahattin Kalkan</a> &middot; MIT License &middot; <a href="https://github.com/sabahattink/codediag" target="_blank">GitHub</a></p>
+ <div class="wrap foot-in">
+  <p>CodeDiag is <a href="https://github.com/sabahattink/codediag/blob/main/LICENSE">MIT licensed</a>, by <a href="https://sabahattinkalkan.com">Sabahattin Kalkan</a>.</p>
+  <ul class="links">
+   <li><a href="https://github.com/sabahattink/codediag">GitHub</a></li>
+   <li><a href="https://www.npmjs.com/package/@sabahattink/codediag">npm</a></li>
+   <li><a href="https://github.com/sabahattink/codediag/blob/main/docs/roadmap.md">Roadmap</a></li>
+   <li><a href="https://github.com/sabahattink/codediag/blob/main/SECURITY.md">Security policy</a></li>
+  </ul>
+ </div>
 </footer>
+<p class="sr-only" id="live" aria-live="polite"></p>
 
+<script>
+(function(){
+ "use strict";
+ var root=document.documentElement;
+ var reduce=window.matchMedia("(prefers-reduced-motion: reduce)");
+ var dark=window.matchMedia("(prefers-color-scheme: dark)");
+
+ /* theme */
+ var themeBtn=document.getElementById("theme");
+ function current(){return root.getAttribute("data-theme")||(dark.matches?"dark":"light")}
+ function syncTheme(){themeBtn.setAttribute("aria-label",current()==="dark"?"Switch to light theme":"Switch to dark theme")}
+ themeBtn.addEventListener("click",function(){
+  var next=current()==="dark"?"light":"dark";
+  root.setAttribute("data-theme",next);
+  try{localStorage.setItem("codediag-theme",next)}catch(e){}
+  syncTheme();
+ });
+ if(dark.addEventListener)dark.addEventListener("change",syncTheme);
+ syncTheme();
+
+ /* copy */
+ var live=document.getElementById("live");
+ function fallbackCopy(text){
+  var ta=document.createElement("textarea");
+  ta.value=text;ta.setAttribute("readonly","");ta.style.position="fixed";ta.style.opacity="0";
+  document.body.appendChild(ta);ta.select();
+  var ok=false;try{ok=document.execCommand("copy")}catch(e){ok=false}
+  ta.remove();return ok;
+ }
+ function announce(btn,ok){
+  live.textContent=ok?"Copied to clipboard.":"Copy failed. Select the text and copy it manually.";
+  var label=btn.querySelector(".cl");
+  if(!label)return;
+  label.textContent=ok?"Copied":"Failed";btn.setAttribute("data-done","");
+  clearTimeout(btn._t);
+  btn._t=setTimeout(function(){label.textContent="Copy";btn.removeAttribute("data-done")},1800);
+ }
+ document.addEventListener("click",function(ev){
+  var btn=ev.target.closest("[data-copy]");if(!btn)return;
+  var src=document.getElementById(btn.getAttribute("data-copy"));if(!src)return;
+  var text=src.textContent;
+  if(navigator.clipboard&&window.isSecureContext){
+   navigator.clipboard.writeText(text).then(function(){announce(btn,true)},function(){announce(btn,fallbackCopy(text))});
+  }else{announce(btn,fallbackCopy(text))}
+ });
+
+ /* monitor */
+ var SPEC=[
+  {s:41,g:"F",c:"6 critical · 10 warnings · 8 info",v:[82,0,63,0,80]},
+  {s:61,g:"D",c:"3 critical · 8 warnings · 7 info",v:[92,59,63,0,72]},
+  {s:100,g:"A+",c:"1 info",v:[100,100,98,100,100]}
+ ];
+ function tone(v){return v>=80?"ok":v>=60?"warn":"crit"}
+ function gradeTone(g){var c=g.charAt(0);return c==="A"?"ok":c==="B"?"info":c==="F"?"crit":"warn"}
+ var rows=document.querySelectorAll("#m-chan li");
+ function showSpec(i){
+  var d=SPEC[i];if(!d)return;
+  document.getElementById("m-score").textContent=d.s;
+  var g=document.getElementById("m-grade");g.textContent=d.g;g.className="grade t-"+gradeTone(d.g);
+  document.getElementById("m-counts").textContent=d.c;
+  document.getElementById("m-scale").style.setProperty("--v",d.s);
+  d.v.forEach(function(v,k){
+   var r=rows[k];if(!r)return;
+   r.setAttribute("data-t",tone(v));r.style.setProperty("--c",Math.round(v/5));
+   r.querySelector(".cv").textContent=v;
+  });
+ }
+ document.querySelectorAll("input[name=spec]").forEach(function(inp){
+  inp.addEventListener("change",function(){if(inp.checked)showSpec(+inp.value)});
+ });
+
+ /* ECG strip: the Security channel of defects/express, then realistic/express */
+ var NS="http://www.w3.org/2000/svg";
+ var EVENTS=[
+  ["dynamic-command-execution",25,"crit"],["dynamic-sql-query",25,"crit"],["path-traversal",25,"crit"],
+  ["server-side-request-forgery",8,"warn"],["open-redirect",8,"warn"],["reflected-xss",25,"crit"],
+  ["no-helmet",8,"warn"],["no-rate-limiting",8,"warn"]
+ ];
+ var strip=document.getElementById("strip"),svg=document.getElementById("ecg");
+ var played=false,timer=0,lastW=0;
+ function el(name,attrs,text,parent){
+  var n=document.createElementNS(NS,name);
+  for(var k in attrs)n.setAttribute(k,attrs[k]);
+  if(text!=null)n.textContent=text;
+  (parent||svg).appendChild(n);return n;
+ }
+ function overlaps(texts){
+  for(var i=0;i+3<texts.length;i++){
+   var a=texts[i].getBBox(),b=texts[i+3].getBBox();
+   if(a.x+a.width+6>b.x)return true;
+  }
+  return false;
+ }
+ function build(mode){
+  var W=strip.clientWidth,H=strip.clientHeight;
+  if(!W||!H)return null;
+  lastW=W;
+  while(svg.firstChild)svg.removeChild(svg.firstChild);
+  svg.setAttribute("viewBox","0 0 "+W+" "+H);
+  var wide=mode==null?W>=1000:mode,base=Math.round(H*(wide?.67:.64)),unit=(H*(wide?.38:.40))/25;
+  var chaosEnd=W*(wide?.6:.58),flatEnd=W*.68;
+  var seed=11;function rnd(){seed=(seed*16807)%2147483647;return seed/2147483647}
+  var x0=W*.05,span=chaosEnd-W*.06-x0,gaps=[0,1.05,.9,1.15,.85,1.1,.95,1],tot=7;
+  var d="M0 "+base,x=0,acc=0,marks=[];
+  EVENTS.forEach(function(e,i){
+   acc+=gaps[i];var sx=x0+span*acc/tot;
+   while(x<sx-8){x+=5+rnd()*4;d+=" L"+x.toFixed(1)+" "+(base+(rnd()-.5)*7).toFixed(1)}
+   var a=e[1]*unit;
+   d+=" L"+(sx-4)+" "+(base+3)+" L"+sx+" "+(base-a).toFixed(1)+" L"+(sx+4)+" "+(base+a*.32).toFixed(1)+" L"+(sx+8)+" "+base;
+   x=sx+8;marks.push({x:sx,y:base-a,e:e});
+  });
+  while(x<chaosEnd-6){var amp=7*(1-(x-W*.5)/(chaosEnd-W*.5));x+=6+rnd()*3;d+=" L"+x.toFixed(1)+" "+(base+(rnd()-.5)*Math.max(amp,1.5)).toFixed(1)}
+  d+=" L"+flatEnd.toFixed(1)+" "+base;
+  var P=wide?82:W<520?54:66,bx=flatEnd,hR=H*.3;
+  while(bx+P<=W-20){
+   d+=" Q"+(bx+5)+" "+(base-7)+" "+(bx+10)+" "+base+" L"+(bx+16)+" "+base+" L"+(bx+18)+" "+(base+4)+" L"+(bx+22)+" "+(base-hR).toFixed(1)+" L"+(bx+26)+" "+(base+9)+" L"+(bx+29)+" "+base+" L"+(bx+36)+" "+base+" Q"+(bx+43)+" "+(base-13)+" "+(bx+50)+" "+base+" L"+(bx+P)+" "+base;
+   bx+=P;
+  }
+  d+=" L"+(W-16)+" "+base;
+  var fx=[],texts=[];
+  var gLead=el("g",{}),path=el("path",{"class":"trace",d:d}),gDot=el("g",{}),gTxt=el("g",{});
+  var labels=W>=560;
+  marks.forEach(function(m,i){
+   var sev=m.e[2],top=15+15*(i%3);
+   if(wide)fx.push({x:m.x,n:el("line",{"class":"lead fx",x1:m.x,y1:top+3,x2:m.x,y2:m.y-6},null,gLead)});
+   fx.push({x:m.x,n:el("circle",{"class":"fx dot-"+sev,cx:m.x,cy:m.y,r:3.5},null,gDot)});
+   if(!labels)return;
+   var t=wide?el("text",{"class":"lbl fx",x:m.x-3,y:top},m.e[0]+" ",gTxt)
+       :el("text",{"class":"lbl fx","text-anchor":"middle",x:m.x,y:m.y-10},"",gTxt);
+   var p=document.createElementNS(NS,"tspan");p.setAttribute("class","lbl-b");p.textContent="−"+m.e[1];t.appendChild(p);
+   fx.push({x:m.x,n:t});texts.push(t);
+  });
+  if(wide&&texts.length&&overlaps(texts))return build(false);
+  var mx=(chaosEnd+flatEnd)/2;
+  fx.push({x:mx,n:el("line",{"class":"mark fx",x1:mx,y1:8,x2:mx,y2:H-8})});
+  fx.push({x:mx,n:el("text",{"class":"lbl fx",x:mx+6,y:H-28},"re-scan")});
+  el("text",{"class":"lbl",x:12,y:H-12},wide?"defects/express · Security 0/100":"Security 0");
+  var endT=el("text",{"class":"lbl fx","text-anchor":"end",x:W-12,y:H-12},wide?"realistic/express · Security 100/100":"Security 100");
+  fx.push({x:W-40,n:endT});
+  var pen=el("circle",{"class":"pen",r:3.5,cx:-10,cy:base});
+  return {path:path,fx:fx,pen:pen,W:W};
+ }
+ function render(animate){
+  var g=build();if(!g)return;
+  var L=g.path.getTotalLength();
+  var end=g.path.getPointAtLength(L);
+  function finish(){
+   strip.classList.remove("pending");
+   g.path.style.strokeDasharray="";g.path.style.strokeDashoffset="";
+   g.pen.setAttribute("cx",end.x);g.pen.setAttribute("cy",end.y);
+  }
+  if(!animate||reduce.matches){finish();return}
+  strip.classList.add("pending");
+  g.path.style.strokeDasharray=L;g.path.style.strokeDashoffset=L;
+  var dur=4200,t0=0;
+  function step(now){
+   if(!t0)t0=now;
+   var k=Math.min(1,(now-t0)/dur),len=L*k,pt=g.path.getPointAtLength(len);
+   g.path.style.strokeDashoffset=L-len;
+   g.pen.setAttribute("cx",pt.x);g.pen.setAttribute("cy",pt.y);
+   g.fx.forEach(function(f){if(pt.x>=f.x-2)f.n.classList.add("on")});
+   if(k<1)requestAnimationFrame(step);else finish();
+  }
+  requestAnimationFrame(step);
+ }
+ function start(){
+  if(played)return;played=true;
+  render(true);
+ }
+ var ready=document.fonts&&document.fonts.ready?document.fonts.ready:Promise.resolve();
+ ready.then(function(){
+  if("IntersectionObserver" in window){
+   var io=new IntersectionObserver(function(en){if(en[0].isIntersecting){io.disconnect();start()}},{threshold:.35});
+   io.observe(strip);
+  }else{start()}
+ });
+ window.addEventListener("resize",function(){
+  clearTimeout(timer);
+  timer=setTimeout(function(){if(played&&strip.clientWidth!==lastW)render(false)},150);
+ });
+})();
+</script>
 </body>
 </html>

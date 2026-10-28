@@ -1,92 +1,73 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 480" fill="none">
-  <style>
-    @keyframes t1{0%,4%{opacity:0}5%,100%{opacity:1}}
-    @keyframes t2{0%,9%{opacity:0}10%,100%{opacity:1}}
-    @keyframes t3{0%,14%{opacity:0}15%,100%{opacity:1}}
-    @keyframes t4{0%,19%{opacity:0}20%,100%{opacity:1}}
-    @keyframes t5{0%,24%{opacity:0}25%,100%{opacity:1}}
-    @keyframes t6{0%,30%{opacity:0}31%,100%{opacity:1}}
-    @keyframes t7{0%,35%{opacity:0}36%,100%{opacity:1}}
-    @keyframes t8{0%,40%{opacity:0}41%,100%{opacity:1}}
-    @keyframes t9{0%,45%{opacity:0}46%,100%{opacity:1}}
-    @keyframes t10{0%,50%{opacity:0}51%,100%{opacity:1}}
-    @keyframes t11{0%,55%{opacity:0}56%,100%{opacity:1}}
-    @keyframes t12{0%,60%{opacity:0}61%,100%{opacity:1}}
-    @keyframes t13{0%,65%{opacity:0}66%,100%{opacity:1}}
-    @keyframes t14{0%,70%{opacity:0}71%,100%{opacity:1}}
-    @keyframes t15{0%,75%{opacity:0}76%,100%{opacity:1}}
-    @keyframes cursor{0%,49%{opacity:1}50%,100%{opacity:0}}
-    .l1{animation:t1 8s both}.l2{animation:t2 8s both}.l3{animation:t3 8s both}
-    .l4{animation:t4 8s both}.l5{animation:t5 8s both}.l6{animation:t6 8s both}
-    .l7{animation:t7 8s both}.l8{animation:t8 8s both}.l9{animation:t9 8s both}
-    .l10{animation:t10 8s both}.l11{animation:t11 8s both}.l12{animation:t12 8s both}
-    .l13{animation:t13 8s both}.l14{animation:t14 8s both}.l15{animation:t15 8s both}
-    text{font-family:'JetBrains Mono','Cascadia Code','Fira Code',monospace;font-size:13px}
-    .dim{fill:#6b7280}.grn{fill:#4ade80}.red{fill:#f87171}.ylw{fill:#fbbf24}
-    .blu{fill:#60a5fa}.wht{fill:#e5e7eb}.bld{font-weight:700}
-  </style>
-
-  <!-- Window -->
-  <rect width="720" height="480" rx="10" fill="#0f1117"/>
-  <rect width="720" height="36" rx="10" fill="#1a1b26"/>
-  <rect y="26" width="720" height="10" fill="#1a1b26"/>
-  <circle cx="20" cy="18" r="6" fill="#ff5f57"/>
-  <circle cx="40" cy="18" r="6" fill="#febc2e"/>
-  <circle cx="60" cy="18" r="6" fill="#28c840"/>
-  <text x="340" y="22" text-anchor="middle" class="dim" font-size="12">codediag — Terminal</text>
-
-  <!-- Command -->
-  <g class="l1">
-    <text x="20" y="62" class="grn">$</text>
-    <text x="36" y="62" class="wht">npx @sabahattink/codediag scan .</text>
-  </g>
-
-  <!-- Spinner results -->
-  <g class="l2"><text x="20" y="90" class="dim">✔ Stack: nestjs + typescript + prisma</text></g>
-  <g class="l3"><text x="20" y="110" class="dim">✔ API Health: 2 findings</text></g>
-  <g class="l4"><text x="20" y="130" class="dim">✔ Security: 1 finding</text></g>
-  <g class="l5"><text x="20" y="150" class="dim">✔ Dependencies: 2 findings</text></g>
-  <g class="l6"><text x="20" y="170" class="dim">✔ Testing: 2 findings</text></g>
-  <g class="l7"><text x="20" y="190" class="dim">✔ Structure: 3 findings</text></g>
-
-  <!-- Report header -->
-  <g class="l8">
-    <text x="30" y="222" class="wht bld">codediag</text>
-    <text x="120" y="222" class="dim">— Diagnostic Report</text>
-  </g>
-
-  <!-- Project info -->
-  <g class="l9">
-    <text x="30" y="250" class="dim">Project:</text><text x="120" y="250" class="wht">my-nestjs-app</text>
-    <text x="30" y="268" class="dim">Stack:</text><text x="120" y="268" class="wht">nestjs + typescript + prisma</text>
-    <text x="30" y="286" class="dim">Score:</text><text x="120" y="286" class="grn bld">B+</text><text x="150" y="286" class="dim">(89/100)</text>
-  </g>
-
-  <!-- Score bars -->
-  <g class="l10">
-    <text x="30" y="316" class="dim">API Health</text>
-    <rect x="160" y="305" width="300" height="12" rx="2" fill="#1f2937"/><rect x="160" y="305" width="252" height="12" rx="2" fill="#4ade80"/><text x="476" y="316" class="wht bld"> 84</text>
-  </g>
-  <g class="l11">
-    <text x="30" y="336" class="dim">Security</text>
-    <rect x="160" y="325" width="300" height="12" rx="2" fill="#1f2937"/><rect x="160" y="325" width="276" height="12" rx="2" fill="#4ade80"/><text x="476" y="336" class="wht bld"> 92</text>
-  </g>
-  <g class="l12">
-    <text x="30" y="356" class="dim">Dependencies</text>
-    <rect x="160" y="345" width="300" height="12" rx="2" fill="#1f2937"/><rect x="160" y="345" width="270" height="12" rx="2" fill="#4ade80"/><text x="476" y="356" class="wht bld"> 90</text>
-  </g>
-  <g class="l13">
-    <text x="30" y="376" class="dim">Testing</text>
-    <rect x="160" y="365" width="300" height="12" rx="2" fill="#1f2937"/><rect x="160" y="365" width="270" height="12" rx="2" fill="#4ade80"/><text x="476" y="376" class="wht bld"> 90</text>
-  </g>
-
-  <!-- Issues -->
-  <g class="l14">
-    <text x="30" y="410" class="ylw">⚠</text><text x="48" y="410" class="wht">POST /users has no auth guard</text><text x="290" y="410" class="dim">[missing-guard]</text>
-    <text x="48" y="428" class="dim">src/users/users.controller.ts:18</text>
-  </g>
-  <g class="l15">
-    <text x="30" y="456" class="ylw">⚠</text><text x="48" y="456" class="wht">Rate limiting is not configured</text><text x="306" y="456" class="dim">[no-rate-limiting]</text>
-    <text x="48" y="474" class="dim">→ Configure a rate limiter appropriate for the web framework</text>
-  </g>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 750 669" width="750" height="669" role="img" aria-labelledby="title">
+<title id="title">codediag scan output: score F, 41 of 100, with six critical findings, ten warnings, and eight info findings</title>
+<style>
+.paper{fill:#f5f8f2}.sheet{fill:#fbfdf9}.band{fill:#1e6e40;fill-opacity:.07}.edge{stroke:#9cb3a5}.hole{fill:#f5f8f2;stroke:#9cb3a5}.ink{fill:#101c16}.dim{fill:#53675c}.b{fill:#101c16;font-weight:700}.bcrit{fill:#b3261e;font-weight:700}.crit{fill:#b3261e}.warn{fill:#8a5600}.info{fill:#1d59b5}.ok{fill:#16653c}.f-ok{fill:#16653c}.f-warn{fill:#8a5600}.f-crit{fill:#b3261e}.cell{fill:#c4d4c9}.gap{fill:#fbfdf9}.s-ok{stroke:#16653c}.s-crit{stroke:#b3261e}.trace{stroke:#101c16}.pen{fill:#16653c}
+@media (prefers-color-scheme:dark){.paper,.hole{fill:#0b1310}.sheet,.gap{fill:#0f1914}.band{fill:#78d2a0;fill-opacity:.05}.edge,.hole{stroke:#3b5547}.ink,.b{fill:#e3ede6}.dim{fill:#92a99c}.bcrit,.crit,.f-crit{fill:#ff8b7c}.warn,.f-warn{fill:#efb54e}.info{fill:#8fb9ff}.ok,.f-ok,.pen{fill:#74d6a0}.cell{fill:#24352c}.s-ok{stroke:#74d6a0}.s-crit{stroke:#ff8b7c}.trace{stroke:#a6e8c2}}
+text{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;font-size:12.5px;white-space:pre}
+</style>
+<defs><pattern id="gaps" x="204" width="8" height="11" patternUnits="userSpaceOnUse"><rect class="gap" x="6" width="2" height="11"/></pattern><pattern id="holes" width="30" height="26" patternUnits="userSpaceOnUse"><circle class="hole" cx="15" cy="14" r="5"/></pattern></defs>
+<rect class="paper" width="750" height="669" rx="6"/>
+<rect class="sheet" x="30" y="0" width="690" height="669"/>
+<rect class="band" x="30" y="20" width="690" height="57"/>
+<rect class="band" x="30" y="134" width="690" height="57"/>
+<rect class="band" x="30" y="248" width="690" height="57"/>
+<rect class="band" x="30" y="362" width="690" height="57"/>
+<rect class="band" x="30" y="476" width="690" height="57"/>
+<rect class="band" x="30" y="590" width="690" height="57"/>
+<path class="edge" d="M30 0V669M720 0V669" stroke-dasharray="3 4" fill="none"/>
+<rect fill="url(#holes)" width="30" height="669"/><rect fill="url(#holes)" x="720" width="30" height="669"/>
+<text x="54" y="34" xml:space="preserve"><tspan class="dim">$ </tspan><tspan class="ink">npx @sabahattink/codediag scan . --no-audit</tspan></text>
+<path class="s-ok" d="M54 49l3 3 5-6.5" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="70" y="53" xml:space="preserve"><tspan class="ink">Stack: express + javascript</tspan></text>
+<path class="s-ok" d="M54 68l3 3 5-6.5" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="70" y="72" xml:space="preserve"><tspan class="ink">API Health: 3 findings</tspan></text>
+<path class="s-ok" d="M54 87l3 3 5-6.5" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="70" y="91" xml:space="preserve"><tspan class="ink">Security: 8 findings</tspan></text>
+<path class="s-ok" d="M54 106l3 3 5-6.5" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="70" y="110" xml:space="preserve"><tspan class="ink">Dependencies: 4 findings</tspan></text>
+<path class="s-ok" d="M54 125l3 3 5-6.5" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="70" y="129" xml:space="preserve"><tspan class="ink">Testing: 5 findings</tspan></text>
+<path class="s-ok" d="M54 144l3 3 5-6.5" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="70" y="148" xml:space="preserve"><tspan class="ink">Structure: 4 findings</tspan></text>
+<text x="54" y="186" xml:space="preserve"><tspan class="b">  codediag</tspan><tspan class="dim"> — Diagnostic Report</tspan></text>
+<text x="54" y="224" xml:space="preserve"><tspan class="dim">  Project:  </tspan><tspan class="ink">express</tspan></text>
+<text x="54" y="243" xml:space="preserve"><tspan class="dim">  Stack:    </tspan><tspan class="ink">express + javascript</tspan></text>
+<text x="54" y="262" xml:space="preserve"><tspan class="dim">  Score:    </tspan><tspan class="bcrit">F</tspan><tspan class="dim"> (41/100)</tspan></text>
+<text x="54" y="300" xml:space="preserve" class="dim">  API Health</text>
+<rect class="f-ok" x="204" y="290" width="128" height="11"/>
+<rect class="cell" x="332" y="290" width="32" height="11"/>
+<rect fill="url(#gaps)" x="204" y="290" width="160" height="11"/>
+<text x="394" y="300" text-anchor="end" class="b">82</text>
+<text x="54" y="319" xml:space="preserve" class="dim">  Security</text>
+<rect class="cell" x="204" y="309" width="160" height="11"/>
+<rect fill="url(#gaps)" x="204" y="309" width="160" height="11"/>
+<text x="394" y="319" text-anchor="end" class="b">0</text>
+<text x="54" y="338" xml:space="preserve" class="dim">  Dependencies</text>
+<rect class="f-warn" x="204" y="328" width="104" height="11"/>
+<rect class="cell" x="308" y="328" width="56" height="11"/>
+<rect fill="url(#gaps)" x="204" y="328" width="160" height="11"/>
+<text x="394" y="338" text-anchor="end" class="b">63</text>
+<text x="54" y="357" xml:space="preserve" class="dim">  Testing</text>
+<rect class="cell" x="204" y="347" width="160" height="11"/>
+<rect fill="url(#gaps)" x="204" y="347" width="160" height="11"/>
+<text x="394" y="357" text-anchor="end" class="b">0</text>
+<text x="54" y="376" xml:space="preserve" class="dim">  Structure</text>
+<rect class="f-ok" x="204" y="366" width="128" height="11"/>
+<rect class="cell" x="332" y="366" width="32" height="11"/>
+<rect fill="url(#gaps)" x="204" y="366" width="160" height="11"/>
+<text x="394" y="376" text-anchor="end" class="b">80</text>
+<text x="54" y="414" xml:space="preserve"><tspan class="crit">  6 critical</tspan><tspan class="dim"> · </tspan><tspan class="warn">10 warnings</tspan><tspan class="dim"> · </tspan><tspan class="info">8 info</tspan></text>
+<path class="s-crit" d="M70.5 444.5l7 7m0-7l-7 7" fill="none" stroke-width="1.9" stroke-linecap="round"/>
+<text x="86" y="452" xml:space="preserve"><tspan class="ink">Shell execution receives a non-literal command </tspan><tspan class="dim">[dynamic-command-execution]</tspan></text>
+<text x="54" y="471" xml:space="preserve"><tspan class="dim">    src/app.js:11</tspan></text>
+<text x="54" y="490" xml:space="preserve"><tspan class="dim">    → Avoid a shell; use execFile or spawn with a fixed executable and validated</tspan></text>
+<text x="54" y="509" xml:space="preserve"><tspan class="dim">      argument array</tspan></text>
+<path class="s-crit" d="M70.5 520.5l7 7m0-7l-7 7" fill="none" stroke-width="1.9" stroke-linecap="round"/>
+<text x="86" y="528" xml:space="preserve"><tspan class="ink">SQL execution uses a dynamically constructed query </tspan><tspan class="dim">[dynamic-sql-query]</tspan></text>
+<text x="54" y="547" xml:space="preserve"><tspan class="dim">    src/app.js:17</tspan></text>
+<text x="54" y="566" xml:space="preserve"><tspan class="dim">    → Use parameterized queries or the ORM's safe tagged-template API</tspan></text>
+<path class="s-crit" d="M70.5 577.5l7 7m0-7l-7 7" fill="none" stroke-width="1.9" stroke-linecap="round"/>
+<text x="86" y="585" xml:space="preserve"><tspan class="ink">A file path is built from request data </tspan><tspan class="dim">[path-traversal]</tspan></text>
+<text x="54" y="604" xml:space="preserve"><tspan class="dim">    src/app.js:23</tspan></text>
+<polygon class="paper" points="30,669 30,643 42,648 54,643 66,648 78,643 90,648 102,643 114,648 126,643 138,648 150,643 162,648 174,643 186,648 198,643 210,648 222,643 234,648 246,643 258,648 270,643 282,648 294,643 306,648 318,643 330,648 342,643 354,648 366,643 378,648 390,643 402,648 414,643 426,648 438,643 450,648 462,643 474,648 486,643 498,648 510,643 522,648 534,643 546,648 558,643 570,648 582,643 594,648 606,643 618,648 630,643 642,648 654,643 666,648 678,643 690,648 702,643 714,648 720,669"/>
 </svg>
