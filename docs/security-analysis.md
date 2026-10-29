@@ -10,6 +10,21 @@ The analyzer currently reports:
 
 - hardcoded API keys, tokens, and credentials in source code (values built
   with `${...}` interpolation are ignored);
+- credentials in configuration files: JSON, YAML, TOML, INI, XML,
+  properties, Dockerfiles, `.npmrc`, and `.yarnrc`. Provider formats (private
+  keys, AWS, GitHub, Stripe live, Slack, npm, Google, Anthropic, OpenAI, and
+  SendGrid keys, and database URLs with a password) are reported wherever
+  they appear; keys named like `password`, `secret`, `token`, or `apiKey` only
+  when their value is long (12+ characters), random (3.5+ bits per
+  character), and not a placeholder, path, or `${VARIABLE}` reference. Lock
+  files are skipped;
+- secrets in `.env` files that Git tracks (`committed-env-secret`); ignored
+  `.env` files are your local configuration and are never read;
+- JWT options that accept the `none` algorithm or `ignoreExpiration: true`,
+  and jose's `UnsecuredJWT`;
+- session or token cookies (names containing session, sid, token, jwt, or
+  auth) set without `httpOnly: true` and `secure: true`, and session
+  middleware that sets either flag to `false`;
 - missing `.env` protection in `.gitignore`;
 - missing runtime Helmet and rate-limit middleware in supported web servers;
 - open CORS configuration;
@@ -17,7 +32,14 @@ The analyzer currently reports:
   password persistence;
 - `eval()` and the `Function` constructor;
 - non-literal commands passed to imported `child_process.exec()` or
-  `execSync()` bindings;
+  `execSync()` bindings, or to `spawn()`, `spawnSync()`, `execFile()`, or
+  `execFileSync()` with a `shell` option;
+- server-side template injection: request data used as the template source
+  of EJS, Pug, Handlebars, Nunjucks, Eta, doT, or lodash `template()`;
+- prototype pollution: nested writes such as `target[a][b] = value` with a
+  key from request data (critical), and recursive merge functions that copy
+  keys without rejecting `__proto__`, `constructor`, and `prototype`
+  (warning);
 - dynamic SQL passed to common query methods or explicitly unsafe ORM methods,
   and SQL built from request data passed to a query method on any client;
 - local or global TLS certificate verification bypasses;
@@ -100,7 +122,12 @@ ignore:
 ```
 
 Use narrow ignore patterns and document why generated or third-party code is
-excluded. To accept a specific finding instead, suppress it in source with a
+excluded. The same `ignore` patterns apply to `.env` and `.npmrc` files that
+Git tracks.
+
+No finding includes a secret's value: messages name the kind of credential
+(`Possible GitHub token in a configuration file`) or its key, and
+fingerprints for these rules never hash the line. To accept a specific finding instead, suppress it in source with a
 reason, change the rule in `.codediag.yml`, or record existing findings in a
 baseline; see [suppressions and baselines](suppressions-and-baselines.md).
 Run `codediag explain <rule>` for any rule's details.

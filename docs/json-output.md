@@ -47,6 +47,21 @@ https://raw.githubusercontent.com/sabahattink/codediag/main/schema/scan-result.s
 | `scoringVersion` | integer | Scoring model used for analyzer scores: `1` or `2` |
 | `baseline` | object | Optional. `{ matched, fixed }` when the scan used a baseline |
 | `skipped` | object | Optional. Present only when source files were left out of analysis |
+| `scope` | object | Optional. Present with `--changed-since`: `{ changedSince, files, excludedFindings }` |
+| `comparison` | object | Optional. Present with `--compare`: changes since an earlier report |
+
+`scope` means the scan reported and scored only findings in the `files`
+changed since the `changedSince` Git revision; `excludedFindings` counts the
+findings elsewhere, including project-level ones, that were left out.
+
+`comparison` matches findings by `fingerprint` with the report passed to
+`--compare`: `previousTimestamp`, `previousScore`, `previousGrade`,
+`scoreDelta`, `analyzers` (one `{ name, previous, current, delta }` per
+analyzer; `null` when an analyzer did not run in one of the scans),
+`newFindings`, `fixedFindings`, and `fixed` (the earlier findings that no
+longer occur, as `{ analyzer, rule, severity, message, file?, line? }`). Only
+active findings are compared; suppressed and baselined findings are neither
+new nor fixed. Each new finding also carries `isNew: true`.
 
 `skipped` counts code files that were not analyzed: `tooLarge` (larger than
 `maxFileSizeKb`), `minified` (bundler or minifier output, detected by an

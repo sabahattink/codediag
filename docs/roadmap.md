@@ -1,29 +1,27 @@
 # Roadmap
 
-CodeDiag 0.3 made the engine reliable: fast gitignore-aware discovery, a rule
-registry, explainable scoring, suppressions, baselines, and precision fixes.
-These are the next candidates, roughly in priority order. Each one should ship
-with realistic and defect fixtures in `tests/fixtures/` and keep the
-benchmark tests green.
+CodeDiag 0.3 made the engine reliable; 0.4 through 0.6 widened what it sees:
+web security sinks, pull request comments, Fastify, JWT and session
+misconfiguration, template injection, prototype pollution, secret scanning
+beyond code, comparisons between scans, and changed-files mode. These are the
+next candidates, roughly in priority order. Each one should ship with
+realistic and defect fixtures in `tests/fixtures/` and keep the benchmark
+tests green.
 
 ## Precision and depth
 
-- **More security sinks with taint tracking:** prototype pollution through
-  deep merges, `child_process.spawn(..., { shell: true })`, and server-side
-  template injection. (Path traversal, SSRF, open redirects, and reflected
-  XSS shipped in 0.4.)
-- **JWT and session misconfiguration:** `algorithms: ['none']`,
-  `ignoreExpiration: true`, missing `httpOnly`/`secure` cookie flags.
 - **Cross-file taint:** follow request data through helper functions and
-  service calls, not only within one function.
-- **Secret scanning beyond code:** committed `.env` files, JSON, YAML,
-  Dockerfiles, and high-entropy strings, with redaction in every output.
+  service calls, not only within one function and its enclosing scopes.
+- **Fastify autoload:** follow `@fastify/autoload` directories so hooks and
+  prefixes from autoloaded plugins apply to their routes.
+- **Secret scanning in Git history:** report credentials that were committed
+  and later removed, with the same redaction as today.
 - **Dependency audit options:** production-only audits, audit result caching
   keyed by the lock file hash, and advisory-level details in reports.
 
 ## Frameworks
 
-- **Fastify and Hono** API analyzers (routes, auth hooks, schemas).
+- **Hono** API analyzer (routes, middleware, validators).
 - **tRPC** procedures (protected versus public procedures, input
   validation).
 - **Remix / React Router and SvelteKit** server endpoints.
@@ -32,20 +30,17 @@ benchmark tests green.
 
 - **Workspace awareness:** detect npm, pnpm, and Yarn workspaces, Nx, and
   Turborepo; score each package and report a combined result.
-- **Changed-files mode:** `--changed-since origin/main` to report findings
-  only in files a pull request touches.
 - **Base-branch delta in pull request comments:** compare against the base
-  branch's score, not only the previous run. (The comment itself shipped in
-  0.5.)
-- **Trends:** `--compare previous.json` to show score and finding changes,
-  and a history view in the HTML report.
+  branch's report with `--compare`, not only the previous comment's score.
+- **History view:** keep several reports and chart the score over time in the
+  HTML report. (Comparing with one earlier report shipped in 0.6.)
 
 ## Editor
 
 - **Incremental scans** in a worker so the VS Code extension host never
   blocks, re-analyzing only changed files.
-- **Quick fixes:** code actions that insert a suppression comment with a
-  reason, or apply simple remediations.
+- **Remediation quick fixes** beyond suppressions, for rules with a safe
+  mechanical fix. (Suppress and explain quick fixes shipped in 0.6.)
 - **Marketplace and Open VSX publishing.**
 
 ## AI handoff

@@ -51,7 +51,7 @@ codediag auto-detects your stack and runs 5 analyzers. Every finding has a
 stable rule ID ([rule reference](docs/rules.md)), a severity, a location when
 one exists, and a suggested fix.
 
-### API Health `NestJS · Express · Next.js`
+### API Health `NestJS · Express · Fastify · Next.js`
 
 AST analysis (ts-morph, not regex) of the routes your app actually exposes.
 
@@ -64,6 +64,10 @@ AST analysis (ts-morph, not regex) of the routes your app actually exposes.
   parameters; auth and validation middleware on routes, earlier
   `router.use()` calls, and `app.use(path, mw, router)` mounts across files;
   centralized error handling and health endpoints.
+- **Fastify:** routes from `fastify.get()` and `fastify.route()`, followed
+  through `register()`-ed plugins and `fastify-plugin` encapsulation;
+  `onRequest`/`preHandler` auth hooks on the route or its context, body
+  schemas on mutating routes, `setErrorHandler`, and health endpoints.
 - **Next.js:** App Router and Pages Router API handlers, without penalizing
   frontend-only projects.
 
@@ -76,7 +80,12 @@ verification) are found in the AST, and request data is traced through
 variables, destructuring, and reassignments, so `const cmd = req.query.cmd;
 exec(cmd)` is critical. Request data that reaches a file path, an outgoing
 request's host, a redirect, or an HTML response is reported as path
-traversal, SSRF, an open redirect, or reflected XSS. See
+traversal, SSRF, an open redirect, or reflected XSS; request data compiled as
+a template or used as an object path is template injection or prototype
+pollution. JWT options that accept `none` or ignore expiration, and session
+cookies without `httpOnly`/`secure`, are flagged too. Secrets are also looked
+for in JSON, YAML, Dockerfiles, `.npmrc`, and `.env` files that Git tracks,
+and no report ever contains the value. See
 [Security analysis](docs/security-analysis.md).
 
 ### Dependencies
@@ -144,6 +153,8 @@ codediag scan . --verbose          # All issues and the score breakdown
 codediag scan . --no-audit         # Offline: skip the package manager audit
 codediag scan . --update-baseline .codediag-baseline.json  # Record accepted findings
 codediag scan . --ci --baseline .codediag-baseline.json    # Fail only on new findings
+codediag scan . --compare previous.json   # Score change, new and fixed findings
+codediag scan . --changed-since origin/main  # Only files this branch changes
 codediag rules                     # List every rule
 codediag explain open-cors         # Explain a rule and how to suppress it
 codediag init                      # Create .codediag.yml
@@ -153,6 +164,29 @@ Generate a repository badge:
 
 ```bash
 codediag scan . --format svg > codediag.svg
+```
+
+### Trends and changed files
+
+`--compare` takes any earlier JSON report and shows what changed: the score
+and each analyzer's delta, findings that are new (marked `NEW` and
+`isNew: true`), and findings that have been fixed since. It works in every
+output format; the HTML report adds a change panel and a "New" filter, and
+SARIF marks results with `baselineState`.
+
+```bash
+codediag scan . --format json > reports/main.json      # on main
+codediag scan . --compare reports/main.json --verbose  # on your branch
+```
+
+`--changed-since <revision>` limits a scan to the files that differ from a Git
+revision: commits since the merge base, staged and unstaged edits, and new
+untracked files. Only findings in those files are reported and scored, so the
+score describes the change rather than the whole project, and the report says
+how many findings elsewhere were left out.
+
+```bash
+codediag scan . --changed-since origin/main --threshold 90
 ```
 
 ### Review-first fix proposals
@@ -182,7 +216,8 @@ contract and recommended workflow.
 
 The VS Code extension runs the same analyzer engine, publishes located
 findings to the Problems panel, and opens HTML reports, fix plans, or AI review
-prompts directly in the editor. Successful GitHub Actions runs publish an
+prompts directly in the editor. Quick fixes on each problem suppress the rule
+on that line or in the file (you type the reason) or open its documentation. Successful GitHub Actions runs publish an
 installable `.vsix` artifact until the extension is available in the Visual
 Studio Marketplace.
 
@@ -239,9 +274,9 @@ complete workflow.
 > | Analyzer | Score | Findings |
 > | --- | ---: | ---: |
 > | API Health | 92/100 | 1 |
-> | Security | 75/100 | 2 |
+> | Security | 67/100 | 2 |
 > | Dependencies | 100/100 | 0 |
-> | Testing | 90/100 | 1 |
+> | Testing | 98/100 | 1 |
 > | Structure | 100/100 | 0 |
 >
 > ### Findings in changed files (2)
@@ -251,7 +286,7 @@ complete workflow.
 > | 🔴 | [`reflected-xss`](docs/rules.md#reflected-xss) | `src/routes/search.ts:14` | Request data is written into an HTML response without escaping |
 > | 🟡 | [`open-redirect`](docs/rules.md#open-redirect) | `src/routes/auth.ts:31` | A redirect target comes from request data |
 >
-> Not listed: 2 findings elsewhere in the project.
+> Not listed: 1 finding elsewhere in the project.
 
 </details>
 
@@ -333,6 +368,7 @@ skipped and reported in the JSON `skipped` summary.
 | NestJS | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Next.js | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Express | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Fastify | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Node.js | — | ✅ | ✅ | ✅ | ✅ |
 
 ## Where CodeDiag fits
@@ -362,8 +398,14 @@ results in GitHub Code Scanning.
   rule registry, explainable scoring, suppressions, baselines, offline
   scans, and precision fixes for Express, NestJS, and security sinks. See the
   [changelog](CHANGELOG.md).
+- **0.4 and 0.5:** path traversal, SSRF, open redirect, and reflected XSS
+  rules; a pull request comment from the GitHub Action.
+- **0.6 "Deep Scan":** Fastify analysis; JWT, cookie, template injection,
+  prototype pollution, and shell spawn rules; secret scanning in
+  configuration files and committed `.env` files; `--compare` and
+  `--changed-since`; a redesigned HTML report; VS Code quick fixes.
 - **Next:** see [docs/roadmap.md](docs/roadmap.md) for planned framework
-  support, deeper security rules, monorepo scoring, and editor improvements.
+  support, cross-file taint, monorepo scoring, and editor improvements.
 
 ## Contributing
 

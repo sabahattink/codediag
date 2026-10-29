@@ -40,7 +40,7 @@ program
   .description(
     chalk.bold("codediag") +
       " \u2014 Diagnose your code before you ship.\n\n" +
-      "  Automated project health scanner for NestJS and beyond.\n" +
+      "  Automated project health scanner for NestJS, Express, Fastify, and Next.js.\n" +
       "  https://github.com/sabahattink/codediag",
   )
   .version(getPackageVersion(), "-v, --version");
