@@ -81,8 +81,9 @@ function renderAnalyzer(
   const delta = comparison?.analyzers.find(
     (entry) => entry.name === analyzer.name,
   )?.delta;
+  // Unchanged analyzers show no delta, as in the terminal report.
   const change =
-    delta === null || delta === undefined
+    delta === null || delta === undefined || delta === 0
       ? ""
       : `<span class="delta ${deltaTone(delta)}" title="Change since the previous scan">${formatDelta(delta)}</span>`;
   return `<article class="analyzer ${tone}" aria-label="${escapeHtml(analyzer.name)} score ${analyzer.score} out of 100">

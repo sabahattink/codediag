@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>CodeDiag — Diagnose your code before you ship</title>
-<meta name="description" content="CodeDiag scans Node.js, NestJS, Express, and Next.js projects on your machine and returns a 0–100 health score that explains every lost point, with stable rule IDs, SARIF output, a GitHub Action, and a VS Code extension.">
+<meta name="description" content="CodeDiag scans Node.js, NestJS, Express, Fastify, and Next.js projects on your machine and returns a 0–100 health score that explains every lost point, with stable rule IDs, SARIF output, a GitHub Action, and a VS Code extension.">
 <link rel="canonical" href="https://sabahattink.github.io/codediag/">
 <meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="#f5f8f2" media="(prefers-color-scheme: light)">
@@ -390,7 +390,7 @@ footer .links{font-size:.76rem}
   <div>
    <h1 id="h-hero">Diagnose your code before you ship.</h1>
    <p class="lede">One command. Five analyzers. One score.</p>
-   <p class="intro">CodeDiag reads a Node.js, NestJS, Express, or Next.js project on your machine and returns a 0–100 health score that accounts for every point it takes. Each finding carries a stable rule ID, a file and line when there is one, and a suggested fix.</p>
+   <p class="intro">CodeDiag reads a Node.js, NestJS, Express, Fastify, or Next.js project on your machine and returns a 0–100 health score that accounts for every point it takes. Each finding carries a stable rule ID, a file and line when there is one, and a suggested fix.</p>
    <div class="tape">
     <code><span class="ps" aria-hidden="true">$</span><span id="cmd-1">npx @sabahattink/codediag scan .</span></code>
     <button class="copy" type="button" data-copy="cmd-1" aria-label="Copy the scan command"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="1"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/></svg><span class="cl">Copy</span></button>
@@ -505,7 +505,7 @@ footer .links{font-size:.76rem}
  <div class="wrap">
   <div class="sec-head">
    <h2 id="h-analyzers">Five analyzers, weighted by what breaks in production</h2>
-   <p>CodeDiag detects the stack, walks the files once, and parses them into one <code>ts-morph</code> project that every analyzer shares. Routes and security sinks come from the syntax tree, not regular expressions. NestJS, Express, and Next.js get all five analyzers; plain Node.js projects get everything except API Health.</p>
+   <p>CodeDiag detects the stack, walks the files once, and parses them into one <code>ts-morph</code> project that every analyzer shares. Routes and security sinks come from the syntax tree, not regular expressions. NestJS, Express, Fastify, and Next.js get all five analyzers; plain Node.js projects get everything except API Health.</p>
   </div>
   <div class="weights" aria-hidden="true">
    <div style="--w:30;--h:5px"><b><span>Security </span>30</b></div>
@@ -518,8 +518,8 @@ footer .links{font-size:.76rem}
    <caption class="sr-only">Analyzers, their weight in the total score, and what they examine</caption>
    <thead><tr><th scope="col">Analyzer</th><th scope="col">Weight</th><th scope="col">Examines</th><th scope="col">Rule IDs include</th></tr></thead>
    <tbody>
-    <tr><th scope="row">Security</th><td class="num">30%</td><td>Request data traced through variables, destructuring, and reassignments into shell commands, raw SQL, file paths, outgoing requests, redirects, and HTML responses. Plus hardcoded credentials, Helmet, rate limiting, open CORS, weak password hashing, and disabled TLS verification.</td><td><span class="ids"><code>dynamic-sql-query</code><code>path-traversal</code><code>reflected-xss</code></span></td></tr>
-    <tr><th scope="row">API Health</th><td class="num">25%</td><td>The routes your app actually exposes: NestJS guards, including global guards and <code>@Public()</code> opt-outs, DTOs and <code>ValidationPipe</code>; Express auth and validation middleware across router mounts and files; error handlers, health endpoints, and Next.js App and Pages Router handlers.</td><td><span class="ids"><code>missing-guard</code><code>missing-auth-middleware</code><code>dto-not-validated</code></span></td></tr>
+    <tr><th scope="row">Security</th><td class="num">30%</td><td>Request data traced through variables, destructuring, and reassignments into shell commands, raw SQL, file paths, outgoing requests, redirects, and HTML responses. Plus JWT and session cookie settings, template injection, prototype pollution, credentials in code, configuration files, and committed <code>.env</code> files, Helmet, rate limiting, open CORS, weak password hashing, and disabled TLS verification.</td><td><span class="ids"><code>dynamic-sql-query</code><code>path-traversal</code><code>reflected-xss</code></span></td></tr>
+    <tr><th scope="row">API Health</th><td class="num">25%</td><td>The routes your app actually exposes: NestJS guards, including global guards and <code>@Public()</code> opt-outs, DTOs and <code>ValidationPipe</code>; Express auth and validation middleware across router mounts and files; Fastify auth hooks and body schemas across plugins; error handlers, health endpoints, and Next.js App and Pages Router handlers.</td><td><span class="ids"><code>missing-guard</code><code>missing-auth-middleware</code><code>dto-not-validated</code></span></td></tr>
     <tr><th scope="row">Dependencies</th><td class="num">20%</td><td>Your package manager’s own audit (npm, pnpm, Yarn Classic, Yarn Berry), lock file and <code>packageManager</code> consistency, deprecated packages, engines, and essential scripts.</td><td><span class="ids"><code>vuln-critical</code><code>no-lock-file</code><code>deprecated-dep</code></span></td></tr>
     <tr><th scope="row">Testing</th><td class="num">15%</td><td>Test files and frameworks (Jest, Vitest, Mocha, Ava, node:test), the test-to-source ratio, integration directories, and coverage measured against 80% lines and 70% branches, or a configured threshold.</td><td><span class="ids"><code>no-test-files</code><code>coverage-below-threshold</code></span></td></tr>
     <tr><th scope="row">Structure</th><td class="num">10%</td><td>README, lint and format config (also inherited from a workspace root), resolved TypeScript strict mode, NestJS feature modules, and environment templates.</td><td><span class="ids"><code>no-strict-mode</code><code>no-linter</code><code>no-env-example</code></span></td></tr>
@@ -728,10 +728,10 @@ codediag scan . --ci --threshold 80 --baseline .codediag-baseline.json</code></p
   <ul class="items">
    <li><h3>Fastify API analysis</h3><p>Fastify routes join NestJS, Express, and Next.js in the API Health analyzer.</p></li>
    <li><h3>JWT and session misconfiguration</h3><p><code>algorithms: ['none']</code>, <code>ignoreExpiration: true</code>, and cookies set without <code>httpOnly</code> or <code>secure</code>.</p></li>
-   <li><h3>More taint-tracked sinks</h3><p>Request data that reaches a deep merge (prototype pollution), a server-side template, or <code>spawn(..., { shell: true })</code>.</p></li>
+   <li><h3>Template injection and prototype pollution</h3><p>Request data compiled as a template or used as an object path, recursive merges that copy <code>__proto__</code>, and <code>spawn(..., { shell: true })</code> with non-literal arguments.</p></li>
    <li><h3>Secrets in config files</h3><p>JSON, YAML, Dockerfiles, <code>.npmrc</code>, and committed <code>.env</code> files, with the secret values redacted in reports.</p></li>
-   <li><h3>Compare two scans</h3><p>The score delta and the new and fixed findings since a previous JSON report, in the terminal and the HTML report.</p><span class="flag">--compare previous.json</span></li>
-   <li><h3>Changed files only</h3><p>Report findings only in the files changed since a Git ref, such as <code>origin/main</code>.</p><span class="flag">--changed-since &lt;git-ref&gt;</span></li>
+   <li><h3>Compare two scans</h3><p>The score delta per analyzer and the new and fixed findings since a previous JSON report, in every output format, with a change panel in the HTML report.</p><span class="flag">--compare previous.json</span></li>
+   <li><h3>Changed files only</h3><p>Report and score only the findings in files changed since a Git ref, such as <code>origin/main</code>, including staged and untracked files.</p><span class="flag">--changed-since origin/main</span></li>
    <li><h3>VS Code quick fixes</h3><p>Suppress a finding with a reason, or explain its rule, straight from the editor’s quick fix menu.</p></li>
   </ul>
  </div>
