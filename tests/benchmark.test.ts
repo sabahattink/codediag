@@ -112,10 +112,10 @@ test("defects/express keeps its routing, injection, and web sink findings", asyn
   ]);
 });
 
-test("defects/express keeps its JWT, cookie, injection, and secret findings", async () => {
-  const result = await scanFixture("defects/express");
+test("defects/express-session keeps its JWT, cookie, injection, and secret findings", async () => {
+  const result = await scanFixture("defects/express-session");
   const located = findings(result)
-    .filter((issue) => issue.line !== undefined && issue.file !== "src/app.js")
+    .filter((issue) => issue.line !== undefined)
     .map(
       ({ rule, severity, file, line }) => `${severity} ${rule} ${file}:${line}`,
     )

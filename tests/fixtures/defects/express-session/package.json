@@ -1,0 +1,9 @@
+{
+  "name": "defects-express-session",
+  "dependencies": {
+    "ejs": "^3.1.10",
+    "express": "^5.0.0",
+    "express-session": "^1.18.1",
+    "jsonwebtoken": "^9.0.2"
+  }
+}
