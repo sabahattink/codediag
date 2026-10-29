@@ -2,6 +2,8 @@ import { basename } from "path";
 import { existsSync, statSync } from "fs";
 import { detectStack } from "./detectors/stack-detector.js";
 import { analyzeNestjsApi } from "./analyzers/nestjs-api.js";
+import { analyzeExpressApi } from "./analyzers/express-api.js";
+import { analyzeNextjsApi } from "./analyzers/nextjs-api.js";
 import { analyzeSecurity } from "./analyzers/security.js";
 import { analyzeDependencies } from "./analyzers/dependencies.js";
 import { analyzeTesting } from "./analyzers/testing.js";
@@ -31,6 +33,8 @@ type ApiAnalyzer = (projectPath: string, ctx: AnalyzerContext) => Promise<Analyz
 
 const API_ANALYZERS: Partial<Record<StackInfo["framework"], ApiAnalyzer>> = {
   nestjs: analyzeNestjsApi,
+  express: analyzeExpressApi,
+  nextjs: analyzeNextjsApi,
 };
 
 export async function scan(projectPath: string, options: ScanOptions = {}): Promise<ScanResult> {
