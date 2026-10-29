@@ -22,6 +22,8 @@ All notable changes to this project are documented here. The format follows
 - Threshold precedence: `--threshold` > `.codediag.yml` > 70. `--threshold` and `--format` values are validated.
 - JSON/markdown output and `--ci` write only the report to stdout. The spinner is shown only for interactive terminal output.
 - Helmet and CORS checks run only for NestJS/Express; rate limiting and password hashing only for NestJS/Express/Next.js. Plain Node projects are no longer penalized for them.
+- **Node 20+ is now required** (`engines.node >=20`). `glob@11`, a runtime dependency, already needed it; CI no longer runs Node 18.
+- Dependency refresh via `npm audit fix` (brace-expansion DoS advisory GHSA-6j4f-fj2g-mc7p).
 - NestJS module organization is only checked for NestJS projects; JavaScript projects are no longer penalized for having no `tsconfig.json`.
 - NestJS: global guards (`APP_GUARD`, `useGlobalGuards`), `@Public()`-style decorators and public-by-design routes (login, register, auth, webhooks, health) are not reported as missing guards; `@Body() body: any` no longer counts as a DTO.
 

@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [18, 20, 22]
+        node-version: [20, 22]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -21,8 +21,6 @@ jobs:
       - run: npm run typecheck
       - run: npm run build
       - name: Test
-        # vitest 4 requires Node >= 20 (glob 11, a runtime dependency, does too).
-        if: matrix.node-version != 18
         run: npm test
       - name: Test CLI
         run: node dist/index.js scan . --quiet
