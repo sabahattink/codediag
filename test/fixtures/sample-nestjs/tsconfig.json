@@ -1,0 +1,10 @@
+{
+  // Nest CLI defaults; comments and trailing commas are valid tsconfig syntax.
+  "compilerOptions": {
+    "module": "commonjs",
+    "target": "ES2022",
+    "strict": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+  },
+}

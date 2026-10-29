@@ -1,6 +1,7 @@
-import { existsSync, readFileSync } from "fs";
+import { existsSync } from "fs";
 import { join } from "path";
 import type { StackInfo } from "../types.js";
+import { allDependencies, readPackageJson } from "../utils/package-json.js";
 
 export function detectStack(projectPath: string): StackInfo {
   const info: StackInfo = {
@@ -14,20 +15,10 @@ export function detectStack(projectPath: string): StackInfo {
     packageManager: "unknown",
   };
 
-  const pkgPath = join(projectPath, "package.json");
-  if (!existsSync(pkgPath)) return info;
-
-  let pkg: Record<string, any>;
-  try {
-    pkg = JSON.parse(readFileSync(pkgPath, "utf-8"));
-  } catch {
-    return info;
-  }
-
-  const allDeps: Record<string, string> = {
-    ...(pkg.dependencies || {}),
-    ...(pkg.devDependencies || {}),
-  };
+  const result = readPackageJson(projectPath);
+  if (result.status !== "ok") return info;
+  const { pkg } = result;
+  const allDeps = allDependencies(pkg);
 
   // Language
   if (allDeps["typescript"] || existsSync(join(projectPath, "tsconfig.json"))) {
@@ -46,7 +37,7 @@ export function detectStack(projectPath: string): StackInfo {
     info.framework = "nextjs";
   } else if (allDeps["express"]) {
     info.framework = "express";
-  } else if (pkg.dependencies || pkg.devDependencies) {
+  } else if ("dependencies" in pkg.raw || "devDependencies" in pkg.raw) {
     info.framework = "generic";
   }
 

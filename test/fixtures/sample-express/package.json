@@ -1,0 +1,21 @@
+{
+  "name": "sample-express",
+  "version": "1.0.0",
+  "private": true,
+  "description": "codediag test fixture: Express 4 API (CommonJS) with mounted routers",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "express-rate-limit": "^7.5.0",
+    "helmet": "^8.0.0",
+    "zod": "^3.24.0"
+  },
+  "devDependencies": {
+    "vitest": "^3.2.0"
+  }
+}

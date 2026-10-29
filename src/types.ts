@@ -67,4 +67,6 @@ export interface AnalyzerContext {
 export interface ProgressReporter {
   start(text: string): void;
   succeed(text: string): void;
+  /** Clears any in-flight indicator (called before errors are printed). */
+  stop(): void;
 }

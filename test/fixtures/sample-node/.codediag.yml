@@ -1,0 +1,6 @@
+# codediag test fixture config
+threshold: 40
+ignore:
+  - vendor
+analyzers:
+  dependencies: false

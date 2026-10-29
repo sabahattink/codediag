@@ -1,10 +1,17 @@
-import { Project, type SourceFile } from "ts-morph";
-import { join, relative } from "path";
-import { glob } from "glob";
-import { existsSync } from "fs";
-import type { AnalyzerResult, DiagnosticIssue } from "../types.js";
+import { readFileSync } from "fs";
+import { join } from "path";
+import { Node, type ClassDeclaration, type Decorator, type SourceFile } from "ts-morph";
+import type { AnalyzerContext, AnalyzerResult, DiagnosticIssue } from "../types.js";
+import { findFiles, TEST_AND_DECLARATION_GLOBS } from "../utils/files.js";
+import { addFiles, createSyntaxProject, isPublicByDesign, joinRoutePath } from "./api-common.js";
 
 const HTTP_DECORATORS = ["Get", "Post", "Put", "Delete", "Patch", "Head", "Options"];
+const SWAGGER_DECORATORS = ["ApiOperation", "ApiResponse", "ApiTags", "ApiBody", "ApiBearerAuth"];
+/** Common decorators that mark a route as intentionally public when a global guard is used. */
+const PUBLIC_DECORATORS = ["Public", "IsPublic", "SkipAuth", "AllowAnonymous", "Anonymous"];
+/** Body parameter types that do not describe the payload. */
+const UNTYPED_BODY = /^(?:any|unknown|object|Object|Record<.*>|\{\s*\[.*\]\s*:\s*(?:any|unknown)\s*;?\s*\})$/s;
+const GLOBAL_GUARD = /\bAPP_GUARD\b|\.useGlobalGuards\s*\(/;
 
 interface EndpointInfo {
   method: string;
@@ -16,125 +23,109 @@ interface EndpointInfo {
   hasReturnType: boolean;
 }
 
-export async function analyzeNestjsApi(projectPath: string): Promise<AnalyzerResult> {
+function stripQuotes(text: string): string {
+  return text.replace(/^['"`]|['"`]$/g, "");
+}
+
+/** Route path from the first decorator argument: '...', `...`, or { path: '...' }. */
+function decoratorPath(decorator: Decorator): string {
+  const arg = decorator.getArguments()[0];
+  if (!arg) return "";
+  if (Node.isObjectLiteralExpression(arg)) {
+    const path = arg.getProperty("path");
+    return path && Node.isPropertyAssignment(path) ? stripQuotes(path.getInitializer()?.getText() ?? "") : "";
+  }
+  return stripQuotes(arg.getText());
+}
+
+function hasDecorator(decorators: readonly Decorator[], names: readonly string[]): boolean {
+  return decorators.some((d) => names.includes(d.getName()));
+}
+
+/** True when a guard is registered globally (APP_GUARD provider or app.useGlobalGuards). */
+async function hasGlobalGuard(projectPath: string, ctx: AnalyzerContext): Promise<boolean> {
+  const files = await findFiles(projectPath, "**/*.ts", ctx.ignore, TEST_AND_DECLARATION_GLOBS);
+  return files.some((file) => {
+    try {
+      return GLOBAL_GUARD.test(readFileSync(join(projectPath, file), "utf-8"));
+    } catch {
+      return false;
+    }
+  });
+}
+
+function analyzeController(cls: ClassDeclaration, file: string, globalGuard: boolean, issues: DiagnosticIssue[]): EndpointInfo[] {
+  const controllerDecorator = cls.getDecorator("Controller");
+  if (!controllerDecorator) return [];
+
+  const endpoints: EndpointInfo[] = [];
+  const basePath = decoratorPath(controllerDecorator);
+  const classDecorators = cls.getDecorators();
+  const classHasGuard = hasDecorator(classDecorators, ["UseGuards"]);
+  const classIsPublic = hasDecorator(classDecorators, PUBLIC_DECORATORS);
+
+  for (const method of cls.getMethods()) {
+    const decorators = method.getDecorators();
+    const httpDec = decorators.find((d) => HTTP_DECORATORS.includes(d.getName()));
+    if (!httpDec) continue;
+
+    const httpMethod = httpDec.getName().toUpperCase();
+    const fullPath = joinRoutePath(basePath, decoratorPath(httpDec));
+    const line = method.getStartLineNumber();
+    const where = { file, line };
+
+    const isPublic = classIsPublic || hasDecorator(decorators, PUBLIC_DECORATORS) || isPublicByDesign(fullPath);
+    const hasGuard = globalGuard || classHasGuard || hasDecorator(decorators, ["UseGuards"]) || isPublic;
+    const hasDto = method.getParameters().some((p) => {
+      const typeNode = p.getTypeNode();
+      return p.getDecorators().some((d) => d.getName() === "Body") && typeNode !== undefined && !UNTYPED_BODY.test(typeNode.getText());
+    });
+    const hasSwagger = hasDecorator(decorators, SWAGGER_DECORATORS) || hasDecorator(classDecorators, SWAGGER_DECORATORS);
+    const hasReturnType = method.getReturnTypeNode() !== undefined;
+
+    endpoints.push({ method: httpMethod, path: fullPath, file, hasGuard, hasDto, hasSwagger, hasReturnType });
+
+    if (!hasGuard && ["POST", "PUT", "DELETE", "PATCH"].includes(httpMethod)) {
+      issues.push({ severity: "warning", rule: "missing-guard", message: `${httpMethod} ${fullPath} has no auth guard`, ...where, fix: "Add @UseGuards(AuthGuard) to protect this endpoint" });
+    }
+    if (!hasDto && ["POST", "PUT", "PATCH"].includes(httpMethod)) {
+      issues.push({ severity: "warning", rule: "missing-dto", message: `${httpMethod} ${fullPath} has no typed DTO for request body`, ...where, fix: "Create a DTO class with class-validator decorators" });
+    }
+    if (!hasSwagger) {
+      issues.push({ severity: "info", rule: "missing-swagger", message: `${httpMethod} ${fullPath} has no Swagger documentation`, ...where, fix: "Add @ApiOperation() and @ApiResponse() decorators" });
+    }
+    if (!hasReturnType) {
+      issues.push({ severity: "info", rule: "missing-return-type", message: `${httpMethod} ${fullPath} has no explicit return type`, ...where });
+    }
+  }
+  return endpoints;
+}
+
+export async function analyzeNestjsApi(projectPath: string, ctx: AnalyzerContext): Promise<AnalyzerResult> {
   const issues: DiagnosticIssue[] = [];
   const endpoints: EndpointInfo[] = [];
 
-  const controllerFiles = await glob("**/*.controller.ts", {
-    cwd: projectPath,
-    ignore: ["node_modules/**", "dist/**"],
-    absolute: true,
-  });
-
+  const controllerFiles = await findFiles(projectPath, "**/*.controller.ts", ctx.ignore);
   if (controllerFiles.length === 0) {
     return {
       name: "API Health",
       score: 0,
-      issues: [{
-        severity: "critical",
-        rule: "no-controllers",
-        message: "No controller files found (*.controller.ts)",
-      }],
+      issues: [{ severity: "critical", rule: "no-controllers", message: "No controller files found (*.controller.ts)" }],
       summary: "No controllers detected",
     };
   }
 
-  const tsConfigPath = join(projectPath, "tsconfig.json");
-  let project: Project;
+  const globalGuard = await hasGlobalGuard(projectPath, ctx);
+  const project = createSyntaxProject();
+  addFiles(project, projectPath, controllerFiles);
 
-  try {
-    if (existsSync(tsConfigPath)) {
-      project = new Project({ tsConfigFilePath: tsConfigPath, skipAddingFilesFromTsConfig: true });
-    } else {
-      project = new Project({ compilerOptions: { strict: true } });
+  controllerFiles.forEach((file) => {
+    const sourceFile: SourceFile | undefined = project.getSourceFile(join(projectPath, file));
+    if (!sourceFile) return;
+    for (const cls of sourceFile.getClasses()) {
+      endpoints.push(...analyzeController(cls, file, globalGuard, issues));
     }
-  } catch {
-    project = new Project({ compilerOptions: { strict: true } });
-  }
-
-  for (const filePath of controllerFiles) {
-    let sourceFile: SourceFile;
-    try {
-      sourceFile = project.addSourceFileAtPath(filePath);
-    } catch {
-      continue;
-    }
-
-    const classes = sourceFile.getClasses();
-
-    for (const cls of classes) {
-      const controllerDecorator = cls.getDecorator("Controller");
-      if (!controllerDecorator) continue;
-
-      const args = controllerDecorator.getArguments();
-      const basePath = args[0]?.getText().replace(/['"]/g, "") || "";
-      const classHasGuard = cls.getDecorators().some((d) => d.getName() === "UseGuards");
-
-      for (const method of cls.getMethods()) {
-        const decorators = method.getDecorators();
-        const httpDec = decorators.find((d) => HTTP_DECORATORS.includes(d.getName()));
-        if (!httpDec) continue;
-
-        const httpMethod = httpDec.getName().toUpperCase();
-        const routePath = httpDec.getArguments()[0]?.getText().replace(/['"]/g, "") || "";
-        const fullPath = `/${basePath}/${routePath}`.replace(/\/+/g, "/").replace(/\/$/, "") || "/";
-        const relFile = relative(projectPath, filePath).replace(/\\/g, "/");
-
-        const hasGuard = classHasGuard || decorators.some((d) => d.getName() === "UseGuards");
-
-        const hasDto = method.getParameters().some((p) => {
-          return p.getDecorators().some((d) => d.getName() === "Body") && p.getTypeNode() !== undefined;
-        });
-
-        const hasSwagger = decorators.some((d) =>
-          ["ApiOperation", "ApiResponse", "ApiTags", "ApiBody", "ApiBearerAuth"].includes(d.getName())
-        );
-
-        const hasReturnType = method.getReturnTypeNode() !== undefined;
-
-        endpoints.push({ method: httpMethod, path: fullPath, file: relFile, hasGuard, hasDto, hasSwagger, hasReturnType });
-
-        if (!hasGuard && ["POST", "PUT", "DELETE", "PATCH"].includes(httpMethod)) {
-          issues.push({
-            severity: "warning",
-            rule: "missing-guard",
-            message: `${httpMethod} ${fullPath} has no auth guard`,
-            file: relFile,
-            fix: "Add @UseGuards(AuthGuard) to protect this endpoint",
-          });
-        }
-
-        if (!hasDto && ["POST", "PUT", "PATCH"].includes(httpMethod)) {
-          issues.push({
-            severity: "warning",
-            rule: "missing-dto",
-            message: `${httpMethod} ${fullPath} has no typed DTO for request body`,
-            file: relFile,
-            fix: "Create a DTO class with class-validator decorators",
-          });
-        }
-
-        if (!hasSwagger) {
-          issues.push({
-            severity: "info",
-            rule: "missing-swagger",
-            message: `${httpMethod} ${fullPath} has no Swagger documentation`,
-            file: relFile,
-            fix: "Add @ApiOperation() and @ApiResponse() decorators",
-          });
-        }
-
-        if (!hasReturnType) {
-          issues.push({
-            severity: "info",
-            rule: "missing-return-type",
-            message: `${httpMethod} ${fullPath} has no explicit return type`,
-            file: relFile,
-          });
-        }
-      }
-    }
-  }
+  });
 
   if (endpoints.length === 0) {
     return {
@@ -159,6 +150,6 @@ export async function analyzeNestjsApi(projectPath: string): Promise<AnalyzerRes
     name: "API Health",
     score,
     issues,
-    summary: `${endpoints.length} endpoints across ${controllerFiles.length} controllers`,
+    summary: `${endpoints.length} endpoints across ${controllerFiles.length} controllers${globalGuard ? " (global guard)" : ""}`,
   };
 }

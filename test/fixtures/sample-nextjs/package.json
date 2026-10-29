@@ -1,0 +1,21 @@
+{
+  "name": "sample-nextjs",
+  "version": "1.0.0",
+  "private": true,
+  "description": "codediag test fixture: Next.js app with App Router and pages/api handlers",
+  "scripts": {
+    "build": "next build",
+    "dev": "next dev",
+    "start": "next start"
+  },
+  "dependencies": {
+    "next": "^15.5.0",
+    "next-auth": "^4.24.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "zod": "^3.24.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.0"
+  }
+}
