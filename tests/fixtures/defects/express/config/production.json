@@ -1,0 +1,7 @@
+{
+  "port": 8080,
+  "database": {
+    "host": "db.internal",
+    "password": "Zq8vT2mLx9RbK4wN"
+  }
+}

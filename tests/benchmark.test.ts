@@ -112,6 +112,28 @@ test("defects/express keeps its routing, injection, and web sink findings", asyn
   ]);
 });
 
+test("defects/express keeps its JWT, cookie, injection, and secret findings", async () => {
+  const result = await scanFixture("defects/express");
+  const located = findings(result)
+    .filter((issue) => issue.line !== undefined && issue.file !== "src/app.js")
+    .map(
+      ({ rule, severity, file, line }) => `${severity} ${rule} ${file}:${line}`,
+    )
+    .sort();
+
+  assert.deepEqual(located, [
+    "critical committed-env-secret .env.production:2",
+    "critical dynamic-command-execution src/account.js:37",
+    "critical hardcoded-secret config/production.json:5",
+    "critical jwt-none-algorithm src/account.js:20",
+    "critical prototype-pollution src/account.js:32",
+    "critical server-side-template-injection src/account.js:27",
+    "warning insecure-cookie src/account.js:10",
+    "warning insecure-cookie src/account.js:14",
+    "warning jwt-expiration-ignored src/account.js:21",
+  ]);
+});
+
 test("defects/fastify keeps its auth hook, schema, and error handler findings", async () => {
   const result = await scanFixture("defects/fastify");
   const api = result.analyzers.find(

@@ -256239,7 +256239,6 @@ var TRACKED_PATHSPECS = [
   ":(glob)**/.yarnrc",
   ":(glob)**/.yarnrc.yml"
 ];
-var UNSCANNED_DIRECTORY = /(?:^|\/)(?:node_modules|dist|coverage)\//;
 var MAX_SCANNED_BYTES = 1024 * 1024;
 var GIT_TIMEOUT_MS = 5e3;
 var PROVIDER_PATTERNS = [
@@ -256368,7 +256367,7 @@ function trackedDotFiles(projectPath) {
         windowsHide: true
       }
     );
-    return output.split("\0").filter((file) => file !== "" && !UNSCANNED_DIRECTORY.test(file));
+    return output.split("\0").filter(Boolean);
   } catch {
     return null;
   }
@@ -256400,6 +256399,7 @@ function findConfigSecrets(context) {
     (file) => (0, import_node_fs5.existsSync)((0, import_node_path7.join)(context.projectPath, file))
   );
   for (const file of dotFiles) {
+    if (context.isExcluded(file)) continue;
     const isEnv = ENV_FILE.test(file);
     if (!isEnv && !DOT_CONFIG_FILES.test(file)) continue;
     const content = readDotFile(context.projectPath, file);
@@ -260398,6 +260398,17 @@ function createScanContext(projectPath, config = loadConfig(projectPath), option
   const isUserIgnored = (file, isDirectory) => userIgnores.some(
     (pattern) => pattern.match(isDirectory ? `${file}/${CHILD_PROBE}` : file)
   );
+  const isExcluded = (file) => {
+    const segments = file.split("/");
+    for (let depth = 1; depth < segments.length; depth++) {
+      const directory = segments.slice(0, depth).join("/");
+      if (BUILTIN_IGNORED_DIRECTORIES.has(segments[depth - 1] ?? "")) {
+        return true;
+      }
+      if (isUserIgnored(directory, true)) return true;
+    }
+    return isUserIgnored(file, false);
+  };
   const isInsideRoot = (path2) => {
     try {
       realRoot ??= (0, import_node_fs11.realpathSync)(root);
@@ -260567,6 +260578,7 @@ function createScanContext(projectPath, config = loadConfig(projectPath), option
     files,
     matchFiles,
     absolutePath,
+    isExcluded,
     readText,
     getSourceFile,
     typescriptConfig: resolveTypeScriptConfig,
