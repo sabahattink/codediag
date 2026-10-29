@@ -1,0 +1,7 @@
+# codediag configuration for codediag itself
+threshold: 70
+
+# test/fixtures holds deliberately broken sample projects (planted fake
+# secrets, unguarded routes) used by the test suite.
+ignore:
+  - test/fixtures

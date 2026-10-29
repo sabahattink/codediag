@@ -1,11 +1,13 @@
 import chalk from "chalk";
-import type { ScanResult } from "../types.js";
+import type { DiagnosticIssue, ScanResult } from "../types.js";
+
+const MAX_ISSUES_DEFAULT = 10;
 
 function scoreBar(score: number, width = 20): string {
   const filled = Math.round((score / 100) * width);
   const empty = width - filled;
   const color = score >= 80 ? chalk.green : score >= 60 ? chalk.yellow : chalk.red;
-  return color("\u2588".repeat(filled)) + chalk.dim("\u2591".repeat(empty));
+  return color("█".repeat(filled)) + chalk.dim("░".repeat(empty));
 }
 
 function gradeColor(grade: string): string {
@@ -16,76 +18,69 @@ function gradeColor(grade: string): string {
   return chalk.red.bold(grade);
 }
 
-function severityIcon(severity: string): string {
+function severityIcon(severity: DiagnosticIssue["severity"]): string {
   switch (severity) {
-    case "critical": return chalk.red("\u2716");
-    case "warning": return chalk.yellow("\u26A0");
-    case "info": return chalk.blue("\u2139");
-    default: return "\u00B7";
+    case "critical": return chalk.red("✖");
+    case "warning": return chalk.yellow("⚠");
+    case "info": return chalk.blue("ℹ");
   }
 }
 
-export function renderTerminal(result: ScanResult, options: { quiet?: boolean; verbose?: boolean } = {}): void {
-  console.log();
+function issueLines(issue: DiagnosticIssue): string[] {
+  const lines = [`  ${severityIcon(issue.severity)} ${issue.message}`];
+  if (issue.file) lines.push(chalk.dim(`    ${issue.line ? `${issue.file}:${issue.line}` : issue.file}`));
+  if (issue.fix) lines.push(chalk.dim(`    → ${issue.fix}`));
+  return lines;
+}
+
+/** Renders the human-readable report. Returns text; the caller decides where it goes. */
+export function renderTerminal(result: ScanResult, options: { quiet?: boolean; verbose?: boolean } = {}): string {
+  const out: string[] = [""];
 
   if (options.quiet) {
     const color = result.totalScore >= 80 ? chalk.green : result.totalScore >= 60 ? chalk.yellow : chalk.red;
-    console.log(`  ${chalk.bold("codediag")} ${color(result.totalScore + "/100")} ${gradeColor(result.grade)}`);
-    console.log();
-    return;
+    out.push(`  ${chalk.bold("codediag")} ${color(result.totalScore + "/100")} ${gradeColor(result.grade)}`, "");
+    return out.join("\n");
   }
 
-  // Header
-  console.log(chalk.bold("  codediag") + chalk.dim(" \u2014 Diagnostic Report"));
-  console.log();
+  out.push(chalk.bold("  codediag") + chalk.dim(" — Diagnostic Report"), "");
 
-  // Project info
   const stackLabel = [result.stack.framework, result.stack.language, result.stack.orm].filter(Boolean).join(chalk.dim(" + "));
-  console.log(chalk.dim("  Project:  ") + chalk.white(result.project));
-  console.log(chalk.dim("  Stack:    ") + stackLabel);
-  console.log(chalk.dim("  Score:    ") + gradeColor(result.grade) + chalk.dim(` (${result.totalScore}/100)`));
-  console.log();
+  out.push(chalk.dim("  Project:  ") + chalk.white(result.project));
+  out.push(chalk.dim("  Stack:    ") + stackLabel);
+  out.push(chalk.dim("  Score:    ") + gradeColor(result.grade) + chalk.dim(` (${result.totalScore}/100)`), "");
 
-  // Scores
   for (const a of result.analyzers) {
-    const bar = scoreBar(a.score);
-    const scoreStr = String(a.score).padStart(3);
-    console.log(`  ${chalk.dim(a.name.padEnd(16))} ${bar} ${chalk.bold(scoreStr)}`);
+    out.push(`  ${chalk.dim(a.name.padEnd(16))} ${scoreBar(a.score)} ${chalk.bold(String(a.score).padStart(3))}`);
   }
-  console.log();
+  out.push("");
 
-  // Issues
-  const criticals = result.analyzers.flatMap((a) => a.issues.filter((i) => i.severity === "critical"));
-  const warnings = result.analyzers.flatMap((a) => a.issues.filter((i) => i.severity === "warning"));
-  const infos = result.analyzers.flatMap((a) => a.issues.filter((i) => i.severity === "info"));
-  const total = criticals.length + warnings.length + infos.length;
+  const all = result.analyzers.flatMap((a) => a.issues);
+  const criticals = all.filter((i) => i.severity === "critical");
+  const warnings = all.filter((i) => i.severity === "warning");
+  const infos = all.filter((i) => i.severity === "info");
 
-  if (total > 0) {
-    const parts: string[] = [];
-    if (criticals.length > 0) parts.push(chalk.red(`${criticals.length} critical`));
-    if (warnings.length > 0) parts.push(chalk.yellow(`${warnings.length} warnings`));
-    if (infos.length > 0) parts.push(chalk.blue(`${infos.length} info`));
-    console.log("  " + parts.join(chalk.dim(" \u00B7 ")));
-    console.log();
-
-    const showIssues = options.verbose
-      ? [...criticals, ...warnings, ...infos]
-      : [...criticals, ...warnings].slice(0, 10);
-
-    for (const issue of showIssues) {
-      console.log(`  ${severityIcon(issue.severity)} ${issue.message}`);
-      if (issue.file) console.log(chalk.dim(`    ${issue.file}`));
-      if (issue.fix) console.log(chalk.dim(`    \u2192 ${issue.fix}`));
-    }
-
-    if (!options.verbose) {
-      const remaining = criticals.length + warnings.length - showIssues.length;
-      if (remaining > 0) console.log(chalk.dim(`  ... and ${remaining} more issues`));
-      if (infos.length > 0 && !options.verbose) console.log(chalk.dim(`  ${infos.length} info issues hidden (use --verbose)`));
-    }
-    console.log();
-  } else {
-    console.log(chalk.green("  \u2714 No issues found. Ship it!"));
-    console.log();
+  if (all.length === 0) {
+    out.push(chalk.green("  ✔ No issues found. Ship it!"), "");
+    return out.join("\n");
   }
+
+  const parts: string[] = [];
+  if (criticals.length > 0) parts.push(chalk.red(`${criticals.length} critical`));
+  if (warnings.length > 0) parts.push(chalk.yellow(`${warnings.length} warnings`));
+  if (infos.length > 0) parts.push(chalk.blue(`${infos.length} info`));
+  out.push("  " + parts.join(chalk.dim(" · ")), "");
+
+  const showIssues = options.verbose
+    ? [...criticals, ...warnings, ...infos]
+    : [...criticals, ...warnings].slice(0, MAX_ISSUES_DEFAULT);
+  for (const issue of showIssues) out.push(...issueLines(issue));
+
+  if (!options.verbose) {
+    const remaining = criticals.length + warnings.length - showIssues.length;
+    if (remaining > 0) out.push(chalk.dim(`  ... and ${remaining} more issues (use --verbose)`));
+    if (infos.length > 0) out.push(chalk.dim(`  ${infos.length} info issues hidden (use --verbose)`));
+  }
+  out.push("");
+  return out.join("\n");
 }
