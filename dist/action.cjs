@@ -225175,6 +225175,7 @@ var require_dist2 = __commonJS({
 var require_dist3 = __commonJS({
   "node_modules/tinyglobby/dist/index.cjs"(exports2) {
     "use strict";
+    Object.defineProperty(exports2, Symbol.toStringTag, { value: "Module" });
     var __create2 = Object.create;
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -225196,46 +225197,43 @@ var require_dist3 = __commonJS({
       enumerable: true
     }) : target, mod));
     var fs = require("fs");
-    fs = __toESM2(fs);
     var path2 = require("path");
-    path2 = __toESM2(path2);
     var url = require("url");
-    url = __toESM2(url);
     var fdir = require_dist2();
-    fdir = __toESM2(fdir);
     var picomatch = require_picomatch2();
-    picomatch = __toESM2(picomatch);
+    picomatch = __toESM2(picomatch, 1);
     var isReadonlyArray = Array.isArray;
+    var BACKSLASHES = /\\/g;
+    var DRIVE_RELATIVE_PATH = /^[A-Za-z]:$/;
     var isWin = process.platform === "win32";
     var ONLY_PARENT_DIRECTORIES = /^(\/?\.\.)+$/;
     function getPartialMatcher(patterns, options = {}) {
       const patternsCount = patterns.length;
       const patternsParts = Array(patternsCount);
       const matchers = Array(patternsCount);
-      const globstarEnabled = !options.noglobstar;
-      for (let i = 0; i < patternsCount; i++) {
+      let i, j;
+      for (i = 0; i < patternsCount; i++) {
         const parts = splitPattern(patterns[i]);
         patternsParts[i] = parts;
         const partsCount = parts.length;
         const partMatchers = Array(partsCount);
-        for (let j = 0; j < partsCount; j++) partMatchers[j] = (0, picomatch.default)(parts[j], options);
+        for (j = 0; j < partsCount; j++) partMatchers[j] = (0, picomatch.default)(parts[j], options);
         matchers[i] = partMatchers;
       }
       return (input) => {
         const inputParts = input.split("/");
         if (inputParts[0] === ".." && ONLY_PARENT_DIRECTORIES.test(input)) return true;
-        for (let i = 0; i < patterns.length; i++) {
+        for (i = 0; i < patternsCount; i++) {
           const patternParts = patternsParts[i];
           const matcher = matchers[i];
           const inputPatternCount = inputParts.length;
           const minParts = Math.min(inputPatternCount, patternParts.length);
-          let j = 0;
+          j = 0;
           while (j < minParts) {
             const part = patternParts[j];
             if (part.includes("/")) return true;
-            const match2 = matcher[j](inputParts[j]);
-            if (!match2) break;
-            if (globstarEnabled && part === "**") return true;
+            if (!matcher[j](inputParts[j])) break;
+            if (!options.noglobstar && part === "**") return true;
             j++;
           }
           if (j === inputPatternCount) return true;
@@ -225248,7 +225246,7 @@ var require_dist3 = __commonJS({
     function buildFormat(cwd, root, absolute) {
       if (cwd === root || root.startsWith(`${cwd}/`)) {
         if (absolute) {
-          const start = isRoot(cwd) ? cwd.length : cwd.length + 1;
+          const start = cwd.length + +!isRoot(cwd);
           return (p, isDir) => p.slice(start, isDir ? -1 : void 0) || ".";
         }
         const prefix = root.slice(cwd.length + 1);
@@ -225269,9 +225267,11 @@ var require_dist3 = __commonJS({
       }
       return (p) => {
         const result = path2.posix.relative(cwd, `${root}/${p}`);
-        if (p.endsWith("/") && result !== "") return `${result}/`;
-        return result || ".";
+        return p[p.length - 1] === "/" && result !== "" ? `${result}/` : result || ".";
       };
+    }
+    function ensureNonDriveRelativePath(path$1) {
+      return path$1.replace(DRIVE_RELATIVE_PATH, (match2) => `${match2}/`);
     }
     var splitPatternOptions = { parts: true };
     function splitPattern(path$2) {
@@ -225280,17 +225280,17 @@ var require_dist3 = __commonJS({
       return ((_result$parts = result.parts) === null || _result$parts === void 0 ? void 0 : _result$parts.length) ? result.parts : [path$2];
     }
     var ESCAPED_WIN32_BACKSLASHES = /\\(?![()[\]{}!+@])/g;
-    function convertPosixPathToPattern(path$2) {
-      return escapePosixPath(path$2);
+    function convertPosixPathToPattern(path$3) {
+      return escapePosixPath(path$3);
     }
-    function convertWin32PathToPattern(path$2) {
-      return escapeWin32Path(path$2).replace(ESCAPED_WIN32_BACKSLASHES, "/");
+    function convertWin32PathToPattern(path$4) {
+      return escapeWin32Path(path$4).replace(ESCAPED_WIN32_BACKSLASHES, "/");
     }
     var convertPathToPattern = isWin ? convertWin32PathToPattern : convertPosixPathToPattern;
     var POSIX_UNESCAPED_GLOB_SYMBOLS = /(?<!\\)([()[\]{}*?|]|^!|[!+@](?=\()|\\(?![()[\]{}!*+?@|]))/g;
     var WIN32_UNESCAPED_GLOB_SYMBOLS = /(?<!\\)([()[\]{}]|^!|[!+@](?=\())/g;
-    var escapePosixPath = (path$2) => path$2.replace(POSIX_UNESCAPED_GLOB_SYMBOLS, "\\$&");
-    var escapeWin32Path = (path$2) => path$2.replace(WIN32_UNESCAPED_GLOB_SYMBOLS, "\\$&");
+    var escapePosixPath = (path$5) => path$5.replace(POSIX_UNESCAPED_GLOB_SYMBOLS, "\\$&");
+    var escapeWin32Path = (path$6) => path$6.replace(WIN32_UNESCAPED_GLOB_SYMBOLS, "\\$&");
     var escapePath = isWin ? escapeWin32Path : escapePosixPath;
     function isDynamicPattern(pattern, options) {
       if ((options === null || options === void 0 ? void 0 : options.caseSensitiveMatch) === false) return true;
@@ -225300,29 +225300,32 @@ var require_dist3 = __commonJS({
     function log(...tasks) {
       console.log(`[tinyglobby ${(/* @__PURE__ */ new Date()).toLocaleTimeString("es")}]`, ...tasks);
     }
+    function ensureStringArray(value) {
+      return typeof value === "string" ? [value] : value !== null && value !== void 0 ? value : [];
+    }
     var PARENT_DIRECTORY = /^(\/?\.\.)+/;
     var ESCAPING_BACKSLASHES = /\\(?=[()[\]{}!*+?@|])/g;
-    var BACKSLASHES = /\\/g;
-    function normalizePattern(pattern, expandDirectories, cwd, props, isIgnore) {
+    function normalizePattern(pattern, opts, props, isIgnore) {
+      var _PARENT_DIRECTORY$exe;
+      const cwd = opts.cwd;
       let result = pattern;
-      if (pattern.endsWith("/")) result = pattern.slice(0, -1);
-      if (!result.endsWith("*") && expandDirectories) result += "/**";
+      if (pattern[pattern.length - 1] === "/") result = pattern.slice(0, -1);
+      if (result[result.length - 1] !== "*" && opts.expandDirectories) result += "/**";
       const escapedCwd = escapePath(cwd);
-      if (path2.default.isAbsolute(result.replace(ESCAPING_BACKSLASHES, ""))) result = path2.posix.relative(escapedCwd, result);
-      else result = path2.posix.normalize(result);
-      const parentDirectoryMatch = PARENT_DIRECTORY.exec(result);
+      result = (0, path2.isAbsolute)(result.replace(ESCAPING_BACKSLASHES, "")) ? path2.posix.relative(escapedCwd, result) : path2.posix.normalize(result);
+      const parentDir = (_PARENT_DIRECTORY$exe = PARENT_DIRECTORY.exec(result)) === null || _PARENT_DIRECTORY$exe === void 0 ? void 0 : _PARENT_DIRECTORY$exe[0];
       const parts = splitPattern(result);
-      if (parentDirectoryMatch === null || parentDirectoryMatch === void 0 ? void 0 : parentDirectoryMatch[0]) {
-        const n = (parentDirectoryMatch[0].length + 1) / 3;
+      if (parentDir) {
+        const n = (parentDir.length + 1) / 3;
         let i = 0;
         const cwdParts = escapedCwd.split("/");
         while (i < n && parts[i + n] === cwdParts[cwdParts.length + i - n]) {
           result = result.slice(0, (n - i - 1) * 3) + result.slice((n - i) * 3 + parts[i + n].length + 1) || ".";
           i++;
         }
-        const potentialRoot = path2.posix.join(cwd, parentDirectoryMatch[0].slice(i * 3));
-        if (!potentialRoot.startsWith(".") && props.root.length > potentialRoot.length) {
-          props.root = potentialRoot;
+        const potentialRoot = path2.posix.join(cwd, parentDir.slice(i * 3));
+        if (potentialRoot[0] !== "." && props.root.length > potentialRoot.length) {
+          props.root = ensureNonDriveRelativePath(potentialRoot);
           props.depthOffset = -n + i;
         }
       }
@@ -225337,154 +225340,136 @@ var require_dist3 = __commonJS({
             newCommonPath.pop();
             break;
           }
-          if (part !== props.commonPath[i] || isDynamicPattern(part) || i === parts.length - 1) break;
+          if (i === parts.length - 1 || part !== props.commonPath[i] || isDynamicPattern(part)) break;
           newCommonPath.push(part);
         }
         props.depthOffset = newCommonPath.length;
         props.commonPath = newCommonPath;
-        props.root = newCommonPath.length > 0 ? path2.posix.join(cwd, ...newCommonPath) : cwd;
+        props.root = ensureNonDriveRelativePath(newCommonPath.length > 0 ? path2.posix.join(cwd, ...newCommonPath) : cwd);
       }
       return result;
     }
-    function processPatterns({ patterns = ["**/*"], ignore: ignore2 = [], expandDirectories = true }, cwd, props) {
-      if (typeof patterns === "string") patterns = [patterns];
-      if (typeof ignore2 === "string") ignore2 = [ignore2];
+    function processPatterns(options, patterns, props) {
       const matchPatterns = [];
       const ignorePatterns = [];
-      for (const pattern of ignore2) {
+      for (const pattern of options.ignore) {
         if (!pattern) continue;
-        if (pattern[0] !== "!" || pattern[1] === "(") ignorePatterns.push(normalizePattern(pattern, expandDirectories, cwd, props, true));
+        if (pattern[0] !== "!" || pattern[1] === "(") ignorePatterns.push(normalizePattern(pattern, options, props, true));
       }
       for (const pattern of patterns) {
         if (!pattern) continue;
-        if (pattern[0] !== "!" || pattern[1] === "(") matchPatterns.push(normalizePattern(pattern, expandDirectories, cwd, props, false));
-        else if (pattern[1] !== "!" || pattern[2] === "(") ignorePatterns.push(normalizePattern(pattern.slice(1), expandDirectories, cwd, props, true));
+        if (pattern[0] !== "!" || pattern[1] === "(") matchPatterns.push(normalizePattern(pattern, options, props, false));
+        else if (pattern[1] !== "!" || pattern[2] === "(") ignorePatterns.push(normalizePattern(pattern.slice(1), options, props, true));
       }
       return {
         match: matchPatterns,
         ignore: ignorePatterns
       };
     }
-    function formatPaths(paths, relative7) {
-      for (let i = paths.length - 1; i >= 0; i--) {
-        const path$2 = paths[i];
-        paths[i] = relative7(path$2);
-      }
-      return paths;
-    }
-    function normalizeCwd(cwd) {
-      if (!cwd) return process.cwd().replace(BACKSLASHES, "/");
-      if (cwd instanceof URL) return (0, url.fileURLToPath)(cwd).replace(BACKSLASHES, "/");
-      return path2.default.resolve(cwd).replace(BACKSLASHES, "/");
-    }
-    function getCrawler(patterns, inputOptions = {}) {
-      const options = process.env.TINYGLOBBY_DEBUG ? {
-        ...inputOptions,
-        debug: true
-      } : inputOptions;
-      const cwd = normalizeCwd(options.cwd);
-      if (options.debug) log("globbing with:", {
-        patterns,
-        options,
-        cwd
-      });
-      if (Array.isArray(patterns) && patterns.length === 0) return [{
-        sync: () => [],
-        withPromise: async () => []
-      }, false];
+    function buildCrawler(options, patterns) {
+      const cwd = options.cwd;
       const props = {
         root: cwd,
-        commonPath: null,
         depthOffset: 0
       };
-      const processed = processPatterns({
-        ...options,
-        patterns
-      }, cwd, props);
+      const processed = processPatterns(options, patterns, props);
       if (options.debug) log("internal processing patterns:", processed);
+      const { absolute, caseSensitiveMatch, debug, dot, followSymbolicLinks, onlyDirectories } = options;
+      const root = props.root.replace(BACKSLASHES, "");
       const matchOptions = {
-        dot: options.dot,
+        dot,
         nobrace: options.braceExpansion === false,
-        nocase: options.caseSensitiveMatch === false,
+        nocase: !caseSensitiveMatch,
         noextglob: options.extglob === false,
         noglobstar: options.globstar === false,
         posix: true
       };
-      const matcher = (0, picomatch.default)(processed.match, {
-        ...matchOptions,
-        ignore: processed.ignore
-      });
+      const matcher = (0, picomatch.default)(processed.match, matchOptions);
       const ignore2 = (0, picomatch.default)(processed.ignore, matchOptions);
       const partialMatcher = getPartialMatcher(processed.match, matchOptions);
-      const format = buildFormat(cwd, props.root, options.absolute);
-      const formatExclude = options.absolute ? format : buildFormat(cwd, props.root, true);
-      const fdirOptions = {
-        filters: [options.debug ? (p, isDirectory) => {
-          const path$2 = format(p, isDirectory);
-          const matches2 = matcher(path$2);
-          if (matches2) log(`matched ${path$2}`);
-          return matches2;
-        } : (p, isDirectory) => matcher(format(p, isDirectory))],
-        exclude: options.debug ? (_, p) => {
-          const relativePath = formatExclude(p, true);
-          const skipped = relativePath !== "." && !partialMatcher(relativePath) || ignore2(relativePath);
-          if (skipped) log(`skipped ${p}`);
-          else log(`crawling ${p}`);
-          return skipped;
-        } : (_, p) => {
-          const relativePath = formatExclude(p, true);
-          return relativePath !== "." && !partialMatcher(relativePath) || ignore2(relativePath);
-        },
-        fs: options.fs ? {
-          readdir: options.fs.readdir || fs.default.readdir,
-          readdirSync: options.fs.readdirSync || fs.default.readdirSync,
-          realpath: options.fs.realpath || fs.default.realpath,
-          realpathSync: options.fs.realpathSync || fs.default.realpathSync,
-          stat: options.fs.stat || fs.default.stat,
-          statSync: options.fs.statSync || fs.default.statSync
-        } : void 0,
-        pathSeparator: "/",
-        relativePaths: true,
-        resolveSymlinks: true,
-        signal: options.signal
+      const format = buildFormat(cwd, root, absolute);
+      const excludeFormatter = absolute ? format : buildFormat(cwd, root, true);
+      const excludePredicate = (_, p) => {
+        const relativePath = excludeFormatter(p, true);
+        return relativePath !== "." && !partialMatcher(relativePath) || ignore2(relativePath);
       };
-      if (options.deep !== void 0) fdirOptions.maxDepth = Math.round(options.deep - props.depthOffset);
-      if (options.absolute) {
-        fdirOptions.relativePaths = false;
-        fdirOptions.resolvePaths = true;
-        fdirOptions.includeBasePath = true;
-      }
-      if (options.followSymbolicLinks === false) {
-        fdirOptions.resolveSymlinks = false;
-        fdirOptions.excludeSymlinks = true;
-      }
-      if (options.onlyDirectories) {
-        fdirOptions.excludeFiles = true;
-        fdirOptions.includeDirs = true;
-      } else if (options.onlyFiles === false) fdirOptions.includeDirs = true;
-      props.root = props.root.replace(BACKSLASHES, "");
-      const root = props.root;
-      if (options.debug) log("internal properties:", props);
-      const relative7 = cwd !== root && !options.absolute && buildRelative(cwd, props.root);
-      return [new fdir.fdir(fdirOptions).crawl(root), relative7];
+      let maxDepth;
+      if (options.deep !== void 0) maxDepth = Math.round(options.deep - props.depthOffset);
+      const crawler = new fdir.fdir({
+        filters: [debug ? (p, isDirectory) => {
+          const path3 = format(p, isDirectory);
+          const matches2 = matcher(path3) && !ignore2(path3);
+          if (matches2) log(`matched ${path3}`);
+          return matches2;
+        } : (p, isDirectory) => {
+          const path3 = format(p, isDirectory);
+          return matcher(path3) && !ignore2(path3);
+        }],
+        exclude: debug ? (_, p) => {
+          const skipped = excludePredicate(_, p);
+          log(`${skipped ? "skipped" : "crawling"} ${p}`);
+          return skipped;
+        } : excludePredicate,
+        fs: options.fs,
+        pathSeparator: "/",
+        relativePaths: !absolute,
+        resolvePaths: absolute,
+        includeBasePath: absolute,
+        resolveSymlinks: followSymbolicLinks,
+        excludeSymlinks: !followSymbolicLinks,
+        excludeFiles: onlyDirectories,
+        includeDirs: onlyDirectories || !options.onlyFiles,
+        maxDepth,
+        signal: options.signal
+      }).crawl(root);
+      if (options.debug) log("internal properties:", {
+        ...props,
+        root
+      });
+      return [crawler, cwd !== root && !absolute && buildRelative(cwd, root)];
     }
-    async function glob(patternsOrOptions, options) {
-      if (patternsOrOptions && (options === null || options === void 0 ? void 0 : options.patterns)) throw new Error("Cannot pass patterns as both an argument and an option");
-      const isModern = isReadonlyArray(patternsOrOptions) || typeof patternsOrOptions === "string";
-      const opts = isModern ? options : patternsOrOptions;
-      const patterns = isModern ? patternsOrOptions : patternsOrOptions.patterns;
-      const [crawler, relative7] = getCrawler(patterns, opts);
-      if (!relative7) return crawler.withPromise();
-      return formatPaths(await crawler.withPromise(), relative7);
+    function formatPaths(paths, mapper) {
+      if (mapper) for (let i = paths.length - 1; i >= 0; i--) paths[i] = mapper(paths[i]);
+      return paths;
     }
-    function globSync(patternsOrOptions, options) {
-      if (patternsOrOptions && (options === null || options === void 0 ? void 0 : options.patterns)) throw new Error("Cannot pass patterns as both an argument and an option");
-      const isModern = isReadonlyArray(patternsOrOptions) || typeof patternsOrOptions === "string";
-      const opts = isModern ? options : patternsOrOptions;
-      const patterns = isModern ? patternsOrOptions : patternsOrOptions.patterns;
-      const [crawler, relative7] = getCrawler(patterns, opts);
-      if (!relative7) return crawler.sync();
-      return formatPaths(crawler.sync(), relative7);
+    var defaultOptions = {
+      caseSensitiveMatch: true,
+      debug: !!process.env.TINYGLOBBY_DEBUG,
+      expandDirectories: true,
+      followSymbolicLinks: true,
+      onlyFiles: true
+    };
+    function getOptions(options) {
+      const opts = Object.assign({}, options);
+      for (const key in defaultOptions) if (opts[key] === void 0) Object.assign(opts, { [key]: defaultOptions[key] });
+      opts.cwd = (opts.cwd instanceof URL ? (0, url.fileURLToPath)(opts.cwd) : (0, path2.resolve)(opts.cwd || process.cwd())).replace(BACKSLASHES, "/");
+      opts.ignore = ensureStringArray(opts.ignore);
+      opts.fs && (opts.fs = {
+        readdir: opts.fs.readdir || fs.readdir,
+        readdirSync: opts.fs.readdirSync || fs.readdirSync,
+        realpath: opts.fs.realpath || fs.realpath,
+        realpathSync: opts.fs.realpathSync || fs.realpathSync,
+        stat: opts.fs.stat || fs.stat,
+        statSync: opts.fs.statSync || fs.statSync
+      });
+      if (opts.debug) log("globbing with options:", opts);
+      return opts;
+    }
+    function getCrawler(globInput, inputOptions = {}) {
+      var _ref;
+      if (globInput && (inputOptions === null || inputOptions === void 0 ? void 0 : inputOptions.patterns)) throw new Error("Cannot pass patterns as both an argument and an option");
+      const isModern = isReadonlyArray(globInput) || typeof globInput === "string";
+      const patterns = ensureStringArray((_ref = isModern ? globInput : globInput.patterns) !== null && _ref !== void 0 ? _ref : "**/*");
+      const options = getOptions(isModern ? inputOptions : globInput);
+      return patterns.length > 0 ? buildCrawler(options, patterns) : [];
+    }
+    async function glob(globInput, options) {
+      const [crawler, relative7] = getCrawler(globInput, options);
+      return crawler ? formatPaths(await crawler.withPromise(), relative7) : [];
+    }
+    function globSync(globInput, options) {
+      const [crawler, relative7] = getCrawler(globInput, options);
+      return crawler ? formatPaths(crawler.sync(), relative7) : [];
     }
     exports2.convertPathToPattern = convertPathToPattern;
     exports2.escapePath = escapePath;
@@ -250789,10 +250774,6 @@ var require_ignore = __commonJS({
       return value;
     };
     var RETURN_FALSE = () => false;
-    var cleanRangeBackSlash = (slashes) => {
-      const { length } = slashes;
-      return slashes.slice(0, length - length % 2);
-    };
     var POSIX_CLASSES = {
       alnum: "0-9A-Za-z",
       alpha: "A-Za-z",
@@ -250863,11 +250844,11 @@ var require_ignore = __commonJS({
             return null;
           }
           if (end > nameStart && pattern[end - 1] === ":") {
-            const expanded = POSIX_CLASSES[pattern.slice(nameStart, end - 1)];
-            if (expanded === UNDEFINED) {
+            const name = pattern.slice(nameStart, end - 1);
+            if (!Object.prototype.hasOwnProperty.call(POSIX_CLASSES, name)) {
               return null;
             }
-            body += expanded;
+            body += POSIX_CLASSES[name];
             prev = EMPTY;
             index = end;
           } else {
@@ -250896,6 +250877,7 @@ var require_ignore = __commonJS({
     );
     var TRAILING_WILDCARD = "\uE000";
     var TRAILING_DOUBLESTAR = "\uE001";
+    var isReserved = (char) => char === PLACEHOLDER2 || char === TRAILING_WILDCARD || char === TRAILING_DOUBLESTAR;
     var extractBrackets = (pattern) => {
       const sources = [];
       const hold = (source) => `${PLACEHOLDER2}${sources.push(source) - 1}${PLACEHOLDER2}`;
@@ -250908,16 +250890,16 @@ var require_ignore = __commonJS({
           const escaped = pattern[index + 1];
           if (escaped === UNDEFINED || escaped === SLASH && index + 2 === length) {
             out += hold(NEVER_MATCH);
-          } else if (escaped === "*" || escaped === "[" || escaped === SPACE || escaped === ESCAPE) {
+          } else if (escaped === "*" || escaped === "[" || escaped === SPACE) {
             out += pattern.slice(index, index + 2);
           } else {
             out += hold(
-              REGEX_LITERAL_SPECIAL.test(escaped) ? ESCAPE + escaped : escaped
+              REGEX_LITERAL_SPECIAL.test(escaped) ? ESCAPE + escaped : isReserved(escaped) ? `[${escaped}]` : escaped
             );
           }
           index += 2;
-        } else if (char === PLACEHOLDER2) {
-          out += hold(`[${PLACEHOLDER2}]`);
+        } else if (isReserved(char)) {
+          out += hold(`[${char}]`);
           index++;
         } else if (char === "[") {
           const scanned = scanBracket(pattern, index);
@@ -251052,19 +251034,17 @@ var require_ignore = __commonJS({
       // trailing wildcard, held apart from a literal star
       [
         // The step above leaves a trailing `*` alone, so a single `\*` is all that
-        //   can be left at the end here. Whether it is a wildcard or a literal
-        //   turns on the backslashes the user put in front of it: the escaper has
-        //   since doubled every one, so what stands here is those `2N` doubled
-        //   backslashes and then the star's own escape. An even number of the
-        //   original `N` leaves the star unescaped -- a wildcard -- and an odd
-        //   number escapes it -- a literal. This runs while the two are still
-        //   distinct, before the unescape steps below collapse the literal onto
-        //   the very `\*` a wildcard leaves behind.
+        //   can be left at the end here, and what stands in front of it says which
+        //   kind it is. A wildcard arrives as the escaper wrote it, `\*` with
+        //   nothing before it; a literal arrives as the user's own escape, which
+        //   the escaper doubled, and then the star's own -- `\\` and then `\*`.
+        //   There is no third case: every backslash still reaching the chain is
+        //   one `\*`, `\[` or `\ ` carries itself, and each is followed by its
+        //   own character, so a longer run can never form. This runs while the
+        //   two are still distinct, before the unescape steps below collapse the
+        //   literal onto the very `\*` a wildcard leaves behind.
         /(^|[^\\])((?:\\\\)*)\\\*$/,
-        (match2, p1, p2) => (
-          // `p2` holds the doubled user backslashes; half of them is `N`.
-          p2.length / 2 % 2 === 0 ? p1 + p2 + TRAILING_WILDCARD : match2
-        ),
+        (match2, p1, p2) => p2 === EMPTY ? p1 + TRAILING_WILDCARD : match2,
         "*"
       ],
       [
@@ -251085,10 +251065,11 @@ var require_ignore = __commonJS({
         // Every real bracket expression -- POSIX classes included -- has already
         //   been held aside by `extractBrackets`, so the only `[` left in the
         //   pattern is an escaped, literal one.
-        // `\` is escaped by step 3
-        /\\\[([^\]/]*?)(\\*)($|\])/g,
-        // '\\[bar]' -> '\\\\[bar\\]'
-        (match2, range2, endEscape, close) => `\\[${range2}${cleanRangeBackSlash(endEscape)}${close}`,
+        // A backslash could only stand at the end of the range if it quoted the
+        //   `]`, and `\]` is held aside long before this.
+        /\\\[([^\]/]*?)($|\])/g,
+        // '\\[bar]' -> '\\\\[bar]'
+        (match2, range2, close) => `\\[${range2}${close}`,
         "["
       ],
       // ending
