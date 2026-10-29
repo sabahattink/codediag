@@ -181,7 +181,7 @@ section{margin-top:40px}
 .section-head{display:flex;justify-content:space-between;gap:20px;align-items:end;margin-bottom:14px}
 .section-head h2{margin:0;font-size:1.3rem;letter-spacing:-.01em}
 .section-head p{margin:0;color:var(--muted)}
-.banner{margin:24px 0 0;padding:12px 16px;border:1px solid var(--accent);border-left-width:4px;background:var(--surface);border-radius:4px}
+.banner{margin:24px 0 0;padding:12px 16px;border:1px solid var(--accent);background:var(--surface);border-radius:4px}
 .analyzers{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
 .analyzer,.issue,.changes>div,.fixed{border:1px solid var(--border);border-radius:6px;background:var(--surface);box-shadow:var(--shadow)}
 .analyzer{padding:16px 18px;border-top:4px solid var(--tone)}
@@ -214,7 +214,7 @@ section{margin-top:40px}
 .fixed li{display:flex;gap:10px;align-items:baseline}
 .fixed li>span:last-child{color:var(--muted);text-decoration:line-through;text-decoration-color:var(--border)}
 .summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
-.summary div{border-left:3px solid var(--tone);background:var(--surface);padding:12px 15px}
+.summary div{border-top:3px solid var(--tone);background:var(--surface);padding:12px 15px}
 .summary strong{display:block;font:800 1.3rem var(--mono)}
 .summary span{color:var(--muted);font-size:.82rem}
 .toolbar{display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between;align-items:center;margin:14px 0}
@@ -227,9 +227,6 @@ button:focus-visible,input:focus-visible,a:focus-visible,summary:focus-visible{o
 .issues{display:grid;gap:10px}
 .issue{padding:16px 18px}
 .issue[hidden]{display:none}
-.issue[data-severity="critical"]{border-left:4px solid var(--bad)}
-.issue[data-severity="warning"]{border-left:4px solid var(--warn)}
-.issue[data-severity="info"]{border-left:4px solid var(--info)}
 .issue-main{display:flex;gap:12px;align-items:flex-start}
 .issue h3{margin:0;font-size:1rem}
 .severity{flex:0 0 auto;border:1px solid currentColor;border-radius:3px;padding:1px 6px;font:800 .68rem var(--mono);text-transform:uppercase}
