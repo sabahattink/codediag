@@ -2,14 +2,7 @@
 
 All notable changes to CodeDiag are documented in this file.
 
-## [Unreleased]
-
-### Changed
-
-- Updated ignore to 7.0.13, Biome to 2.6.2, and tsup to 9.0.0, with the
-  Action bundle rebuilt so the bundle check passes.
-
-## [0.6.0] - 2026-10-29
+## [0.6.0] - 2026-10-30
 
 The "Deep Scan" release: Fastify support, JWT and session misconfiguration,
 template injection, prototype pollution, secret scanning beyond source code,
@@ -73,6 +66,8 @@ VS Code quick fixes.
   the sink, injection, and auth rules.
 - Analyzer weights moved to `src/core/scoring.ts` (`ANALYZER_WEIGHTS`).
 - The README's example pull request comment now adds up.
+- Updated ignore to 7.0.13, Biome to 2.6.2, and tsup to 9.0.0, with the
+  Action bundle rebuilt.
 
 ### Fixed
 
