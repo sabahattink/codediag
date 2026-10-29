@@ -276,3 +276,20 @@ test("analyzers use the scan context instead of their own discovery or parser", 
     );
   }
 });
+
+test("isExcluded applies ignore settings and built-in directories to any path", () => {
+  withProject(
+    { ".codediag.yml": "ignore:\n  - fixtures/**\n  - '*.local.json'\n" },
+    (directory) => {
+      const context = createScanContext(directory);
+      assert.equal(context.isExcluded("fixtures/app/.env"), true);
+      assert.equal(
+        context.isExcluded("packages/a/node_modules/x/.npmrc"),
+        true,
+      );
+      assert.equal(context.isExcluded("config.local.json"), true);
+      assert.equal(context.isExcluded(".env"), false);
+      assert.equal(context.isExcluded("packages/a/.npmrc"), false);
+    },
+  );
+});

@@ -71,6 +71,12 @@ export interface ScanContext {
     options?: MatchOptions,
   ): string[];
   absolutePath(file: string): string;
+  /**
+   * True when the `ignore` setting or a built-in output directory excludes a
+   * project-relative path. Unlike discovery, this ignores .gitignore, so it
+   * also applies to files Git tracks but that discovery never indexes.
+   */
+  isExcluded(file: string): boolean;
   /** Cached UTF-8 contents, or null when the file cannot be read. */
   readText(file: string): string | null;
   /** A parsed source file from the scan's single shared ts-morph project. */
@@ -213,6 +219,18 @@ export function createScanContext(
     userIgnores.some((pattern) =>
       pattern.match(isDirectory ? `${file}/${CHILD_PROBE}` : file),
     );
+
+  const isExcluded = (file: string): boolean => {
+    const segments = file.split("/");
+    for (let depth = 1; depth < segments.length; depth++) {
+      const directory = segments.slice(0, depth).join("/");
+      if (BUILTIN_IGNORED_DIRECTORIES.has(segments[depth - 1] ?? "")) {
+        return true;
+      }
+      if (isUserIgnored(directory, true)) return true;
+    }
+    return isUserIgnored(file, false);
+  };
 
   const isInsideRoot = (path: string): boolean => {
     try {
@@ -420,6 +438,7 @@ export function createScanContext(
     files,
     matchFiles,
     absolutePath,
+    isExcluded,
     readText,
     getSourceFile,
     typescriptConfig: resolveTypeScriptConfig,

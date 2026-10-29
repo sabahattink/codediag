@@ -114,6 +114,7 @@ test("placeholders, references, lock files, and low-entropy values are ignored",
       ".gitignore": ".env\n",
       "config/default.json": JSON.stringify(
         {
+          // codediag-ignore-next-line hardcoded-secret -- placeholder the config scanner must ignore
           password: "changeme",
           token: "${TOKEN}",
           secret: "<your-secret-here>",
@@ -177,5 +178,20 @@ test("secrets in .env files tracked by Git are reported; ignored ones are not", 
           "Committed .env file contains a secret value for SESSION_SECRET",
       },
     ],
+  );
+});
+
+test("tracked .env files in ignored or dependency directories are not scanned", async () => {
+  assert.deepEqual(
+    await secretFindings(
+      {
+        ".gitignore": ".env*\n",
+        ".codediag.yml": "ignore:\n  - fixtures/**\n",
+        "fixtures/app/.env": `SESSION_SECRET=${STRONG_PASSWORD}\n`,
+        "node_modules/lib/.env": `SESSION_SECRET=${STRONG_PASSWORD}\n`,
+      },
+      { git: ["fixtures/app/.env", "node_modules/lib/.env"] },
+    ),
+    [],
   );
 });

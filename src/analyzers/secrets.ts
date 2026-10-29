@@ -29,7 +29,6 @@ const TRACKED_PATHSPECS = [
   ":(glob)**/.yarnrc",
   ":(glob)**/.yarnrc.yml",
 ];
-const UNSCANNED_DIRECTORY = /(?:^|\/)(?:node_modules|dist|coverage)\//;
 const MAX_SCANNED_BYTES = 1024 * 1024;
 const GIT_TIMEOUT_MS = 5000;
 
@@ -215,9 +214,7 @@ function trackedDotFiles(projectPath: string): string[] | null {
         windowsHide: true,
       },
     );
-    return output
-      .split("\0")
-      .filter((file) => file !== "" && !UNSCANNED_DIRECTORY.test(file));
+    return output.split("\0").filter(Boolean);
   } catch {
     return null;
   }
@@ -262,6 +259,7 @@ export function findConfigSecrets(context: ScanContext): DiagnosticIssue[] {
       existsSync(join(context.projectPath, file)),
     );
   for (const file of dotFiles) {
+    if (context.isExcluded(file)) continue;
     const isEnv = ENV_FILE.test(file);
     if (!isEnv && !DOT_CONFIG_FILES.test(file)) continue;
     const content = readDotFile(context.projectPath, file);
