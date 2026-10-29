@@ -252719,7 +252719,7 @@ function assignFingerprints(results, readText) {
 }
 
 // package.json
-var version = "0.5.0";
+var version = "0.6.0";
 
 // src/version.ts
 function getPackageVersion() {

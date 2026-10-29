@@ -2,7 +2,70 @@
 
 All notable changes to CodeDiag are documented in this file.
 
-## [Unreleased]
+## [0.6.0] - 2026-10-29
+
+The "Deep Scan" release: Fastify support, JWT and session misconfiguration,
+template injection, prototype pollution, secret scanning beyond source code,
+comparisons between scans, changed-files mode, a redesigned HTML report, and
+VS Code quick fixes.
+
+### Added
+
+- Fastify API Health analysis: routes from `fastify.get()` and
+  `fastify.route()` on instances, typed plugins, and `register()`-ed plugin
+  functions; auth from `onRequest`, `preParsing`, `preValidation`, and
+  `preHandler` hooks on the route or anywhere in its encapsulation context
+  (Fastify applies a context's hooks to routes registered before them), from
+  `fastify-plugin` plugins, and from `@fastify/bearer-auth`; body schemas;
+  `setErrorHandler`; and health endpoints. New rules: `no-fastify-routes`,
+  `missing-auth-hook`, `missing-route-schema`, and `missing-error-handler`.
+  A NestJS app on `@nestjs/platform-fastify` is still analyzed as NestJS.
+- `jwt-none-algorithm` (critical): JWT options that list `none` in
+  `algorithms` or set `algorithm: 'none'`, and jose's `UnsecuredJWT`.
+- `jwt-expiration-ignored`: `ignoreExpiration: true` in jsonwebtoken,
+  passport-jwt, or @nestjs/jwt options.
+- `insecure-cookie`: session or token cookies set with `res.cookie()`,
+  `reply.setCookie()`, or `cookies().set()` without `httpOnly: true` and
+  `secure: true`, and express-session, cookie-session, or @fastify/session
+  options that turn either flag off.
+- `server-side-template-injection` (critical): request data compiled or
+  rendered as an EJS, Pug, Handlebars, Nunjucks, Eta, doT, or lodash template.
+- `prototype-pollution`: nested writes such as `target[a][b] = value` with
+  keys from request data (critical), and recursive merges that copy keys
+  without rejecting `__proto__`, `constructor`, and `prototype` (warning).
+- `hardcoded-secret` now also scans JSON, YAML, TOML, INI, XML, properties,
+  Dockerfiles, `.npmrc`, and `.yarnrc` for provider tokens (private keys, AWS,
+  GitHub, Stripe live, Slack, npm, Google, Anthropic, OpenAI, SendGrid, and
+  database URLs with passwords) and for long, high-entropy values of
+  secret-like keys. Placeholders, `${VARIABLE}` references, paths, and lock
+  files are skipped.
+- `committed-env-secret` (critical): secrets in `.env` files that Git tracks.
+  Untracked and ignored `.env` files are never read.
+- `--compare <report.json>`: score and analyzer deltas, new findings (marked
+  `isNew`), and fixed findings since an earlier JSON report, in every output
+  format. SARIF results get `baselineState`, and JSON gets an optional
+  `comparison` object.
+- `--changed-since <revision>`: report and score only findings in files
+  changed since a Git revision (commits since the merge base, staged and
+  unstaged edits, and untracked files). JSON gets an optional `scope` object.
+  It cannot be combined with `--update-baseline`.
+- `ScanContext.isExcluded()` for paths that file discovery does not index.
+
+### Changed
+
+- `dynamic-command-execution` also covers `spawn()`, `spawnSync()`,
+  `execFile()`, and `execFileSync()` with a `shell` option and non-literal
+  arguments.
+- The HTML report was redesigned: a score gauge, analyzer weights and
+  deltas, a change panel and scope banner, text search, a "New" filter, links
+  to each rule's documentation, findings ordered by severity, and print
+  styles. It still loads nothing from the network.
+- The project page was redesigned, and its fonts now load (the previous
+  "Satoshi" font was never served by Google Fonts).
+- Request-data taint tracking moved to `src/analyzers/taint.ts`, shared by
+  the sink, injection, and auth rules.
+- Analyzer weights moved to `src/core/scoring.ts` (`ANALYZER_WEIGHTS`).
+- The README's example pull request comment now adds up.
 
 ### Fixed
 
@@ -10,6 +73,15 @@ All notable changes to CodeDiag are documented in this file.
   invalid" warning when publishing.
 - The Action bundle embeds only the package version instead of the whole
   `package.json`, so dependency updates no longer require a rebuilt bundle.
+- The symlink discovery test is skipped where the platform cannot create
+  symbolic links (Windows without Developer Mode) instead of failing.
+
+### Known limitations
+
+- Fastify plugins loaded with `@fastify/autoload` are not followed, so their
+  hooks and prefixes do not apply to the routes they load.
+- Fastify auth and validation are recognized by names and visible hook
+  bodies, as for Express; validation inside a handler is not counted.
 
 ## [0.5.0] - 2026-10-04
 

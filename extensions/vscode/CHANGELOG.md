@@ -1,10 +1,13 @@
 # Changelog
 
-## Unreleased
+## 0.4.0
 
+- Run the CodeDiag 0.6 engine: Fastify analysis, JWT, cookie, template
+  injection, prototype pollution, and configuration secret rules, and the
+  redesigned HTML report.
 - Add quick fixes to CodeDiag problems: suppress the rule on the flagged line
   or in the whole file with an inline directive whose reason you type, or open
-  the rule's documentation.
+  the rule's documentation. A directive left without a reason is not applied.
 - Offer suppressions only in files whose directives the scanner reads and
   only for findings that are not already suppressed; never as the preferred
   fix.
