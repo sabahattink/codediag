@@ -83,7 +83,10 @@ function exported(
   depth = 0,
 ): { node: Node; line: number } | null {
   const local = exportedValue(sourceFile, name);
-  if (local) return { node: local, line: local.getStartLineNumber() };
+  // Re-exports are followed below, keeping the route module's line.
+  if (local && !Node.isExportSpecifier(local)) {
+    return { node: local, line: local.getStartLineNumber() };
+  }
   if (depth >= MAX_EXPORT_DEPTH) return null;
   for (const declaration of sourceFile.getExportDeclarations()) {
     const specifier = declaration.getModuleSpecifierValue();
