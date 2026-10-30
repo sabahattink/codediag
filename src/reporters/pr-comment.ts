@@ -1,8 +1,13 @@
 import { posix } from "node:path";
 import { isBelowThreshold } from "../config.js";
+import { formatDelta } from "../core/compare.js";
 import { activeIssues, inactiveCounts } from "../core/issues.js";
 import { ruleDocsUrl } from "../rules/registry.js";
-import type { DiagnosticIssue, ScanResult } from "../types.js";
+import type {
+  ComparisonSummary,
+  DiagnosticIssue,
+  ScanResult,
+} from "../types.js";
 
 /** Identifies CodeDiag's comment so later runs update it instead of adding one. */
 export const PR_COMMENT_MARKER = "<!-- codediag:pr-comment -->";
@@ -31,6 +36,13 @@ function escapeCell(value: string): string {
   return value.replaceAll("|", "\\|").replace(/\r?\n/g, " ");
 }
 
+/** The change against the base branch's report, when the scan compared one. */
+function baseChange(comparison: ComparisonSummary): string {
+  const delta = comparison.scoreDelta;
+  const arrow = delta > 0 ? "▲" : delta < 0 ? "▼" : "=";
+  return `${arrow} ${formatDelta(delta)} vs. the base branch (${comparison.previousScore}) · ${comparison.newFindings} new · ${comparison.fixedFindings} fixed`;
+}
+
 function scoreChange(score: number, previous: number | undefined): string {
   if (previous === undefined) return "";
   const delta = Math.round((score - previous) * 10) / 10;
@@ -47,7 +59,8 @@ interface LocatedFinding {
 
 function findingRow({ issue, path }: LocatedFinding): string {
   const location = issue.line ? `${path}:${issue.line}` : path;
-  return `| ${SEVERITY_ICONS[issue.severity]} | [\`${issue.rule}\`](${ruleDocsUrl(issue.rule)}) | \`${escapeCell(location)}\` | ${escapeCell(issue.message)} |`;
+  const badge = issue.isNew ? "**new** · " : "";
+  return `| ${SEVERITY_ICONS[issue.severity]} | [\`${issue.rule}\`](${ruleDocsUrl(issue.rule)}) | \`${escapeCell(location)}\` | ${badge}${escapeCell(issue.message)} |`;
 }
 
 /**
@@ -59,7 +72,9 @@ export function renderPrComment(input: PrCommentInput): string {
   const { result, threshold, changedFiles, projectDirectory } = input;
   const passed = !isBelowThreshold(result.totalScore, threshold);
   const status = [
-    scoreChange(result.totalScore, input.previousScore),
+    result.comparison
+      ? baseChange(result.comparison)
+      : scoreChange(result.totalScore, input.previousScore),
     `threshold ${threshold}`,
   ].filter(Boolean);
 

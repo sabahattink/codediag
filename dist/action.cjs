@@ -251588,7 +251588,7 @@ __export(action_exports, {
   runAction: () => runAction
 });
 module.exports = __toCommonJS(action_exports);
-var import_node_fs15 = require("fs");
+var import_node_fs16 = require("fs");
 var import_node_path17 = require("path");
 
 // src/config.ts
@@ -252446,12 +252446,163 @@ function applyBaseline(results, baseline) {
   };
 }
 
+// src/core/compare.ts
+var import_node_fs3 = require("fs");
+
+// src/core/issues.ts
+function isActive(issue) {
+  return !issue.suppression && issue.baseline !== true;
+}
+function activeIssues(analyzer) {
+  return analyzer.issues.filter(isActive);
+}
+function inactiveCounts(analyzers) {
+  const counts = { suppressed: 0, baseline: 0 };
+  for (const analyzer of analyzers) {
+    for (const issue of analyzer.issues) {
+      if (issue.suppression) counts.suppressed += 1;
+      else if (issue.baseline) counts.baseline += 1;
+    }
+  }
+  return counts;
+}
+
+// src/core/compare.ts
+var SEVERITIES = /* @__PURE__ */ new Set(["critical", "warning", "info"]);
+function isRecord3(value) {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+function readIssue(value) {
+  if (!isRecord3(value) || typeof value.rule !== "string" || typeof value.message !== "string" || typeof value.severity !== "string" || !SEVERITIES.has(value.severity)) {
+    return null;
+  }
+  return {
+    rule: value.rule,
+    message: value.message,
+    severity: value.severity,
+    ...typeof value.file === "string" ? { file: value.file } : {},
+    ...typeof value.line === "number" ? { line: value.line } : {},
+    ...typeof value.fingerprint === "string" ? { fingerprint: value.fingerprint } : {},
+    ...isRecord3(value.suppression) ? {
+      suppression: {
+        kind: "inSource",
+        justification: String(value.suppression.justification ?? "")
+      }
+    } : {},
+    ...value.baseline === true ? { baseline: true } : {}
+  };
+}
+function loadReport(path2) {
+  let document;
+  try {
+    document = JSON.parse((0, import_node_fs3.readFileSync)(path2, "utf-8"));
+  } catch (error) {
+    throw new Error(
+      `Cannot read report ${path2}: ${error instanceof Error ? error.message : String(error)}`
+    );
+  }
+  if (!isRecord3(document) || !Array.isArray(document.analyzers) || typeof document.totalScore !== "number" || typeof document.grade !== "string" || typeof document.timestamp !== "string") {
+    throw new Error(`${path2} is not a CodeDiag JSON report`);
+  }
+  const analyzers = document.analyzers.filter(isRecord3).map((analyzer) => ({
+    name: String(analyzer.name),
+    score: typeof analyzer.score === "number" ? analyzer.score : 0,
+    issues: (Array.isArray(analyzer.issues) ? analyzer.issues : []).map(readIssue).filter((issue) => issue !== null)
+  }));
+  const issues = analyzers.flatMap((analyzer) => analyzer.issues);
+  if (issues.length > 0 && issues.every((issue) => !issue.fingerprint)) {
+    throw new Error(
+      `${path2} has no finding fingerprints; write it with CodeDiag 0.3 or newer`
+    );
+  }
+  return {
+    timestamp: document.timestamp,
+    totalScore: document.totalScore,
+    grade: document.grade,
+    analyzers
+  };
+}
+function roundDelta(value) {
+  return Math.round(value * 10) / 10;
+}
+function analyzerDeltas(current, previous) {
+  const names = [
+    ...current.map((analyzer) => analyzer.name),
+    ...previous.map((analyzer) => analyzer.name).filter((name) => !current.some((analyzer) => analyzer.name === name))
+  ];
+  return names.map((name) => {
+    const now = current.find((analyzer) => analyzer.name === name);
+    const before = previous.find((analyzer) => analyzer.name === name);
+    const currentScore = now?.score ?? null;
+    const previousScore2 = before?.score ?? null;
+    return {
+      name,
+      previous: previousScore2,
+      current: currentScore,
+      delta: currentScore !== null && previousScore2 !== null ? roundDelta(currentScore - previousScore2) : null
+    };
+  });
+}
+function compareWithPrevious(result, previous, scope) {
+  const previousFingerprints = new Set(
+    previous.analyzers.flatMap(
+      (analyzer) => analyzer.issues.filter(isActive).flatMap((issue) => issue.fingerprint ? [issue.fingerprint] : [])
+    )
+  );
+  const currentFingerprints = new Set(
+    result.analyzers.flatMap(
+      (analyzer) => activeIssues(analyzer).flatMap(
+        (issue) => issue.fingerprint ? [issue.fingerprint] : []
+      )
+    )
+  );
+  let newFindings = 0;
+  const analyzers = result.analyzers.map((analyzer) => ({
+    ...analyzer,
+    issues: analyzer.issues.map((issue) => {
+      if (!isActive(issue) || !issue.fingerprint || previousFingerprints.has(issue.fingerprint)) {
+        return issue;
+      }
+      newFindings += 1;
+      return { ...issue, isNew: true };
+    })
+  }));
+  const fixed = previous.analyzers.flatMap(
+    (analyzer) => analyzer.issues.filter(
+      (issue) => isActive(issue) && issue.fingerprint !== void 0 && !currentFingerprints.has(issue.fingerprint) && (!scope || issue.file !== void 0 && scope.has(issue.file))
+    ).map((issue) => ({
+      analyzer: analyzer.name,
+      rule: issue.rule,
+      severity: issue.severity,
+      message: issue.message,
+      ...issue.file ? { file: issue.file } : {},
+      ...issue.line ? { line: issue.line } : {}
+    }))
+  );
+  const comparison = {
+    previousTimestamp: previous.timestamp,
+    previousScore: previous.totalScore,
+    previousGrade: previous.grade,
+    scoreDelta: roundDelta(result.totalScore - previous.totalScore),
+    analyzers: analyzerDeltas(result.analyzers, previous.analyzers),
+    newFindings,
+    fixedFindings: fixed.length,
+    fixed
+  };
+  return { ...result, analyzers, comparison };
+}
+function formatDelta(delta) {
+  if (delta > 0) return `+${delta}`;
+  if (delta < 0) return `\u2212${Math.abs(delta)}`;
+  return "\xB10";
+}
+
 // src/core/workspace-scan.ts
-var import_node_fs12 = require("fs");
+var import_node_fs13 = require("fs");
 var import_node_path13 = require("path");
 
 // src/detectors/stack-detector.ts
-var import_node_fs3 = require("fs");
+var import_node_fs4 = require("fs");
 var import_node_path2 = require("path");
 function detectStack(projectPath) {
   const info = {
@@ -252465,10 +252616,10 @@ function detectStack(projectPath) {
     packageManager: "unknown"
   };
   const pkgPath = (0, import_node_path2.join)(projectPath, "package.json");
-  if (!(0, import_node_fs3.existsSync)(pkgPath)) return info;
+  if (!(0, import_node_fs4.existsSync)(pkgPath)) return info;
   let pkg;
   try {
-    pkg = JSON.parse((0, import_node_fs3.readFileSync)(pkgPath, "utf-8"));
+    pkg = JSON.parse((0, import_node_fs4.readFileSync)(pkgPath, "utf-8"));
   } catch {
     return info;
   }
@@ -252476,12 +252627,12 @@ function detectStack(projectPath) {
     ...pkg.dependencies || {},
     ...pkg.devDependencies || {}
   };
-  if (allDeps.typescript || (0, import_node_fs3.existsSync)((0, import_node_path2.join)(projectPath, "tsconfig.json"))) {
+  if (allDeps.typescript || (0, import_node_fs4.existsSync)((0, import_node_path2.join)(projectPath, "tsconfig.json"))) {
     info.language = "typescript";
   }
-  if (allDeps["@nestjs/core"] || (0, import_node_fs3.existsSync)((0, import_node_path2.join)(projectPath, "nest-cli.json"))) {
+  if (allDeps["@nestjs/core"] || (0, import_node_fs4.existsSync)((0, import_node_path2.join)(projectPath, "nest-cli.json"))) {
     info.framework = "nestjs";
-  } else if (allDeps.next || (0, import_node_fs3.existsSync)((0, import_node_path2.join)(projectPath, "next.config.js")) || (0, import_node_fs3.existsSync)((0, import_node_path2.join)(projectPath, "next.config.mjs")) || (0, import_node_fs3.existsSync)((0, import_node_path2.join)(projectPath, "next.config.ts"))) {
+  } else if (allDeps.next || (0, import_node_fs4.existsSync)((0, import_node_path2.join)(projectPath, "next.config.js")) || (0, import_node_fs4.existsSync)((0, import_node_path2.join)(projectPath, "next.config.mjs")) || (0, import_node_fs4.existsSync)((0, import_node_path2.join)(projectPath, "next.config.ts"))) {
     info.framework = "nextjs";
   } else if (allDeps.fastify) {
     info.framework = "fastify";
@@ -252490,7 +252641,7 @@ function detectStack(projectPath) {
   } else if (pkg.dependencies || pkg.devDependencies) {
     info.framework = "generic";
   }
-  if (allDeps.prisma || allDeps["@prisma/client"] || (0, import_node_fs3.existsSync)((0, import_node_path2.join)(projectPath, "prisma", "schema.prisma"))) {
+  if (allDeps.prisma || allDeps["@prisma/client"] || (0, import_node_fs4.existsSync)((0, import_node_path2.join)(projectPath, "prisma", "schema.prisma"))) {
     info.orm = "prisma";
     info.hasPrisma = true;
   } else if (allDeps.typeorm) {
@@ -252502,21 +252653,21 @@ function detectStack(projectPath) {
   } else if (allDeps["drizzle-orm"]) {
     info.orm = "drizzle";
   }
-  info.hasDocker = (0, import_node_fs3.existsSync)((0, import_node_path2.join)(projectPath, "Dockerfile")) || (0, import_node_fs3.existsSync)((0, import_node_path2.join)(projectPath, "docker-compose.yml")) || (0, import_node_fs3.existsSync)((0, import_node_path2.join)(projectPath, "docker-compose.yaml"));
-  info.hasEnvFile = (0, import_node_fs3.existsSync)((0, import_node_path2.join)(projectPath, ".env")) || (0, import_node_fs3.existsSync)((0, import_node_path2.join)(projectPath, ".env.local")) || (0, import_node_fs3.existsSync)((0, import_node_path2.join)(projectPath, ".env.example"));
-  info.hasTests = (0, import_node_fs3.existsSync)((0, import_node_path2.join)(projectPath, "test")) || (0, import_node_fs3.existsSync)((0, import_node_path2.join)(projectPath, "tests")) || (0, import_node_fs3.existsSync)((0, import_node_path2.join)(projectPath, "__tests__")) || (0, import_node_fs3.existsSync)((0, import_node_path2.join)(projectPath, "e2e"));
-  if ((0, import_node_fs3.existsSync)((0, import_node_path2.join)(projectPath, "pnpm-lock.yaml"))) {
+  info.hasDocker = (0, import_node_fs4.existsSync)((0, import_node_path2.join)(projectPath, "Dockerfile")) || (0, import_node_fs4.existsSync)((0, import_node_path2.join)(projectPath, "docker-compose.yml")) || (0, import_node_fs4.existsSync)((0, import_node_path2.join)(projectPath, "docker-compose.yaml"));
+  info.hasEnvFile = (0, import_node_fs4.existsSync)((0, import_node_path2.join)(projectPath, ".env")) || (0, import_node_fs4.existsSync)((0, import_node_path2.join)(projectPath, ".env.local")) || (0, import_node_fs4.existsSync)((0, import_node_path2.join)(projectPath, ".env.example"));
+  info.hasTests = (0, import_node_fs4.existsSync)((0, import_node_path2.join)(projectPath, "test")) || (0, import_node_fs4.existsSync)((0, import_node_path2.join)(projectPath, "tests")) || (0, import_node_fs4.existsSync)((0, import_node_path2.join)(projectPath, "__tests__")) || (0, import_node_fs4.existsSync)((0, import_node_path2.join)(projectPath, "e2e"));
+  if ((0, import_node_fs4.existsSync)((0, import_node_path2.join)(projectPath, "pnpm-lock.yaml"))) {
     info.packageManager = "pnpm";
-  } else if ((0, import_node_fs3.existsSync)((0, import_node_path2.join)(projectPath, "yarn.lock"))) {
+  } else if ((0, import_node_fs4.existsSync)((0, import_node_path2.join)(projectPath, "yarn.lock"))) {
     info.packageManager = "yarn";
-  } else if ((0, import_node_fs3.existsSync)((0, import_node_path2.join)(projectPath, "package-lock.json"))) {
+  } else if ((0, import_node_fs4.existsSync)((0, import_node_path2.join)(projectPath, "package-lock.json"))) {
     info.packageManager = "npm";
   }
   return info;
 }
 
 // src/scanner.ts
-var import_node_fs11 = require("fs");
+var import_node_fs12 = require("fs");
 var import_node_path12 = require("path");
 
 // node_modules/chalk/source/vendor/ansi-styles/index.js
@@ -253941,7 +254092,7 @@ function ora(options) {
 // src/analyzers/dependencies.ts
 var import_node_child_process = require("child_process");
 var import_node_crypto = require("crypto");
-var import_node_fs4 = require("fs");
+var import_node_fs5 = require("fs");
 var import_node_path3 = require("path");
 var lockFileNames = {
   npm: ["package-lock.json", "npm-shrinkwrap.json"],
@@ -253958,7 +254109,7 @@ function findLockFile(projectPath, preferredManager) {
   ] : ["pnpm", "yarn", "npm"];
   for (let depth = 0; depth <= 3; depth++) {
     for (const manager of managers) {
-      if (lockFileNames[manager].some((name) => (0, import_node_fs4.existsSync)((0, import_node_path3.join)(directory, name)))) {
+      if (lockFileNames[manager].some((name) => (0, import_node_fs5.existsSync)((0, import_node_path3.join)(directory, name)))) {
         return { manager, directory };
       }
     }
@@ -253977,7 +254128,7 @@ function isModernYarn(projectPath, packageManager, lockDirectory) {
   if (version2 && Number(version2) >= 2) return true;
   let directory = projectPath;
   for (let depth = 0; depth <= 3; depth++) {
-    if ((0, import_node_fs4.existsSync)((0, import_node_path3.join)(directory, ".yarnrc.yml"))) return true;
+    if ((0, import_node_fs5.existsSync)((0, import_node_path3.join)(directory, ".yarnrc.yml"))) return true;
     if (directory === lockDirectory) break;
     const parent = (0, import_node_path3.dirname)(directory);
     if (parent === directory) break;
@@ -254100,13 +254251,13 @@ var runAuditProcess = (command, cwd) => {
 var auditCache = /* @__PURE__ */ new Map();
 function hashFile(path2) {
   try {
-    return (0, import_node_crypto.createHash)("sha256").update((0, import_node_fs4.readFileSync)(path2)).digest("hex");
+    return (0, import_node_crypto.createHash)("sha256").update((0, import_node_fs5.readFileSync)(path2)).digest("hex");
   } catch {
     return "missing";
   }
 }
 function auditCacheKey(projectPath, command, lockFile) {
-  const lockPath = lockFileNames[lockFile.manager].map((name) => (0, import_node_path3.join)(lockFile.directory, name)).find((candidate) => (0, import_node_fs4.existsSync)(candidate));
+  const lockPath = lockFileNames[lockFile.manager].map((name) => (0, import_node_path3.join)(lockFile.directory, name)).find((candidate) => (0, import_node_fs5.existsSync)(candidate));
   return [
     command.command,
     ...command.args,
@@ -255844,12 +255995,12 @@ async function analyzeNextjsApi(context) {
 }
 
 // src/analyzers/security.ts
-var import_node_fs6 = require("fs");
+var import_node_fs7 = require("fs");
 var import_node_path7 = require("path");
 
 // src/analyzers/secrets.ts
 var import_node_child_process2 = require("child_process");
-var import_node_fs5 = require("fs");
+var import_node_fs6 = require("fs");
 var import_node_path6 = require("path");
 var CONFIG_FILES = [
   "**/*.{json,jsonc,json5,yml,yaml,toml,ini,properties,xml,conf,cfg,env}",
@@ -256009,10 +256160,10 @@ function trackedDotFiles(projectPath) {
 function readDotFile(projectPath, file) {
   const path2 = (0, import_node_path6.join)(projectPath, file);
   try {
-    if (!(0, import_node_fs5.existsSync)(path2) || (0, import_node_fs5.statSync)(path2).size > MAX_SCANNED_BYTES) {
+    if (!(0, import_node_fs6.existsSync)(path2) || (0, import_node_fs6.statSync)(path2).size > MAX_SCANNED_BYTES) {
       return null;
     }
-    return (0, import_node_fs5.readFileSync)(path2, "utf-8");
+    return (0, import_node_fs6.readFileSync)(path2, "utf-8");
   } catch {
     return null;
   }
@@ -256030,7 +256181,7 @@ function findConfigSecrets(context) {
   }
   const tracked = trackedDotFiles(context.projectPath);
   const dotFiles = tracked ?? [".npmrc", ".yarnrc", ".yarnrc.yml"].filter(
-    (file) => (0, import_node_fs5.existsSync)((0, import_node_path6.join)(context.projectPath, file))
+    (file) => (0, import_node_fs6.existsSync)((0, import_node_path6.join)(context.projectPath, file))
   );
   for (const file of dotFiles) {
     if (context.isExcluded(file)) continue;
@@ -257321,9 +257472,9 @@ async function analyzeSecurity(context) {
     let directory = projectPath;
     for (let depth = 0; depth <= 3; depth++) {
       const gitignorePath = (0, import_node_path7.join)(directory, ".gitignore");
-      if ((0, import_node_fs6.existsSync)(gitignorePath)) {
+      if ((0, import_node_fs7.existsSync)(gitignorePath)) {
         foundGitignore = true;
-        const content = (0, import_node_fs6.readFileSync)(gitignorePath, "utf-8");
+        const content = (0, import_node_fs7.readFileSync)(gitignorePath, "utf-8");
         if (gitignoreProtectsEnv(content)) {
           checksPassed++;
         } else {
@@ -257426,7 +257577,7 @@ async function analyzeSecurity(context) {
 }
 
 // src/analyzers/structure.ts
-var import_node_fs7 = require("fs");
+var import_node_fs8 = require("fs");
 var import_node_path8 = require("path");
 var LINTER_CONFIGS = [
   "eslint.config.js",
@@ -257467,7 +257618,7 @@ function findConfigUp(projectPath, fileNames, maxParentDepth = 3) {
   for (let depth = 0; depth <= maxParentDepth; depth++) {
     for (const fileName of fileNames) {
       const candidate = (0, import_node_path8.join)(directory, fileName);
-      if ((0, import_node_fs7.existsSync)(candidate)) return candidate;
+      if ((0, import_node_fs8.existsSync)(candidate)) return candidate;
     }
     const parent = (0, import_node_path8.dirname)(directory);
     if (parent === directory) break;
@@ -257484,7 +257635,7 @@ function findReadme(projectPath) {
       "readme.txt",
       "readme"
     ];
-    const entries = (0, import_node_fs7.readdirSync)(projectPath);
+    const entries = (0, import_node_fs8.readdirSync)(projectPath);
     const byLowerName = new Map(
       entries.map((entry) => [entry.toLowerCase(), entry])
     );
@@ -257505,7 +257656,7 @@ function displayPath(projectPath, filePath) {
 }
 function rootEnvFiles(projectPath) {
   try {
-    return (0, import_node_fs7.readdirSync)(projectPath).filter(
+    return (0, import_node_fs8.readdirSync)(projectPath).filter(
       (entry) => /^\.env(?:\..+)?$/.test(entry) && !ENV_TEMPLATES.includes(entry)
     );
   } catch {
@@ -257514,7 +257665,7 @@ function rootEnvFiles(projectPath) {
 }
 function analyzeNestOrganization(context, issues) {
   const srcPath = (0, import_node_path8.join)(context.projectPath, "src");
-  if (!(0, import_node_fs7.existsSync)(srcPath)) {
+  if (!(0, import_node_fs8.existsSync)(srcPath)) {
     issues.push({
       ...fromRule("no-src-dir"),
       message: "No src/ directory found",
@@ -257592,11 +257743,11 @@ async function analyzeStructure(context) {
   const hasDependency = (name) => Boolean(pkg.dependencies?.[name] || pkg.devDependencies?.[name]);
   const isNestjs = hasDependency("@nestjs/core");
   const tsconfigPath = (0, import_node_path8.join)(projectPath, "tsconfig.json");
-  const isTypescript = (0, import_node_fs7.existsSync)(tsconfigPath) || hasDependency("typescript");
+  const isTypescript = (0, import_node_fs8.existsSync)(tsconfigPath) || hasDependency("typescript");
   checksRun++;
   const readmePath = findReadme(projectPath);
   if (readmePath) {
-    const content = (0, import_node_fs7.readFileSync)(readmePath, "utf-8");
+    const content = (0, import_node_fs8.readFileSync)(readmePath, "utf-8");
     if (meaningfulReadmeLength(content) >= 100) {
       checksPassed++;
     } else {
@@ -257680,7 +257831,7 @@ async function analyzeStructure(context) {
   checksRun++;
   const envFiles = rootEnvFiles(projectPath);
   const envTemplate = ENV_TEMPLATES.find(
-    (name) => (0, import_node_fs7.existsSync)((0, import_node_path8.join)(projectPath, name))
+    (name) => (0, import_node_fs8.existsSync)((0, import_node_path8.join)(projectPath, name))
   );
   if (envFiles.length === 0 || envTemplate) {
     checksPassed++;
@@ -257702,7 +257853,7 @@ async function analyzeStructure(context) {
 }
 
 // src/analyzers/testing.ts
-var import_node_fs8 = require("fs");
+var import_node_fs9 = require("fs");
 var import_node_path9 = require("path");
 var import_ts_morph10 = __toESM(require_ts_morph(), 1);
 var TEST_CONFIG_FILES = ["jest", "vitest"].flatMap(
@@ -257727,11 +257878,11 @@ var COVERAGE_THRESHOLDS = {
   functions: 70,
   branches: 70
 };
-function isRecord3(value) {
+function isRecord4(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 function parseCoverageMetric(value) {
-  if (!isRecord3(value)) return null;
+  if (!isRecord4(value)) return null;
   const total = value.total;
   const covered = value.covered;
   const pct = value.pct;
@@ -257745,10 +257896,10 @@ function readCoverageReport(projectPath) {
     (0, import_node_path9.join)(projectPath, "coverage", "coverage-summary.json"),
     (0, import_node_path9.join)(projectPath, "coverage-summary.json")
   ];
-  const reportPath = candidates.find((candidate) => (0, import_node_fs8.existsSync)(candidate));
+  const reportPath = candidates.find((candidate) => (0, import_node_fs9.existsSync)(candidate));
   if (!reportPath) return null;
-  const document = JSON.parse((0, import_node_fs8.readFileSync)(reportPath, "utf-8"));
-  if (!isRecord3(document) || !isRecord3(document.total)) {
+  const document = JSON.parse((0, import_node_fs9.readFileSync)(reportPath, "utf-8"));
+  if (!isRecord4(document) || !isRecord4(document.total)) {
     throw new Error("missing total coverage summary");
   }
   const metrics = {};
@@ -257788,9 +257939,9 @@ function configDeclaresThreshold(context, file) {
 function coverageRcDeclaresThreshold(projectPath) {
   return COVERAGE_RC_FILES.some((name) => {
     const path2 = (0, import_node_path9.join)(projectPath, name);
-    if (!(0, import_node_fs8.existsSync)(path2)) return false;
+    if (!(0, import_node_fs9.existsSync)(path2)) return false;
     try {
-      const options = JSON.parse((0, import_node_fs8.readFileSync)(path2, "utf-8"));
+      const options = JSON.parse((0, import_node_fs9.readFileSync)(path2, "utf-8"));
       return options?.["check-coverage"] === true || Object.keys(options ?? {}).some((key) => METRIC_KEYS.has(key));
     } catch {
       return false;
@@ -257809,7 +257960,7 @@ function hasCoverageThreshold(context) {
   return Boolean(jest?.coverageThreshold) || packageTool("c8") || packageTool("nyc") || Object.values(pkg?.scripts ?? {}).some(
     (script) => COVERAGE_SCRIPT.test(script)
   ) || coverageRcDeclaresThreshold(context.projectPath) || COVERAGE_CONFIG_FILES.some(
-    (file) => (0, import_node_fs8.existsSync)((0, import_node_path9.join)(context.projectPath, file)) && configDeclaresThreshold(context, file)
+    (file) => (0, import_node_fs9.existsSync)((0, import_node_path9.join)(context.projectPath, file)) && configDeclaresThreshold(context, file)
   );
 }
 async function analyzeTesting(context) {
@@ -257870,7 +258021,7 @@ async function analyzeTesting(context) {
   }
   checksRun++;
   const hasE2e = ["test", "tests", "e2e", "__tests__"].some(
-    (dir) => (0, import_node_fs8.existsSync)((0, import_node_path9.join)(projectPath, dir))
+    (dir) => (0, import_node_fs9.existsSync)((0, import_node_path9.join)(projectPath, dir))
   );
   if (hasE2e) {
     checksPassed++;
@@ -257882,7 +258033,7 @@ async function analyzeTesting(context) {
     });
   }
   checksRun++;
-  const hasConfig = (0, import_node_fs8.existsSync)((0, import_node_path9.join)(projectPath, "jest.config.js")) || (0, import_node_fs8.existsSync)((0, import_node_path9.join)(projectPath, "jest.config.ts")) || (0, import_node_fs8.existsSync)((0, import_node_path9.join)(projectPath, "jest.config.mjs")) || (0, import_node_fs8.existsSync)((0, import_node_path9.join)(projectPath, "vitest.config.ts")) || (0, import_node_fs8.existsSync)((0, import_node_path9.join)(projectPath, "vitest.config.js")) || (0, import_node_fs8.existsSync)((0, import_node_path9.join)(projectPath, "vitest.config.mts"));
+  const hasConfig = (0, import_node_fs9.existsSync)((0, import_node_path9.join)(projectPath, "jest.config.js")) || (0, import_node_fs9.existsSync)((0, import_node_path9.join)(projectPath, "jest.config.ts")) || (0, import_node_fs9.existsSync)((0, import_node_path9.join)(projectPath, "jest.config.mjs")) || (0, import_node_fs9.existsSync)((0, import_node_path9.join)(projectPath, "vitest.config.ts")) || (0, import_node_fs9.existsSync)((0, import_node_path9.join)(projectPath, "vitest.config.js")) || (0, import_node_fs9.existsSync)((0, import_node_path9.join)(projectPath, "vitest.config.mts"));
   if (hasConfig || framework === "node:test") {
     checksPassed++;
   } else {
@@ -257905,7 +258056,7 @@ async function analyzeTesting(context) {
     issues.push({
       ...fromRule("invalid-coverage-report"),
       message: `Coverage summary could not be read: ${error instanceof Error ? error.message : String(error)}`,
-      file: (0, import_node_fs8.existsSync)((0, import_node_path9.join)(projectPath, "coverage", "coverage-summary.json")) ? "coverage/coverage-summary.json" : "coverage-summary.json",
+      file: (0, import_node_fs9.existsSync)((0, import_node_path9.join)(projectPath, "coverage", "coverage-summary.json")) ? "coverage/coverage-summary.json" : "coverage-summary.json",
       fix: "Regenerate coverage-summary.json with Jest, Vitest, or Istanbul"
     });
   }
@@ -257949,7 +258100,7 @@ async function analyzeTesting(context) {
 
 // src/core/changed-files.ts
 var import_node_child_process3 = require("child_process");
-var import_node_fs9 = require("fs");
+var import_node_fs10 = require("fs");
 var import_node_path10 = require("path");
 var GIT_MAX_BUFFER = 64 * 1024 * 1024;
 function limitToFiles(results, files) {
@@ -258027,7 +258178,7 @@ function applyRuleOverrides(results, rules) {
 }
 
 // src/core/scan-context.ts
-var import_node_fs10 = require("fs");
+var import_node_fs11 = require("fs");
 var import_node_path11 = require("path");
 var import_ignore = __toESM(require_ignore(), 1);
 
@@ -259922,9 +260073,9 @@ function toPosix(path2) {
 }
 function readGitignore(directory) {
   const path2 = (0, import_node_path11.join)(directory, ".gitignore");
-  if (!(0, import_node_fs10.existsSync)(path2)) return null;
+  if (!(0, import_node_fs11.existsSync)(path2)) return null;
   try {
-    return (0, import_ignore.default)().add((0, import_node_fs10.readFileSync)(path2, "utf-8"));
+    return (0, import_ignore.default)().add((0, import_node_fs11.readFileSync)(path2, "utf-8"));
   } catch {
     return null;
   }
@@ -259932,7 +260083,7 @@ function readGitignore(directory) {
 function findGitRoot(projectPath) {
   let directory = projectPath;
   while (true) {
-    if ((0, import_node_fs10.existsSync)((0, import_node_path11.join)(directory, ".git"))) return directory;
+    if ((0, import_node_fs11.existsSync)((0, import_node_path11.join)(directory, ".git"))) return directory;
     const parent = (0, import_node_path11.dirname)(directory);
     if (parent === directory) return null;
     directory = parent;
@@ -259981,9 +260132,9 @@ function isMinified(content) {
 }
 function readPackageJson(projectPath) {
   const path2 = (0, import_node_path11.join)(projectPath, "package.json");
-  if (!(0, import_node_fs10.existsSync)(path2)) return { status: "missing", value: null };
+  if (!(0, import_node_fs11.existsSync)(path2)) return { status: "missing", value: null };
   try {
-    const value = JSON.parse((0, import_node_fs10.readFileSync)(path2, "utf-8"));
+    const value = JSON.parse((0, import_node_fs11.readFileSync)(path2, "utf-8"));
     if (typeof value !== "object" || value === null || Array.isArray(value)) {
       return { status: "invalid", value: null };
     }
@@ -260025,8 +260176,8 @@ function createScanContext(projectPath, config = loadConfig(projectPath), option
   };
   const isInsideRoot = (path2) => {
     try {
-      realRoot ??= (0, import_node_fs10.realpathSync)(root);
-      const target = (0, import_node_path11.relative)(realRoot, (0, import_node_fs10.realpathSync)(path2));
+      realRoot ??= (0, import_node_fs11.realpathSync)(root);
+      const target = (0, import_node_path11.relative)(realRoot, (0, import_node_fs11.realpathSync)(path2));
       return target !== "" && !target.startsWith("..") && !(0, import_node_path11.isAbsolute)(target);
     } catch {
       return false;
@@ -260036,7 +260187,7 @@ function createScanContext(projectPath, config = loadConfig(projectPath), option
     if (textCache.has(file)) return textCache.get(file) ?? null;
     let content;
     try {
-      content = (0, import_node_fs10.readFileSync)(absolutePath(file), "utf-8");
+      content = (0, import_node_fs11.readFileSync)(absolutePath(file), "utf-8");
     } catch {
       content = null;
       skippedFiles.set(file, "unreadable");
@@ -260062,7 +260213,7 @@ function createScanContext(projectPath, config = loadConfig(projectPath), option
   const walk = (directory, relativeDirectory, inherited3, found) => {
     let entries;
     try {
-      entries = (0, import_node_fs10.readdirSync)(directory, { withFileTypes: true });
+      entries = (0, import_node_fs11.readdirSync)(directory, { withFileTypes: true });
     } catch {
       return;
     }
@@ -260079,7 +260230,7 @@ function createScanContext(projectPath, config = loadConfig(projectPath), option
       let isFile = entry.isFile();
       if (entry.isSymbolicLink()) {
         try {
-          const target = (0, import_node_fs10.statSync)(path2);
+          const target = (0, import_node_fs11.statSync)(path2);
           isDirectory = false;
           isFile = target.isFile() && isInsideRoot(path2);
         } catch {
@@ -260099,7 +260250,7 @@ function createScanContext(projectPath, config = loadConfig(projectPath), option
       if (isUserIgnored(file, false)) continue;
       let size;
       try {
-        size = (0, import_node_fs10.statSync)(path2).size;
+        size = (0, import_node_fs11.statSync)(path2).size;
       } catch {
         continue;
       }
@@ -260109,7 +260260,7 @@ function createScanContext(projectPath, config = loadConfig(projectPath), option
   const files = () => {
     if (!index) {
       const found = [];
-      if ((0, import_node_fs10.existsSync)(root)) walk(root, "", ancestorGitignores(root), found);
+      if ((0, import_node_fs11.existsSync)(root)) walk(root, "", ancestorGitignores(root), found);
       index = found;
     }
     return index;
@@ -260155,7 +260306,7 @@ function createScanContext(projectPath, config = loadConfig(projectPath), option
   const resolveTypeScriptConfig = () => {
     if (typescriptConfig) return typescriptConfig;
     const tsconfigPath = (0, import_node_path11.join)(root, "tsconfig.json");
-    if (!(0, import_node_fs10.existsSync)(tsconfigPath)) {
+    if (!(0, import_node_fs11.existsSync)(tsconfigPath)) {
       typescriptConfig = { status: "missing" };
     } else {
       try {
@@ -260198,24 +260349,6 @@ function createScanContext(projectPath, config = loadConfig(projectPath), option
     typescriptConfig: resolveTypeScriptConfig,
     skipped
   });
-}
-
-// src/core/issues.ts
-function isActive(issue) {
-  return !issue.suppression && issue.baseline !== true;
-}
-function activeIssues(analyzer) {
-  return analyzer.issues.filter(isActive);
-}
-function inactiveCounts(analyzers) {
-  const counts = { suppressed: 0, baseline: 0 };
-  for (const analyzer of analyzers) {
-    for (const issue of analyzer.issues) {
-      if (issue.suppression) counts.suppressed += 1;
-      else if (issue.baseline) counts.baseline += 1;
-    }
-  }
-  return counts;
 }
 
 // src/core/scoring.ts
@@ -260438,7 +260571,7 @@ function calculateGrade(score) {
   return "F";
 }
 async function scan(projectPath, config = loadConfig(projectPath), options = {}) {
-  if (!(0, import_node_fs11.existsSync)(projectPath)) {
+  if (!(0, import_node_fs12.existsSync)(projectPath)) {
     throw new Error(`Directory not found: ${projectPath}`);
   }
   const progress = createProgressReporter(options);
@@ -260538,12 +260671,12 @@ function packageIgnores(entries, path2) {
 }
 function packageConfig(root, path2, rootConfig) {
   const directory = (0, import_node_path13.join)(root, path2);
-  const config = (0, import_node_fs12.existsSync)((0, import_node_path13.join)(directory, ".codediag.yml")) ? loadConfig(directory) : {
+  const config = (0, import_node_fs13.existsSync)((0, import_node_path13.join)(directory, ".codediag.yml")) ? loadConfig(directory) : {
     ...rootConfig,
     ignore: packageIgnores(rootConfig.ignore, path2),
     analyzers: { ...rootConfig.analyzers }
   };
-  if (!(0, import_node_fs12.existsSync)((0, import_node_path13.join)(directory, "package.json"))) {
+  if (!(0, import_node_fs13.existsSync)((0, import_node_path13.join)(directory, "package.json"))) {
     return {
       ...config,
       analyzers: { ...config.analyzers, dependencies: false }
@@ -260564,7 +260697,7 @@ function packageScope(scope, path2) {
 function relocate(issue, root, path2) {
   if (issue.file) return { ...issue, file: `${path2}/${issue.file}` };
   const manifest = ["package.json", "project.json"].find(
-    (file) => (0, import_node_fs12.existsSync)((0, import_node_path13.join)(root, path2, file))
+    (file) => (0, import_node_fs13.existsSync)((0, import_node_path13.join)(root, path2, file))
   );
   return { ...issue, file: manifest ? `${path2}/${manifest}` : path2 };
 }
@@ -260708,7 +260841,7 @@ async function scanWorkspace(root, rootConfig, info, options = {}) {
 }
 
 // src/core/workspaces.ts
-var import_node_fs13 = require("fs");
+var import_node_fs14 = require("fs");
 var import_node_path14 = require("path");
 var import_yaml2 = __toESM(require_dist(), 1);
 var SKIPPED_DIRECTORIES = /* @__PURE__ */ new Set([
@@ -260720,12 +260853,12 @@ var SKIPPED_DIRECTORIES = /* @__PURE__ */ new Set([
 ]);
 var MAX_DEPTH = 5;
 var DEFAULT_LERNA_PACKAGES = ["packages/*"];
-function isRecord4(value) {
+function isRecord5(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 function readJson(path2) {
   try {
-    return JSON.parse((0, import_node_fs13.readFileSync)(path2, "utf-8"));
+    return JSON.parse((0, import_node_fs14.readFileSync)(path2, "utf-8"));
   } catch {
     return void 0;
   }
@@ -260734,25 +260867,25 @@ function strings(value) {
   return Array.isArray(value) ? value.filter((item) => typeof item === "string") : [];
 }
 function packageJsonPatterns(manifest) {
-  if (!isRecord4(manifest)) return [];
+  if (!isRecord5(manifest)) return [];
   const { workspaces } = manifest;
-  return isRecord4(workspaces) ? strings(workspaces.packages) : strings(workspaces);
+  return isRecord5(workspaces) ? strings(workspaces.packages) : strings(workspaces);
 }
 function pnpmPatterns(root) {
   const path2 = (0, import_node_path14.join)(root, "pnpm-workspace.yaml");
-  if (!(0, import_node_fs13.existsSync)(path2)) return [];
+  if (!(0, import_node_fs14.existsSync)(path2)) return [];
   try {
-    const document = (0, import_yaml2.parse)((0, import_node_fs13.readFileSync)(path2, "utf-8"));
-    return isRecord4(document) ? strings(document.packages) : [];
+    const document = (0, import_yaml2.parse)((0, import_node_fs14.readFileSync)(path2, "utf-8"));
+    return isRecord5(document) ? strings(document.packages) : [];
   } catch {
     return [];
   }
 }
 function lernaPatterns(root) {
   const path2 = (0, import_node_path14.join)(root, "lerna.json");
-  if (!(0, import_node_fs13.existsSync)(path2)) return null;
+  if (!(0, import_node_fs14.existsSync)(path2)) return null;
   const document = readJson(path2);
-  const patterns = isRecord4(document) ? strings(document.packages) : [];
+  const patterns = isRecord5(document) ? strings(document.packages) : [];
   return patterns.length > 0 ? patterns : DEFAULT_LERNA_PACKAGES;
 }
 function candidateDirectories(root, markers) {
@@ -260761,7 +260894,7 @@ function candidateDirectories(root, markers) {
     if (depth > MAX_DEPTH) return;
     let entries;
     try {
-      entries = (0, import_node_fs13.readdirSync)(directory, { withFileTypes: true });
+      entries = (0, import_node_fs14.readdirSync)(directory, { withFileTypes: true });
     } catch {
       return;
     }
@@ -260794,22 +260927,22 @@ function matchPatterns(directories, patterns) {
 function packageName(root, path2) {
   for (const file of ["package.json", "project.json"]) {
     const document = readJson((0, import_node_path14.join)(root, path2, file));
-    if (isRecord4(document) && typeof document.name === "string") {
+    if (isRecord5(document) && typeof document.name === "string") {
       return document.name;
     }
   }
   return void 0;
 }
 function packageManagerTool(root, manifest) {
-  const declared = isRecord4(manifest) && typeof manifest.packageManager === "string" ? manifest.packageManager.split("@")[0] : void 0;
+  const declared = isRecord5(manifest) && typeof manifest.packageManager === "string" ? manifest.packageManager.split("@")[0] : void 0;
   if (declared === "pnpm" || declared === "yarn") return declared;
-  if ((0, import_node_fs13.existsSync)((0, import_node_path14.join)(root, "pnpm-lock.yaml"))) return "pnpm";
-  if ((0, import_node_fs13.existsSync)((0, import_node_path14.join)(root, "yarn.lock"))) return "yarn";
+  if ((0, import_node_fs14.existsSync)((0, import_node_path14.join)(root, "pnpm-lock.yaml"))) return "pnpm";
+  if ((0, import_node_fs14.existsSync)((0, import_node_path14.join)(root, "yarn.lock"))) return "yarn";
   return "npm";
 }
 function detectWorkspaces(root) {
   const manifest = readJson((0, import_node_path14.join)(root, "package.json"));
-  const isNx = (0, import_node_fs13.existsSync)((0, import_node_path14.join)(root, "nx.json"));
+  const isNx = (0, import_node_fs14.existsSync)((0, import_node_path14.join)(root, "nx.json"));
   const pnpm = pnpmPatterns(root);
   const lerna = lernaPatterns(root);
   const patterns = [
@@ -260829,7 +260962,7 @@ function detectWorkspaces(root) {
     return null;
   }
   if (paths.length === 0) return null;
-  const tool = isNx ? "nx" : (0, import_node_fs13.existsSync)((0, import_node_path14.join)(root, "turbo.json")) ? "turbo" : lerna ? "lerna" : pnpm.length > 0 ? "pnpm" : packageManagerTool(root, manifest);
+  const tool = isNx ? "nx" : (0, import_node_fs14.existsSync)((0, import_node_path14.join)(root, "turbo.json")) ? "turbo" : lerna ? "lerna" : pnpm.length > 0 ? "pnpm" : packageManagerTool(root, manifest);
   return {
     tool,
     packages: paths.map((path2) => {
@@ -260840,7 +260973,7 @@ function detectWorkspaces(root) {
 }
 
 // src/core/github-pr.ts
-var import_node_fs14 = require("fs");
+var import_node_fs15 = require("fs");
 
 // src/reporters/pr-comment.ts
 var import_node_path15 = require("path");
@@ -260855,6 +260988,11 @@ function previousScore(body) {
 function escapeCell(value) {
   return value.replaceAll("|", "\\|").replace(/\r?\n/g, " ");
 }
+function baseChange(comparison) {
+  const delta = comparison.scoreDelta;
+  const arrow = delta > 0 ? "\u25B2" : delta < 0 ? "\u25BC" : "=";
+  return `${arrow} ${formatDelta(delta)} vs. the base branch (${comparison.previousScore}) \xB7 ${comparison.newFindings} new \xB7 ${comparison.fixedFindings} fixed`;
+}
 function scoreChange(score, previous) {
   if (previous === void 0) return "";
   const delta = Math.round((score - previous) * 10) / 10;
@@ -260863,13 +261001,14 @@ function scoreChange(score, previous) {
 }
 function findingRow({ issue, path: path2 }) {
   const location = issue.line ? `${path2}:${issue.line}` : path2;
-  return `| ${SEVERITY_ICONS[issue.severity]} | [\`${issue.rule}\`](${ruleDocsUrl(issue.rule)}) | \`${escapeCell(location)}\` | ${escapeCell(issue.message)} |`;
+  const badge = issue.isNew ? "**new** \xB7 " : "";
+  return `| ${SEVERITY_ICONS[issue.severity]} | [\`${issue.rule}\`](${ruleDocsUrl(issue.rule)}) | \`${escapeCell(location)}\` | ${badge}${escapeCell(issue.message)} |`;
 }
 function renderPrComment(input) {
   const { result, threshold, changedFiles: changedFiles2, projectDirectory } = input;
   const passed = !isBelowThreshold(result.totalScore, threshold);
   const status = [
-    scoreChange(result.totalScore, input.previousScore),
+    result.comparison ? baseChange(result.comparison) : scoreChange(result.totalScore, input.previousScore),
     `threshold ${threshold}`
   ].filter(Boolean);
   const lines = [
@@ -260937,7 +261076,7 @@ var MAX_PAGES = 30;
 function pullRequestContext(env2, token) {
   if (!PULL_REQUEST_EVENTS.has(env2.GITHUB_EVENT_NAME ?? "")) return null;
   if (!env2.GITHUB_EVENT_PATH || !env2.GITHUB_REPOSITORY) return null;
-  const event = JSON.parse((0, import_node_fs14.readFileSync)(env2.GITHUB_EVENT_PATH, "utf8"));
+  const event = JSON.parse((0, import_node_fs15.readFileSync)(env2.GITHUB_EVENT_PATH, "utf8"));
   const number = event.pull_request?.number;
   if (typeof number !== "number") return null;
   return {
@@ -261202,7 +261341,7 @@ function markdownEscape(value) {
 function writeOutput(name, value) {
   const outputFile = process.env.GITHUB_OUTPUT;
   if (outputFile) {
-    (0, import_node_fs15.appendFileSync)(outputFile, `${name}=${value}
+    (0, import_node_fs16.appendFileSync)(outputFile, `${name}=${value}
 `, "utf8");
   }
 }
@@ -261240,6 +261379,13 @@ function renderSummary(result, threshold) {
     );
   }
   lines.push("", `Required threshold: **${threshold}/100**`);
+  if (result.comparison) {
+    const { previousScore: previousScore2, scoreDelta, newFindings, fixedFindings } = result.comparison;
+    lines.push(
+      "",
+      `Compared with the base report: ${previousScore2} \u2192 ${result.totalScore} (${formatDelta(scoreDelta)}), ${newFindings} new, ${fixedFindings} fixed.`
+    );
+  }
   const inactive = inactiveCounts(result.analyzers);
   if (inactive.suppressed > 0 || inactive.baseline > 0) {
     lines.push(
@@ -261349,19 +261495,22 @@ async function runAction() {
         "workspaces is true, but no workspace packages were found (package.json workspaces, pnpm-workspace.yaml, lerna.json, or nx.json)."
       );
     }
-    const result = workspaces ? await scanWorkspace(projectPath, config, workspaces, { baseline }) : await scan(projectPath, config, { baseline });
-    (0, import_node_fs15.mkdirSync)((0, import_node_path17.dirname)(reportPath), { recursive: true });
-    (0, import_node_fs15.writeFileSync)(reportPath, `${JSON.stringify(result, null, 2)}
+    const compareInput = validatePathInput("compare", getInput("compare", ""));
+    const previous = compareInput ? loadReport(resolveWorkspacePath(workspace, compareInput)) : void 0;
+    const scanned = workspaces ? await scanWorkspace(projectPath, config, workspaces, { baseline }) : await scan(projectPath, config, { baseline });
+    const result = previous ? compareWithPrevious(scanned, previous) : scanned;
+    (0, import_node_fs16.mkdirSync)((0, import_node_path17.dirname)(reportPath), { recursive: true });
+    (0, import_node_fs16.writeFileSync)(reportPath, `${JSON.stringify(result, null, 2)}
 `, "utf8");
-    (0, import_node_fs15.mkdirSync)((0, import_node_path17.dirname)(sarifPath), { recursive: true });
-    (0, import_node_fs15.writeFileSync)(sarifPath, renderSarif(result), "utf8");
+    (0, import_node_fs16.mkdirSync)((0, import_node_path17.dirname)(sarifPath), { recursive: true });
+    (0, import_node_fs16.writeFileSync)(sarifPath, renderSarif(result), "utf8");
     writeOutput("score", String(result.totalScore));
     writeOutput("grade", result.grade);
     writeOutput("report", reportPath);
     writeOutput("sarif", sarifPath);
     emitAnnotations(result);
     if (process.env.GITHUB_STEP_SUMMARY) {
-      (0, import_node_fs15.appendFileSync)(
+      (0, import_node_fs16.appendFileSync)(
         process.env.GITHUB_STEP_SUMMARY,
         renderSummary(result, threshold),
         "utf8"

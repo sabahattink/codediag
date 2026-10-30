@@ -2,6 +2,11 @@ import { appendFileSync, mkdirSync, writeFileSync } from "node:fs";
 import { dirname, isAbsolute, relative, resolve, sep } from "node:path";
 import { isBelowThreshold, loadConfig, parseThreshold } from "./config.js";
 import { loadBaseline } from "./core/baseline.js";
+import {
+  compareWithPrevious,
+  formatDelta,
+  loadReport,
+} from "./core/compare.js";
 import { scanWorkspace } from "./core/workspace-scan.js";
 import { detectWorkspaces } from "./core/workspaces.js";
 import {
@@ -87,6 +92,14 @@ function renderSummary(result: ScanResult, threshold: number): string {
   }
 
   lines.push("", `Required threshold: **${threshold}/100**`);
+  if (result.comparison) {
+    const { previousScore, scoreDelta, newFindings, fixedFindings } =
+      result.comparison;
+    lines.push(
+      "",
+      `Compared with the base report: ${previousScore} → ${result.totalScore} (${formatDelta(scoreDelta)}), ${newFindings} new, ${fixedFindings} fixed.`,
+    );
+  }
   const inactive = inactiveCounts(result.analyzers);
   if (inactive.suppressed > 0 || inactive.baseline > 0) {
     lines.push(
@@ -227,9 +240,14 @@ export async function runAction(): Promise<void> {
         "workspaces is true, but no workspace packages were found (package.json workspaces, pnpm-workspace.yaml, lerna.json, or nx.json).",
       );
     }
-    const result = workspaces
+    const compareInput = validatePathInput("compare", getInput("compare", ""));
+    const previous = compareInput
+      ? loadReport(resolveWorkspacePath(workspace, compareInput))
+      : undefined;
+    const scanned = workspaces
       ? await scanWorkspace(projectPath, config, workspaces, { baseline })
       : await scan(projectPath, config, { baseline });
+    const result = previous ? compareWithPrevious(scanned, previous) : scanned;
 
     mkdirSync(dirname(reportPath), { recursive: true });
     writeFileSync(reportPath, `${JSON.stringify(result, null, 2)}\n`, "utf8");

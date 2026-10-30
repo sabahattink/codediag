@@ -45,6 +45,7 @@ third-party dependencies.
 | `report` | `codediag-report.json` | JSON report path relative to `GITHUB_WORKSPACE` |
 | `sarif` | `codediag-report.sarif` | SARIF 2.1.0 report path relative to `GITHUB_WORKSPACE` |
 | `baseline` | _(none)_ | Optional CodeDiag JSON report relative to `GITHUB_WORKSPACE`; its findings do not affect the score, threshold, or annotations. See [baselines](suppressions-and-baselines.md#baselines) |
+| `compare` | _(none)_ | Optional JSON report of the base branch relative to `GITHUB_WORKSPACE`; the comment and job summary show the score change against it and which findings are new or fixed. See [comparing with the base branch](#comparing-with-the-base-branch) |
 | `workspaces` | `false` | Scan every workspace package below `path` (npm, pnpm, Yarn, Lerna, Nx) and combine the reports; see [monorepos](../README.md#monorepos) |
 | `comment` | `false` | Post and update one pull request comment; see [pull request comments](#pull-request-comments) |
 | `github-token` | `${{ github.token }}` | Token for reading changed files and writing the comment |
@@ -121,7 +122,49 @@ The action exits with:
   written so later steps using `if: always()` can inspect them.
 - `2` when configuration, scanning, or report generation fails.
 
+### Comparing with the base branch
+
+By default the comment shows the change since the previous push. To compare
+with the base branch instead, give the Action a report of the base branch,
+for example one uploaded by the workflow that runs on `main`:
+
+```yaml
+# On pushes to main
+- uses: sabahattink/codediag@v0
+  with:
+    report: codediag-main.json
+- uses: actions/upload-artifact@v4
+  with:
+    name: codediag-main
+    path: codediag-main.json
+
+# On pull requests
+- uses: dawidd6/action-download-artifact@v6
+  with:
+    branch: main
+    name: codediag-main
+- uses: sabahattink/codediag@v0
+  with:
+    comment: true
+    compare: codediag-main.json
+```
+
+The comment then reads, for example, `▼ −3 vs. the base branch (81) · 1 new ·
+2 fixed`, and marks new findings in changed files as **new**. The job summary
+and the JSON report carry the same comparison.
+
 ## Monorepo example
+
+Scan every workspace package and combine the reports:
+
+```yaml
+- uses: sabahattink/codediag@v0
+  with:
+    workspaces: true
+    threshold: 80
+```
+
+Or scan one package with its own threshold and reports:
 
 ```yaml
 - uses: sabahattink/codediag@v0

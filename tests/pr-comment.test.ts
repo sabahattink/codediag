@@ -233,3 +233,37 @@ test("only pull request events have a pull request context", () => {
     rmSync(directory, { recursive: true, force: true });
   }
 });
+
+test("a comparison with the base branch replaces the change since the last run", () => {
+  const compared: ScanResult = {
+    ...result([{ ...XSS, isNew: true }, REDIRECT], 78),
+    comparison: {
+      previousTimestamp: "2026-10-03T00:00:00.000Z",
+      previousScore: 81,
+      previousGrade: "B",
+      scoreDelta: -3,
+      analyzers: [],
+      newFindings: 1,
+      fixedFindings: 2,
+      fixed: [],
+    },
+  };
+  const body = renderPrComment({
+    result: compared,
+    threshold: 70,
+    previousScore: 90,
+    changedFiles: new Set(["src/app.ts", "src/login.ts"]),
+    projectDirectory: "",
+  });
+
+  assert.match(
+    body,
+    /▼ −3 vs\. the base branch \(81\) · 1 new · 2 fixed · threshold 70/,
+  );
+  assert.doesNotMatch(body, /since the last run/);
+  assert.match(
+    body,
+    /\| `src\/app\.ts:12` \| \*\*new\*\* · Request data is written/,
+  );
+  assert.match(body, /\| `src\/login\.ts:4` \| A redirect target/);
+});

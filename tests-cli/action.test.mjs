@@ -384,3 +384,54 @@ test("GitHub Action combines workspace packages with workspaces: true", async ()
     await rm(workspace, { recursive: true, force: true });
   }
 });
+
+test("GitHub Action compares with a base branch report", async () => {
+  const temporaryDirectory = await mkdtemp(join(tmpdir(), "codediag-action-"));
+  const outputFile = join(temporaryDirectory, "output.txt");
+  const summaryFile = join(temporaryDirectory, "summary.md");
+  const reportFile = join(temporaryDirectory, "report.json");
+  const baseFile = join(temporaryDirectory, "base.json");
+
+  try {
+    const env = {
+      ...process.env,
+      GITHUB_WORKSPACE: repositoryRoot,
+      GITHUB_OUTPUT: outputFile,
+      GITHUB_STEP_SUMMARY: summaryFile,
+      INPUT_PATH: ".",
+      INPUT_THRESHOLD: "0",
+      INPUT_REPORT: reportFile,
+      INPUT_SARIF: join(temporaryDirectory, "report.sarif"),
+    };
+    const base = spawnSync(process.execPath, [actionEntry], {
+      cwd: repositoryRoot,
+      encoding: "utf8",
+      env,
+    });
+    assert.equal(base.status, 0, base.stderr || base.stdout);
+    const baseReport = JSON.parse(await readFile(reportFile, "utf8"));
+    baseReport.totalScore = Math.max(0, baseReport.totalScore - 5);
+    await writeFile(baseFile, JSON.stringify(baseReport));
+    await writeFile(summaryFile, "");
+
+    const compared = spawnSync(process.execPath, [actionEntry], {
+      cwd: repositoryRoot,
+      encoding: "utf8",
+      env: { ...env, INPUT_COMPARE: baseFile },
+    });
+    assert.equal(compared.status, 0, compared.stderr || compared.stdout);
+    const report = JSON.parse(await readFile(reportFile, "utf8"));
+    assert.equal(report.comparison.newFindings, 0);
+    assert.equal(
+      report.comparison.scoreDelta,
+      report.totalScore - baseReport.totalScore,
+    );
+    const summary = await readFile(summaryFile, "utf8");
+    assert.match(
+      summary,
+      /Compared with the base report: \d+ → \d+ \(\+\d+(?:\.\d)?\), 0 new, 0 fixed\./,
+    );
+  } finally {
+    await rm(temporaryDirectory, { recursive: true, force: true });
+  }
+});

@@ -26,6 +26,13 @@ inputs:
       score, threshold, or annotations.
     required: false
     default: ""
+  compare:
+    description: >-
+      Optional CodeDiag JSON report of the base branch, relative to the
+      repository workspace. The pull request comment and job summary then
+      show the score change against it and which findings are new or fixed.
+    required: false
+    default: ""
   workspaces:
     description: >-
       Scan every workspace package (npm, pnpm, Yarn, Lerna, or Nx) below
