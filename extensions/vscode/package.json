@@ -1,8 +1,8 @@
 {
   "name": "codediag-vscode",
   "displayName": "CodeDiag",
-  "description": "Project health diagnostics for Node.js, NestJS, Express, and Next.js workspaces.",
-  "version": "0.4.0",
+  "description": "Project health diagnostics for Node.js, NestJS, Express, Fastify, Hono, and Next.js workspaces.",
+  "version": "0.5.0",
   "publisher": "sabahattink",
   "license": "MIT",
   "engines": {

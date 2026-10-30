@@ -262385,7 +262385,7 @@ var import_node_path16 = require("path");
 var import_node_url = require("url");
 
 // package.json
-var version = "0.6.0";
+var version = "0.7.0";
 
 // src/version.ts
 function getPackageVersion() {

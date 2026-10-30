@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.5.0
 
 - Scan monorepo roots package by package and combine the results
   (`codediag.scanWorkspacePackages`, on by default).

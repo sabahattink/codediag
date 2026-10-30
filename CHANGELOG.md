@@ -2,10 +2,26 @@
 
 All notable changes to CodeDiag are documented in this file.
 
-## [Unreleased]
+## [0.7.0] - 2026-10-30
+
+The "Across" release: request data is followed through helper functions and
+services, whole monorepos are scanned as one report, Hono joins the API
+analyzers, scores are tracked over time, and pull request comments measure
+against the base branch.
 
 ### Added
 
+- Cross-file taint: when a sink's value comes from a parameter of a project
+  function (named, default, renamed, namespace, or `require()` imports,
+  object and class methods, and NestJS services called as
+  `this.service.method(dto.x)`), the function's call sites are checked, and
+  a caller that passes request data makes the sink request-controlled. A
+  function whose returned value is request data makes its result request data
+  at the call site. Traces cross at most two function boundaries, findings
+  stay at the sink line with unchanged messages and fingerprints, get
+  `confidence: "medium"`, and name the calling line in the fix. URL and HTML
+  sinks judge each caller's whole argument, so fixed origins and JSON
+  responses stay unreported.
 - `--workspaces` scans every package of an npm, pnpm, or Yarn workspace, a
   Lerna repository, or an Nx workspace (Turborepo is reported as the tool when
   it orchestrates the workspaces). Each package is scanned with its own stack
@@ -48,9 +64,19 @@ All notable changes to CodeDiag are documented in this file.
 - The weighted total moved to `weightedTotal()` in `src/core/scoring.ts`, and
   `calculateGrade()` is exported from the scanner.
 - `audit` in `.codediag.yml` accepts `true`, `false`, or `production`.
+- All runtime files are parsed before security sinks are inspected, so the
+  type checker's program is built once; CodeDiag's own scan got faster
+  despite the cross-file pass.
+- `dynamic-command-execution`, `dynamic-sql-query`, and `path-traversal`
+  descriptions mention values passed in by callers.
 
 ### Known limitations
 
+- Cross-file taint does not follow constructors, callbacks such as
+  `items.map(helper)`, `.call`/`.apply`/`.bind`, rest or spread arguments,
+  data stored on objects or in module state, or methods reached through an
+  interface or a dependency injection token; a `startsWith()` path check in
+  the caller does not clear a finding in the helper.
 - Hono: `clerkMiddleware()` alone counts as auth, path-less
   `app.use(mw).get(...)` chains are not followed, route paths must be
   literals, and Hono routes inside a Next.js catch-all are left to the Next.js
