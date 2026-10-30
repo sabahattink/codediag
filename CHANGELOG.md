@@ -6,6 +6,35 @@ All notable changes to CodeDiag are documented in this file.
 
 ### Added
 
+- tRPC API Health analysis: procedures from `initTRPC` instances are
+  followed through `.use()`/`.input()` builder chains, exported and
+  destructured builders (`publicProcedure`, `protectedProcedure`, T3's
+  `createTRPCRouter`), nested, record, and merged routers, and imports across
+  files, including tsconfig `paths` such as `~/`. New warnings:
+  `missing-trpc-auth-middleware` (mutations whose middleware never rejects
+  anonymous callers; a `protectedProcedure` is judged by its middleware, not
+  its name), `unvalidated-trpc-input` (`z.any()`, `z.unknown()`,
+  `z.custom()`, Valibot `any`/`unknown`, or `(v) => v as T` parsers), and
+  `trpc-stack-trace-exposed` (`isDev: true`, or an `errorFormatter` that
+  returns `error.stack` unconditionally). The checks join the API Health
+  result of the server that runs tRPC (Next.js, Express, Fastify, Hono,
+  NestJS); a server whose only endpoints are tRPC procedures, such as a T3
+  App Router project, is no longer reported as having none, and a standalone
+  tRPC server is detected as `trpc`.
+- tRPC procedure input (`({ input })`, `opts.input`) is request data for the
+  security sink rules, even after `.input(schema)` validation, and is
+  followed into helpers and services two calls deep.
+- `secret-in-git-history` (critical, opt-in): credentials that commits on
+  the checked-out branch added and the current tree no longer has, which
+  every clone still contains. Turn it on with `secretHistory: true` (the last
+  1000 commits) or a commit count in `.codediag.yml`, `--secret-history
+  [commits]`, or the Action's `secret-history` input (with `actions/checkout`
+  `fetch-depth: 0`). Added lines are checked with the same detectors as the
+  current tree; secrets are compared by digest in memory and never stored or
+  printed, and fingerprints are based on the commit, not the secret. The
+  Security summary says how much history was read and flags shallow clones,
+  and `secret-history-incomplete` (info) notes a scan cut short by its 64 MiB
+  or 60-second limit.
 - Fastify projects that load plugins with `@fastify/autoload` (the layout
   `fastify-cli` generates) are analyzed as they run: autoloaded plugins share
   the context that registers autoload, directory names become route
@@ -28,6 +57,19 @@ All notable changes to CodeDiag are documented in this file.
   fail the scan on any active finding at or above `critical`, `warning`, or
   `info`, whatever the score. Suppressed and baseline findings do not count,
   and with `--changed-since` only the changed files do.
+- VS Code extension 0.6.0: remediation quick fixes, offered as the preferred
+  fix where a rule has one mechanical fix on the flagged line: enable TLS
+  certificate verification, verify JWT expiration, and remove `"none"` from a
+  JWT `algorithms` list.
+
+### Known limitations
+
+- tRPC: auth applied outside the procedure (at the adapter mount, in a
+  Next.js `middleware.ts`, or by a throwing `createContext`) is not seen,
+  intentionally public mutations are reported like any other, and tRPC v9
+  routers are not supported.
+- Git history secrets: only the checked-out branch is read, merge commits are
+  skipped, and a history rewrite that keeps a secret changes its fingerprint.
 
 ### Fixed
 

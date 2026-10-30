@@ -51,7 +51,7 @@ codediag auto-detects your stack and runs 5 analyzers. Every finding has a
 stable rule ID ([rule reference](docs/rules.md)), a severity, a location when
 one exists, and a suggested fix.
 
-### API Health `NestJS · Express · Fastify · Hono · Next.js`
+### API Health `NestJS · Express · Fastify · Hono · Next.js · tRPC`
 
 AST analysis (ts-morph, not regex) of the routes your app actually exposes.
 
@@ -77,6 +77,14 @@ AST analysis (ts-morph, not regex) of the routes your app actually exposes.
   validators; `onError`; and health endpoints.
 - **Next.js:** App Router and Pages Router API handlers, without penalizing
   frontend-only projects.
+- **tRPC:** procedures resolved from `initTRPC` through builder chains,
+  exported builders such as `protectedProcedure`, and nested or merged
+  routers across files (including `~/` path aliases); mutations without auth
+  middleware (judged by what the middleware checks, not its name), `.input()`
+  parsers that accept anything, and error formatters or `isDev: true` that
+  expose stack traces. The checks run inside whichever server hosts tRPC
+  (T3/Next.js, Express, Fastify), and a standalone tRPC server is its own
+  stack.
 
 ### Security
 
@@ -87,14 +95,19 @@ verification) are found in the AST, and request data is traced through
 variables, destructuring, reassignments, and up to two calls into your own
 helper functions and services, so `const cmd = req.query.cmd; exec(cmd)` is
 critical, and so is `run(req.query.cmd)` when `run` calls `exec` in another
-file. Request data that reaches a file path, an outgoing
+file. tRPC procedure `input` is request data too, even after
+`.input(schema)` validates it. Request data that reaches a file path, an outgoing
 request's host, a redirect, or an HTML response is reported as path
 traversal, SSRF, an open redirect, or reflected XSS; request data compiled as
 a template or used as an object path is template injection or prototype
 pollution. JWT options that accept `none` or ignore expiration, and session
 cookies without `httpOnly`/`secure`, are flagged too. Secrets are also looked
 for in JSON, YAML, Dockerfiles, `.npmrc`, and `.env` files that Git tracks,
-and no report ever contains the value. See
+and no report ever contains the value. With `--secret-history` (or
+`secretHistory` in `.codediag.yml`), the lines recent commits added are also
+searched for credentials that were committed and later deleted, which every
+clone still contains (`secret-in-git-history`); it is off by default because
+results depend on clone depth. See
 [Security analysis](docs/security-analysis.md).
 
 ### Dependencies
@@ -169,6 +182,7 @@ codediag scan . --compare previous.json   # Score change, new and fixed findings
 codediag scan . --changed-since origin/main  # Only files this branch changes
 codediag scan . --workspaces              # Every monorepo package, combined
 codediag scan . --history .codediag/history  # Record scans, show the trend
+codediag scan . --secret-history         # Also secrets removed but still in Git history
 codediag rules                     # List every rule
 codediag explain open-cors         # Explain a rule and how to suppress it
 codediag init                      # Create .codediag.yml
@@ -386,6 +400,7 @@ scoring:
 rules:
   missing-swagger: off   # or info, warning, critical
 audit: true              # false skips the network audit; production skips devDependencies
+secretHistory: false     # true searches the last 1000 commits for removed secrets, or give a number
 analyzers:
   api: true
   security: true
@@ -424,6 +439,7 @@ skipped and reported in the JSON `skipped` summary.
 | Express | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Fastify | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Hono | ✅ | ✅ | ✅ | ✅ | ✅ |
+| tRPC | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Node.js | — | ✅ | ✅ | ✅ | ✅ |
 
 ## Where CodeDiag fits
@@ -463,8 +479,11 @@ results in GitHub Code Scanning.
   `--workspaces` for monorepos (CLI, Action, and VS Code); Hono analysis;
   `--history` score trends; base-branch deltas in pull request comments;
   audit advisory details and `audit: production`.
+- **0.8 "Depth":** tRPC procedures; `@fastify/autoload` projects; secrets
+  removed from the tree but kept in Git history; per-package thresholds and
+  `--fail-on` gates; remediation quick fixes in VS Code.
 - **Next:** see [docs/roadmap.md](docs/roadmap.md) for planned framework
-  support, deeper taint, Git history secrets, and editor improvements.
+  support, editor improvements, and faster monorepo scans.
 
 ## Contributing
 
