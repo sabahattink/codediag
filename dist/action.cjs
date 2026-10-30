@@ -259889,7 +259889,9 @@ function traceTaint(node, hops, seen, calls) {
   const identifiers = import_ts_morph9.Node.isIdentifier(node) ? [node] : node.getDescendantsOfKind(import_ts_morph9.SyntaxKind.Identifier);
   for (const identifier of identifiers) {
     if (isPropertyName(identifier)) continue;
-    if (isProcedureInput(identifier)) return true;
+    if (isProcedureInput(identifier) || requestDecorator(identifier)) {
+      return true;
+    }
     for (const source of valueSources(identifier)) {
       if (seen.has(source)) continue;
       seen.add(source);
@@ -259958,11 +259960,12 @@ var SERVER_SET_REQUEST_DATA = /\b(?:req(?:uest)?|ctx)\s*\.\s*(?:app|auth|file|fi
 var REQUEST_OBJECT = /^(?:req|request|ctx)$/;
 var RESPONSE_OBJECT = /^(?:res|response|reply)$/;
 var REQUEST_DECORATORS = /* @__PURE__ */ new Set(["Body", "Headers", "Param", "Query"]);
+var PARSING_PIPE = /\bParse(?:Int|Float|Bool|UUID|Enum)Pipe\b/;
 function requestDecorator(identifier) {
   for (const declaration of identifier.getSymbol()?.getDeclarations() ?? []) {
     if (!import_ts_morph9.Node.isParameterDeclaration(declaration)) continue;
     const decorator = declaration.getDecorators().find((candidate) => REQUEST_DECORATORS.has(candidate.getName()));
-    if (decorator) return decorator;
+    if (decorator && !PARSING_PIPE.test(decorator.getText())) return decorator;
   }
   return void 0;
 }

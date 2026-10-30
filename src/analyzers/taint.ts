@@ -375,7 +375,9 @@ function traceTaint(
     : node.getDescendantsOfKind(SyntaxKind.Identifier);
   for (const identifier of identifiers) {
     if (isPropertyName(identifier)) continue;
-    if (isProcedureInput(identifier)) return true;
+    if (isProcedureInput(identifier) || requestDecorator(identifier)) {
+      return true;
+    }
     for (const source of valueSources(identifier)) {
       if (seen.has(source)) continue;
       seen.add(source);
@@ -468,10 +470,14 @@ export const REQUEST_OBJECT = /^(?:req|request|ctx)$/;
 export const RESPONSE_OBJECT = /^(?:res|response|reply)$/;
 /** NestJS parameter decorators that inject request data. */
 const REQUEST_DECORATORS = new Set(["Body", "Headers", "Param", "Query"]);
+/** Pipes that turn a parameter into a number, boolean, UUID, or enum member. */
+const PARSING_PIPE = /\bParse(?:Int|Float|Bool|UUID|Enum)Pipe\b/;
 
 /**
  * The NestJS decorator that injects a parameter from the request:
- * `@Query("q") q` (one field) or `@Body() dto` (the parsed object).
+ * `@Query("q") q` (one field) or `@Body() dto` (the parsed object). A
+ * parsing pipe such as `@Param("id", ParseIntPipe)` leaves no text an
+ * attacker controls, so that parameter is not request data.
  */
 export function requestDecorator(identifier: Node): Decorator | undefined {
   for (const declaration of identifier.getSymbol()?.getDeclarations() ?? []) {
@@ -479,7 +485,7 @@ export function requestDecorator(identifier: Node): Decorator | undefined {
     const decorator = declaration
       .getDecorators()
       .find((candidate) => REQUEST_DECORATORS.has(candidate.getName()));
-    if (decorator) return decorator;
+    if (decorator && !PARSING_PIPE.test(decorator.getText())) return decorator;
   }
   return undefined;
 }

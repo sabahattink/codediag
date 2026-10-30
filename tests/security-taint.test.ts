@@ -178,3 +178,33 @@ test("tRPC context values and input outside a resolver are not request data", as
     [{ rule: "dynamic-command-execution", severity: "warning", line: 5 }],
   );
 });
+
+test("NestJS request decorators taint shell commands and SQL, parsing pipes do not", async () => {
+  assert.deepEqual(
+    await sinks(
+      [
+        'import { exec } from "node:child_process";',
+        "export class ReportsController {",
+        '  @Get(":name") run(@Param("name") name: string) {',
+        "    exec(`report ${name}`);",
+        "  }",
+        "  @Post() export(@Body() dto: ExportDto) {",
+        "    return this.db.query(`SELECT * FROM t WHERE c = '${dto.column}'`);",
+        "  }",
+        '  @Get(":id") find(@Param("id", ParseIntPipe) id: number) {',
+        "    return this.db.query(`SELECT * FROM t WHERE id = ${id}`);",
+        "  }",
+        '  @Get() list(@Query("limit", new ParseIntPipe()) limit: number) {',
+        "    exec(`list --limit ${limit}`);",
+        "  }",
+        "}",
+      ].join("\n"),
+    ),
+    [
+      { rule: "dynamic-command-execution", severity: "critical", line: 4 },
+      { rule: "dynamic-sql-query", severity: "critical", line: 7 },
+      { rule: "dynamic-sql-query", severity: "warning", line: 10 },
+      { rule: "dynamic-command-execution", severity: "warning", line: 13 },
+    ],
+  );
+});
