@@ -6,6 +6,7 @@ import {
 } from "ts-morph";
 import {
   definition,
+  importSource,
   isFunctionLike,
   literalText,
   methodName,
@@ -16,7 +17,11 @@ import {
   receiverOf,
   unwrap,
 } from "./fastify-plugins.js";
-import { AUTH_NAMES, throwsAuthError } from "./trpc-syntax.js";
+import {
+  AUTH_NAMES,
+  SVELTEKIT_ADAPTER,
+  throwsAuthError,
+} from "./trpc-syntax.js";
 
 /**
  * Authentication in front of every tRPC procedure rather than in their
@@ -96,6 +101,19 @@ function rejectingFunction(
   return undefined;
 }
 
+/** `createTRPCHandle({ router, createContext })` from trpc-sveltekit. */
+function isSvelteKitAdapter(call: CallExpression): boolean {
+  const callee = call.getExpression();
+  const declaration = Node.isIdentifier(callee)
+    ? callee.getSymbol()?.getDeclarations()[0]
+    : undefined;
+  const source = declaration ? importSource(declaration) : null;
+  return (
+    source?.specifier === SVELTEKIT_ADAPTER.specifier &&
+    source.name === SVELTEKIT_ADAPTER.name
+  );
+}
+
 /** Calls to tRPC adapters and the options object each receives. */
 function adapterCalls(
   index: ModuleIndex,
@@ -108,7 +126,7 @@ function adapterCalls(
   }> = [];
   for (const { file, sourceFile } of sources) {
     if (
-      !/@trpc\/server\/adapters\/|@hono\/trpc-server/.test(
+      !/@trpc\/server\/adapters\/|@hono\/trpc-server|trpc-sveltekit/.test(
         sourceFile.getFullText(),
       )
     ) {
@@ -118,7 +136,10 @@ function adapterCalls(
       SyntaxKind.CallExpression,
     )) {
       const [first, second] = call.getArguments();
-      if (ADAPTER_MODULE.test(moduleOf(call.getExpression()) ?? "")) {
+      if (
+        ADAPTER_MODULE.test(moduleOf(call.getExpression()) ?? "") ||
+        isSvelteKitAdapter(call)
+      ) {
         calls.push({ call, file, options: first });
       } else if (
         // fastify.register(fastifyTRPCPlugin, { trpcOptions: { createContext } })
