@@ -40,6 +40,7 @@ for (const [name, framework] of [
   ["realistic/fastify-autoload", "fastify"],
   ["realistic/hono", "hono"],
   ["realistic/nextjs", "nextjs"],
+  ["realistic/sveltekit", "sveltekit"],
   // A T3 app: tRPC procedures served by a Next.js route handler.
   ["realistic/trpc", "nextjs"],
 ] as const) {
@@ -352,6 +353,65 @@ test("defects/hono keeps its middleware order, validator, and error handler find
         line: undefined,
         message: "No health, readiness, or liveness endpoint detected",
         confidence: undefined,
+      },
+    ],
+  );
+});
+
+test("defects/sveltekit keeps its auth, validation, and CSRF findings", async () => {
+  const result = await scanFixture("defects/sveltekit");
+  const api = result.analyzers.find(
+    (analyzer) => analyzer.name === "API Health",
+  );
+
+  assert.equal(result.stack.framework, "sveltekit");
+  assert.deepEqual(
+    api?.issues.map(({ rule, severity, file, line, message }) => ({
+      rule,
+      severity,
+      location: file && `${file}:${line}`,
+      message,
+    })),
+    [
+      {
+        rule: "missing-sveltekit-auth",
+        severity: "warning",
+        location: "src/routes/admin/users/+page.server.ts:7",
+        message:
+          "Form action ?/delete on /admin/users has no recognizable auth check; the auth check in src/routes/admin/+layout.server.ts load does not run for form actions",
+      },
+      {
+        rule: "missing-sveltekit-auth",
+        severity: "warning",
+        location: "src/routes/api/admin/users/[id]/+server.ts:4",
+        message: "DELETE /api/admin/users/[id] has no recognizable auth check",
+      },
+      {
+        rule: "missing-sveltekit-validation",
+        severity: "warning",
+        location: "src/routes/admin/users/+page.server.ts:7",
+        message:
+          "Form action ?/delete on /admin/users reads the request body without schema validation",
+      },
+      {
+        rule: "missing-sveltekit-validation",
+        severity: "warning",
+        location: "src/routes/api/posts/+server.ts:8",
+        message:
+          "POST /api/posts reads the request body without schema validation",
+      },
+      {
+        rule: "sveltekit-csrf-disabled",
+        severity: "warning",
+        location: "svelte.config.js:8",
+        message:
+          "kit.csrf.checkOrigin is false, so cross-site form submissions from any origin are accepted",
+      },
+      {
+        rule: "missing-health-endpoint",
+        severity: "info",
+        location: undefined,
+        message: "No health, readiness, or liveness endpoint detected",
       },
     ],
   );
