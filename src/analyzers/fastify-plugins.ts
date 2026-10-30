@@ -10,6 +10,7 @@ import {
   type SourceFile,
   SyntaxKind,
 } from "ts-morph";
+import type { ScanContext } from "../core/scan-context.js";
 
 /**
  * Resolves Fastify instances and plugin encapsulation contexts across a
@@ -44,6 +45,8 @@ export type FunctionLike =
   | ArrowFunction
   | FunctionDeclaration
   | FunctionExpression;
+
+type Sources = ReadonlyArray<{ file: string; sourceFile: SourceFile }>;
 
 export interface Instance {
   /** The encapsulation context: a root instance or a plugin function. */
@@ -591,4 +594,38 @@ export function createProjectIndex(
     }
   }
   return index;
+}
+
+/** The project's non-test source files, skipping ones that fail to parse. */
+export function runtimeSources(context: ScanContext): Sources {
+  const sources: Array<{ file: string; sourceFile: SourceFile }> = [];
+  for (const file of context.matchFiles("**/*.{ts,tsx,js,mjs,cjs}", {
+    exclude: [
+      "**/*.test.{ts,tsx,js,mjs,cjs}",
+      "**/*.spec.{ts,tsx,js,mjs,cjs}",
+      "**/__tests__/**",
+    ],
+  })) {
+    // A malformed source file should not prevent analysis of the rest.
+    const sourceFile = context.getSourceFile(file);
+    if (sourceFile) sources.push({ file, sourceFile });
+  }
+  return sources;
+}
+
+/** An index of the sources that follows tsconfig `paths` aliases. */
+export function moduleIndex(
+  context: ScanContext,
+  sources: Sources,
+): ModuleIndex {
+  const typescript = context.typescriptConfig();
+  return {
+    paths: new Map(sources.map(({ file, sourceFile }) => [sourceFile, file])),
+    files: new Map(sources.map(({ file, sourceFile }) => [file, sourceFile])),
+    // T3 apps import their builders through `~/server/api/trpc`.
+    aliases:
+      typescript.status === "ok"
+        ? pathAliases(typescript.options, context.projectPath)
+        : [],
+  };
 }

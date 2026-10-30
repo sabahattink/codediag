@@ -45,6 +45,8 @@ const MIDDLEWARE_EXTENSIONS = [".ts", ".js", ".mjs"];
 const ENTRY_NAMES = ["middleware", "proxy", "default"];
 /** Bounds the variables, imports, and spreads followed while evaluating. */
 const MAX_DEPTH = 4;
+/** Bounds the helpers followed from `return helper(request)`. */
+const MAX_HELPER_CALLS = 2;
 
 type Callable = FunctionLike | MethodDeclaration;
 
@@ -352,64 +354,63 @@ function evaluate(
   return UNKNOWN;
 }
 
+/** The request being judged and how a function's returns are read. */
+interface Run {
+  index: ModuleIndex;
+  path: string;
+  mode: Mode;
+  /** Project functions entered through `return helper(request)`. */
+  calls: number;
+}
+
 /** What a `return` means in each mode. */
-function returned(
-  index: ModuleIndex,
-  node: Node | undefined,
-  path: string,
-  mode: Mode,
-): Verdict {
-  if (!node) return mode === "authorized" ? "rejected" : "allowed";
-  const text = unwrap(node).getText();
+function returned(run: Run, node: Node | undefined): Verdict {
+  if (!node) return run.mode === "authorized" ? "rejected" : "allowed";
+  const value = unwrap(node);
+  const text = value.getText();
   if (REJECTION.test(text)) return "rejected";
   if (NEXT_RESPONSE_NEXT.test(text)) return "allowed";
-  if (mode === "middleware") return "unknown";
+  if (run.mode === "middleware") {
+    // return updateSession(request): the project helper decides.
+    const helper = Node.isCallExpression(value)
+      ? functionValue(run.index, value.getExpression())
+      : undefined;
+    return helper && run.calls < MAX_HELPER_CALLS
+      ? verdict({ ...run, calls: run.calls + 1 }, helper)
+      : "unknown";
+  }
   // Anything but a Response leaves the decision to the custom function.
-  if (mode === "authorized-response") return "allowed";
-  const value = evaluate(index, node, path);
-  if (value === UNKNOWN) return "unknown";
-  return truthy(value) ? "allowed" : "rejected";
+  if (run.mode === "authorized-response") return "allowed";
+  const result = evaluate(run.index, node, run.path);
+  if (result === UNKNOWN) return "unknown";
+  return truthy(result) ? "allowed" : "rejected";
 }
 
 /** Runs statements in order; "next" means control reached their end. */
-function run(
-  index: ModuleIndex,
-  statements: Node[],
-  path: string,
-  mode: Mode,
-): Verdict | "next" {
+function block(run: Run, statements: Node[]): Verdict | "next" {
   for (const statement of statements) {
-    const outcome = step(index, statement, path, mode);
+    const outcome = step(run, statement);
     if (outcome !== "next") return outcome;
   }
   return "next";
 }
 
-function step(
-  index: ModuleIndex,
-  statement: Node,
-  path: string,
-  mode: Mode,
-): Verdict | "next" {
-  if (Node.isBlock(statement)) {
-    return run(index, statement.getStatements(), path, mode);
-  }
+function step(run: Run, statement: Node): Verdict | "next" {
+  if (Node.isBlock(statement)) return block(run, statement.getStatements());
   if (Node.isIfStatement(statement)) {
-    const condition = evaluate(index, statement.getExpression(), path);
+    const condition = evaluate(run.index, statement.getExpression(), run.path);
     const otherwise = statement.getElseStatement();
     if (condition === UNKNOWN) {
       // An undecided branch only matters when the two branches differ.
-      const then = step(index, statement.getThenStatement(), path, mode);
-      const other = otherwise ? step(index, otherwise, path, mode) : "next";
+      const then = step(run, statement.getThenStatement());
+      const other = otherwise ? step(run, otherwise) : "next";
       return then === other ? then : "unknown";
     }
-    if (truthy(condition)) {
-      return step(index, statement.getThenStatement(), path, mode);
-    }
-    return otherwise ? step(index, otherwise, path, mode) : "next";
+    if (truthy(condition)) return step(run, statement.getThenStatement());
+    return otherwise ? step(run, otherwise) : "next";
   }
   if (Node.isReturnStatement(statement)) {
-    return returned(index, statement.getExpression(), path, mode);
+    return returned(run, statement.getExpression());
   }
   if (Node.isThrowStatement(statement)) return "rejected";
   if (Node.isVariableStatement(statement) || Node.isEmptyStatement(statement)) {
@@ -426,20 +427,15 @@ function step(
   return "unknown";
 }
 
-function verdict(
-  index: ModuleIndex,
-  fn: Callable,
-  path: string,
-  mode: Mode,
-): Verdict {
+function verdict(run: Run, fn: Callable): Verdict {
   const body = fn.getBody();
   if (!body) return "unknown";
   const outcome = Node.isBlock(body)
-    ? run(index, body.getStatements(), path, mode)
-    : returned(index, body, path, mode);
+    ? block(run, body.getStatements())
+    : returned(run, body);
   if (outcome !== "next") return outcome;
   // An authorized callback that returns nothing is falsy.
-  return mode === "authorized" ? "rejected" : "allowed";
+  return run.mode === "authorized" ? "rejected" : "allowed";
 }
 
 /**
@@ -568,22 +564,25 @@ function entryVerdict(
   const entry = entryOf(index, exported);
   if (!entry) return "unknown";
   if (entry.kind === "function") {
-    return verdict(index, entry.fn, path, "middleware");
+    return verdict({ index, path, mode: "middleware", calls: 0 }, entry.fn);
   }
   if (!entry.config) return "unknown";
   const authorized = authorizedCallback(index, entry.config);
   if (authorized === null) return "unknown";
   if (entry.wrapped) {
     const response = authorized
-      ? verdict(index, authorized, path, "authorized-response")
+      ? verdict(
+          { index, path, mode: "authorized-response", calls: 0 },
+          authorized,
+        )
       : "allowed";
     return response === "rejected"
       ? "rejected"
-      : verdict(index, entry.wrapped, path, "middleware");
+      : verdict({ index, path, mode: "middleware", calls: 0 }, entry.wrapped);
   }
   // Without an authorized callback, Auth.js lets every request through.
   return authorized
-    ? verdict(index, authorized, path, "authorized")
+    ? verdict({ index, path, mode: "authorized", calls: 0 }, authorized)
     : "allowed";
 }
 

@@ -129,3 +129,123 @@ test("frontend-only Next.js projects do not receive an API score", async () => {
     rmSync(directory, { recursive: true, force: true });
   }
 });
+
+test("middleware protects the API routes it turns anonymous requests away from", async () => {
+  const routes: Record<string, string> = {
+    "src/app/api/posts/route.ts": [
+      'import { z } from "zod";',
+      "const schema = z.object({ title: z.string() });",
+      "export async function POST(request: Request) {",
+      "  const result = schema.safeParse(await request.json());",
+      "  return Response.json(result);",
+      "}",
+    ].join("\n"),
+    "src/app/api/admin/users/[id]/route.ts": [
+      "export async function DELETE() {",
+      "  return new Response(null, { status: 204 });",
+      "}",
+    ].join("\n"),
+    "src/app/api/health/route.ts":
+      'export const GET = () => Response.json({ status: "ok" });',
+  };
+  const unprotected = async (
+    middleware: string,
+    files: Record<string, string> = {},
+  ) => {
+    const directory = createNextProject();
+    try {
+      for (const [path, source] of Object.entries({
+        ...routes,
+        ...files,
+        "src/middleware.ts": middleware,
+      })) {
+        writeRoute(directory, path, source);
+      }
+      const result = await analyzeNextjsApi(createScanContext(directory));
+      return (result?.issues ?? [])
+        .filter((issue) => issue.rule === "missing-auth-check")
+        .map((issue) => issue.message);
+    } finally {
+      rmSync(directory, { recursive: true, force: true });
+    }
+  };
+  const POSTS = "POST /api/posts has no recognizable auth check";
+  const ADMIN = "DELETE /api/admin/users/:id has no recognizable auth check";
+
+  assert.deepEqual(
+    await unprotected(
+      [
+        'import { NextResponse, type NextRequest } from "next/server";',
+        "export function middleware(request: NextRequest) {",
+        '  const session = request.cookies.get("session")?.value;',
+        '  if (!session && request.nextUrl.pathname.startsWith("/api/admin")) {',
+        '    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });',
+        "  }",
+        "  return NextResponse.next();",
+        "}",
+      ].join("\n"),
+    ),
+    [POSTS],
+  );
+  assert.deepEqual(
+    await unprotected(
+      [
+        'import { NextResponse, type NextRequest } from "next/server";',
+        "export function middleware(request: NextRequest) {",
+        '  if (!request.cookies.get("session")) {',
+        '    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });',
+        "  }",
+        "  return NextResponse.next();",
+        "}",
+        'export const config = { matcher: ["/api/:path*"] };',
+      ].join("\n"),
+    ),
+    [],
+  );
+  // clerkMiddleware() alone keeps every route public.
+  assert.deepEqual(
+    await unprotected(
+      [
+        'import { clerkMiddleware } from "@clerk/nextjs/server";',
+        "export default clerkMiddleware();",
+      ].join("\n"),
+    ),
+    [ADMIN, POSTS],
+  );
+  // Supabase's updateSession() redirects anonymous requests outside /login.
+  assert.deepEqual(
+    await unprotected(
+      [
+        'import { type NextRequest } from "next/server";',
+        'import { updateSession } from "./lib/supabase/middleware";',
+        "export async function middleware(request: NextRequest) {",
+        "  return await updateSession(request);",
+        "}",
+      ].join("\n"),
+      {
+        "src/lib/supabase/middleware.ts": [
+          'import { createServerClient } from "@supabase/ssr";',
+          'import { NextResponse, type NextRequest } from "next/server";',
+          "export async function updateSession(request: NextRequest) {",
+          "  const supabaseResponse = NextResponse.next({ request });",
+          "  const supabase = createServerClient(url, key, { cookies });",
+          "  const {",
+          "    data: { user },",
+          "  } = await supabase.auth.getUser();",
+          "  if (",
+          "    !user &&",
+          '    !request.nextUrl.pathname.startsWith("/login") &&',
+          '    !request.nextUrl.pathname.startsWith("/auth")',
+          "  ) {",
+          "    const url = request.nextUrl.clone();",
+          '    url.pathname = "/login";',
+          "    return NextResponse.redirect(url);",
+          "  }",
+          "  return supabaseResponse;",
+          "}",
+        ].join("\n"),
+      },
+    ),
+    [],
+  );
+});

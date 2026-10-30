@@ -2,6 +2,8 @@ import { Node, type SourceFile } from "ts-morph";
 import type { ScanContext } from "../core/scan-context.js";
 import { fromRule } from "../rules/registry.js";
 import type { AnalyzerResult, DiagnosticIssue } from "../types.js";
+import { moduleIndex, runtimeSources } from "./fastify-plugins.js";
+import { middlewareFile, middlewareRejects } from "./next-middleware.js";
 import { importsTrpcAdapter } from "./trpc-syntax.js";
 
 const HTTP_METHODS = new Set([
@@ -127,6 +129,32 @@ function pagesRouterEndpoints(
   }));
 }
 
+/**
+ * Whether the project's middleware turns anonymous requests to a route path
+ * away; dynamic segments are matched with a sample value. The project index
+ * is built only when there is a middleware file.
+ */
+function middlewareGuard(context: ScanContext): (path: string) => boolean {
+  const present = context.matchFiles([
+    "{middleware,proxy}.{ts,js,mjs}",
+    "src/{middleware,proxy}.{ts,js,mjs}",
+  ]);
+  if (present.length === 0) return () => false;
+  const index = moduleIndex(context, runtimeSources(context));
+  const middleware = middlewareFile(index);
+  if (!middleware) return () => false;
+  const verdicts = new Map<string, boolean>();
+  return (path) => {
+    const sample = path.replace(/:\w+\*?/g, "sample");
+    let rejects = verdicts.get(sample);
+    if (rejects === undefined) {
+      rejects = middlewareRejects(index, middleware.sourceFile, sample);
+      verdicts.set(sample, rejects);
+    }
+    return rejects;
+  };
+}
+
 function hasMarker(source: string, marker: RegExp): boolean {
   marker.lastIndex = 0;
   return marker.test(source);
@@ -183,11 +211,9 @@ export async function analyzeNextjsApi(
     };
   }
 
-  const middlewareSource = context
-    .matchFiles(["middleware.{ts,js}", "src/middleware.{ts,js}"])
-    .map((file) => context.getSourceFile(file)?.getFullText() ?? "")
-    .join("\n");
-  const hasGlobalAuth = hasMarker(middlewareSource, AUTH_MARKERS);
+  const guarded = middlewareGuard(context);
+  const authenticated = (endpoint: NextEndpoint) =>
+    guarded(endpoint.path) || hasMarker(endpoint.source, AUTH_MARKERS);
 
   const issues: DiagnosticIssue[] = [];
   const mutatingEndpoints = endpoints.filter((endpoint) =>
@@ -198,7 +224,7 @@ export async function analyzeNextjsApi(
   );
 
   for (const endpoint of mutatingEndpoints) {
-    if (!hasGlobalAuth && !hasMarker(endpoint.source, AUTH_MARKERS)) {
+    if (!authenticated(endpoint)) {
       issues.push({
         ...fromRule("missing-auth-check"),
         message: `${endpoint.method} ${endpoint.path} has no recognizable auth check`,
@@ -249,10 +275,8 @@ export async function analyzeNextjsApi(
   const authRate =
     mutatingEndpoints.length === 0
       ? 1
-      : mutatingEndpoints.filter(
-          (endpoint) =>
-            hasGlobalAuth || hasMarker(endpoint.source, AUTH_MARKERS),
-        ).length / mutatingEndpoints.length;
+      : mutatingEndpoints.filter(authenticated).length /
+        mutatingEndpoints.length;
   const validationRate =
     bodyEndpoints.length === 0
       ? 1
