@@ -5,6 +5,7 @@ export interface StackInfo {
     | "express"
     | "fastify"
     | "hono"
+    | "react-router"
     | "trpc"
     | "generic"
     | "unknown";
