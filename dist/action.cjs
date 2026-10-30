@@ -257752,7 +257752,7 @@ var CallGraph = class {
       ])
     );
     const methods = new Set(
-      [...classes].map((owner2) => owner2.getInstanceMethod(callee.getName())).filter((method2) => method2?.hasBody())
+      [...classes].map((candidate) => candidate.getInstanceMethod(callee.getName())).filter((method2) => method2?.hasBody())
     );
     const [method] = methods;
     return methods.size === 1 && method ? this.inFiles([method]) : null;

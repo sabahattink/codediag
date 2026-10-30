@@ -483,7 +483,7 @@ export class CallGraph {
     );
     const methods = new Set(
       [...classes]
-        .map((owner) => owner.getInstanceMethod(callee.getName()))
+        .map((candidate) => candidate.getInstanceMethod(callee.getName()))
         .filter((method) => method?.hasBody()),
     );
     const [method] = methods;
