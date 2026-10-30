@@ -723,9 +723,10 @@ codediag scan . --ci --threshold 80 --baseline .codediag-baseline.json</code></p
  <div class="wrap">
   <div class="sec-head">
    <h2 id="h-new">New in 0.7</h2>
-   <p>Whole monorepos, Hono, a score you can watch over time, and pull request feedback measured against your base branch.</p>
+   <p>Request data followed across files, whole monorepos, Hono, a score you can watch over time, and pull request feedback measured against your base branch.</p>
   </div>
   <ul class="items">
+   <li><h3>Cross-file taint</h3><p>Request data passed into your own helpers and services is followed up to two calls deep, so <code>run(req.query.cmd)</code> is critical when <code>run</code> calls <code>exec</code> in another file. Findings stay on the sink line.</p></li>
    <li><h3>Monorepos</h3><p>Every npm, pnpm, Yarn, Lerna, or Nx workspace package scanned with its own stack and config, combined into one report with a package table. Baselines, comparisons, and SARIF work across the repository.</p><span class="flag">--workspaces</span></li>
    <li><h3>Hono API analysis</h3><p>Routes, <code>basePath()</code>, and mounted sub-apps replayed in registration order, with <code>jwt()</code>/<code>bearerAuth()</code> middleware and <code>zValidator</code> body validation.</p></li>
    <li><h3>Score history</h3><p>Each scan is recorded; the terminal shows a sparkline and the HTML report a chart with grade guides and a table view.</p><span class="flag">--history .codediag/history</span></li>

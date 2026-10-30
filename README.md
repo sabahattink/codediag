@@ -82,8 +82,10 @@ Hardcoded credentials, `.env` protection in `.gitignore`, Helmet, rate
 limiting, open CORS, weak password hashing, and direct password comparisons.
 Runtime sinks (`eval`, `new Function`, shell commands, raw SQL, disabled TLS
 verification) are found in the AST, and request data is traced through
-variables, destructuring, and reassignments, so `const cmd = req.query.cmd;
-exec(cmd)` is critical. Request data that reaches a file path, an outgoing
+variables, destructuring, reassignments, and up to two calls into your own
+helper functions and services, so `const cmd = req.query.cmd; exec(cmd)` is
+critical, and so is `run(req.query.cmd)` when `run` calls `exec` in another
+file. Request data that reaches a file path, an outgoing
 request's host, a redirect, or an HTML response is reported as path
 traversal, SSRF, an open redirect, or reflected XSS; request data compiled as
 a template or used as an object path is template injection or prototype
@@ -445,8 +447,12 @@ results in GitHub Code Scanning.
   prototype pollution, and shell spawn rules; secret scanning in
   configuration files and committed `.env` files; `--compare` and
   `--changed-since`; a redesigned HTML report; VS Code quick fixes.
+- **0.7 "Across":** cross-file taint through helpers and services;
+  `--workspaces` for monorepos (CLI, Action, and VS Code); Hono analysis;
+  `--history` score trends; base-branch deltas in pull request comments;
+  audit advisory details and `audit: production`.
 - **Next:** see [docs/roadmap.md](docs/roadmap.md) for planned framework
-  support, cross-file taint, monorepo scoring, and editor improvements.
+  support, deeper taint, Git history secrets, and editor improvements.
 
 ## Contributing
 
