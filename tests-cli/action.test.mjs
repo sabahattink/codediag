@@ -401,6 +401,13 @@ test("GitHub Action combines workspace packages with workspaces: true", async ()
       [100, 100],
     );
 
+    const strict = run("true", { "INPUT_FAIL-ON": "warning" });
+    assert.equal(strict.status, 1);
+    assert.match(
+      strict.stdout,
+      /::error title=CodeDiag fail-on not met::\d+ active findings at or above warning severity \(fail-on: warning\)\./,
+    );
+
     const unused = run("false", { "INPUT_PACKAGE-THRESHOLD": "50" });
     assert.equal(unused.status, 2);
     assert.match(

@@ -3,10 +3,13 @@ import { dirname, resolve } from "node:path";
 import chalk from "chalk";
 import { Command } from "commander";
 import {
+  failOnMessage,
+  findingsAtOrAbove,
   isBelowThreshold,
   loadConfig,
   packagesBelowThreshold,
   packageThresholdMessage,
+  parseFailOn,
   parseThreshold,
 } from "./config.js";
 import { loadBaseline } from "./core/baseline.js";
@@ -65,6 +68,10 @@ program
   )
   .option("-t, --threshold <number>", "Minimum passing score")
   .option(
+    "--fail-on <severity>",
+    "Fail on any active finding at or above a severity: critical, warning, or info",
+  )
+  .option(
     "--ci",
     "CI mode: JSON output unless --format is given, and enforce the threshold",
   )
@@ -120,6 +127,10 @@ program
           : options.ci || hasConfig
             ? config.threshold
             : null;
+      const failOn =
+        options.failOn !== undefined
+          ? parseFailOn(options.failOn)
+          : config.failOn;
       const packageThreshold =
         options.packageThreshold !== undefined
           ? parseThreshold(options.packageThreshold, "package threshold")
@@ -232,10 +243,19 @@ program
       for (const entry of failingPackages) {
         console.error(chalk.red(`  ${packageThresholdMessage(entry)}`));
       }
+      const blocking = findingsAtOrAbove(result.analyzers, failOn);
+      if (failOn && blocking.length > 0) {
+        console.error(
+          chalk.red(
+            `  ${failOnMessage(blocking.length, failOn)} (fail-on: ${failOn})`,
+          ),
+        );
+      }
       process.exitCode =
         (threshold !== null &&
           isBelowThreshold(result.totalScore, threshold)) ||
-        failingPackages.length > 0
+        failingPackages.length > 0 ||
+        blocking.length > 0
           ? 1
           : 0;
     } catch (err) {
@@ -268,6 +288,9 @@ program
 # https://github.com/sabahattink/codediag#config
 
 threshold: 70
+
+# Fail on any active finding at or above a severity, whatever the score.
+# failOn: critical
 
 scoring:
   version: 2

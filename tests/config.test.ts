@@ -4,11 +4,15 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 import {
+  failOnMessage,
+  findingsAtOrAbove,
   isBelowThreshold,
   loadConfig,
   normalizeIgnorePatterns,
+  parseFailOn,
   parseThreshold,
 } from "../src/config.js";
+import type { AnalyzerResult } from "../src/types.js";
 
 function withProject(run: (directory: string) => void): void {
   const directory = mkdtempSync(join(tmpdir(), "codediag-config-"));
@@ -160,4 +164,65 @@ test("loads and validates the audit switch", () => {
       /audit must be true, false, or production/,
     );
   });
+});
+
+test("loads and validates the fail-on severity", () => {
+  withProject((directory) => {
+    assert.equal(loadConfig(directory).failOn, null);
+    for (const severity of ["critical", "warning", "info"]) {
+      writeFileSync(join(directory, ".codediag.yml"), `failOn: ${severity}\n`);
+      assert.equal(loadConfig(directory).failOn, severity);
+    }
+    writeFileSync(join(directory, ".codediag.yml"), "failOn: error\n");
+    assert.throws(
+      () => loadConfig(directory),
+      /failOn must be critical, warning, or info/,
+    );
+  });
+  assert.equal(parseFailOn("warning"), "warning");
+  assert.throws(
+    () => parseFailOn("high"),
+    /must be critical, warning, or info/,
+  );
+});
+
+test("fail-on counts active findings at or above the severity", () => {
+  const analyzers = [
+    {
+      name: "Security",
+      score: 50,
+      summary: "",
+      issues: [
+        { severity: "critical", rule: "a", message: "a" },
+        { severity: "warning", rule: "b", message: "b" },
+        { severity: "info", rule: "c", message: "c" },
+        {
+          severity: "critical",
+          rule: "d",
+          message: "d",
+          suppression: { kind: "inSource", justification: "reviewed" },
+        },
+        { severity: "critical", rule: "e", message: "e", baseline: true },
+      ],
+    },
+  ] satisfies AnalyzerResult[];
+
+  assert.deepEqual(
+    findingsAtOrAbove(analyzers, "critical").map((issue) => issue.rule),
+    ["a"],
+  );
+  assert.deepEqual(
+    findingsAtOrAbove(analyzers, "warning").map((issue) => issue.rule),
+    ["a", "b"],
+  );
+  assert.equal(findingsAtOrAbove(analyzers, "info").length, 3);
+  assert.equal(findingsAtOrAbove(analyzers, null).length, 0);
+  assert.equal(
+    failOnMessage(2, "warning"),
+    "2 active findings at or above warning severity",
+  );
+  assert.equal(
+    failOnMessage(1, "critical"),
+    "1 active finding at or above critical severity",
+  );
 });

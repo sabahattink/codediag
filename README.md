@@ -159,6 +159,7 @@ codediag scan . --format fixes > codediag-fixes.md     # Review checklist
 codediag scan . --format prompt > codediag-prompt.txt  # Review-only AI handoff
 codediag scan . --ci               # JSON output + exit code
 codediag scan . --threshold 80     # Exit 1 below 80 in any output mode
+codediag scan . --fail-on critical # Exit 1 on any active critical finding
 codediag scan . --quiet            # Score only
 codediag scan . --verbose          # All issues and the score breakdown
 codediag scan . --no-audit         # Offline: skip the package manager audit
@@ -376,6 +377,7 @@ plain scans are informational; `--ci` uses the default threshold of 70.
 
 ```yaml
 threshold: 70
+failOn: critical         # optional; any active critical finding fails the scan
 packageThreshold: 60     # optional; each --workspaces package must reach it
 ignore: [node_modules, dist, .git, coverage]
 maxFileSizeKb: 512

@@ -251596,6 +251596,24 @@ var import_node_fs = require("fs");
 var import_node_path = require("path");
 var import_yaml = __toESM(require_dist(), 1);
 
+// src/core/issues.ts
+function isActive(issue) {
+  return !issue.suppression && issue.baseline !== true;
+}
+function activeIssues(analyzer) {
+  return analyzer.issues.filter(isActive);
+}
+function inactiveCounts(analyzers) {
+  const counts = { suppressed: 0, baseline: 0 };
+  for (const analyzer of analyzers) {
+    for (const issue of analyzer.issues) {
+      if (issue.suppression) counts.suppressed += 1;
+      else if (issue.baseline) counts.baseline += 1;
+    }
+  }
+  return counts;
+}
+
 // src/rules/registry.ts
 var RULES_DOCUMENT_URL = "https://github.com/sabahattink/codediag/blob/main/docs/rules.md";
 var OWASP = {
@@ -252237,6 +252255,7 @@ function fromRule(id) {
 var DEFAULT_CONFIG = {
   threshold: 70,
   packageThreshold: null,
+  failOn: null,
   ignore: ["node_modules", "dist", ".git", "coverage"],
   maxFileSizeKb: 512,
   scoring: { version: 2 },
@@ -252321,6 +252340,18 @@ function readRules(value) {
   }
   return rules;
 }
+var SEVERITIES = [
+  "info",
+  "warning",
+  "critical"
+];
+function readFailOn(value, name = "failOn") {
+  if (value === void 0 || value === null) return null;
+  if (!SEVERITIES.includes(value)) {
+    throw new Error(`${name} must be critical, warning, or info`);
+  }
+  return value;
+}
 function readAudit(value) {
   if (value === void 0) return DEFAULT_CONFIG.audit;
   if (typeof value !== "boolean" && value !== "production")
@@ -252355,6 +252386,7 @@ function loadConfig(projectPath) {
     return {
       threshold: DEFAULT_CONFIG.threshold,
       packageThreshold: DEFAULT_CONFIG.packageThreshold,
+      failOn: DEFAULT_CONFIG.failOn,
       ignore: [...DEFAULT_CONFIG.ignore],
       maxFileSizeKb: DEFAULT_CONFIG.maxFileSizeKb,
       scoring: { ...DEFAULT_CONFIG.scoring },
@@ -252378,6 +252410,7 @@ function loadConfig(projectPath) {
   const allowedKeys = /* @__PURE__ */ new Set([
     "threshold",
     "packageThreshold",
+    "failOn",
     "ignore",
     "maxFileSizeKb",
     "scoring",
@@ -252401,6 +252434,7 @@ function loadConfig(projectPath) {
         DEFAULT_CONFIG.packageThreshold,
         "packageThreshold"
       ),
+      failOn: readFailOn(document.failOn),
       ignore: readIgnore(document.ignore, DEFAULT_CONFIG.ignore),
       maxFileSizeKb: readMaxFileSizeKb(
         document.maxFileSizeKb,
@@ -252432,6 +252466,17 @@ function parseThreshold(value, name = "threshold") {
 }
 function isBelowThreshold(score, threshold) {
   return score < threshold;
+}
+function parseFailOn(value) {
+  return readFailOn(value, "fail-on") ?? "critical";
+}
+function findingsAtOrAbove(analyzers, failOn) {
+  if (failOn === null) return [];
+  const minimum = SEVERITIES.indexOf(failOn);
+  return analyzers.flatMap(activeIssues).filter((issue) => SEVERITIES.indexOf(issue.severity) >= minimum);
+}
+function failOnMessage(count, failOn) {
+  return `${count} active finding${count === 1 ? "" : "s"} at or above ${failOn} severity`;
 }
 function packagesBelowThreshold(workspace) {
   return (workspace?.packages ?? []).filter(
@@ -252494,32 +252539,12 @@ function applyBaseline(results, baseline) {
 
 // src/core/compare.ts
 var import_node_fs3 = require("fs");
-
-// src/core/issues.ts
-function isActive(issue) {
-  return !issue.suppression && issue.baseline !== true;
-}
-function activeIssues(analyzer) {
-  return analyzer.issues.filter(isActive);
-}
-function inactiveCounts(analyzers) {
-  const counts = { suppressed: 0, baseline: 0 };
-  for (const analyzer of analyzers) {
-    for (const issue of analyzer.issues) {
-      if (issue.suppression) counts.suppressed += 1;
-      else if (issue.baseline) counts.baseline += 1;
-    }
-  }
-  return counts;
-}
-
-// src/core/compare.ts
-var SEVERITIES = /* @__PURE__ */ new Set(["critical", "warning", "info"]);
+var SEVERITIES2 = /* @__PURE__ */ new Set(["critical", "warning", "info"]);
 function isRecord3(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 function readIssue(value) {
-  if (!isRecord3(value) || typeof value.rule !== "string" || typeof value.message !== "string" || typeof value.severity !== "string" || !SEVERITIES.has(value.severity)) {
+  if (!isRecord3(value) || typeof value.rule !== "string" || typeof value.message !== "string" || typeof value.severity !== "string" || !SEVERITIES2.has(value.severity)) {
     return null;
   }
   return {
@@ -254145,7 +254170,7 @@ var import_node_path3 = require("path");
 
 // src/analyzers/audit-advisories.ts
 var MAX_LISTED = 5;
-var SEVERITIES2 = /* @__PURE__ */ new Set(["critical", "high", "moderate", "low"]);
+var SEVERITIES3 = /* @__PURE__ */ new Set(["critical", "high", "moderate", "low"]);
 function isRecord4(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
@@ -254155,7 +254180,7 @@ function text(value) {
 function advisory(name, severity, title, url) {
   const packageName2 = text(name);
   const level = typeof severity === "string" ? severity.toLowerCase() : "";
-  if (!packageName2 || !SEVERITIES2.has(level)) return null;
+  if (!packageName2 || !SEVERITIES3.has(level)) return null;
   const titleText = text(title);
   const urlText = text(url);
   return {
@@ -262506,10 +262531,13 @@ function findingRow({ issue, path: path2 }) {
 function renderPrComment(input) {
   const { result, threshold, changedFiles: changedFiles2, projectDirectory } = input;
   const failingPackages = packagesBelowThreshold(result.workspace);
-  const passed = !isBelowThreshold(result.totalScore, threshold) && failingPackages.length === 0;
+  const failOn = input.failOn ?? null;
+  const blocking = findingsAtOrAbove(result.analyzers, failOn).length;
+  const passed = !isBelowThreshold(result.totalScore, threshold) && failingPackages.length === 0 && blocking === 0;
   const status = [
     result.comparison ? baseChange(result.comparison) : scoreChange(result.totalScore, input.previousScore),
     `threshold ${threshold}`,
+    failOn ? `fails on ${failOn}${blocking > 0 ? ` (${blocking} found)` : ""}` : "",
     failingPackages.length > 0 ? `below their package threshold: ${failingPackages.map(
       (entry) => `\`${escapeCell(entry.path)}\` ${entry.totalScore}/${entry.threshold}`
     ).join(", ")}` : ""
@@ -262870,7 +262898,7 @@ function emitAnnotations(result) {
     );
   }
 }
-function renderSummary(result, threshold) {
+function renderSummary(result, threshold, failOn) {
   const lines = [
     "## CodeDiag project health",
     "",
@@ -262885,6 +262913,13 @@ function renderSummary(result, threshold) {
     );
   }
   lines.push("", `Required threshold: **${threshold}/100**`);
+  if (failOn) {
+    const blocking = findingsAtOrAbove(result.analyzers, failOn).length;
+    lines.push(
+      "",
+      blocking > 0 ? `Fails on **${failOn}**: ${failOnMessage(blocking, failOn)}.` : `Fails on **${failOn}**: no active findings at or above ${failOn} severity.`
+    );
+  }
   const failingPackages = packagesBelowThreshold(result.workspace);
   if (failingPackages.length > 0) {
     lines.push(
@@ -262929,7 +262964,7 @@ function parseBooleanInput(name, value) {
   if (/^(?:false|no|0|)$/i.test(value)) return false;
   throw new Error(`${name} must be true or false.`);
 }
-async function commentOnPullRequest(result, threshold, workspace, projectPath) {
+async function commentOnPullRequest(result, threshold, failOn, workspace, projectPath) {
   try {
     const token = getInput("github-token", process.env.GITHUB_TOKEN ?? "");
     const context = pullRequestContext(process.env, token);
@@ -262952,6 +262987,7 @@ async function commentOnPullRequest(result, threshold, workspace, projectPath) {
       (previousBody) => renderPrComment({
         result,
         threshold,
+        failOn,
         changedFiles: files,
         projectDirectory,
         previousScore: previousBody ? previousScore(previousBody) : void 0
@@ -263000,6 +263036,8 @@ async function runAction() {
     );
     const baseline = baselineInput ? loadBaseline(resolveWorkspacePath(workspace, baselineInput)) : void 0;
     const config = loadConfig(projectPath);
+    const failOnInput = getInput("fail-on", "");
+    const failOn = failOnInput ? parseFailOn(failOnInput) : config.failOn;
     const wantsWorkspaces = parseBooleanInput(
       "workspaces",
       getInput("workspaces", "false")
@@ -263035,7 +263073,7 @@ async function runAction() {
     if (process.env.GITHUB_STEP_SUMMARY) {
       (0, import_node_fs16.appendFileSync)(
         process.env.GITHUB_STEP_SUMMARY,
-        renderSummary(result, threshold),
+        renderSummary(result, threshold, failOn),
         "utf8"
       );
     }
@@ -263043,11 +263081,24 @@ async function runAction() {
       `CodeDiag score: ${result.totalScore}/100 (${result.grade}); JSON: ${reportPath}; SARIF: ${sarifPath}`
     );
     if (parseBooleanInput("comment", getInput("comment", "false"))) {
-      await commentOnPullRequest(result, threshold, workspace, projectPath);
+      await commentOnPullRequest(
+        result,
+        threshold,
+        failOn,
+        workspace,
+        projectPath
+      );
     }
     if (isBelowThreshold(result.totalScore, threshold)) {
       console.log(
         `::error title=CodeDiag threshold not met::Score ${result.totalScore} is below the required threshold ${threshold}.`
+      );
+      process.exitCode = 1;
+    }
+    const blocking = findingsAtOrAbove(result.analyzers, failOn);
+    if (failOn && blocking.length > 0) {
+      console.log(
+        `::error title=CodeDiag fail-on not met::${workflowData(failOnMessage(blocking.length, failOn))} (fail-on: ${failOn}).`
       );
       process.exitCode = 1;
     }

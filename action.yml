@@ -11,6 +11,13 @@ inputs:
     description: Minimum passing score from 0 to 100.
     required: false
     default: "70"
+  fail-on:
+    description: >-
+      Fail on any active finding at or above this severity (critical,
+      warning, or info), whatever the score. Overrides `failOn` in
+      .codediag.yml. Suppressed and baseline findings do not count.
+    required: false
+    default: ""
   report:
     description: JSON report path, relative to the repository workspace.
     required: false

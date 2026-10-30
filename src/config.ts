@@ -1,11 +1,14 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { parse } from "yaml";
+import { activeIssues } from "./core/issues.js";
 import { getRule } from "./rules/registry.js";
 import {
   type AnalyzerKey,
+  type AnalyzerResult,
   type CodediagConfig,
   DEFAULT_CONFIG,
+  type DiagnosticIssue,
   type RuleSetting,
   type ScoringVersion,
   type WorkspacePackageSummary,
@@ -106,6 +109,21 @@ function readRules(value: unknown): Record<string, RuleSetting> {
   return rules;
 }
 
+/** Severities from least to most severe. */
+const SEVERITIES: Array<DiagnosticIssue["severity"]> = [
+  "info",
+  "warning",
+  "critical",
+];
+
+function readFailOn(value: unknown, name = "failOn"): CodediagConfig["failOn"] {
+  if (value === undefined || value === null) return null;
+  if (!SEVERITIES.includes(value as DiagnosticIssue["severity"])) {
+    throw new Error(`${name} must be critical, warning, or info`);
+  }
+  return value as DiagnosticIssue["severity"];
+}
+
 function readAudit(value: unknown): CodediagConfig["audit"] {
   if (value === undefined) return DEFAULT_CONFIG.audit;
   if (typeof value !== "boolean" && value !== "production")
@@ -147,6 +165,7 @@ export function loadConfig(projectPath: string): CodediagConfig {
     return {
       threshold: DEFAULT_CONFIG.threshold,
       packageThreshold: DEFAULT_CONFIG.packageThreshold,
+      failOn: DEFAULT_CONFIG.failOn,
       ignore: [...DEFAULT_CONFIG.ignore],
       maxFileSizeKb: DEFAULT_CONFIG.maxFileSizeKb,
       scoring: { ...DEFAULT_CONFIG.scoring },
@@ -173,6 +192,7 @@ export function loadConfig(projectPath: string): CodediagConfig {
   const allowedKeys = new Set([
     "threshold",
     "packageThreshold",
+    "failOn",
     "ignore",
     "maxFileSizeKb",
     "scoring",
@@ -197,6 +217,7 @@ export function loadConfig(projectPath: string): CodediagConfig {
         DEFAULT_CONFIG.packageThreshold,
         "packageThreshold",
       ),
+      failOn: readFailOn(document.failOn),
       ignore: readIgnore(document.ignore, DEFAULT_CONFIG.ignore),
       maxFileSizeKb: readMaxFileSizeKb(
         document.maxFileSizeKb,
@@ -234,6 +255,29 @@ export function parseThreshold(value: string, name = "threshold"): number {
 
 export function isBelowThreshold(score: number, threshold: number): boolean {
   return score < threshold;
+}
+
+export function parseFailOn(value: string): DiagnosticIssue["severity"] {
+  return readFailOn(value, "fail-on") ?? "critical";
+}
+
+/** Active findings that fail a scan with this `failOn` severity. */
+export function findingsAtOrAbove(
+  analyzers: AnalyzerResult[],
+  failOn: CodediagConfig["failOn"],
+): DiagnosticIssue[] {
+  if (failOn === null) return [];
+  const minimum = SEVERITIES.indexOf(failOn);
+  return analyzers
+    .flatMap(activeIssues)
+    .filter((issue) => SEVERITIES.indexOf(issue.severity) >= minimum);
+}
+
+export function failOnMessage(
+  count: number,
+  failOn: DiagnosticIssue["severity"],
+): string {
+  return `${count} active finding${count === 1 ? "" : "s"} at or above ${failOn} severity`;
 }
 
 /** Workspace packages that scored below their package threshold. */

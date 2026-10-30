@@ -637,3 +637,61 @@ test("--history records each scan and reports the trend", () => {
     rmSync(directory, { recursive: true, force: true });
   }
 });
+
+test("--fail-on fails on active findings at or above a severity", () => {
+  const directory = mkdtempSync(join(tmpdir(), "codediag-cli-"));
+  try {
+    writeFileSync(join(directory, "package.json"), "{}");
+    writeFileSync(join(directory, ".gitignore"), ".env\n");
+    writeFileSync(join(directory, "run.js"), "eval(a);\n");
+    const securityOnly = [
+      "analyzers:",
+      "  api: false",
+      "  dependencies: false",
+      "  testing: false",
+      "  structure: false",
+    ];
+    writeFileSync(join(directory, ".codediag.yml"), securityOnly.join("\n"));
+    const scan = (...args) =>
+      runCli(
+        ["scan", ".", "--threshold", "0", "--no-audit", ...args],
+        directory,
+      );
+
+    const passing = scan("--quiet");
+    assert.equal(passing.status, 0, "the threshold alone passes");
+
+    const failing = scan("--fail-on", "critical", "--format", "json");
+    assert.equal(failing.status, 1);
+    assert.match(
+      failing.stderr,
+      /1 active finding at or above critical severity \(fail-on: critical\)/,
+    );
+    assert.equal(JSON.parse(failing.stdout).totalScore > 0, true);
+
+    // A justified suppression removes the finding from the gate.
+    writeFileSync(
+      join(directory, "run.js"),
+      "// codediag-ignore-next-line unsafe-dynamic-code -- input is a constant\neval(a);\n",
+    );
+    assert.equal(scan("--fail-on", "critical", "--quiet").status, 0);
+
+    writeFileSync(join(directory, "run.js"), "eval(a);\n");
+    writeFileSync(
+      join(directory, ".codediag.yml"),
+      ["failOn: warning", ...securityOnly].join("\n"),
+    );
+    const configured = scan("--quiet");
+    assert.equal(configured.status, 1);
+    assert.match(
+      configured.stderr,
+      /1 active finding at or above warning severity \(fail-on: warning\)/,
+    );
+
+    const invalid = scan("--fail-on", "high");
+    assert.equal(invalid.status, 1);
+    assert.match(invalid.stderr, /fail-on must be critical, warning, or info/);
+  } finally {
+    rmSync(directory, { recursive: true, force: true });
+  }
+});

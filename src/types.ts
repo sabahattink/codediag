@@ -184,6 +184,8 @@ export interface CodediagConfig {
    * A package's own .codediag.yml can set its own.
    */
   packageThreshold: number | null;
+  /** Fails the scan on any active finding at or above this severity. */
+  failOn: DiagnosticIssue["severity"] | null;
   ignore: string[];
   maxFileSizeKb: number;
   scoring: { version: ScoringVersion };
@@ -207,6 +209,7 @@ export type AnalyzerKey = keyof CodediagConfig["analyzers"];
 export const DEFAULT_CONFIG: CodediagConfig = {
   threshold: 70,
   packageThreshold: null,
+  failOn: null,
   ignore: ["node_modules", "dist", ".git", "coverage"],
   maxFileSizeKb: 512,
   scoring: { version: 2 },

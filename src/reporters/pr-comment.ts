@@ -1,9 +1,14 @@
 import { posix } from "node:path";
-import { isBelowThreshold, packagesBelowThreshold } from "../config.js";
+import {
+  findingsAtOrAbove,
+  isBelowThreshold,
+  packagesBelowThreshold,
+} from "../config.js";
 import { formatDelta } from "../core/compare.js";
 import { activeIssues, inactiveCounts } from "../core/issues.js";
 import { ruleDocsUrl } from "../rules/registry.js";
 import type {
+  CodediagConfig,
   ComparisonSummary,
   DiagnosticIssue,
   ScanResult,
@@ -18,6 +23,8 @@ const SEVERITY_ICONS = { critical: "🔴", warning: "🟡", info: "🔵" } as co
 export interface PrCommentInput {
   result: ScanResult;
   threshold: number;
+  /** Fails the comment's status on active findings at or above it. */
+  failOn?: CodediagConfig["failOn"];
   /** The score in the comment this one replaces, if any. */
   previousScore?: number;
   /** Repository-relative paths the pull request adds or modifies. */
@@ -71,14 +78,20 @@ function findingRow({ issue, path }: LocatedFinding): string {
 export function renderPrComment(input: PrCommentInput): string {
   const { result, threshold, changedFiles, projectDirectory } = input;
   const failingPackages = packagesBelowThreshold(result.workspace);
+  const failOn = input.failOn ?? null;
+  const blocking = findingsAtOrAbove(result.analyzers, failOn).length;
   const passed =
     !isBelowThreshold(result.totalScore, threshold) &&
-    failingPackages.length === 0;
+    failingPackages.length === 0 &&
+    blocking === 0;
   const status = [
     result.comparison
       ? baseChange(result.comparison)
       : scoreChange(result.totalScore, input.previousScore),
     `threshold ${threshold}`,
+    failOn
+      ? `fails on ${failOn}${blocking > 0 ? ` (${blocking} found)` : ""}`
+      : "",
     failingPackages.length > 0
       ? `below their package threshold: ${failingPackages
           .map(

@@ -297,3 +297,20 @@ test("pull request comment fails when a workspace package misses its threshold",
     /threshold 80 · below their package threshold: `packages\/api` 61\/70/,
   );
 });
+
+test("pull request comment fails on findings at or above fail-on", () => {
+  const render = (failOn: "critical" | "warning" | null) =>
+    renderPrComment({
+      result: result([REDIRECT], 95),
+      threshold: 80,
+      failOn,
+      changedFiles: new Set(),
+      projectDirectory: "",
+    });
+
+  assert.match(render(null), /^## ✅ CodeDiag: 95\/100/m);
+  assert.match(render("critical"), /^## ✅ CodeDiag: 95\/100/m);
+  assert.match(render("critical"), /threshold 80 · fails on critical$/m);
+  assert.match(render("warning"), /^## ❌ CodeDiag: 95\/100/m);
+  assert.match(render("warning"), /fails on warning \(1 found\)/);
+});

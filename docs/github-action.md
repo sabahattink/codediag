@@ -42,6 +42,7 @@ third-party dependencies.
 | --- | --- | --- |
 | `path` | `.` | Project directory relative to `GITHUB_WORKSPACE` |
 | `threshold` | `70` | Minimum passing score from 0 through 100 |
+| `fail-on` | _(config)_ | Fail on any active finding at or above `critical`, `warning`, or `info`, whatever the score; overrides `failOn` in `.codediag.yml` |
 | `report` | `codediag-report.json` | JSON report path relative to `GITHUB_WORKSPACE` |
 | `sarif` | `codediag-report.sarif` | SARIF 2.1.0 report path relative to `GITHUB_WORKSPACE` |
 | `baseline` | _(none)_ | Optional CodeDiag JSON report relative to `GITHUB_WORKSPACE`; its findings do not affect the score, threshold, or annotations. See [baselines](suppressions-and-baselines.md#baselines) |

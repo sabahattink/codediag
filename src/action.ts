@@ -1,10 +1,13 @@
 import { appendFileSync, mkdirSync, writeFileSync } from "node:fs";
 import { dirname, isAbsolute, relative, resolve, sep } from "node:path";
 import {
+  failOnMessage,
+  findingsAtOrAbove,
   isBelowThreshold,
   loadConfig,
   packagesBelowThreshold,
   packageThresholdMessage,
+  parseFailOn,
   parseThreshold,
 } from "./config.js";
 import { loadBaseline } from "./core/baseline.js";
@@ -25,7 +28,7 @@ import { activeIssues, inactiveCounts } from "./core/issues.js";
 import { previousScore, renderPrComment } from "./reporters/pr-comment.js";
 import { renderSarif } from "./reporters/sarif.js";
 import { scan } from "./scanner.js";
-import type { DiagnosticIssue, ScanResult } from "./types.js";
+import type { CodediagConfig, DiagnosticIssue, ScanResult } from "./types.js";
 
 const MAX_ANNOTATIONS = 50;
 
@@ -88,7 +91,11 @@ function emitAnnotations(result: ScanResult): void {
   }
 }
 
-function renderSummary(result: ScanResult, threshold: number): string {
+function renderSummary(
+  result: ScanResult,
+  threshold: number,
+  failOn: CodediagConfig["failOn"],
+): string {
   const lines = [
     "## CodeDiag project health",
     "",
@@ -105,6 +112,15 @@ function renderSummary(result: ScanResult, threshold: number): string {
   }
 
   lines.push("", `Required threshold: **${threshold}/100**`);
+  if (failOn) {
+    const blocking = findingsAtOrAbove(result.analyzers, failOn).length;
+    lines.push(
+      "",
+      blocking > 0
+        ? `Fails on **${failOn}**: ${failOnMessage(blocking, failOn)}.`
+        : `Fails on **${failOn}**: no active findings at or above ${failOn} severity.`,
+    );
+  }
   const failingPackages = packagesBelowThreshold(result.workspace);
   if (failingPackages.length > 0) {
     lines.push(
@@ -168,6 +184,7 @@ function parseBooleanInput(name: string, value: string): boolean {
 async function commentOnPullRequest(
   result: ScanResult,
   threshold: number,
+  failOn: CodediagConfig["failOn"],
   workspace: string,
   projectPath: string,
 ): Promise<void> {
@@ -194,6 +211,7 @@ async function commentOnPullRequest(
       renderPrComment({
         result,
         threshold,
+        failOn,
         changedFiles: files,
         projectDirectory,
         previousScore: previousBody ? previousScore(previousBody) : undefined,
@@ -255,6 +273,8 @@ export async function runAction(): Promise<void> {
       : undefined;
 
     const config = loadConfig(projectPath);
+    const failOnInput = getInput("fail-on", "");
+    const failOn = failOnInput ? parseFailOn(failOnInput) : config.failOn;
     const wantsWorkspaces = parseBooleanInput(
       "workspaces",
       getInput("workspaces", "false"),
@@ -298,7 +318,7 @@ export async function runAction(): Promise<void> {
     if (process.env.GITHUB_STEP_SUMMARY) {
       appendFileSync(
         process.env.GITHUB_STEP_SUMMARY,
-        renderSummary(result, threshold),
+        renderSummary(result, threshold, failOn),
         "utf8",
       );
     }
@@ -308,12 +328,25 @@ export async function runAction(): Promise<void> {
     );
 
     if (parseBooleanInput("comment", getInput("comment", "false"))) {
-      await commentOnPullRequest(result, threshold, workspace, projectPath);
+      await commentOnPullRequest(
+        result,
+        threshold,
+        failOn,
+        workspace,
+        projectPath,
+      );
     }
 
     if (isBelowThreshold(result.totalScore, threshold)) {
       console.log(
         `::error title=CodeDiag threshold not met::Score ${result.totalScore} is below the required threshold ${threshold}.`,
+      );
+      process.exitCode = 1;
+    }
+    const blocking = findingsAtOrAbove(result.analyzers, failOn);
+    if (failOn && blocking.length > 0) {
+      console.log(
+        `::error title=CodeDiag fail-on not met::${workflowData(failOnMessage(blocking.length, failOn))} (fail-on: ${failOn}).`,
       );
       process.exitCode = 1;
     }
