@@ -204,6 +204,28 @@ test("defects/express-state follows request data through fields, constructors, c
   });
 });
 
+test("defects/nestjs-di follows request data into providers behind tokens and abstract classes", async () => {
+  const result = await scanFixture("defects/nestjs-di");
+  const security = result.analyzers.find(
+    (analyzer) => analyzer.name === "Security",
+  );
+  const located = (security?.issues ?? [])
+    .filter((issue) => issue.line !== undefined)
+    .map(
+      ({ rule, severity, file, line, confidence, fix }) =>
+        `${severity} ${rule} ${file}:${line} ${confidence ?? "high"} from ${
+          /^Request data reaches this call from ([^;]+);/.exec(fix ?? "")?.[1]
+        }`,
+    )
+    .sort();
+
+  assert.equal(result.stack.framework, "nestjs");
+  assert.deepEqual(located, [
+    "critical dynamic-sql-query src/reports/sql-reports.repository.ts:12 medium from src/reports/reports.controller.ts:14",
+    "critical path-traversal src/files/disk-file-store.ts:9 medium from src/files/files.controller.ts:10",
+  ]);
+});
+
 test("defects/fastify keeps its auth hook, schema, and error handler findings", async () => {
   const result = await scanFixture("defects/fastify");
   const api = result.analyzers.find(

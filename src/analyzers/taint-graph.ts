@@ -1,6 +1,7 @@
 import {
   type ArrowFunction,
   type CallExpression,
+  type ClassDeclaration,
   type ConstructorDeclaration,
   type FunctionDeclaration,
   type FunctionExpression,
@@ -10,14 +11,17 @@ import {
   type SourceFile,
   SyntaxKind,
 } from "ts-morph";
-import { add, enclosingScope, unwrap } from "./taint.js";
+import { add, enclosingScope, objectProperty, unwrap } from "./taint.js";
 
 /**
  * The call graph taint tracking follows: which project function a call or
  * `new` expression runs, where a function is called, and where a function
  * that receives an inline callback invokes it. Functions are resolved
  * through the type checker of the scan's shared ts-morph project, and only
- * functions in the scanned runtime source files count.
+ * functions in the scanned runtime source files count. A method that an
+ * interface or abstract class only declares resolves to its one project
+ * implementation, found through `implements` and `extends` clauses and
+ * NestJS `{ provide, useClass }` providers.
  */
 
 export type FunctionLike =
@@ -312,9 +316,101 @@ function invocations(fn: FunctionLike, index: number): CallExpression[] {
   });
 }
 
+/** An injection token: a string literal's text, or what a name refers to. */
+type TokenKey = string | Node;
+
+interface Implementations {
+  /** Project classes by the interface or class they implement or extend. */
+  heritage: Map<Node, ClassDeclaration[]>;
+  /** Classes a module provides as `{ provide: token, useClass: Class }`. */
+  providers: Map<TokenKey, ClassDeclaration[]>;
+}
+
+/** The declaration a name or property access refers to, through imports. */
+function declarationOf(expression: Node): Node | undefined {
+  let symbol = expression.getSymbol();
+  if (symbol?.isAlias()) symbol = symbol.getAliasedSymbol();
+  return symbol?.getDeclarations()[0];
+}
+
+function tokenKey(token: Node): TokenKey | undefined {
+  const value = unwrap(token);
+  if (
+    Node.isStringLiteral(value) ||
+    Node.isNoSubstitutionTemplateLiteral(value)
+  ) {
+    return JSON.stringify(value.getLiteralText());
+  }
+  return Node.isIdentifier(value) || Node.isPropertyAccessExpression(value)
+    ? declarationOf(value)
+    : undefined;
+}
+
+function indexImplementations(files: Iterable<SourceFile>): Implementations {
+  const index: Implementations = { heritage: new Map(), providers: new Map() };
+  for (const sourceFile of files) {
+    for (const owner of sourceFile.getDescendantsOfKind(
+      SyntaxKind.ClassDeclaration,
+    )) {
+      const parent = owner.getExtends();
+      for (const clause of [
+        ...owner.getImplements(),
+        ...(parent ? [parent] : []),
+      ]) {
+        const declaration = declarationOf(clause.getExpression());
+        if (declaration) add(index.heritage, declaration, owner);
+      }
+    }
+    for (const literal of sourceFile.getDescendantsOfKind(
+      SyntaxKind.ObjectLiteralExpression,
+    )) {
+      const provide = objectProperty(literal, ["provide"]);
+      const useClass = objectProperty(literal, ["useClass"]);
+      const key = provide ? tokenKey(provide) : undefined;
+      const provided = useClass ? declarationOf(useClass) : undefined;
+      if (key !== undefined && Node.isClassDeclaration(provided)) {
+        add(index.providers, key, provided);
+      }
+    }
+  }
+  return index;
+}
+
+/** The `@Inject()` token of a field read as `this.repo`, if it has one. */
+function injectionToken(receiver: Node): TokenKey | undefined {
+  if (
+    !Node.isPropertyAccessExpression(receiver) ||
+    !Node.isThisExpression(receiver.getExpression())
+  ) {
+    return undefined;
+  }
+  for (const declaration of receiver
+    .getNameNode()
+    .getSymbol()
+    ?.getDeclarations() ?? []) {
+    if (
+      Node.isParameterDeclaration(declaration) ||
+      Node.isPropertyDeclaration(declaration)
+    ) {
+      const token = declaration.getDecorator("Inject")?.getArguments()[0];
+      if (token) return tokenKey(token);
+    }
+  }
+  return undefined;
+}
+
+/** A method an interface or abstract class declares without a body. */
+function isBodilessMethod(node: Node): boolean {
+  return (
+    Node.isMethodSignature(node) ||
+    (Node.isMethodDeclaration(node) && !node.hasBody())
+  );
+}
+
 /** Call resolution for one scan, cached per call site and function. */
 export class CallGraph {
   private index: CallIndex | undefined;
+  private implementations: Implementations | undefined;
   private readonly targets = new WeakMap<CallSite, FunctionLike | null>();
   private readonly callerLists = new WeakMap<FunctionLike, CallSite[]>();
   private readonly callbackSites = new WeakMap<
@@ -350,10 +446,48 @@ export class CallGraph {
         : (callee.getType().getSymbol()?.getDeclarations() ?? []);
       target = this.inFiles(candidates.map(constructorOf));
     } else {
-      target = this.inFiles(declarations.map((node) => functionOf(node)));
+      target =
+        this.inFiles(declarations.map((node) => functionOf(node))) ??
+        this.implementation(declarations, callee);
     }
     this.targets.set(call, target);
     return target;
+  }
+
+  /**
+   * For `receiver.method()` where the method's owner only declares it (a
+   * project interface or abstract class), or the receiver is a field with
+   * an `@Inject()` token: the one project method behind it, from classes
+   * that implement or extend the owner and classes a module provides for
+   * the owner or the token. Null when there is none or more than one.
+   */
+  private implementation(
+    declarations: Node[],
+    callee: Node,
+  ): FunctionLike | null {
+    if (!Node.isPropertyAccessExpression(callee)) return null;
+    const owner = declarations.find(isBodilessMethod)?.getParent();
+    const keys: TokenKey[] = [];
+    if (owner && this.files.has(owner.getSourceFile())) keys.push(owner);
+    const token = injectionToken(callee.getExpression());
+    if (token !== undefined) keys.push(token);
+    if (keys.length === 0) return null;
+
+    this.implementations ??= indexImplementations(this.files.keys());
+    const { heritage, providers } = this.implementations;
+    const classes = new Set(
+      keys.flatMap((key) => [
+        ...(typeof key === "string" ? [] : (heritage.get(key) ?? [])),
+        ...(providers.get(key) ?? []),
+      ]),
+    );
+    const methods = new Set(
+      [...classes]
+        .map((owner) => owner.getInstanceMethod(callee.getName()))
+        .filter((method) => method?.hasBody()),
+    );
+    const [method] = methods;
+    return methods.size === 1 && method ? this.inFiles([method]) : null;
   }
 
   /** Calls of a function, or `new` expressions of a class, in the scan. */

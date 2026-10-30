@@ -206,10 +206,10 @@ interface ScopeIndex {
 
 const scopeIndexes = new WeakMap<Node, ScopeIndex>();
 
-export function add<T>(map: Map<string, T[]>, name: string, value: T): void {
-  const list = map.get(name);
+export function add<K, T>(map: Map<K, T[]>, key: K, value: T): void {
+  const list = map.get(key);
   if (list) list.push(value);
-  else map.set(name, [value]);
+  else map.set(key, [value]);
 }
 
 /** Array methods whose callback receives an element first: `forEach(item)`. */

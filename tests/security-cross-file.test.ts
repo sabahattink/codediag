@@ -314,6 +314,184 @@ test("a NestJS query parameter passed to a service decides its request URL", asy
   ]);
 });
 
+test("a NestJS service injected through an interface token reaches its one implementation", async () => {
+  const issues = await scan({
+    "src/files/file-store.ts": [
+      "export interface FileStore {",
+      "  read(name: string): Promise<Buffer>;",
+      "}",
+      'export const FILE_STORE = Symbol("FILE_STORE");',
+    ],
+    "src/files/disk-file-store.ts": [
+      'import { readFile } from "node:fs/promises";',
+      'import { join } from "node:path";',
+      'import type { FileStore } from "./file-store";',
+      "export class DiskFileStore implements FileStore {",
+      "  read(name: string) {",
+      '    return readFile(join("/srv/files", name));',
+      "  }",
+      "}",
+    ],
+    "src/files/files.module.ts": [
+      'import { Module } from "@nestjs/common";',
+      'import { DiskFileStore } from "./disk-file-store";',
+      'import { FILE_STORE } from "./file-store";',
+      'import { FilesController } from "./files.controller";',
+      "@Module({",
+      "  controllers: [FilesController],",
+      "  providers: [{ provide: FILE_STORE, useClass: DiskFileStore }],",
+      "})",
+      "export class FilesModule {}",
+    ],
+    "src/files/files.controller.ts": [
+      'import { Controller, Get, Inject, Query } from "@nestjs/common";',
+      'import { FILE_STORE, type FileStore } from "./file-store";',
+      '@Controller("files")',
+      "export class FilesController {",
+      "  constructor(@Inject(FILE_STORE) private readonly store: FileStore) {}",
+      "  @Get()",
+      '  read(@Query("name") name: string) {',
+      "    return this.store.read(name);",
+      "  }",
+      "}",
+    ],
+  });
+
+  assert.deepEqual(located(issues), [
+    {
+      rule: "path-traversal",
+      severity: "critical",
+      at: "src/files/disk-file-store.ts:6",
+      confidence: "medium",
+    },
+  ]);
+  assert.match(
+    issues[0]?.fix ?? "",
+    /^Request data reaches this call from src\/files\/files\.controller\.ts:8; /,
+  );
+});
+
+test("injection tokens and abstract classes resolve through module providers", async () => {
+  const issues = await scan({
+    "src/reports/reports.repository.ts": [
+      "export interface ReportsRepository {",
+      "  find(id: string): unknown;",
+      "}",
+      "export abstract class AuditLog {",
+      "  abstract record(entry: string): void;",
+      "}",
+    ],
+    "src/reports/sql-reports.repository.ts": [
+      "export class SqlReportsRepository {",
+      "  constructor(private readonly db: { query(sql: string): unknown }) {}",
+      "  find(id: string) {",
+      "    return this.db.query(`SELECT * FROM reports WHERE id = ${id}`);",
+      "  }",
+      "}",
+    ],
+    "src/reports/shell-audit-log.ts": [
+      'import { execSync } from "node:child_process";',
+      "export class ShellAuditLog {",
+      "  record(entry: string) {",
+      "    execSync(`logger ${entry}`);",
+      "  }",
+      "}",
+    ],
+    "src/reports/reports.module.ts": [
+      'import { Module } from "@nestjs/common";',
+      'import { AuditLog } from "./reports.repository";',
+      'import { ShellAuditLog } from "./shell-audit-log";',
+      'import { SqlReportsRepository } from "./sql-reports.repository";',
+      "@Module({",
+      "  providers: [",
+      '    { provide: "REPORTS", useClass: SqlReportsRepository },',
+      "    { provide: AuditLog, useClass: ShellAuditLog },",
+      "  ],",
+      "})",
+      "export class ReportsModule {}",
+    ],
+    "src/reports/reports.controller.ts": [
+      'import { Controller, Get, Inject, Query } from "@nestjs/common";',
+      'import { AuditLog, type ReportsRepository } from "./reports.repository";',
+      "class ShowReportQuery { id!: string; }",
+      '@Controller("reports")',
+      "export class ReportsController {",
+      "  constructor(",
+      '    @Inject("REPORTS") private readonly reports: ReportsRepository,',
+      "    private readonly audit: AuditLog,",
+      "  ) {}",
+      "  @Get()",
+      "  show(@Query() query: ShowReportQuery) {",
+      "    this.audit.record(query.id);",
+      "    return this.reports.find(query.id);",
+      "  }",
+      "}",
+    ],
+  });
+
+  assert.deepEqual(located(issues), [
+    {
+      rule: "dynamic-command-execution",
+      severity: "critical",
+      at: "src/reports/shell-audit-log.ts:4",
+      confidence: "medium",
+    },
+    {
+      rule: "dynamic-sql-query",
+      severity: "critical",
+      at: "src/reports/sql-reports.repository.ts:4",
+      confidence: "medium",
+    },
+  ]);
+});
+
+test("an interface with several implementations is not followed", async () => {
+  const issues = await scan({
+    "src/jobs/runner.ts": [
+      'import { exec } from "node:child_process";',
+      "export interface Runner {",
+      "  run(command: string): void;",
+      "}",
+      "export class LocalRunner implements Runner {",
+      "  run(command: string) {",
+      "    exec(command);",
+      "  }",
+      "}",
+      "export class RemoteRunner implements Runner {",
+      "  run(command: string) {",
+      "    exec(`ssh worker ${command}`);",
+      "  }",
+      "}",
+    ],
+    "src/jobs/jobs.controller.ts": [
+      'import { Controller, Inject, Post, Query } from "@nestjs/common";',
+      'import type { Runner } from "./runner";',
+      "class StartJobQuery { command!: string; }",
+      '@Controller("jobs")',
+      "export class JobsController {",
+      '  constructor(@Inject("RUNNER") private readonly runner: Runner) {}',
+      "  @Post()",
+      "  start(@Query() query: StartJobQuery) {",
+      "    this.runner.run(query.command);",
+      "  }",
+      "}",
+    ],
+  });
+
+  assert.deepEqual(located(issues), [
+    {
+      rule: "dynamic-command-execution",
+      severity: "warning",
+      at: "src/jobs/runner.ts:7",
+    },
+    {
+      rule: "dynamic-command-execution",
+      severity: "warning",
+      at: "src/jobs/runner.ts:12",
+    },
+  ]);
+});
+
 test("request data is followed through two helpers but not three", async () => {
   const issues = await scan({
     "src/lib/chain.ts": [

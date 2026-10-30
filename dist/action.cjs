@@ -257020,10 +257020,10 @@ function boundNames(name) {
   return [];
 }
 var scopeIndexes = /* @__PURE__ */ new WeakMap();
-function add2(map, name, value) {
-  const list = map.get(name);
+function add2(map, key, value) {
+  const list = map.get(key);
   if (list) list.push(value);
-  else map.set(name, [value]);
+  else map.set(key, [value]);
 }
 var ELEMENT_CALLBACKS = /* @__PURE__ */ new Set([
   "every",
@@ -257639,6 +257639,62 @@ function invocations(fn, index) {
     return reference?.fn === fn && reference.index === index && !reference.destructured;
   });
 }
+function declarationOf(expression) {
+  let symbol = expression.getSymbol();
+  if (symbol?.isAlias()) symbol = symbol.getAliasedSymbol();
+  return symbol?.getDeclarations()[0];
+}
+function tokenKey(token) {
+  const value = unwrap2(token);
+  if (import_ts_morph10.Node.isStringLiteral(value) || import_ts_morph10.Node.isNoSubstitutionTemplateLiteral(value)) {
+    return JSON.stringify(value.getLiteralText());
+  }
+  return import_ts_morph10.Node.isIdentifier(value) || import_ts_morph10.Node.isPropertyAccessExpression(value) ? declarationOf(value) : void 0;
+}
+function indexImplementations(files) {
+  const index = { heritage: /* @__PURE__ */ new Map(), providers: /* @__PURE__ */ new Map() };
+  for (const sourceFile of files) {
+    for (const owner of sourceFile.getDescendantsOfKind(
+      import_ts_morph10.SyntaxKind.ClassDeclaration
+    )) {
+      const parent = owner.getExtends();
+      for (const clause of [
+        ...owner.getImplements(),
+        ...parent ? [parent] : []
+      ]) {
+        const declaration = declarationOf(clause.getExpression());
+        if (declaration) add2(index.heritage, declaration, owner);
+      }
+    }
+    for (const literal of sourceFile.getDescendantsOfKind(
+      import_ts_morph10.SyntaxKind.ObjectLiteralExpression
+    )) {
+      const provide = objectProperty(literal, ["provide"]);
+      const useClass = objectProperty(literal, ["useClass"]);
+      const key = provide ? tokenKey(provide) : void 0;
+      const provided = useClass ? declarationOf(useClass) : void 0;
+      if (key !== void 0 && import_ts_morph10.Node.isClassDeclaration(provided)) {
+        add2(index.providers, key, provided);
+      }
+    }
+  }
+  return index;
+}
+function injectionToken(receiver) {
+  if (!import_ts_morph10.Node.isPropertyAccessExpression(receiver) || !import_ts_morph10.Node.isThisExpression(receiver.getExpression())) {
+    return void 0;
+  }
+  for (const declaration of receiver.getNameNode().getSymbol()?.getDeclarations() ?? []) {
+    if (import_ts_morph10.Node.isParameterDeclaration(declaration) || import_ts_morph10.Node.isPropertyDeclaration(declaration)) {
+      const token = declaration.getDecorator("Inject")?.getArguments()[0];
+      if (token) return tokenKey(token);
+    }
+  }
+  return void 0;
+}
+function isBodilessMethod(node) {
+  return import_ts_morph10.Node.isMethodSignature(node) || import_ts_morph10.Node.isMethodDeclaration(node) && !node.hasBody();
+}
 var CallGraph = class {
   /** @param files The scanned runtime source files and their project paths. */
   constructor(files) {
@@ -257646,6 +257702,7 @@ var CallGraph = class {
   }
   files;
   index;
+  implementations;
   targets = /* @__PURE__ */ new WeakMap();
   callerLists = /* @__PURE__ */ new WeakMap();
   callbackSites = /* @__PURE__ */ new WeakMap();
@@ -257666,10 +257723,39 @@ var CallGraph = class {
       const candidates = declarations.some((node) => constructorOf(node)) ? declarations : callee.getType().getSymbol()?.getDeclarations() ?? [];
       target = this.inFiles(candidates.map(constructorOf));
     } else {
-      target = this.inFiles(declarations.map((node) => functionOf(node)));
+      target = this.inFiles(declarations.map((node) => functionOf(node))) ?? this.implementation(declarations, callee);
     }
     this.targets.set(call, target);
     return target;
+  }
+  /**
+   * For `receiver.method()` where the method's owner only declares it (a
+   * project interface or abstract class), or the receiver is a field with
+   * an `@Inject()` token: the one project method behind it, from classes
+   * that implement or extend the owner and classes a module provides for
+   * the owner or the token. Null when there is none or more than one.
+   */
+  implementation(declarations, callee) {
+    if (!import_ts_morph10.Node.isPropertyAccessExpression(callee)) return null;
+    const owner = declarations.find(isBodilessMethod)?.getParent();
+    const keys = [];
+    if (owner && this.files.has(owner.getSourceFile())) keys.push(owner);
+    const token = injectionToken(callee.getExpression());
+    if (token !== void 0) keys.push(token);
+    if (keys.length === 0) return null;
+    this.implementations ??= indexImplementations(this.files.keys());
+    const { heritage, providers } = this.implementations;
+    const classes = new Set(
+      keys.flatMap((key) => [
+        ...typeof key === "string" ? [] : heritage.get(key) ?? [],
+        ...providers.get(key) ?? []
+      ])
+    );
+    const methods = new Set(
+      [...classes].map((owner2) => owner2.getInstanceMethod(callee.getName())).filter((method2) => method2?.hasBody())
+    );
+    const [method] = methods;
+    return methods.size === 1 && method ? this.inFiles([method]) : null;
   }
   /** Calls of a function, or `new` expressions of a class, in the scan. */
   callers(fn) {
