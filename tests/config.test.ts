@@ -7,6 +7,7 @@ import {
   isBelowThreshold,
   loadConfig,
   normalizeIgnorePatterns,
+  parseSecretHistory,
   parseThreshold,
 } from "../src/config.js";
 
@@ -142,4 +143,41 @@ test("loads and validates the audit switch", () => {
       /audit must be true, false, or production/,
     );
   });
+});
+
+test("loads and validates the secret history setting", () => {
+  withProject((directory) => {
+    const write = (value: string) =>
+      writeFileSync(
+        join(directory, ".codediag.yml"),
+        `secretHistory: ${value}\n`,
+      );
+    assert.equal(loadConfig(directory).secretHistory, false);
+    write("false");
+    assert.equal(loadConfig(directory).secretHistory, false);
+    write("true");
+    assert.equal(loadConfig(directory).secretHistory, 1000);
+    write("250");
+    assert.equal(loadConfig(directory).secretHistory, 250);
+    for (const invalid of ["0", "-5", "2.5", "100001", "all", '"500"']) {
+      write(invalid);
+      assert.throws(
+        () => loadConfig(directory),
+        /Invalid \.codediag\.yml: secretHistory must be true, false, or a number of commits from 1 to 100000/,
+        invalid,
+      );
+    }
+  });
+});
+
+test("parses the --secret-history commit count", () => {
+  assert.equal(parseSecretHistory(true), 1000);
+  assert.equal(parseSecretHistory("40"), 40);
+  for (const invalid of ["", "0", "1e3", "12abc", "100001", "."]) {
+    assert.throws(
+      () => parseSecretHistory(invalid),
+      /--secret-history must be a number of commits from 1 to 100000/,
+      invalid,
+    );
+  }
 });

@@ -163,6 +163,9 @@ async function runScan(
         async (progress) => {
           const options = {
             interactive: false,
+            // Git history findings depend on the clone and are slow to
+            // compute; the editor shows the working tree only.
+            secretHistory: false as const,
             // Saves trigger frequent scans: reuse the last audit of the same
             // lock file instead of blocking on the network.
             ...(trigger === "save" ? { audit: "cached" as const } : {}),

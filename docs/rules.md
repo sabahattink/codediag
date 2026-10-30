@@ -365,6 +365,21 @@ res.send(), res.write(), or res.end(), or a Response with a text/html content ty
 - CWE: [CWE-79](https://cwe.mitre.org/data/definitions/79.html)
 - OWASP Top 10: A03:2021
 
+### secret-history-incomplete
+
+**Git history scan incomplete** · default severity: `info`
+
+The Git history scan for removed secrets stopped at its output size or time limit, so older commits were not checked. The findings it reports cover the commits it read.
+
+### secret-in-git-history
+
+**Secret in Git history** · default severity: `critical`
+
+A commit on the checked-out branch added a credential that is no longer in the current tree, but every clone and fork still contains it. Only scanned with `secretHistory` in .codediag.yml or `--secret-history`: added lines of recent commits are checked for provider formats (private keys, AWS, GitHub, Stripe, Slack, npm, Google, Anthropic, OpenAI, SendGrid, database URLs with a password) and, in configuration and .env files, long random values of secret-like keys. Secrets still in the current tree are left to the other secret rules. Rotate or revoke the credential; rewriting history does not revoke it. Findings never include the value.
+
+- CWE: [CWE-798](https://cwe.mitre.org/data/definitions/798.html), [CWE-312](https://cwe.mitre.org/data/definitions/312.html)
+- OWASP Top 10: A07:2021
+
 ### server-side-request-forgery
 
 **Outgoing request to a URL from request data** · default severity: `warning`

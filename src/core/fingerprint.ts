@@ -15,7 +15,9 @@ function normalize(text: string): string {
  * - With a source line: the line's normalized text plus the message, so short
  *   lines such as `@Post()` are told apart by what the finding says. Lines
  *   that may hold a credential are never hashed.
- * - With a file but no line: nothing beyond the rule and file.
+ * - With a file but no line: nothing beyond the rule and file, unless the
+ *   rule's message tells findings in one file apart (the commit that added a
+ *   secret to Git history).
  * - Without a file: the message with numbers masked, so a changing count
  *   (such as a test ratio) keeps its identity, unless the rule declares that
  *   counts are identity (vulnerability totals).
@@ -27,7 +29,7 @@ function anchor(issue: DiagnosticIssue, lineText: string | null): string {
     const line = lineText === null ? "" : normalize(lineText);
     return rule?.sensitiveSource || !line ? message : `${line}\u0001${message}`;
   }
-  if (issue.file) return "";
+  if (issue.file) return rule?.messageIsIdentity ? message : "";
   return rule?.countsAreIdentity
     ? message
     : message.replace(/\d+(?:\.\d+)?/g, "#");

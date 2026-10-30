@@ -1,6 +1,12 @@
 import { appendFileSync, mkdirSync, writeFileSync } from "node:fs";
 import { dirname, isAbsolute, relative, resolve, sep } from "node:path";
-import { isBelowThreshold, loadConfig, parseThreshold } from "./config.js";
+import { isShallowRepository } from "./analyzers/secret-history.js";
+import {
+  isBelowThreshold,
+  loadConfig,
+  parseSecretHistory,
+  parseThreshold,
+} from "./config.js";
 import { loadBaseline } from "./core/baseline.js";
 import {
   compareWithPrevious,
@@ -136,6 +142,20 @@ function parseBooleanInput(name: string, value: string): boolean {
   throw new Error(`${name} must be true or false.`);
 }
 
+/** Empty leaves `secretHistory` in .codediag.yml in charge. */
+function parseSecretHistoryInput(value: string): false | number | undefined {
+  if (value === "") return undefined;
+  if (/^(?:false|no|0)$/i.test(value)) return false;
+  if (/^(?:true|yes)$/i.test(value)) return parseSecretHistory(true);
+  try {
+    return parseSecretHistory(value);
+  } catch {
+    throw new Error(
+      "secret-history must be true, false, or a number of commits from 1 to 100000.",
+    );
+  }
+}
+
 /**
  * Creates or updates CodeDiag's pull request comment. A failure only warns,
  * because the scan result and threshold must not depend on comment access.
@@ -244,9 +264,21 @@ export async function runAction(): Promise<void> {
     const previous = compareInput
       ? loadReport(resolveWorkspacePath(workspace, compareInput))
       : undefined;
+    const secretHistory = parseSecretHistoryInput(
+      getInput("secret-history", ""),
+    );
+    const scanOptions = { baseline, secretHistory };
     const scanned = workspaces
-      ? await scanWorkspace(projectPath, config, workspaces, { baseline })
-      : await scan(projectPath, config, { baseline });
+      ? await scanWorkspace(projectPath, config, workspaces, scanOptions)
+      : await scan(projectPath, config, scanOptions);
+    if (
+      (secretHistory ?? config.secretHistory) !== false &&
+      isShallowRepository(projectPath)
+    ) {
+      console.log(
+        "::warning title=CodeDiag secret history::The checkout is shallow, so only part of the Git history was searched for removed secrets. Use actions/checkout with fetch-depth: 0.",
+      );
+    }
     const result = previous ? compareWithPrevious(scanned, previous) : scanned;
 
     mkdirSync(dirname(reportPath), { recursive: true });

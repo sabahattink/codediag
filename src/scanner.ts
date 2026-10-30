@@ -53,6 +53,11 @@ export interface ScanOptions {
    */
   audit?: boolean | "cached";
   /**
+   * Overrides the `secretHistory` config setting: the number of recent
+   * commits searched for removed secrets, or false to skip Git history.
+   */
+  secretHistory?: false | number;
+  /**
    * Reports and scores only findings in these project-relative files,
    * typically from changedFilesSince().
    */
@@ -142,7 +147,9 @@ export async function scan(
   // Security
   if (config.analyzers.security) {
     progress.start("Scanning security...");
-    const sec = await analyzeSecurity(context);
+    const sec = await analyzeSecurity(context, {
+      secretHistory: options.secretHistory,
+    });
     results.push(sec);
     progress.succeed(`Security: ${findingCount(sec)}`);
   }

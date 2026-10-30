@@ -3,6 +3,7 @@ import { dirname, join, relative } from "node:path";
 import type { ScanContext } from "../core/scan-context.js";
 import { fromRule } from "../rules/registry.js";
 import type { AnalyzerResult, DiagnosticIssue } from "../types.js";
+import { scanSecretHistory } from "./secret-history.js";
 import { findConfigSecrets } from "./secrets.js";
 import { analyzeSecuritySinks } from "./security-sinks.js";
 
@@ -388,8 +389,17 @@ function readSources(context: ScanContext): {
   return { allSources, runtimeSources };
 }
 
+export interface SecurityOptions {
+  /**
+   * Overrides the `secretHistory` config setting: a number of commits to
+   * search, or false to leave Git history alone.
+   */
+  secretHistory?: false | number;
+}
+
 export async function analyzeSecurity(
   context: ScanContext,
+  options: SecurityOptions = {},
 ): Promise<AnalyzerResult> {
   const { projectPath } = context;
   const issues: DiagnosticIssue[] = [];
@@ -471,6 +481,22 @@ export async function analyzeSecurity(
   issues.push(...configSecrets);
   if (!secretsFound && configSecrets.length === 0) checksPassed++;
 
+  // Opt-in: results depend on clone depth, so they would make local and CI
+  // baselines differ.
+  const secretHistory = options.secretHistory ?? context.config.secretHistory;
+  let historyNote: string | undefined;
+  if (secretHistory !== false) {
+    const history = scanSecretHistory(context, secretHistory);
+    if (history.scanned) {
+      checksRun++;
+      if (!history.issues.some((issue) => issue.severity !== "info")) {
+        checksPassed++;
+      }
+    }
+    issues.push(...history.issues);
+    historyNote = history.note;
+  }
+
   const detectedPasswordIssues = passwordIssues(runtimeSources);
   if (
     detectedPasswordIssues.length > 0 ||
@@ -531,6 +557,6 @@ export async function analyzeSecurity(
     name: "Security",
     score,
     issues,
-    summary: `${checksPassed}/${checksRun} checks passed`,
+    summary: `${checksPassed}/${checksRun} checks passed${historyNote ? `; ${historyNote}` : ""}`,
   };
 }

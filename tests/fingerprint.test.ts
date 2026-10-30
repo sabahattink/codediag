@@ -146,3 +146,26 @@ test("fileless counts are masked unless they are the finding's identity", () => 
     vulnerabilities("3 high severity vulnerabilities"),
   );
 });
+
+test("findings in a file without a line are told apart by message only when the rule says so", () => {
+  const finding = (rule: string, message: string) =>
+    computeFingerprint(
+      { severity: "critical", rule, message, file: "config/old.json" },
+      null,
+    );
+
+  assert.notEqual(
+    finding(
+      "secret-in-git-history",
+      "An AWS access key was committed to config/old.json in 1a2b3c4 (2024-01-10) and remains in Git history after its removal",
+    ),
+    finding(
+      "secret-in-git-history",
+      "An AWS access key was committed to config/old.json in 9f8e7d6 (2024-02-10) and remains in Git history after its removal",
+    ),
+  );
+  assert.equal(
+    finding("committed-env-secret", "first wording"),
+    finding("committed-env-secret", "second wording"),
+  );
+});

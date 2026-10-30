@@ -248,6 +248,19 @@ test("version 2 replaces checks-passed summaries with finding counts", () => {
   assert.equal(unchanged.summary, "3 test files, framework: vitest");
 });
 
+test("version 2 keeps a note after a checks-passed summary", () => {
+  const input = analyzer("Security", []);
+  input.summary =
+    "6/6 checks passed; Git history: 40 commits scanned; shallow clone, so history is partial";
+
+  const [security] = applyScoring([input], 2);
+
+  assert.equal(
+    security.summary,
+    "No findings; Git history: 40 commits scanned; shallow clone, so history is partial",
+  );
+});
+
 test("accepted root causes no longer excuse their consequences", () => {
   const [result] = applyScoring(
     [

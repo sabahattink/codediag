@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { spawnSync } from "node:child_process";
 import test from "node:test";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 const repositoryRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const actionEntry = join(repositoryRoot, "dist", "action.cjs");
@@ -379,6 +379,88 @@ test("GitHub Action combines workspace packages with workspaces: true", async ()
     assert.match(
       missing.stdout + missing.stderr,
       /no workspace packages were found/,
+    );
+  } finally {
+    await rm(workspace, { recursive: true, force: true });
+  }
+});
+
+test("GitHub Action reads Git history for removed secrets with secret-history", async () => {
+  const workspace = await mkdtemp(join(tmpdir(), "codediag-action-"));
+  const reportFile = join(workspace, "out", "report.json");
+  const git = (cwd, ...args) =>
+    spawnSync("git", args, { cwd, encoding: "utf8" });
+
+  try {
+    git(workspace, "init", "-q");
+    git(workspace, "config", "user.name", "CodeDiag");
+    git(workspace, "config", "user.email", "codediag@example.com");
+    git(workspace, "config", "commit.gpgsign", "false");
+    await writeFile(join(workspace, "package.json"), "{}\n", "utf8");
+    await writeFile(join(workspace, ".gitignore"), "out/\n", "utf8");
+    // Assembled at runtime so this file does not contain a token pattern.
+    const key = ["AKIA", "IOSFODNN7", "EXAMPLF"].join("");
+    await writeFile(join(workspace, "settings.yml"), `key: ${key}\n`, "utf8");
+    git(workspace, "add", "-A");
+    git(workspace, "commit", "-q", "-m", "add settings");
+    await rm(join(workspace, "settings.yml"));
+    git(workspace, "add", "-A");
+    git(workspace, "commit", "-q", "-m", "remove settings");
+
+    const run = (cwd, secretHistory) =>
+      spawnSync(process.execPath, [actionEntry], {
+        cwd,
+        encoding: "utf8",
+        env: {
+          ...process.env,
+          GITHUB_WORKSPACE: cwd,
+          GITHUB_OUTPUT: join(workspace, "out", "output.txt"),
+          INPUT_PATH: ".",
+          INPUT_THRESHOLD: "0",
+          INPUT_REPORT: reportFile,
+          INPUT_SARIF: join(workspace, "out", "report.sarif"),
+          // GitHub keeps the hyphen in an input's variable name.
+          "INPUT_SECRET-HISTORY": secretHistory,
+        },
+      });
+    const historyFiles = async () =>
+      JSON.parse(await readFile(reportFile, "utf8"))
+        .analyzers.flatMap((analyzer) => analyzer.issues)
+        .filter((issue) => issue.rule === "secret-in-git-history")
+        .map((issue) => issue.file);
+
+    const off = run(workspace, "");
+    assert.equal(off.status, 0, off.stderr || off.stdout);
+    assert.deepEqual(await historyFiles(), []);
+
+    const on = run(workspace, "true");
+    assert.equal(on.status, 0, on.stderr || on.stdout);
+    assert.deepEqual(await historyFiles(), ["settings.yml"]);
+    assert.doesNotMatch(on.stdout, /checkout is shallow/);
+    assert.ok(!on.stdout.includes(key));
+
+    const invalid = run(workspace, "all");
+    assert.equal(invalid.status, 2);
+    assert.match(
+      invalid.stdout + invalid.stderr,
+      /secret-history must be true%2C false%2C or a number of commits/,
+    );
+
+    const clone = join(workspace, "out", "clone");
+    git(
+      workspace,
+      "clone",
+      "-q",
+      "--depth",
+      "1",
+      pathToFileURL(workspace).href,
+      clone,
+    );
+    const shallow = run(clone, "10");
+    assert.equal(shallow.status, 0, shallow.stderr || shallow.stdout);
+    assert.match(
+      shallow.stdout,
+      /::warning title=CodeDiag secret history::The checkout is shallow/,
     );
   } finally {
     await rm(workspace, { recursive: true, force: true });
