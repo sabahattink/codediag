@@ -104,6 +104,8 @@ export interface WorkspacePackageSummary {
   grade: Grade;
   /** Active findings in the package. */
   findings: number;
+  /** The minimum score the package must reach, when one is configured. */
+  threshold?: number;
 }
 
 /** Present on a combined report from a `--workspaces` scan. */
@@ -177,6 +179,11 @@ export interface PackageJson {
 
 export interface CodediagConfig {
   threshold: number;
+  /**
+   * The minimum score of every package in a `--workspaces` scan, or null.
+   * A package's own .codediag.yml can set its own.
+   */
+  packageThreshold: number | null;
   ignore: string[];
   maxFileSizeKb: number;
   scoring: { version: ScoringVersion };
@@ -199,6 +206,7 @@ export type AnalyzerKey = keyof CodediagConfig["analyzers"];
 
 export const DEFAULT_CONFIG: CodediagConfig = {
   threshold: 70,
+  packageThreshold: null,
   ignore: ["node_modules", "dist", ".git", "coverage"],
   maxFileSizeKb: 512,
   scoring: { version: 2 },

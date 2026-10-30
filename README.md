@@ -228,7 +228,14 @@ baselines, `--compare`, `--changed-since`, SARIF, and the GitHub Action
 ```bash
 codediag scan . --workspaces
 codediag scan . --workspaces --format html > monorepo-report.html
+codediag scan . --workspaces --package-threshold 70   # Gate every package too
 ```
+
+A combined average can hide one weak package. `packageThreshold` (or
+`--package-threshold`, or the Action's `package-threshold` input) gates every
+package on its own score as well: a package below it fails the scan, is
+named on stderr and in the job summary, and is marked in every report. A
+package's own `.codediag.yml` can set a different `packageThreshold`.
 
 Scanning a workspace root without `--workspaces` scans it as one project and
 suggests the flag.
@@ -369,6 +376,7 @@ plain scans are informational; `--ci` uses the default threshold of 70.
 
 ```yaml
 threshold: 70
+packageThreshold: 60     # optional; each --workspaces package must reach it
 ignore: [node_modules, dist, .git, coverage]
 maxFileSizeKb: 512
 scoring:

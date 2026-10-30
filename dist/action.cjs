@@ -252236,6 +252236,7 @@ function fromRule(id) {
 // src/types.ts
 var DEFAULT_CONFIG = {
   threshold: 70,
+  packageThreshold: null,
   ignore: ["node_modules", "dist", ".git", "coverage"],
   maxFileSizeKb: 512,
   scoring: { version: 2 },
@@ -252261,10 +252262,10 @@ var ANALYZER_KEYS = [
 function isRecord(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
-function readThreshold(value, fallback2) {
+function readThreshold(value, fallback2, name = "threshold") {
   if (value === void 0) return fallback2;
   if (!Number.isInteger(value) || Number(value) < 0 || Number(value) > 100) {
-    throw new Error("threshold must be an integer between 0 and 100");
+    throw new Error(`${name} must be an integer between 0 and 100`);
   }
   return Number(value);
 }
@@ -252353,6 +252354,7 @@ function loadConfig(projectPath) {
   if (!(0, import_node_fs.existsSync)(configPath)) {
     return {
       threshold: DEFAULT_CONFIG.threshold,
+      packageThreshold: DEFAULT_CONFIG.packageThreshold,
       ignore: [...DEFAULT_CONFIG.ignore],
       maxFileSizeKb: DEFAULT_CONFIG.maxFileSizeKb,
       scoring: { ...DEFAULT_CONFIG.scoring },
@@ -252375,6 +252377,7 @@ function loadConfig(projectPath) {
   }
   const allowedKeys = /* @__PURE__ */ new Set([
     "threshold",
+    "packageThreshold",
     "ignore",
     "maxFileSizeKb",
     "scoring",
@@ -252393,6 +252396,11 @@ function loadConfig(projectPath) {
   try {
     return {
       threshold: readThreshold(document.threshold, DEFAULT_CONFIG.threshold),
+      packageThreshold: readThreshold(
+        document.packageThreshold,
+        DEFAULT_CONFIG.packageThreshold,
+        "packageThreshold"
+      ),
       ignore: readIgnore(document.ignore, DEFAULT_CONFIG.ignore),
       maxFileSizeKb: readMaxFileSizeKb(
         document.maxFileSizeKb,
@@ -252416,14 +252424,22 @@ function normalizeIgnorePatterns(entries) {
     return [normalized, `${normalized}/**`];
   });
 }
-function parseThreshold(value) {
+function parseThreshold(value, name = "threshold") {
   if (!/^\d+$/.test(value)) {
-    throw new Error("threshold must be an integer between 0 and 100");
+    throw new Error(`${name} must be an integer between 0 and 100`);
   }
-  return readThreshold(Number(value), DEFAULT_CONFIG.threshold);
+  return readThreshold(Number(value), DEFAULT_CONFIG.threshold, name);
 }
 function isBelowThreshold(score, threshold) {
   return score < threshold;
+}
+function packagesBelowThreshold(workspace) {
+  return (workspace?.packages ?? []).filter(
+    (entry) => entry.threshold !== void 0 && isBelowThreshold(entry.totalScore, entry.threshold)
+  );
+}
+function packageThresholdMessage(entry) {
+  return `${entry.path} scored ${entry.totalScore}, below its package threshold ${entry.threshold}`;
 }
 
 // src/core/baseline.ts
@@ -262292,25 +262308,29 @@ function combineWorkspace(root, info, scans, options) {
         findings: scan2.result.analyzers.reduce(
           (sum, analyzer) => sum + activeIssues(analyzer).length,
           0
-        )
+        ),
+        ...scan2.threshold !== void 0 ? { threshold: scan2.threshold } : {}
       }))
     }
   };
 }
 async function scanWorkspace(root, rootConfig, info, options = {}) {
+  const { packageThreshold, ...scanOptions } = options;
   const scans = [];
   for (const workspacePackage of info.packages) {
-    const result = await scan(
-      (0, import_node_path14.join)(root, workspacePackage.path),
-      packageConfig(root, workspacePackage.path, rootConfig),
-      {
-        ...options,
-        scope: packageScope(options.scope, workspacePackage.path),
-        fingerprintNamespace: workspacePackage.path,
-        label: workspacePackage.path
-      }
-    );
-    scans.push({ ...workspacePackage, result });
+    const config = packageConfig(root, workspacePackage.path, rootConfig);
+    const result = await scan((0, import_node_path14.join)(root, workspacePackage.path), config, {
+      ...scanOptions,
+      scope: packageScope(options.scope, workspacePackage.path),
+      fingerprintNamespace: workspacePackage.path,
+      label: workspacePackage.path
+    });
+    const threshold = packageThreshold ?? config.packageThreshold ?? rootConfig.packageThreshold ?? void 0;
+    scans.push({
+      ...workspacePackage,
+      result,
+      ...threshold !== void 0 ? { threshold } : {}
+    });
   }
   return combineWorkspace(root, info, scans, {
     scoringVersion: rootConfig.scoring.version,
@@ -262485,10 +262505,14 @@ function findingRow({ issue, path: path2 }) {
 }
 function renderPrComment(input) {
   const { result, threshold, changedFiles: changedFiles2, projectDirectory } = input;
-  const passed = !isBelowThreshold(result.totalScore, threshold);
+  const failingPackages = packagesBelowThreshold(result.workspace);
+  const passed = !isBelowThreshold(result.totalScore, threshold) && failingPackages.length === 0;
   const status = [
     result.comparison ? baseChange(result.comparison) : scoreChange(result.totalScore, input.previousScore),
-    `threshold ${threshold}`
+    `threshold ${threshold}`,
+    failingPackages.length > 0 ? `below their package threshold: ${failingPackages.map(
+      (entry) => `\`${escapeCell(entry.path)}\` ${entry.totalScore}/${entry.threshold}`
+    ).join(", ")}` : ""
   ].filter(Boolean);
   const lines = [
     PR_COMMENT_MARKER,
@@ -262811,8 +262835,11 @@ function getInput(name, fallback2) {
   const value = process.env[`INPUT_${name.toUpperCase()}`]?.trim();
   return value || fallback2;
 }
+function workflowData(value) {
+  return value.replaceAll("%", "%25").replaceAll("\r", "%0D").replaceAll("\n", "%0A");
+}
 function workflowEscape(value) {
-  return value.replaceAll("%", "%25").replaceAll("\r", "%0D").replaceAll("\n", "%0A").replaceAll(":", "%3A").replaceAll(",", "%2C");
+  return workflowData(value).replaceAll(":", "%3A").replaceAll(",", "%2C");
 }
 function markdownEscape(value) {
   return value.replaceAll("|", "\\|").replaceAll("\n", " ");
@@ -262830,7 +262857,7 @@ function issueAnnotation(issue) {
   if (issue.file) properties.push(`file=${workflowEscape(issue.file)}`);
   if (issue.line) properties.push(`line=${issue.line}`);
   properties.push(`title=${workflowEscape(`CodeDiag ${issue.rule}`)}`);
-  return `::${level} ${properties.join(",")}::${workflowEscape(issue.message)}`;
+  return `::${level} ${properties.join(",")}::${workflowData(issue.message)}`;
 }
 function emitAnnotations(result) {
   const issues = result.analyzers.flatMap(activeIssues).filter((issue) => issue.severity !== "info");
@@ -262858,6 +262885,15 @@ function renderSummary(result, threshold) {
     );
   }
   lines.push("", `Required threshold: **${threshold}/100**`);
+  const failingPackages = packagesBelowThreshold(result.workspace);
+  if (failingPackages.length > 0) {
+    lines.push(
+      "",
+      `Packages below their threshold: ${failingPackages.map(
+        (entry) => `${markdownEscape(entry.path)} (${entry.totalScore}/${entry.threshold})`
+      ).join(", ")}`
+    );
+  }
   if (result.comparison) {
     const { previousScore: previousScore2, scoreDelta, newFindings, fixedFindings } = result.comparison;
     lines.push(
@@ -262926,7 +262962,7 @@ async function commentOnPullRequest(result, threshold, workspace, projectPath) {
     const hint = error instanceof GitHubRequestError && (error.status === 403 || error.status === 404) ? " Grant `pull-requests: write` in the workflow's permissions; pull requests from forks get a read-only token." : "";
     const message = error instanceof Error ? error.message : String(error);
     console.log(
-      `::warning title=CodeDiag pull request comment::${workflowEscape(`${message}.${hint}`)}`
+      `::warning title=CodeDiag pull request comment::${workflowData(`${message}.${hint}`)}`
     );
   }
 }
@@ -262968,6 +263004,11 @@ async function runAction() {
       "workspaces",
       getInput("workspaces", "false")
     );
+    const packageThresholdInput = getInput("package-threshold", "");
+    const packageThreshold = packageThresholdInput ? parseThreshold(packageThresholdInput, "package-threshold") : void 0;
+    if (packageThreshold !== void 0 && !wantsWorkspaces) {
+      throw new Error("package-threshold needs workspaces: true.");
+    }
     const workspaces = wantsWorkspaces ? detectWorkspaces(projectPath) : null;
     if (wantsWorkspaces && !workspaces) {
       throw new Error(
@@ -262976,7 +263017,10 @@ async function runAction() {
     }
     const compareInput = validatePathInput("compare", getInput("compare", ""));
     const previous = compareInput ? loadReport(resolveWorkspacePath(workspace, compareInput)) : void 0;
-    const scanned = workspaces ? await scanWorkspace(projectPath, config, workspaces, { baseline }) : await scan(projectPath, config, { baseline });
+    const scanned = workspaces ? await scanWorkspace(projectPath, config, workspaces, {
+      baseline,
+      packageThreshold
+    }) : await scan(projectPath, config, { baseline });
     const result = previous ? compareWithPrevious(scanned, previous) : scanned;
     (0, import_node_fs16.mkdirSync)((0, import_node_path18.dirname)(reportPath), { recursive: true });
     (0, import_node_fs16.writeFileSync)(reportPath, `${JSON.stringify(result, null, 2)}
@@ -263007,10 +263051,16 @@ async function runAction() {
       );
       process.exitCode = 1;
     }
+    for (const entry of packagesBelowThreshold(result.workspace)) {
+      console.log(
+        `::error title=CodeDiag package threshold not met::${workflowData(packageThresholdMessage(entry))}.`
+      );
+      process.exitCode = 1;
+    }
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     console.error(
-      `::error title=CodeDiag action failed::${workflowEscape(message)}`
+      `::error title=CodeDiag action failed::${workflowData(message)}`
     );
     process.exitCode = 2;
   }

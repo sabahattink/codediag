@@ -558,6 +558,45 @@ test("--workspaces scans each package and combines the reports", () => {
     const single = runCli(["scan", "packages/web", "--workspaces"], directory);
     assert.equal(single.status, 1);
     assert.match(single.stderr, /No workspace packages found/);
+
+    // The api package's eval() puts it below the web package; gate between.
+    const [api, web] = report.workspace.packages.map(
+      (entry) => entry.totalScore,
+    );
+    assert.ok(api < web);
+    const gated = runCli(
+      [
+        "scan",
+        ".",
+        "--workspaces",
+        "--package-threshold",
+        String(web),
+        "--threshold",
+        "0",
+        "--no-audit",
+      ],
+      directory,
+    );
+    assert.equal(gated.status, 1);
+    assert.equal(
+      gated.stderr.match(/below its package threshold/g)?.length,
+      1,
+      gated.stderr,
+    );
+    assert.match(
+      gated.stderr,
+      new RegExp(
+        `packages/api scored ${api}, below its package threshold ${web}`,
+      ),
+    );
+    assert.match(gated.stdout, new RegExp(`packages/api .* below ${web}`));
+
+    const notWorkspace = runCli(
+      ["scan", ".", "--package-threshold", "50", "--no-audit"],
+      directory,
+    );
+    assert.equal(notWorkspace.status, 1);
+    assert.match(notWorkspace.stderr, /--package-threshold needs --workspaces/);
   } finally {
     rmSync(directory, { recursive: true, force: true });
   }

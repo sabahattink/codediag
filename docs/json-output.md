@@ -54,8 +54,9 @@ https://raw.githubusercontent.com/sabahattink/codediag/main/schema/scan-result.s
 
 `workspace` describes a combined monorepo report. `tool` is `npm`, `pnpm`,
 `yarn`, `lerna`, `nx`, or `turbo`, and `packages` lists each scanned package
-as `{ path, name?, framework, totalScore, grade, findings }` (`findings`
-counts active findings). In a combined report every finding's `file` is
+as `{ path, name?, framework, totalScore, grade, findings, threshold? }`
+(`findings` counts active findings; `threshold` is the package's
+`packageThreshold` when one applies). In a combined report every finding's `file` is
 relative to the workspace root, findings without a file point at their
 package's `package.json`, and fingerprints include the package path.
 

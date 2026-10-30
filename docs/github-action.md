@@ -47,6 +47,7 @@ third-party dependencies.
 | `baseline` | _(none)_ | Optional CodeDiag JSON report relative to `GITHUB_WORKSPACE`; its findings do not affect the score, threshold, or annotations. See [baselines](suppressions-and-baselines.md#baselines) |
 | `compare` | _(none)_ | Optional JSON report of the base branch relative to `GITHUB_WORKSPACE`; the comment and job summary show the score change against it and which findings are new or fixed. See [comparing with the base branch](#comparing-with-the-base-branch) |
 | `workspaces` | `false` | Scan every workspace package below `path` (npm, pnpm, Yarn, Lerna, Nx) and combine the reports; see [monorepos](../README.md#monorepos) |
+| `package-threshold` | _(config)_ | With `workspaces: true`, the minimum score of every package; overrides `packageThreshold` in `.codediag.yml` |
 | `comment` | `false` | Post and update one pull request comment; see [pull request comments](#pull-request-comments) |
 | `github-token` | `${{ github.token }}` | Token for reading changed files and writing the comment |
 
@@ -162,7 +163,12 @@ Scan every workspace package and combine the reports:
   with:
     workspaces: true
     threshold: 80
+    package-threshold: 70
 ```
+
+With `package-threshold`, a package that scores below it fails the job on its
+own, with an error annotation naming the package, even when the combined
+score passes.
 
 Or scan one package with its own threshold and reports:
 

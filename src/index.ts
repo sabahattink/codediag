@@ -2,7 +2,13 @@ import { existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import chalk from "chalk";
 import { Command } from "commander";
-import { isBelowThreshold, loadConfig, parseThreshold } from "./config.js";
+import {
+  isBelowThreshold,
+  loadConfig,
+  packagesBelowThreshold,
+  packageThresholdMessage,
+  parseThreshold,
+} from "./config.js";
 import { loadBaseline } from "./core/baseline.js";
 import { changedFilesSince } from "./core/changed-files.js";
 import { compareWithPrevious, loadReport } from "./core/compare.js";
@@ -89,6 +95,10 @@ program
     "--workspaces",
     "Scan every workspace package (npm, pnpm, Yarn, Lerna, Nx) and combine the reports",
   )
+  .option(
+    "--package-threshold <number>",
+    "With --workspaces, the minimum score of every package",
+  )
   .action(async (path: string, options, command: Command) => {
     const targetPath = resolve(path);
     // --ci implies JSON only when no output format was chosen explicitly.
@@ -110,6 +120,13 @@ program
           : options.ci || hasConfig
             ? config.threshold
             : null;
+      const packageThreshold =
+        options.packageThreshold !== undefined
+          ? parseThreshold(options.packageThreshold, "package threshold")
+          : undefined;
+      if (packageThreshold !== undefined && !options.workspaces) {
+        throw new Error("--package-threshold needs --workspaces");
+      }
       if (options.changedSince && options.updateBaseline) {
         throw new Error(
           "--update-baseline records the whole project and cannot be combined with --changed-since",
@@ -147,7 +164,10 @@ program
       };
       const scanned =
         options.workspaces && workspaces
-          ? await scanWorkspace(targetPath, config, workspaces, scanOptions)
+          ? await scanWorkspace(targetPath, config, workspaces, {
+              ...scanOptions,
+              packageThreshold,
+            })
           : await scan(targetPath, config, scanOptions);
       const compared = previous
         ? compareWithPrevious(scanned, previous, scope?.files)
@@ -207,8 +227,15 @@ program
           break;
       }
 
+      // stderr keeps machine-readable formats on stdout intact.
+      const failingPackages = packagesBelowThreshold(result.workspace);
+      for (const entry of failingPackages) {
+        console.error(chalk.red(`  ${packageThresholdMessage(entry)}`));
+      }
       process.exitCode =
-        threshold !== null && isBelowThreshold(result.totalScore, threshold)
+        (threshold !== null &&
+          isBelowThreshold(result.totalScore, threshold)) ||
+        failingPackages.length > 0
           ? 1
           : 0;
     } catch (err) {

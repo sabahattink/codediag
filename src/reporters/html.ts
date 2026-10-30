@@ -1,3 +1,4 @@
+import { isBelowThreshold } from "../config.js";
 import { formatDelta } from "../core/compare.js";
 import { activeIssues, inactiveCounts } from "../core/issues.js";
 import {
@@ -13,6 +14,7 @@ import type {
   HistoryPoint,
   ScanResult,
   ScanScope,
+  WorkspacePackageSummary,
   WorkspaceSummary,
 } from "../types.js";
 
@@ -222,6 +224,13 @@ function renderHistory(history: HistoryPoint[]): string {
   </section>`;
 }
 
+function renderPackageGate(entry: WorkspacePackageSummary): string {
+  if (entry.threshold === undefined) return "";
+  return isBelowThreshold(entry.totalScore, entry.threshold)
+    ? ` · <strong class="gate">below its threshold of ${entry.threshold}</strong>`
+    : ` · threshold ${entry.threshold} met`;
+}
+
 function renderPackages(workspace: WorkspaceSummary): string {
   const cards = workspace.packages
     .map((entry) => {
@@ -231,7 +240,7 @@ function renderPackages(workspace: WorkspaceSummary): string {
       ${entry.name ? `<p class="package-name">${escapeHtml(entry.name)}</p>` : ""}
       <div class="analyzer-score"><strong class="score">${entry.totalScore}</strong><span class="delta flat">${escapeHtml(entry.grade)}</span></div>
       <div class="bar" aria-hidden="true"><span style="width:${entry.totalScore}%"></span></div>
-      <p>${entry.findings} finding${entry.findings === 1 ? "" : "s"}</p>
+      <p>${entry.findings} finding${entry.findings === 1 ? "" : "s"}${renderPackageGate(entry)}</p>
     </article>`;
     })
     .join("\n");
@@ -306,6 +315,7 @@ section{margin-top:40px}
 .package-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
 .package-head code{font-weight:700;font-size:.85rem;overflow-wrap:anywhere}
 .package-name{margin:4px 0 0;color:var(--muted);font-size:.8rem}
+.package .gate{color:var(--bad)}
 .analyzer-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
 .analyzer h3{margin:0;font-size:.95rem}
 .weight{color:var(--muted);font:600 .7rem var(--mono);white-space:nowrap}

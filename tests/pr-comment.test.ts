@@ -267,3 +267,33 @@ test("a comparison with the base branch replaces the change since the last run",
   );
   assert.match(body, /\| `src\/login\.ts:4` \| A redirect target/);
 });
+
+test("pull request comment fails when a workspace package misses its threshold", () => {
+  const body = renderPrComment({
+    result: {
+      ...result([], 88),
+      workspace: {
+        tool: "npm",
+        packages: [
+          {
+            path: "packages/api",
+            framework: "express",
+            totalScore: 61,
+            grade: "D",
+            findings: 2,
+            threshold: 70,
+          },
+        ],
+      },
+    },
+    threshold: 80,
+    changedFiles: new Set(),
+    projectDirectory: "",
+  });
+
+  assert.match(body, /^## ❌ CodeDiag: 88\/100/m);
+  assert.match(
+    body,
+    /threshold 80 · below their package threshold: `packages\/api` 61\/70/,
+  );
+});

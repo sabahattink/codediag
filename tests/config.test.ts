@@ -129,6 +129,24 @@ test("threshold parsing and comparison are deterministic", () => {
   assert.throws(() => parseThreshold("80x"), /threshold must be an integer/);
 });
 
+test("loads and validates the workspace package threshold", () => {
+  withProject((directory) => {
+    assert.equal(loadConfig(directory).packageThreshold, null);
+    writeFileSync(join(directory, ".codediag.yml"), "packageThreshold: 60\n");
+    assert.equal(loadConfig(directory).packageThreshold, 60);
+    for (const value of ["101", "-1", "6.5", '"60"']) {
+      writeFileSync(
+        join(directory, ".codediag.yml"),
+        `packageThreshold: ${value}\n`,
+      );
+      assert.throws(
+        () => loadConfig(directory),
+        /packageThreshold must be an integer between 0 and 100/,
+      );
+    }
+  });
+});
+
 test("loads and validates the audit switch", () => {
   withProject((directory) => {
     assert.equal(loadConfig(directory).audit, true);

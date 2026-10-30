@@ -21,12 +21,15 @@ export interface WorkspaceScanOptions
   extends Omit<ScanOptions, "scope" | "fingerprintNamespace" | "label"> {
   /** Workspace-relative changed files, typically from changedFilesSince(). */
   scope?: { changedSince: string; files: ReadonlySet<string> };
+  /** Overrides every package's configured `packageThreshold`. */
+  packageThreshold?: number;
 }
 
 interface PackageScan {
   path: string;
   name?: string;
   result: ScanResult;
+  threshold?: number;
 }
 
 /**
@@ -253,6 +256,7 @@ export function combineWorkspace(
           (sum, analyzer) => sum + activeIssues(analyzer).length,
           0,
         ),
+        ...(scan.threshold !== undefined ? { threshold: scan.threshold } : {}),
       })),
     },
   };
@@ -269,19 +273,27 @@ export async function scanWorkspace(
   info: WorkspaceInfo,
   options: WorkspaceScanOptions = {},
 ): Promise<ScanResult> {
+  const { packageThreshold, ...scanOptions } = options;
   const scans: PackageScan[] = [];
   for (const workspacePackage of info.packages) {
-    const result = await scan(
-      join(root, workspacePackage.path),
-      packageConfig(root, workspacePackage.path, rootConfig),
-      {
-        ...options,
-        scope: packageScope(options.scope, workspacePackage.path),
-        fingerprintNamespace: workspacePackage.path,
-        label: workspacePackage.path,
-      },
-    );
-    scans.push({ ...workspacePackage, result });
+    const config = packageConfig(root, workspacePackage.path, rootConfig);
+    const result = await scan(join(root, workspacePackage.path), config, {
+      ...scanOptions,
+      scope: packageScope(options.scope, workspacePackage.path),
+      fingerprintNamespace: workspacePackage.path,
+      label: workspacePackage.path,
+    });
+    // A package's own config sets its threshold only if it names one.
+    const threshold =
+      packageThreshold ??
+      config.packageThreshold ??
+      rootConfig.packageThreshold ??
+      undefined;
+    scans.push({
+      ...workspacePackage,
+      result,
+      ...(threshold !== undefined ? { threshold } : {}),
+    });
   }
   return combineWorkspace(root, info, scans, {
     scoringVersion: rootConfig.scoring.version,

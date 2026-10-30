@@ -8,6 +8,8 @@ import {
   DEFAULT_CONFIG,
   type RuleSetting,
   type ScoringVersion,
+  type WorkspacePackageSummary,
+  type WorkspaceSummary,
 } from "./types.js";
 
 const ANALYZER_KEYS: AnalyzerKey[] = [
@@ -22,10 +24,14 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-function readThreshold(value: unknown, fallback: number): number {
+function readThreshold<T>(
+  value: unknown,
+  fallback: T,
+  name = "threshold",
+): number | T {
   if (value === undefined) return fallback;
   if (!Number.isInteger(value) || Number(value) < 0 || Number(value) > 100) {
-    throw new Error("threshold must be an integer between 0 and 100");
+    throw new Error(`${name} must be an integer between 0 and 100`);
   }
   return Number(value);
 }
@@ -140,6 +146,7 @@ export function loadConfig(projectPath: string): CodediagConfig {
   if (!existsSync(configPath)) {
     return {
       threshold: DEFAULT_CONFIG.threshold,
+      packageThreshold: DEFAULT_CONFIG.packageThreshold,
       ignore: [...DEFAULT_CONFIG.ignore],
       maxFileSizeKb: DEFAULT_CONFIG.maxFileSizeKb,
       scoring: { ...DEFAULT_CONFIG.scoring },
@@ -165,6 +172,7 @@ export function loadConfig(projectPath: string): CodediagConfig {
 
   const allowedKeys = new Set([
     "threshold",
+    "packageThreshold",
     "ignore",
     "maxFileSizeKb",
     "scoring",
@@ -184,6 +192,11 @@ export function loadConfig(projectPath: string): CodediagConfig {
   try {
     return {
       threshold: readThreshold(document.threshold, DEFAULT_CONFIG.threshold),
+      packageThreshold: readThreshold(
+        document.packageThreshold,
+        DEFAULT_CONFIG.packageThreshold,
+        "packageThreshold",
+      ),
       ignore: readIgnore(document.ignore, DEFAULT_CONFIG.ignore),
       maxFileSizeKb: readMaxFileSizeKb(
         document.maxFileSizeKb,
@@ -212,13 +225,30 @@ export function normalizeIgnorePatterns(entries: string[]): string[] {
   });
 }
 
-export function parseThreshold(value: string): number {
+export function parseThreshold(value: string, name = "threshold"): number {
   if (!/^\d+$/.test(value)) {
-    throw new Error("threshold must be an integer between 0 and 100");
+    throw new Error(`${name} must be an integer between 0 and 100`);
   }
-  return readThreshold(Number(value), DEFAULT_CONFIG.threshold);
+  return readThreshold(Number(value), DEFAULT_CONFIG.threshold, name);
 }
 
 export function isBelowThreshold(score: number, threshold: number): boolean {
   return score < threshold;
+}
+
+/** Workspace packages that scored below their package threshold. */
+export function packagesBelowThreshold(
+  workspace: WorkspaceSummary | undefined,
+): WorkspacePackageSummary[] {
+  return (workspace?.packages ?? []).filter(
+    (entry) =>
+      entry.threshold !== undefined &&
+      isBelowThreshold(entry.totalScore, entry.threshold),
+  );
+}
+
+export function packageThresholdMessage(
+  entry: WorkspacePackageSummary,
+): string {
+  return `${entry.path} scored ${entry.totalScore}, below its package threshold ${entry.threshold}`;
 }

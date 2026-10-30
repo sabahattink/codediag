@@ -3,7 +3,7 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import test from "node:test";
-import { loadConfig } from "../src/config.js";
+import { loadConfig, packagesBelowThreshold } from "../src/config.js";
 import { packageIgnores, scanWorkspace } from "../src/core/workspace-scan.js";
 import { detectWorkspaces } from "../src/core/workspaces.js";
 import type { ScanResult } from "../src/types.js";
@@ -148,6 +148,53 @@ test("baselines and changed-file scopes apply across packages", async () => {
     );
     assert.equal(scoped.scope?.files, 1);
     assert.equal(scoped.scope?.changedSince, "main");
+  });
+});
+
+test("package thresholds come from the scan, a package's config, or the root", async () => {
+  await withWorkspace(
+    {
+      ...MONOREPO,
+      ".codediag.yml": `${MONOREPO[".codediag.yml"]}\npackageThreshold: 100`,
+      "packages/web/.codediag.yml": [
+        "packageThreshold: 10",
+        "analyzers:",
+        "  dependencies: false",
+      ].join("\n"),
+    },
+    async (directory) => {
+      const configured = await scanMonorepo(directory);
+      assert.deepEqual(
+        configured.workspace?.packages.map(({ path, threshold }) => ({
+          path,
+          threshold,
+        })),
+        [
+          { path: "packages/api", threshold: 100 },
+          { path: "packages/web", threshold: 10 },
+        ],
+      );
+      assert.ok(configured.workspace);
+      assert.deepEqual(
+        packagesBelowThreshold(configured.workspace).map((entry) => entry.path),
+        ["packages/api"],
+      );
+
+      const overridden = await scanMonorepo(directory, { packageThreshold: 0 });
+      assert.ok(overridden.workspace);
+      assert.deepEqual(
+        overridden.workspace.packages.map((entry) => entry.threshold),
+        [0, 0],
+      );
+      assert.deepEqual(packagesBelowThreshold(overridden.workspace), []);
+    },
+  );
+  await withWorkspace(MONOREPO, async (directory) => {
+    const result = await scanMonorepo(directory);
+    assert.equal(
+      result.workspace?.packages.some((entry) => "threshold" in entry),
+      false,
+    );
   });
 });
 

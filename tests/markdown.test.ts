@@ -67,3 +67,36 @@ test("markdown notes a scan scoped to changed files", () => {
     /> Scoped to 1 file changed since `main`; 4 findings elsewhere were not scored\./,
   );
 });
+
+test("markdown marks workspace packages below their package threshold", () => {
+  const markdown = renderMarkdown({
+    ...result,
+    workspace: {
+      tool: "pnpm",
+      packages: [
+        {
+          path: "apps/api",
+          framework: "express",
+          totalScore: 58,
+          grade: "F",
+          findings: 4,
+          threshold: 60,
+        },
+        {
+          path: "apps/web",
+          framework: "nextjs",
+          totalScore: 90,
+          grade: "A",
+          findings: 0,
+          threshold: 60,
+        },
+      ],
+    },
+  });
+
+  assert.match(
+    markdown,
+    /\| `apps\/api` \| express \| 58 \(F\) ❌ below 60 \| 4 \|/,
+  );
+  assert.match(markdown, /\| `apps\/web` \| nextjs \| 90 \(A\) \| 0 \|/);
+});

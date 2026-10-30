@@ -181,3 +181,36 @@ test("HTML reporter charts the score history with readable points and a table", 
   assert.match(renderHtml(result), /First recorded scan/);
   assert.doesNotMatch(renderHtml(fixture()), /history-title/);
 });
+
+test("HTML reporter marks packages below their package threshold", () => {
+  const html = renderHtml({
+    ...fixture(),
+    workspace: {
+      tool: "npm",
+      packages: [
+        {
+          path: "packages/api",
+          framework: "fastify",
+          totalScore: 52,
+          grade: "F",
+          findings: 3,
+          threshold: 70,
+        },
+        {
+          path: "packages/web",
+          framework: "nextjs",
+          totalScore: 88,
+          grade: "B+",
+          findings: 1,
+          threshold: 70,
+        },
+      ],
+    },
+  });
+
+  assert.match(
+    html,
+    /3 findings · <strong class="gate">below its threshold of 70<\/strong>/,
+  );
+  assert.match(html, /1 finding · threshold 70 met/);
+});

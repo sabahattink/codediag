@@ -1,5 +1,5 @@
 import { posix } from "node:path";
-import { isBelowThreshold } from "../config.js";
+import { isBelowThreshold, packagesBelowThreshold } from "../config.js";
 import { formatDelta } from "../core/compare.js";
 import { activeIssues, inactiveCounts } from "../core/issues.js";
 import { ruleDocsUrl } from "../rules/registry.js";
@@ -70,12 +70,23 @@ function findingRow({ issue, path }: LocatedFinding): string {
  */
 export function renderPrComment(input: PrCommentInput): string {
   const { result, threshold, changedFiles, projectDirectory } = input;
-  const passed = !isBelowThreshold(result.totalScore, threshold);
+  const failingPackages = packagesBelowThreshold(result.workspace);
+  const passed =
+    !isBelowThreshold(result.totalScore, threshold) &&
+    failingPackages.length === 0;
   const status = [
     result.comparison
       ? baseChange(result.comparison)
       : scoreChange(result.totalScore, input.previousScore),
     `threshold ${threshold}`,
+    failingPackages.length > 0
+      ? `below their package threshold: ${failingPackages
+          .map(
+            (entry) =>
+              `\`${escapeCell(entry.path)}\` ${entry.totalScore}/${entry.threshold}`,
+          )
+          .join(", ")}`
+      : "",
   ].filter(Boolean);
 
   const lines = [

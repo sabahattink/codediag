@@ -1,6 +1,12 @@
 import { appendFileSync, mkdirSync, writeFileSync } from "node:fs";
 import { dirname, isAbsolute, relative, resolve, sep } from "node:path";
-import { isBelowThreshold, loadConfig, parseThreshold } from "./config.js";
+import {
+  isBelowThreshold,
+  loadConfig,
+  packagesBelowThreshold,
+  packageThresholdMessage,
+  parseThreshold,
+} from "./config.js";
 import { loadBaseline } from "./core/baseline.js";
 import {
   compareWithPrevious,
@@ -28,13 +34,20 @@ function getInput(name: string, fallback: string): string {
   return value || fallback;
 }
 
-function workflowEscape(value: string): string {
+/**
+ * Escapes a workflow command's message. The runner decodes only these three
+ * in messages, so ":" and "," stay literal there.
+ */
+function workflowData(value: string): string {
   return value
     .replaceAll("%", "%25")
     .replaceAll("\r", "%0D")
-    .replaceAll("\n", "%0A")
-    .replaceAll(":", "%3A")
-    .replaceAll(",", "%2C");
+    .replaceAll("\n", "%0A");
+}
+
+/** Escapes a workflow command property, such as `file=` or `title=`. */
+function workflowEscape(value: string): string {
+  return workflowData(value).replaceAll(":", "%3A").replaceAll(",", "%2C");
 }
 
 function markdownEscape(value: string): string {
@@ -56,7 +69,7 @@ function issueAnnotation(issue: DiagnosticIssue): string {
   if (issue.line) properties.push(`line=${issue.line}`);
   properties.push(`title=${workflowEscape(`CodeDiag ${issue.rule}`)}`);
 
-  return `::${level} ${properties.join(",")}::${workflowEscape(issue.message)}`;
+  return `::${level} ${properties.join(",")}::${workflowData(issue.message)}`;
 }
 
 function emitAnnotations(result: ScanResult): void {
@@ -92,6 +105,18 @@ function renderSummary(result: ScanResult, threshold: number): string {
   }
 
   lines.push("", `Required threshold: **${threshold}/100**`);
+  const failingPackages = packagesBelowThreshold(result.workspace);
+  if (failingPackages.length > 0) {
+    lines.push(
+      "",
+      `Packages below their threshold: ${failingPackages
+        .map(
+          (entry) =>
+            `${markdownEscape(entry.path)} (${entry.totalScore}/${entry.threshold})`,
+        )
+        .join(", ")}`,
+    );
+  }
   if (result.comparison) {
     const { previousScore, scoreDelta, newFindings, fixedFindings } =
       result.comparison;
@@ -183,7 +208,7 @@ async function commentOnPullRequest(
         : "";
     const message = error instanceof Error ? error.message : String(error);
     console.log(
-      `::warning title=CodeDiag pull request comment::${workflowEscape(`${message}.${hint}`)}`,
+      `::warning title=CodeDiag pull request comment::${workflowData(`${message}.${hint}`)}`,
     );
   }
 }
@@ -234,6 +259,13 @@ export async function runAction(): Promise<void> {
       "workspaces",
       getInput("workspaces", "false"),
     );
+    const packageThresholdInput = getInput("package-threshold", "");
+    const packageThreshold = packageThresholdInput
+      ? parseThreshold(packageThresholdInput, "package-threshold")
+      : undefined;
+    if (packageThreshold !== undefined && !wantsWorkspaces) {
+      throw new Error("package-threshold needs workspaces: true.");
+    }
     const workspaces = wantsWorkspaces ? detectWorkspaces(projectPath) : null;
     if (wantsWorkspaces && !workspaces) {
       throw new Error(
@@ -245,7 +277,10 @@ export async function runAction(): Promise<void> {
       ? loadReport(resolveWorkspacePath(workspace, compareInput))
       : undefined;
     const scanned = workspaces
-      ? await scanWorkspace(projectPath, config, workspaces, { baseline })
+      ? await scanWorkspace(projectPath, config, workspaces, {
+          baseline,
+          packageThreshold,
+        })
       : await scan(projectPath, config, { baseline });
     const result = previous ? compareWithPrevious(scanned, previous) : scanned;
 
@@ -282,10 +317,16 @@ export async function runAction(): Promise<void> {
       );
       process.exitCode = 1;
     }
+    for (const entry of packagesBelowThreshold(result.workspace)) {
+      console.log(
+        `::error title=CodeDiag package threshold not met::${workflowData(packageThresholdMessage(entry))}.`,
+      );
+      process.exitCode = 1;
+    }
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     console.error(
-      `::error title=CodeDiag action failed::${workflowEscape(message)}`,
+      `::error title=CodeDiag action failed::${workflowData(message)}`,
     );
     process.exitCode = 2;
   }

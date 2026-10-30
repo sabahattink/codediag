@@ -558,6 +558,7 @@
                   "nextjs",
                   "express",
                   "fastify",
+                  "hono",
                   "generic",
                   "unknown"
                 ]
@@ -582,6 +583,11 @@
               "findings": {
                 "type": "integer",
                 "minimum": 0
+              },
+              "threshold": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 100
               }
             }
           }

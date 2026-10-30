@@ -1,4 +1,5 @@
 import chalk from "chalk";
+import { isBelowThreshold } from "../config.js";
 import { formatDelta } from "../core/compare.js";
 import { activeIssues, inactiveCounts } from "../core/issues.js";
 import { formatPenalty } from "../core/scoring.js";
@@ -112,8 +113,13 @@ function renderPackages(workspace: WorkspaceSummary): void {
   );
   for (const entry of workspace.packages) {
     const findings = `${entry.findings} finding${entry.findings === 1 ? "" : "s"}`;
+    const gate =
+      entry.threshold !== undefined &&
+      isBelowThreshold(entry.totalScore, entry.threshold)
+        ? ` ${chalk.red.bold(`below ${entry.threshold}`)}`
+        : "";
     console.log(
-      `  ${chalk.dim(entry.path.padEnd(width))} ${scoreBar(entry.totalScore)} ${chalk.bold(String(entry.totalScore).padStart(3))} ${gradeColor(entry.grade.padEnd(2))} ${chalk.dim(findings)}`,
+      `  ${chalk.dim(entry.path.padEnd(width))} ${scoreBar(entry.totalScore)} ${chalk.bold(String(entry.totalScore).padStart(3))} ${gradeColor(entry.grade.padEnd(2))} ${chalk.dim(findings)}${gate}`,
     );
   }
   console.log();

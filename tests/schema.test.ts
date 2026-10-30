@@ -169,6 +169,14 @@ test("JSON schema accepts a combined workspace report", () => {
         totalScore: 84,
         grade: "B+",
         findings: 1,
+        threshold: 80,
+      },
+      {
+        path: "apps/edge",
+        framework: "hono",
+        totalScore: 92,
+        grade: "A",
+        findings: 0,
       },
       {
         path: "libs/shared",

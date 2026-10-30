@@ -347,7 +347,7 @@ test("GitHub Action combines workspace packages with workspaces: true", async ()
       );
     }
 
-    const run = (workspaces) =>
+    const run = (workspaces, inputs = {}) =>
       spawnSync(process.execPath, [actionEntry], {
         cwd: workspace,
         encoding: "utf8",
@@ -360,6 +360,7 @@ test("GitHub Action combines workspace packages with workspaces: true", async ()
           INPUT_THRESHOLD: "0",
           INPUT_WORKSPACES: workspaces === "single" ? "true" : workspaces,
           INPUT_AUDIT: "false",
+          ...inputs,
         },
       });
 
@@ -379,6 +380,32 @@ test("GitHub Action combines workspace packages with workspaces: true", async ()
     assert.match(
       missing.stdout + missing.stderr,
       /no workspace packages were found/,
+    );
+
+    const gated = run("true", { "INPUT_PACKAGE-THRESHOLD": "100" });
+    assert.equal(gated.status, 1, gated.stderr || gated.stdout);
+    assert.match(
+      gated.stdout,
+      /::error title=CodeDiag package threshold not met::packages\/api scored \d+, below its package threshold 100\./,
+    );
+    // Messages keep commas and colons; only properties escape them.
+    assert.match(
+      gated.stdout,
+      /title=CodeDiag missing-scripts::Missing essential scripts \(build, start\/dev\)/,
+    );
+    const gatedReport = JSON.parse(
+      await readFile(join(workspace, "codediag-report.json"), "utf8"),
+    );
+    assert.deepEqual(
+      gatedReport.workspace.packages.map((entry) => entry.threshold),
+      [100, 100],
+    );
+
+    const unused = run("false", { "INPUT_PACKAGE-THRESHOLD": "50" });
+    assert.equal(unused.status, 2);
+    assert.match(
+      unused.stdout + unused.stderr,
+      /package-threshold needs workspaces: true/,
     );
   } finally {
     await rm(workspace, { recursive: true, force: true });

@@ -1,3 +1,4 @@
+import { isBelowThreshold } from "../config.js";
 import { formatDelta } from "../core/compare.js";
 import { sparkline } from "../core/history.js";
 import { activeIssues, inactiveCounts } from "../core/issues.js";
@@ -83,10 +84,14 @@ export function renderMarkdown(result: ScanResult): string {
       ``,
       `| Package | Framework | Score | Findings |`,
       `|---------|-----------|------:|---------:|`,
-      ...result.workspace.packages.map(
-        (entry) =>
-          `| \`${escapeCell(entry.path)}\`${entry.name ? ` ${escapeCell(entry.name)}` : ""} | ${entry.framework} | ${entry.totalScore} (${entry.grade}) | ${entry.findings} |`,
-      ),
+      ...result.workspace.packages.map((entry) => {
+        const gate =
+          entry.threshold !== undefined &&
+          isBelowThreshold(entry.totalScore, entry.threshold)
+            ? ` ❌ below ${entry.threshold}`
+            : "";
+        return `| \`${escapeCell(entry.path)}\`${entry.name ? ` ${escapeCell(entry.name)}` : ""} | ${entry.framework} | ${entry.totalScore} (${entry.grade})${gate} | ${entry.findings} |`;
+      }),
       ``,
     );
   }
