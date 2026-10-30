@@ -1,4 +1,5 @@
 import { isActive } from "../core/issues.js";
+import { getRule, ruleDocsUrl } from "../rules/registry.js";
 import type { DiagnosticIssue, ScanResult } from "../types.js";
 
 const SEVERITY_ORDER: Record<DiagnosticIssue["severity"], number> = {
@@ -144,6 +145,36 @@ export function renderFixPlan(result: ScanResult): string {
   return lines.join("\n");
 }
 
+/**
+ * The rules behind the proposals, with their documentation, so related
+ * findings can be reviewed together against what the rule checks.
+ */
+function ruleGroups(proposals: FixProposal[]) {
+  const groups = new Map<string, string[]>();
+  for (const proposal of proposals) {
+    groups.set(proposal.rule, [
+      ...(groups.get(proposal.rule) ?? []),
+      proposal.id,
+    ]);
+  }
+  return [...groups].map(([id, findings]) => {
+    const rule = getRule(id);
+    return {
+      id,
+      ...(rule
+        ? {
+            title: rule.title,
+            description: rule.description,
+            ...(rule.cwe ? { cwe: rule.cwe } : {}),
+            ...(rule.owasp ? { owasp: rule.owasp } : {}),
+          }
+        : {}),
+      docs: ruleDocsUrl(id),
+      findings,
+    };
+  });
+}
+
 export function renderAiPrompt(result: ScanResult): string {
   const plan = buildFixPlan(result);
   const payload = {
@@ -151,6 +182,7 @@ export function renderAiPrompt(result: ScanResult): string {
     score: plan.score,
     grade: plan.grade,
     generatedAt: plan.generatedAt,
+    rules: ruleGroups(plan.proposals),
     proposals: plan.proposals,
   };
 
@@ -164,6 +196,7 @@ export function renderAiPrompt(result: ScanResult): string {
     "4. Prefer the smallest maintainable change and preserve existing project conventions.",
     "5. For each accepted finding, propose exact tests and validation commands.",
     "6. Do not expose secrets or include unrelated source code in the response.",
+    "7. Findings listed under the same entry in rules share a cause; review them together against that rule's description.",
     "",
     "Return these sections:",
     "- Validated findings",

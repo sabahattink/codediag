@@ -29,7 +29,10 @@ codediag scan . --format prompt > codediag-prompt.txt
 ```
 
 The prompt contains the same proposal data as JSON plus strict instructions
-for a coding agent. It requires the agent to:
+for a coding agent. A `rules` list groups the proposals by rule, with each
+rule's title, description, CWE and OWASP mappings, and documentation link, so
+related findings are reviewed together against what the rule checks. It
+requires the agent to:
 
 1. inspect referenced files before accepting a finding;
 2. reject false positives with reasons;

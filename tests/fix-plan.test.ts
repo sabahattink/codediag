@@ -122,3 +122,34 @@ test("fix plans and AI prompts leave out suppressed and baseline findings", () =
   );
   assert.doesNotMatch(renderAiPrompt(result), /unsafe-secret/);
 });
+
+test("AI prompt groups findings by rule with the rule's documentation", () => {
+  const result = fixture();
+  result.analyzers[0].issues.push({
+    ...result.analyzers[0].issues[0],
+    rule: "open-cors",
+    message: "CORS is enabled without an origin allowlist",
+  });
+  const output = renderAiPrompt(result);
+  const data = JSON.parse(
+    output.slice(
+      output.indexOf("{", output.indexOf("DIAGNOSTIC_DATA")),
+      output.indexOf("END_DIAGNOSTIC_DATA"),
+    ),
+  ) as {
+    rules: Array<{
+      id: string;
+      title?: string;
+      docs: string;
+      findings: string[];
+      cwe?: string[];
+    }>;
+  };
+
+  const cors = data.rules.find((rule) => rule.id === "open-cors");
+  assert.equal(cors?.title, "CORS without origin allowlist");
+  assert.deepEqual(cors?.cwe, ["CWE-942"]);
+  assert.match(cors?.docs ?? "", /docs\/rules\.md#open-cors$/);
+  assert.equal(cors?.findings.length, 1);
+  assert.match(output, /share a cause; review them together/);
+});
