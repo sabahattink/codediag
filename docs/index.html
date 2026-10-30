@@ -371,7 +371,7 @@ footer .links{font-size:.76rem}
     <li><a href="#analyzers">Analyzers</a></li>
     <li><a href="#scoring">Scoring</a></li>
     <li><a href="#ci">CI</a></li>
-    <li><a href="#new">New in 0.6</a></li>
+    <li><a href="#new">New in 0.7</a></li>
    </ul>
   </nav>
   <div class="top-act">
@@ -702,7 +702,7 @@ codediag scan . --ci --threshold 80 --baseline .codediag-baseline.json</code></p
    <ul class="facts">
     <li>Scan on save is opt-in (<code>codediag.scanOnSave</code>) and never runs the package manager; it reuses the last audit, so scores stay consistent.</li>
     <li>Disabled in untrusted and virtual workspaces. Findings outside the workspace are not published.</li>
-    <li>New in 0.6: quick fixes that suppress a finding with a reason or explain its rule.</li>
+    <li>Quick fixes suppress a finding with a reason or explain its rule.</li>
     <li>Until Marketplace publishing, install the <code>.vsix</code> from a CI run. <a href="https://github.com/sabahattink/codediag/blob/main/docs/vscode-extension.md">Extension guide</a></li>
    </ul>
   </div>
@@ -722,17 +722,16 @@ codediag scan . --ci --threshold 80 --baseline .codediag-baseline.json</code></p
 <section class="sec add" id="new" aria-labelledby="h-new">
  <div class="wrap">
   <div class="sec-head">
-   <h2 id="h-new">New in 0.6</h2>
-   <p>More frameworks and sinks, secrets outside code, and reports you can compare over time.</p>
+   <h2 id="h-new">New in 0.7</h2>
+   <p>Whole monorepos, Hono, a score you can watch over time, and pull request feedback measured against your base branch.</p>
   </div>
   <ul class="items">
-   <li><h3>Fastify API analysis</h3><p>Fastify routes join NestJS, Express, and Next.js in the API Health analyzer.</p></li>
-   <li><h3>JWT and session misconfiguration</h3><p><code>algorithms: ['none']</code>, <code>ignoreExpiration: true</code>, and cookies set without <code>httpOnly</code> or <code>secure</code>.</p></li>
-   <li><h3>Template injection and prototype pollution</h3><p>Request data compiled as a template or used as an object path, recursive merges that copy <code>__proto__</code>, and <code>spawn(..., { shell: true })</code> with non-literal arguments.</p></li>
-   <li><h3>Secrets in config files</h3><p>JSON, YAML, Dockerfiles, <code>.npmrc</code>, and committed <code>.env</code> files, with the secret values redacted in reports.</p></li>
-   <li><h3>Compare two scans</h3><p>The score delta per analyzer and the new and fixed findings since a previous JSON report, in every output format, with a change panel in the HTML report.</p><span class="flag">--compare previous.json</span></li>
-   <li><h3>Changed files only</h3><p>Report and score only the findings in files changed since a Git ref, such as <code>origin/main</code>, including staged and untracked files.</p><span class="flag">--changed-since origin/main</span></li>
-   <li><h3>VS Code quick fixes</h3><p>Suppress a finding with a reason, or explain its rule, straight from the editor’s quick fix menu.</p></li>
+   <li><h3>Monorepos</h3><p>Every npm, pnpm, Yarn, Lerna, or Nx workspace package scanned with its own stack and config, combined into one report with a package table. Baselines, comparisons, and SARIF work across the repository.</p><span class="flag">--workspaces</span></li>
+   <li><h3>Hono API analysis</h3><p>Routes, <code>basePath()</code>, and mounted sub-apps replayed in registration order, with <code>jwt()</code>/<code>bearerAuth()</code> middleware and <code>zValidator</code> body validation.</p></li>
+   <li><h3>Score history</h3><p>Each scan is recorded; the terminal shows a sparkline and the HTML report a chart with grade guides and a table view.</p><span class="flag">--history .codediag/history</span></li>
+   <li><h3>Base-branch delta</h3><p>The GitHub Action compares the pull request with your base branch’s report: score change, new and fixed findings, new ones marked in the comment.</p><span class="flag">compare: codediag-main.json</span></li>
+   <li><h3>Audit details</h3><p>Vulnerability findings name the affected packages and their advisories; <code>audit: production</code> skips devDependencies.</p></li>
+   <li><h3>Earlier in 0.6</h3><p>Fastify, JWT and cookie rules, template injection, prototype pollution, config-file secrets, <code>--compare</code>, <code>--changed-since</code>, and VS Code quick fixes.</p></li>
   </ul>
  </div>
 </section>
