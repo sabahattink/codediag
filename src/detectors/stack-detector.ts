@@ -7,6 +7,41 @@ interface PackageJson {
   devDependencies?: Record<string, string>;
 }
 
+/** Packages that only React Router framework mode installs, next to react-router. */
+const REACT_ROUTER_FRAMEWORK =
+  /^@react-router\/(?:architect|cloudflare|dev|express|fs-routes|node|serve)$/;
+/** Remix 2 packages; @remix-run/router is the library-mode router and does not count. */
+const REMIX =
+  /^@remix-run\/(?:architect|cloudflare|deno|dev|express|node|react|serve)$/;
+const ROUTE_CONFIG_FILES = ["ts", "js", "mts", "mjs"].map(
+  (extension) => `app/routes.${extension}`,
+);
+
+/**
+ * React Router framework mode or Remix: a server that runs route modules'
+ * actions and loaders. react-router or react-router-dom alone is library
+ * mode, such as a single-page app, unless an app/routes.ts route config shows
+ * framework mode with its dev package installed elsewhere (a monorepo root).
+ */
+function isReactRouterFramework(
+  projectPath: string,
+  dependencies: Record<string, string>,
+): boolean {
+  const names = Object.keys(dependencies);
+  if (names.some((name) => REMIX.test(name))) return true;
+  if (!dependencies["react-router"]) return false;
+  if (names.some((name) => REACT_ROUTER_FRAMEWORK.test(name))) return true;
+  return ROUTE_CONFIG_FILES.some((file) => {
+    try {
+      return /@react-router\/(?:dev\/routes|fs-routes)\b/.test(
+        readFileSync(join(projectPath, file), "utf-8"),
+      );
+    } catch {
+      return false;
+    }
+  });
+}
+
 export function detectStack(projectPath: string): StackInfo {
   const info: StackInfo = {
     framework: "unknown",
@@ -52,6 +87,12 @@ export function detectStack(projectPath: string): StackInfo {
     existsSync(join(projectPath, "next.config.ts"))
   ) {
     info.framework = "nextjs";
+  } else if (isReactRouterFramework(projectPath, allDeps)) {
+    // Checked after Next.js and before Fastify, Express, and Hono: React
+    // Router and Remix apps often run on an Express server through
+    // @react-router/express or @remix-run/express, and their API is the route
+    // modules' actions and loaders, not the server's routes.
+    info.framework = "react-router";
   } else if (allDeps.fastify) {
     // Checked before Express: Fastify apps may depend on express through
     // @fastify/express, while Express apps have no reason to install Fastify.

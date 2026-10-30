@@ -218,6 +218,42 @@ export const RULES = {
       "No app.onError() handler was found. Hono's default handler logs the error and replies with a plain-text 500, so clients get a response that does not match the API's error format and errors reach no logger or error tracker beyond the console.",
     defaultSeverity: "info",
   },
+  // API Health: React Router
+  "no-react-router-routes": {
+    analyzer: "API Health",
+    title: "No React Router route modules",
+    description:
+      "The project depends on React Router framework mode or Remix, but no route modules were found: no root route in the app directory, no app/routes.ts, and no files in the app/routes directory. A route config whose entries cannot be read statically (for example one built by remix-flat-routes) leaves API Health not applicable instead.",
+    defaultSeverity: "critical",
+    failsAnalyzer: true,
+  },
+  "missing-react-router-auth": {
+    analyzer: "API Health",
+    title: "React Router action without auth check",
+    description:
+      "A route module's action, which handles POST, PUT, PATCH, and DELETE requests to its URL, does not reject anonymous requests: it calls no auth check such as requireUserId(request), requireUser(), authenticator.isAuthenticated(request, { failureRedirect }), or a webhook signature check (Stripe constructEvent(), Svix verify()), reads no user from context.get(userContext), does not throw or return a redirect or a 401 or 403 response when the session, user, or a credential such as the Authorization header is missing or wrong (also in project functions it calls, up to two calls deep), and no middleware export of the route or a parent route rejects anonymous requests. clientMiddleware runs in the browser and protects nothing on the server. Actions of sign-in, sign-up, sign-out, and password recovery routes, and actions that create or destroy the user's session, are not reported. clientAction runs in the browser and is not checked. Findings where the request is passed to code this scan cannot follow have medium confidence.",
+    defaultSeverity: "warning",
+    cwe: ["CWE-306"],
+    owasp: [OWASP.authentication],
+  },
+  "react-router-loader-auth-only": {
+    analyzer: "API Health",
+    title: "Auth check only in a loader",
+    description:
+      "An action or loader has no auth check of its own and no middleware protects it, but the loader of a parent route (for an action, also of its own route) rejects anonymous requests. That check does not protect it: loaders run in parallel and each can be requested on its own, and a form submission runs the action before any loader. Loaders that return only constants or redirects are not reported, and loader findings have medium confidence because their data may be meant to be public.",
+    defaultSeverity: "warning",
+    cwe: ["CWE-306"],
+    owasp: [OWASP.authentication],
+  },
+  "missing-react-router-validation": {
+    analyzer: "API Health",
+    title: "React Router action without input validation",
+    description:
+      "An action reads request.formData() or request.json() and nothing checks the submission: no schema parse (Zod parse or safeParse, zod-form-data, Conform parseWithZod, remix-validated-form validate, Valibot, Yup, or a project function that calls one), no typeof or instanceof check, and no comparison of a form value with a literal, such as an intent. remix-hook-form's getValidatedFormData(request, resolver) reads and validates the body itself.",
+    defaultSeverity: "warning",
+    cwe: ["CWE-20"],
+    owasp: [OWASP.injection],
+  },
   // API Health: tRPC
   "missing-trpc-auth-middleware": {
     analyzer: "API Health",

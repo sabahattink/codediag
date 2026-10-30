@@ -39,6 +39,7 @@ for (const [name, framework] of [
   ["realistic/fastify", "fastify"],
   ["realistic/fastify-autoload", "fastify"],
   ["realistic/hono", "hono"],
+  ["realistic/react-router", "react-router"],
   ["realistic/nextjs", "nextjs"],
   // A T3 app: tRPC procedures served by a Next.js route handler.
   ["realistic/trpc", "nextjs"],
@@ -354,6 +355,78 @@ test("defects/hono keeps its middleware order, validator, and error handler find
         confidence: undefined,
       },
     ],
+  );
+});
+
+test("defects/react-router keeps its action, parent-loader, and validation findings", async () => {
+  const result = await scanFixture("defects/react-router");
+  const api = result.analyzers.find(
+    (analyzer) => analyzer.name === "API Health",
+  );
+
+  assert.equal(result.stack.framework, "react-router");
+  assert.deepEqual(
+    api?.issues.map(({ rule, file, line, message, confidence }) => ({
+      rule,
+      at: `${file}:${line}`,
+      message,
+      confidence,
+    })),
+    [
+      {
+        rule: "missing-react-router-auth",
+        at: "app/routes/api.webhooks.ts:5",
+        message: "The action of /api/webhooks has no recognizable auth check",
+        confidence: "high",
+      },
+      {
+        rule: "react-router-loader-auth-only",
+        at: "app/routes/_app.notes.$noteId.tsx:13",
+        message:
+          "The action of /notes/:noteId has no auth check of its own; the auth check in its route's loader does not run before the action",
+        confidence: "high",
+      },
+      {
+        rule: "react-router-loader-auth-only",
+        at: "app/routes/_app.notes.tsx:5",
+        message:
+          "The loader of /notes has no auth check of its own; the auth check in the loader of app/routes/_app.tsx runs in parallel and does not protect it",
+        confidence: "medium",
+      },
+      {
+        rule: "missing-react-router-validation",
+        at: "app/routes/_app.notes.new.tsx:8",
+        message:
+          "The action of /notes/new reads request.formData() without schema validation",
+        confidence: undefined,
+      },
+      {
+        rule: "missing-react-router-validation",
+        at: "app/routes/api.webhooks.ts:6",
+        message:
+          "The action of /api/webhooks reads request.json() without schema validation",
+        confidence: undefined,
+      },
+      {
+        rule: "missing-health-endpoint",
+        at: "undefined:undefined",
+        message: "No health, readiness, or liveness endpoint detected",
+        confidence: undefined,
+      },
+    ],
+  );
+});
+
+test("realistic/react-router checks its routes.ts, middleware, and API route without findings", async () => {
+  const result = await scanFixture("realistic/react-router");
+  const api = result.analyzers.find(
+    (analyzer) => analyzer.name === "API Health",
+  );
+
+  assert.deepEqual(api?.issues, [], describe(result));
+  assert.equal(
+    api?.summary,
+    "13 React Router endpoints (5 actions, 8 loaders) in 10 route modules",
   );
 });
 

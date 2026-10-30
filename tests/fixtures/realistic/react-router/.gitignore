@@ -1,0 +1,7 @@
+node_modules
+/build
+/.react-router
+coverage
+.env
+.env.*
+!.env.example
