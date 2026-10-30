@@ -163,6 +163,47 @@ test("defects/express-helpers follows request data into and out of helper module
   );
 });
 
+test("defects/express-state follows request data through fields, constructors, callbacks, and module state", async () => {
+  const result = await scanFixture("defects/express-state");
+  const security = result.analyzers.find(
+    (analyzer) => analyzer.name === "Security",
+  );
+  const issues = (security?.issues ?? []).filter(
+    (issue) => issue.line !== undefined,
+  );
+  const located = issues
+    .map(
+      ({ rule, severity, file, line, confidence }) =>
+        `${severity} ${rule} ${file}:${line} ${confidence ?? "high"}`,
+    )
+    .sort();
+
+  assert.deepEqual(located, [
+    "critical dynamic-command-execution src/commands.ts:14 high",
+    "critical dynamic-command-execution src/jobs/backup-job.ts:7 medium",
+    "critical path-traversal src/app.ts:33 medium",
+    "critical path-traversal src/app.ts:38 high",
+    "critical path-traversal src/jobs/export-job.ts:12 medium",
+    "warning dynamic-command-execution src/jobs/build-job.ts:8 high",
+    "warning server-side-request-forgery src/app.ts:47 high",
+  ]);
+  const origins = Object.fromEntries(
+    issues
+      .filter((issue) => issue.confidence === "medium")
+      .map((issue) => [
+        `${issue.file}:${issue.line}`,
+        /^Request data reaches this call from ([^;]+);/.exec(
+          issue.fix ?? "",
+        )?.[1],
+      ]),
+  );
+  assert.deepEqual(origins, {
+    "src/app.ts:33": "src/app.ts:33",
+    "src/jobs/backup-job.ts:7": "src/app.ts:17",
+    "src/jobs/export-job.ts:12": "src/jobs/export-job.ts:8",
+  });
+});
+
 test("defects/fastify keeps its auth hook, schema, and error handler findings", async () => {
   const result = await scanFixture("defects/fastify");
   const api = result.analyzers.find(

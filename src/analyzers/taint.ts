@@ -3,8 +3,10 @@ import {
   type Decorator,
   type Expression,
   Node,
+  type PropertyAccessExpression,
   type SourceFile,
   SyntaxKind,
+  type VariableDeclaration,
 } from "ts-morph";
 
 /**
@@ -41,6 +43,11 @@ export interface CallSteps {
   parameter(identifier: Node, strict: boolean): boolean;
   /** True when a call to a project function returns request data. */
   result(call: CallExpression): boolean;
+  /**
+   * True when `this.name` holds request data that a member of its class
+   * stored there, or that a `new` expression passed to its constructor.
+   */
+  member(access: PropertyAccessExpression, strict: boolean): boolean;
 }
 
 /** The request-data checks a sink rule uses, with or without call steps. */
@@ -48,9 +55,10 @@ export interface Taint {
   isRequestValue(node: Node): boolean;
   isTainted(node: Node): boolean;
   /**
-   * For a value that is exactly a parameter of a project function: whether
-   * `check` holds for the argument some caller passes in its place.
-   * Undefined when the value is no such parameter or tracking stays local.
+   * For a value that is exactly a parameter of a project function or a
+   * field of `this`: whether `check` holds for the argument some caller
+   * passes in its place, or for a value stored in the field. Undefined when
+   * the value is neither or tracking stays local.
    */
   throughCallers(
     value: Node,
@@ -198,10 +206,67 @@ interface ScopeIndex {
 
 const scopeIndexes = new WeakMap<Node, ScopeIndex>();
 
-function add(map: Map<string, Node[]>, name: string, node: Node): void {
+export function add<T>(map: Map<string, T[]>, name: string, value: T): void {
   const list = map.get(name);
-  if (list) list.push(node);
-  else map.set(name, [node]);
+  if (list) list.push(value);
+  else map.set(name, [value]);
+}
+
+/** Array methods whose callback receives an element first: `forEach(item)`. */
+const ELEMENT_CALLBACKS = new Set([
+  "every",
+  "filter",
+  "find",
+  "findIndex",
+  "findLast",
+  "findLastIndex",
+  "flatMap",
+  "forEach",
+  "map",
+  "some",
+]);
+/** Array methods whose callback receives an element second: `reduce(sum, item)`. */
+const REDUCE_CALLBACKS = new Set(["reduce", "reduceRight"]);
+
+/**
+ * For a callback written inline as the first argument of an array method or
+ * `then()`: its parameter that receives the receiver's elements or resolved
+ * value, and that receiver. An element of request data is request data.
+ */
+function callbackElement(
+  scope: ScopeNode,
+): { parameter: Node; receiver: Node } | undefined {
+  if (!Node.isArrowFunction(scope) && !Node.isFunctionExpression(scope)) {
+    return undefined;
+  }
+  const call = scope.getParent();
+  if (!Node.isCallExpression(call) || call.getArguments()[0] !== scope) {
+    return undefined;
+  }
+  const callee = call.getExpression();
+  if (!Node.isPropertyAccessExpression(callee)) return undefined;
+  const method = callee.getName();
+  const position =
+    ELEMENT_CALLBACKS.has(method) || method === "then"
+      ? 0
+      : REDUCE_CALLBACKS.has(method)
+        ? 1
+        : undefined;
+  if (position === undefined) return undefined;
+  const parameter = scope
+    .getParameters()
+    .filter((candidate) => candidate.getName() !== "this")[position];
+  return parameter
+    ? { parameter: parameter.getNameNode(), receiver: callee.getExpression() }
+    : undefined;
+}
+
+/** `items` for the variable of `for (const item of items)`. */
+function iteratedValue(declaration: VariableDeclaration): Node | undefined {
+  const statement = declaration.getParent()?.getParent();
+  return Node.isForOfStatement(statement)
+    ? statement.getExpression()
+    : undefined;
 }
 
 /** Indexes a scope once, so taint lookups do not rescan it per identifier. */
@@ -210,13 +275,21 @@ function indexScope(scope: ScopeNode): ScopeIndex {
   if (existing) return existing;
 
   const index: ScopeIndex = { declarations: new Map(), assignments: new Map() };
+  const element = callbackElement(scope);
+  if (element) {
+    for (const name of boundNames(element.parameter)) {
+      add(index.declarations, name, element.receiver);
+    }
+  }
   for (const declaration of scope.getDescendantsOfKind(
     SyntaxKind.VariableDeclaration,
   )) {
     if (enclosingScope(declaration) !== scope) continue;
     for (const name of boundNames(declaration.getNameNode())) {
-      // Destructuring propagates the whole initializer to every bound name.
-      const initializer = declaration.getInitializer();
+      // Destructuring propagates the whole initializer to every bound name,
+      // and a for...of variable holds elements of the iterated value.
+      const initializer =
+        declaration.getInitializer() ?? iteratedValue(declaration);
       if (initializer) add(index.declarations, name, initializer);
       else if (!index.declarations.has(name)) index.declarations.set(name, []);
     }
@@ -272,8 +345,9 @@ function isCallee(identifier: Node): boolean {
 /**
  * True when an expression visibly contains request data, directly or through
  * up to MAX_TAINT_HOPS variable assignments in enclosing scopes. With call
- * steps, parameters are followed to their callers and project functions'
- * results to what they return.
+ * steps, parameters are followed to their callers, project functions'
+ * results to what they return, and fields of `this` to what is stored in
+ * them.
  */
 const taintCache = new WeakMap<Node, boolean>();
 
@@ -310,7 +384,21 @@ function traceTaint(
       return true;
     }
   }
-  return false;
+  return calls
+    ? thisMembers(node).some((access) => calls.member(access, false))
+    : false;
+}
+
+/** The `this.name` fields a node reads, without method calls `this.run()`. */
+function thisMembers(node: Node): PropertyAccessExpression[] {
+  const accesses = node.getDescendantsOfKind(
+    SyntaxKind.PropertyAccessExpression,
+  );
+  if (Node.isPropertyAccessExpression(node)) accesses.unshift(node);
+  return accesses.filter(
+    (access) =>
+      Node.isThisExpression(access.getExpression()) && !isCallee(access),
+  );
 }
 
 /** True when the node is, or contains, a call whose result is request data. */
@@ -415,8 +503,9 @@ export function unwrap(node: Node): Node {
  * the value in `basename()`, `escapeHtml()`, `Number()`, or
  * `encodeURIComponent()` ends the trace, because those calls are not
  * pass-throughs. With call steps, a parameter is request data when a caller
- * passes request data for it, and a project function's result is when the
- * function returns its request-data parameter or request data it reads.
+ * passes request data for it, a project function's result is when the
+ * function returns its request-data parameter or request data it reads, and
+ * a field of `this` is when its class stores request data in it.
  */
 export function isRequestValue(
   node: Node,
@@ -444,7 +533,15 @@ export function isRequestValue(
     const text = value.getText();
     if (SERVER_SET_REQUEST_DATA.test(text)) return false;
     if (REQUEST_DATA.test(text) && !hasCallInside(value)) return true;
-    return isRequestValue(value.getExpression(), hops, calls);
+    const receiver = value.getExpression();
+    // `this.name`: request data a member of the class stored on the object.
+    if (Node.isThisExpression(receiver)) {
+      return (
+        Node.isPropertyAccessExpression(value) &&
+        (calls?.member(value, true) ?? false)
+      );
+    }
+    return isRequestValue(receiver, hops, calls);
   }
   if (Node.isCallExpression(value)) {
     return (
