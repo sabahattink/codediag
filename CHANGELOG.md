@@ -2,6 +2,63 @@
 
 All notable changes to CodeDiag are documented in this file.
 
+## [Unreleased]
+
+### Added
+
+- `--workspaces` scans every package of an npm, pnpm, or Yarn workspace, a
+  Lerna repository, or an Nx workspace (Turborepo is reported as the tool when
+  it orchestrates the workspaces). Each package is scanned with its own stack
+  detection and its own `.codediag.yml`, or the root configuration with root
+  `ignore` paths rebased into the package. The combined report averages each
+  analyzer over the packages it ran in, uses the usual analyzer weights for
+  the total, lists the packages (`workspace` in JSON), locates findings
+  relative to the root (project-level findings point at the package's
+  `package.json`), and mixes the package path into fingerprints, so
+  baselines, `--compare`, `--changed-since`, and SARIF work across the
+  repository. Scanning a workspace root without the flag suggests it. The
+  GitHub Action has a matching `workspaces` input.
+- Hono API Health analysis: routes on `new Hono()` apps, `basePath()`, and
+  sub-apps mounted with `app.route()` across files, replayed in Hono's
+  registration order; auth from route middleware or an earlier matching
+  `app.use()` (`jwt()`, `bearerAuth()`, `basicAuth()`, Clerk, Auth.js, or a
+  custom middleware); body validators such as `zValidator('json', ...)`;
+  `onError`; and health endpoints. New rules: `no-hono-routes`,
+  `missing-hono-auth-middleware`, `missing-hono-validator`, and
+  `missing-hono-error-handler`. Hono servers are also checked for secure
+  headers (`hono/secure-headers`), rate limiting (`hono-rate-limiter`), and
+  open CORS (`hono/cors` without an origin).
+- `--history <directory>` records each scan in the directory and shows the
+  total score over the last 50 recorded scans: a sparkline in the terminal and
+  Markdown, and a line chart with grade guides, keyboard-reachable readouts,
+  and a table view in the HTML report. JSON gets an optional `history` array.
+- The GitHub Action's `compare` input takes a JSON report of the base branch:
+  the pull request comment shows the score change against it with new and
+  fixed counts and marks new findings, and the job summary and report carry
+  the comparison.
+- Vulnerability findings name the affected packages with advisory titles and
+  links (npm, pnpm, Yarn Classic, and Yarn Berry), in the fix text so
+  fingerprints are unchanged. `audit: production` audits only production
+  dependencies.
+- The `--format prompt` handoff groups findings by rule with each rule's
+  title, description, CWE and OWASP mappings, and documentation link.
+
+### Changed
+
+- The weighted total moved to `weightedTotal()` in `src/core/scoring.ts`, and
+  `calculateGrade()` is exported from the scanner.
+- `audit` in `.codediag.yml` accepts `true`, `false`, or `production`.
+
+### Known limitations
+
+- Hono: `clerkMiddleware()` alone counts as auth, path-less
+  `app.use(mw).get(...)` chains are not followed, route paths must be
+  literals, and Hono routes inside a Next.js catch-all are left to the Next.js
+  analyzer.
+- Workspaces: packages are scanned one after another, and each runs its own
+  dependency audit; Nx projects without a `package.json` skip the dependency
+  analyzer.
+
 ## [0.6.0] - 2026-10-30
 
 The "Deep Scan" release: Fastify support, JWT and session misconfiguration,
