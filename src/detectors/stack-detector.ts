@@ -58,6 +58,11 @@ export function detectStack(projectPath: string): StackInfo {
     info.framework = "fastify";
   } else if (allDeps.express) {
     info.framework = "express";
+  } else if (allDeps.hono) {
+    // Checked after Next.js, Fastify, and Express: those servers may import
+    // Hono as a library (hono/client, hono/jwt helpers, a Next.js catch-all
+    // route handler), while a Hono server has no reason to install them.
+    info.framework = "hono";
   } else if (pkg.dependencies || pkg.devDependencies) {
     info.framework = "generic";
   }

@@ -115,6 +115,7 @@
             "nextjs",
             "express",
             "fastify",
+            "hono",
             "generic",
             "unknown"
           ]

@@ -21,7 +21,6 @@ tests green.
 
 ## Frameworks
 
-- **Hono** API analyzer (routes, middleware, validators).
 - **tRPC** procedures (protected versus public procedures, input
   validation).
 - **Remix / React Router and SvelteKit** server endpoints.

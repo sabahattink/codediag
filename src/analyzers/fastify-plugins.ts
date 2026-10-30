@@ -39,7 +39,10 @@ const MODULE_EXTENSIONS = [
 const MAX_RESOLUTION_DEPTH = 8;
 
 export type Confidence = "high" | "low";
-type FunctionLike = ArrowFunction | FunctionDeclaration | FunctionExpression;
+export type FunctionLike =
+  | ArrowFunction
+  | FunctionDeclaration
+  | FunctionExpression;
 
 export interface Instance {
   /** The encapsulation context: a root instance or a plugin function. */
@@ -53,9 +56,13 @@ export interface PluginTarget {
   encapsulated: boolean;
 }
 
-export interface ProjectIndex {
+/** Project files by path, for following imports between them. */
+export interface ModuleIndex {
   readonly paths: ReadonlyMap<SourceFile, string>;
   readonly files: ReadonlyMap<string, SourceFile>;
+}
+
+export interface ProjectIndex extends ModuleIndex {
   /** Variables holding instances created by Fastify() or typed FastifyInstance. */
   readonly roots: ReadonlyMap<Node, string>;
   /** Plugin functions and the context each one runs in. */
@@ -75,7 +82,7 @@ function requiredModule(node: Node | undefined): string | null {
   return literalText(node.getArguments()[0]);
 }
 
-function isFunctionLike(node: Node | undefined): node is FunctionLike {
+export function isFunctionLike(node: Node | undefined): node is FunctionLike {
   return (
     Node.isFunctionDeclaration(node) ||
     Node.isFunctionExpression(node) ||
@@ -84,7 +91,7 @@ function isFunctionLike(node: Node | undefined): node is FunctionLike {
 }
 
 /** Strips syntax that does not change a value: await, parentheses, casts. */
-function unwrap(node: Node): Node {
+export function unwrap(node: Node): Node {
   let current = node;
   while (
     Node.isAwaitExpression(current) ||
@@ -128,7 +135,7 @@ export function receiverOf(call: CallExpression): Node {
 }
 
 /** The module and export an import or require() binding refers to. */
-function importSource(
+export function importSource(
   declaration: Node,
 ): { specifier: string; name: string } | null {
   if (
@@ -173,7 +180,7 @@ export function moduleOf(node: Node): string | null {
 }
 
 function resolveImport(
-  index: ProjectIndex,
+  index: ModuleIndex,
   from: SourceFile,
   specifier: string,
 ): SourceFile | undefined {
@@ -238,7 +245,7 @@ function exportedValue(sourceFile: SourceFile, name: string): Node | undefined {
  * declaration, and imports of project files to what that file exports.
  */
 export function definition(
-  index: ProjectIndex,
+  index: ModuleIndex,
   node: Node,
   depth = 0,
 ): Node | undefined {
@@ -261,7 +268,7 @@ export function definition(
 }
 
 export function objectLiteral(
-  index: ProjectIndex,
+  index: ModuleIndex,
   node: Node | undefined,
   depth = 0,
 ): ObjectLiteralExpression | undefined {
