@@ -614,3 +614,239 @@ test("tRPC procedures in test files are ignored", async () => {
 
   assert.equal(result, null);
 });
+
+/** A router with one mutation on the public builder, served by an adapter. */
+const PERIMETER_ROUTER = {
+  "src/server/trpc.ts": TRPC_SETUP,
+  "src/server/router.ts": [
+    'import { z } from "zod";',
+    'import { publicProcedure, router } from "./trpc";',
+    "export const appRouter = router({",
+    "  createPost: publicProcedure",
+    "    .input(z.object({ title: z.string() }))",
+    "    .mutation(({ input }) => input),",
+    "});",
+  ].join("\n"),
+};
+const UNPROTECTED = ["Mutation createPost has no recognizable auth middleware"];
+
+test("a createContext that rejects anonymous callers protects every procedure", async () => {
+  const rejecting = [
+    'import { TRPCError } from "@trpc/server";',
+    'import { getSession } from "./session";',
+    "export async function createContext({ req }) {",
+    "  const session = await getSession(req);",
+    '  if (!session) throw new TRPCError({ code: "UNAUTHORIZED" });',
+    "  return { user: session.user };",
+    "}",
+  ].join("\n");
+  const standalone = await analyze({
+    ...PERIMETER_ROUTER,
+    "src/server/context.ts": rejecting,
+    "src/server/index.ts": [
+      'import { createHTTPServer } from "@trpc/server/adapters/standalone";',
+      'import { createContext } from "./context";',
+      'import { appRouter } from "./router";',
+      "createHTTPServer({ router: appRouter, createContext }).listen(3000);",
+    ].join("\n"),
+  });
+  assert.deepEqual(authMessages(standalone), []);
+  assert.match(
+    standalone?.summary ?? "",
+    /; createContext in src\/server\/context\.ts rejects anonymous callers$/,
+  );
+
+  // Followed through an inline arrow that calls the project's function.
+  const fetchAdapter = await analyze({
+    ...PERIMETER_ROUTER,
+    "src/server/context.ts": rejecting,
+    "src/app/api/trpc/[trpc]/route.ts": [
+      'import { fetchRequestHandler } from "@trpc/server/adapters/fetch";',
+      'import { createContext } from "../../../../server/context";',
+      'import { appRouter } from "../../../../server/router";',
+      "const handler = (req: Request) =>",
+      "  fetchRequestHandler({",
+      '    endpoint: "/api/trpc",',
+      "    req,",
+      "    router: appRouter,",
+      "    createContext: () => createContext({ req }),",
+      "  });",
+      "export { handler as GET, handler as POST };",
+    ].join("\n"),
+  });
+  assert.deepEqual(authMessages(fetchAdapter), []);
+
+  // Reading the session is not rejecting the caller (T3's createTRPCContext).
+  const reading = await analyze({
+    ...PERIMETER_ROUTER,
+    "src/server/context.ts": [
+      'import { auth } from "./auth";',
+      "export async function createContext() {",
+      "  const session = await auth();",
+      "  return { session, user: session?.user ?? null };",
+      "}",
+    ].join("\n"),
+    "src/server/index.ts": [
+      'import { createHTTPServer } from "@trpc/server/adapters/standalone";',
+      'import { createContext } from "./context";',
+      'import { appRouter } from "./router";',
+      "createHTTPServer({ router: appRouter, createContext }).listen(3000);",
+    ].join("\n"),
+  });
+  assert.deepEqual(authMessages(reading), UNPROTECTED);
+});
+
+test("auth middleware on the Express mount that serves tRPC protects its procedures", async () => {
+  const app = (...lines: string[]) => ({
+    ...PERIMETER_ROUTER,
+    "src/app.ts": [
+      'import express from "express";',
+      'import * as trpcExpress from "@trpc/server/adapters/express";',
+      'import { requireAuth } from "./auth";',
+      'import { appRouter } from "./server/router";',
+      "const app = express();",
+      "const trpc = trpcExpress.createExpressMiddleware({ router: appRouter });",
+      ...lines,
+    ].join("\n"),
+  });
+
+  const mounted = await analyze(app('app.use("/trpc", requireAuth, trpc);'));
+  assert.deepEqual(authMessages(mounted), []);
+  assert.match(
+    mounted?.summary ?? "",
+    /; requireAuth runs before the tRPC mount in src\/app\.ts$/,
+  );
+  assert.deepEqual(
+    authMessages(
+      await analyze(app("app.use(requireAuth);", 'app.use("/trpc", trpc);')),
+    ),
+    [],
+  );
+
+  for (const lines of [
+    ['app.use("/admin", requireAuth);', 'app.use("/trpc", trpc);'],
+    ['app.use("/trpc", trpc);', "app.use(requireAuth);"],
+    ['app.use("/trpc", trpc);'],
+  ]) {
+    assert.deepEqual(authMessages(await analyze(app(...lines))), UNPROTECTED);
+  }
+});
+
+test("a Next.js middleware that rejects anonymous requests to the tRPC endpoint protects it", async () => {
+  const project = (middleware: Record<string, string>) => ({
+    ...PERIMETER_ROUTER,
+    "src/app/api/trpc/[trpc]/route.ts": [
+      'import { fetchRequestHandler } from "@trpc/server/adapters/fetch";',
+      'import { appRouter } from "../../../../server/router";',
+      "const handler = (req: Request) =>",
+      '  fetchRequestHandler({ endpoint: "/api/trpc", req, router: appRouter, createContext: () => ({ user: null }) });',
+      "export { handler as GET, handler as POST };",
+    ].join("\n"),
+    ...middleware,
+  });
+  const custom = [
+    'import { NextResponse, type NextRequest } from "next/server";',
+    "export function middleware(request: NextRequest) {",
+    '  const token = request.cookies.get("session")?.value;',
+    "  if (!token) {",
+    '    return NextResponse.redirect(new URL("/login", request.url));',
+    "  }",
+    "  return NextResponse.next();",
+    "}",
+  ];
+  const protecting: Array<[string, Record<string, string>]> = [
+    [
+      "custom middleware without a matcher",
+      { "src/middleware.ts": custom.join("\n") },
+    ],
+    [
+      "Next.js 16 proxy",
+      {
+        "proxy.ts": custom
+          .join("\n")
+          .replace("function middleware", "function proxy"),
+      },
+    ],
+    [
+      "next-auth/middleware with a tRPC matcher",
+      {
+        "middleware.ts": [
+          'export { default } from "next-auth/middleware";',
+          'export const config = { matcher: ["/dashboard/:path*", "/api/trpc/:path*"] };',
+        ].join("\n"),
+      },
+    ],
+    [
+      "Clerk protecting a matched route",
+      {
+        "src/middleware.ts": [
+          'import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";',
+          'const isProtectedRoute = createRouteMatcher(["/dashboard(.*)", "/api/trpc(.*)"]);',
+          "export default clerkMiddleware(async (auth, req) => {",
+          "  if (isProtectedRoute(req)) await auth.protect();",
+          "});",
+          'export const config = { matcher: ["/((?!_next|.*\\\\..*).*)", "/(api|trpc)(.*)"] };',
+        ].join("\n"),
+      },
+    ],
+  ];
+  for (const [name, files] of protecting) {
+    const result = await analyze(project(files));
+    assert.deepEqual(authMessages(result), [], name);
+    assert.match(result?.summary ?? "", /middleware|proxy/, name);
+  }
+
+  const leaving: Array<[string, Record<string, string>]> = [
+    ["no middleware", {}],
+    [
+      "a matcher that excludes the API",
+      {
+        "middleware.ts": [
+          'export { default } from "next-auth/middleware";',
+          'export const config = { matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"] };',
+        ].join("\n"),
+      },
+    ],
+    [
+      "a matcher for other pages",
+      {
+        "middleware.ts": [
+          'export { default } from "next-auth/middleware";',
+          'export const config = { matcher: ["/dashboard/:path*"] };',
+        ].join("\n"),
+      },
+    ],
+    [
+      "Clerk protecting other routes",
+      {
+        "middleware.ts": [
+          'import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";',
+          'const isProtectedRoute = createRouteMatcher(["/dashboard(.*)"]);',
+          "export default clerkMiddleware(async (auth, req) => {",
+          "  if (isProtectedRoute(req)) await auth.protect();",
+          "});",
+        ].join("\n"),
+      },
+    ],
+    [
+      "a middleware that only sets headers",
+      {
+        "middleware.ts": [
+          'import { NextResponse } from "next/server";',
+          "export function middleware() {",
+          "  const response = NextResponse.next();",
+          '  response.headers.set("x-frame-options", "DENY");',
+          "  return response;",
+          "}",
+        ].join("\n"),
+      },
+    ],
+  ];
+  for (const [name, files] of leaving) {
+    assert.deepEqual(
+      authMessages(await analyze(project(files))),
+      UNPROTECTED,
+      name,
+    );
+  }
+});

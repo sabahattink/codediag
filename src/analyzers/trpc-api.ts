@@ -3,6 +3,7 @@ import type { ScanContext } from "../core/scan-context.js";
 import { fromRule, getRule } from "../rules/registry.js";
 import type { AnalyzerResult, DiagnosticIssue } from "../types.js";
 import { type ModuleIndex, pathAliases } from "./fastify-plugins.js";
+import { perimeterAuth } from "./trpc-perimeter.js";
 import {
   type Procedure,
   type StackExposure,
@@ -170,7 +171,9 @@ function analyzeProcedures(context: ScanContext): TrpcAnalysis {
   const { procedures } = project;
 
   const mutations = procedures.filter(({ kind }) => kind === "mutation");
-  const auth = authIssues(mutations);
+  // Auth in front of every procedure makes their own middleware optional.
+  const perimeter = mutations.length > 0 ? perimeterAuth(index, sources) : null;
+  const auth = perimeter ? [] : authIssues(mutations);
   const inputs = inputIssues(resolver, index, procedures);
   const stacks = project.instances.flatMap((create) => {
     const file = index.paths.get(create.getSourceFile()) ?? "";
@@ -202,7 +205,7 @@ function analyzeProcedures(context: ScanContext): TrpcAnalysis {
       (stacks.length === 0 ? ERROR_POINTS : 0),
     summary: `${plural(procedures.length, "tRPC procedure")}${
       project.routers > 0 ? ` in ${plural(project.routers, "router")}` : ""
-    }`,
+    }${perimeter ? `; ${perimeter}` : ""}`,
   };
 }
 

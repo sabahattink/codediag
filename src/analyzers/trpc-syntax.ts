@@ -72,7 +72,8 @@ export function bindingSource(node: Node): Node | undefined {
     ?.getInitializer();
 }
 
-function throwsAuthError(fn: Node): boolean {
+/** `throw new TRPCError({ code: "UNAUTHORIZED" })` or FORBIDDEN anywhere in a node. */
+export function throwsAuthError(fn: Node): boolean {
   return fn.getDescendantsOfKind(SyntaxKind.NewExpression).some((created) => {
     if (!/(?:^|\.)TRPCError$/.test(created.getExpression().getText())) {
       return false;
