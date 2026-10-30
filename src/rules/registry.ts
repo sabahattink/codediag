@@ -218,6 +218,34 @@ export const RULES = {
       "No app.onError() handler was found. Hono's default handler logs the error and replies with a plain-text 500, so clients get a response that does not match the API's error format and errors reach no logger or error tracker beyond the console.",
     defaultSeverity: "info",
   },
+  // API Health: tRPC
+  "missing-trpc-auth-middleware": {
+    analyzer: "API Health",
+    title: "tRPC mutation without auth middleware",
+    description:
+      "A tRPC mutation is built on a procedure whose .use() middleware chain has no recognizable authentication: no middleware throws a TRPCError with code UNAUTHORIZED or FORBIDDEN, throws when ctx.session, ctx.user, or ctx.auth is missing, or is named like an auth check. Builders are followed through variables and imports to t.procedure, so a builder named protectedProcedure is judged by its middleware, and a .use() whose result is discarded protects nothing, because builders are immutable. Queries and subscriptions are not reported. Findings about builders or middleware imported from packages rely on names and have low confidence.",
+    defaultSeverity: "warning",
+    cwe: ["CWE-306"],
+    owasp: [OWASP.authentication],
+  },
+  "unvalidated-trpc-input": {
+    analyzer: "API Health",
+    title: "tRPC input without validation",
+    description:
+      "A tRPC procedure's .input() parser accepts every value: z.any(), z.unknown(), or z.custom() without a check (also when optional, nullable, or defaulted), Valibot's any() or unknown(), or a parser function that only returns its argument, such as (value) => value as Input. The resolver's input is typed but never checked.",
+    defaultSeverity: "warning",
+    cwe: ["CWE-20"],
+    owasp: [OWASP.injection],
+  },
+  "trpc-stack-trace-exposed": {
+    analyzer: "API Health",
+    title: "tRPC errors expose stack traces",
+    description:
+      "The initTRPC instance is created with isDev: true, or with an errorFormatter that returns error.stack outside a condition, so error responses carry server stack traces in production. Without them, tRPC adds the stack only when NODE_ENV is not production.",
+    defaultSeverity: "warning",
+    cwe: ["CWE-209"],
+    owasp: [OWASP.misconfiguration],
+  },
   // API Health: Next.js
   "no-nextjs-handlers": {
     analyzer: "API Health",

@@ -31,7 +31,7 @@ import {
 /** Function boundaries one trace may cross: a helper calling a helper. */
 export const MAX_CALL_DEPTH = 2;
 
-type FunctionLike =
+export type FunctionLike =
   | ArrowFunction
   | FunctionDeclaration
   | FunctionExpression
@@ -257,7 +257,7 @@ function buildCallIndex(files: Iterable<SourceFile>): CallIndex {
 }
 
 /** The values a function returns: return statements or an arrow's body. */
-function returnedValues(fn: FunctionLike): Node[] {
+export function returnedValues(fn: FunctionLike): Node[] {
   const body = fn.getBody();
   if (!body) return [];
   if (!Node.isBlock(body)) return [body];

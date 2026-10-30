@@ -63,6 +63,11 @@ export function detectStack(projectPath: string): StackInfo {
     // Hono as a library (hono/client, hono/jwt helpers, a Next.js catch-all
     // route handler), while a Hono server has no reason to install them.
     info.framework = "hono";
+  } else if (allDeps["@trpc/server"]) {
+    // Checked last: tRPC usually runs inside one of the servers above, whose
+    // API analyzers add the tRPC checks; this is a standalone tRPC server or
+    // a package that only defines routers.
+    info.framework = "trpc";
   } else if (pkg.dependencies || pkg.devDependencies) {
     info.framework = "generic";
   }

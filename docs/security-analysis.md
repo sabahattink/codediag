@@ -79,7 +79,17 @@ Other non-literal values are warnings.
 The path traversal, SSRF, open redirect, and XSS checks report only values
 that are request data themselves, followed through the same variables.
 NestJS parameters injected with `@Query()`, `@Param()`, `@Body()`, or
-`@Headers()` are request data too. A
+`@Headers()` are request data too, and so is a tRPC procedure's input inside
+the resolver passed to `.query()`, `.mutation()`, or `.subscription()`:
+`({ input }) => ...` (and fields destructured from it) or `opts.input`.
+Input that passed `.input(schema)` still counts, because the caller chose it:
+
+```ts
+// Critical: z.string() checks the type, not what the shell does with it.
+publicProcedure.input(z.string()).mutation(({ input }) => exec(`gzip ${input}`));
+```
+
+A
 function's result is not request data, so `db.find(req.params.id)` and
 `await repo.pathFor(req.params.id)` are not reported, and neither are values
 wrapped in `path.basename()`, `encodeURIComponent()`, `Number()`, or an

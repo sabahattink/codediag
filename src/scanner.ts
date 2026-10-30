@@ -11,12 +11,17 @@ import { analyzeNextjsApi } from "./analyzers/nextjs-api.js";
 import { analyzeSecurity } from "./analyzers/security.js";
 import { analyzeStructure } from "./analyzers/structure.js";
 import { analyzeTesting } from "./analyzers/testing.js";
+import {
+  type ApiAnalyzer,
+  analyzeTrpcApi,
+  withTrpcProcedures,
+} from "./analyzers/trpc-api.js";
 import { loadConfig } from "./config.js";
 import { applyBaseline } from "./core/baseline.js";
 import { limitToFiles } from "./core/changed-files.js";
 import { assignFingerprints } from "./core/fingerprint.js";
 import { applyRuleOverrides } from "./core/rule-overrides.js";
-import { createScanContext, type ScanContext } from "./core/scan-context.js";
+import { createScanContext } from "./core/scan-context.js";
 import { applyScoring, weightedTotal } from "./core/scoring.js";
 import { applySuppressions } from "./core/suppressions.js";
 import { detectStack } from "./detectors/stack-detector.js";
@@ -28,18 +33,18 @@ import type {
   StackInfo,
 } from "./types.js";
 
-/** API Health analyzers by detected framework; other stacks skip it. */
-const API_ANALYZERS: Partial<
-  Record<
-    StackInfo["framework"],
-    (context: ScanContext) => Promise<AnalyzerResult | null>
-  >
-> = {
-  nestjs: analyzeNestjsApi,
-  express: analyzeExpressApi,
-  fastify: analyzeFastifyApi,
-  hono: analyzeHonoApi,
-  nextjs: analyzeNextjsApi,
+/**
+ * API Health analyzers by detected framework; other stacks skip it. tRPC
+ * procedures are endpoints of whichever server mounts them, so each server's
+ * analyzer also checks the project's tRPC procedures.
+ */
+const API_ANALYZERS: Partial<Record<StackInfo["framework"], ApiAnalyzer>> = {
+  nestjs: withTrpcProcedures(analyzeNestjsApi),
+  express: withTrpcProcedures(analyzeExpressApi),
+  fastify: withTrpcProcedures(analyzeFastifyApi),
+  hono: withTrpcProcedures(analyzeHonoApi),
+  nextjs: withTrpcProcedures(analyzeNextjsApi),
+  trpc: analyzeTrpcApi,
 };
 
 export interface ScanOptions {

@@ -116,6 +116,7 @@
             "express",
             "fastify",
             "hono",
+            "trpc",
             "generic",
             "unknown"
           ]
@@ -559,6 +560,7 @@
                   "express",
                   "fastify",
                   "hono",
+                  "trpc",
                   "generic",
                   "unknown"
                 ]

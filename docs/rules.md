@@ -146,6 +146,15 @@ A POST, PUT, or PATCH route declares no schema.body (JSON Schema, TypeBox, or a 
 
 The endpoint and its controller have no @nestjs/swagger decorators, so it is missing from generated API documentation.
 
+### missing-trpc-auth-middleware
+
+**tRPC mutation without auth middleware** · default severity: `warning`
+
+A tRPC mutation is built on a procedure whose .use() middleware chain has no recognizable authentication: no middleware throws a TRPCError with code UNAUTHORIZED or FORBIDDEN, throws when ctx.session, ctx.user, or ctx.auth is missing, or is named like an auth check. Builders are followed through variables and imports to t.procedure, so a builder named protectedProcedure is judged by its middleware, and a .use() whose result is discarded protects nothing, because builders are immutable. Queries and subscriptions are not reported. Findings about builders or middleware imported from packages rely on names and have low confidence.
+
+- CWE: [CWE-306](https://cwe.mitre.org/data/definitions/306.html)
+- OWASP Top 10: A07:2021
+
 ### missing-validation-middleware
 
 **Route without validation middleware** · default severity: `warning`
@@ -200,6 +209,24 @@ The project depends on Hono but no route registrations with a literal path were 
 Next.js API route files exist but export no detectable HTTP method handlers.
 
 - Scoring: sets the analyzer score to 0 (nothing to evaluate)
+
+### trpc-stack-trace-exposed
+
+**tRPC errors expose stack traces** · default severity: `warning`
+
+The initTRPC instance is created with isDev: true, or with an errorFormatter that returns error.stack outside a condition, so error responses carry server stack traces in production. Without them, tRPC adds the stack only when NODE_ENV is not production.
+
+- CWE: [CWE-209](https://cwe.mitre.org/data/definitions/209.html)
+- OWASP Top 10: A05:2021
+
+### unvalidated-trpc-input
+
+**tRPC input without validation** · default severity: `warning`
+
+A tRPC procedure's .input() parser accepts every value: z.any(), z.unknown(), or z.custom() without a check (also when optional, nullable, or defaulted), Valibot's any() or unknown(), or a parser function that only returns its argument, such as (value) => value as Input. The resolver's input is typed but never checked.
+
+- CWE: [CWE-20](https://cwe.mitre.org/data/definitions/20.html)
+- OWASP Top 10: A03:2021
 
 ## Security
 

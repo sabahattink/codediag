@@ -1037,7 +1037,7 @@ var require_typescript = __commonJS({
         SymbolDisplayPartKind: () => SymbolDisplayPartKind,
         SymbolFlags: () => SymbolFlags,
         SymbolFormatFlags: () => SymbolFormatFlags,
-        SyntaxKind: () => SyntaxKind14,
+        SyntaxKind: () => SyntaxKind16,
         Ternary: () => Ternary,
         ThrottledCancellationToken: () => ThrottledCancellationToken,
         TokenClass: () => TokenClass,
@@ -1155,7 +1155,7 @@ var require_typescript = __commonJS({
         codefix: () => ts_codefix_exports,
         collapseTextChangeRangesAcrossMultipleVersions: () => collapseTextChangeRangesAcrossMultipleVersions,
         collectExternalModuleInfo: () => collectExternalModuleInfo,
-        combine: () => combine2,
+        combine: () => combine3,
         combinePaths: () => combinePaths,
         commandLineOptionOfCustomType: () => commandLineOptionOfCustomType,
         commentPragmas: () => commentPragmas,
@@ -3730,7 +3730,7 @@ var require_typescript = __commonJS({
         to.push(value);
         return to;
       }
-      function combine2(xs, ys) {
+      function combine3(xs, ys) {
         if (xs === void 0) return ys;
         if (ys === void 0) return xs;
         if (isArray(xs)) return isArray(ys) ? concatenate(xs, ys) : append(xs, ys);
@@ -4928,7 +4928,7 @@ Node ${formatSyntaxKind(node.kind)} was unexpected.`,
         function formatSyntaxKind(kind) {
           return formatEnum(
             kind,
-            SyntaxKind14,
+            SyntaxKind16,
             /*isFlags*/
             false
           );
@@ -6376,7 +6376,7 @@ ${lanes.join("\n")}
       })(tracingEnabled || (tracingEnabled = {}));
       var startTracing = tracingEnabled.startTracing;
       var dumpTracingLegend = tracingEnabled.dumpLegend;
-      var SyntaxKind14 = /* @__PURE__ */ ((SyntaxKind52) => {
+      var SyntaxKind16 = /* @__PURE__ */ ((SyntaxKind52) => {
         SyntaxKind52[SyntaxKind52["Unknown"] = 0] = "Unknown";
         SyntaxKind52[SyntaxKind52["EndOfFileToken"] = 1] = "EndOfFileToken";
         SyntaxKind52[SyntaxKind52["SingleLineCommentTrivia"] = 2] = "SingleLineCommentTrivia";
@@ -6882,7 +6882,7 @@ ${lanes.join("\n")}
           /* LastKeyword */
         ] = "LastContextualKeyword";
         return SyntaxKind52;
-      })(SyntaxKind14 || {});
+      })(SyntaxKind16 || {});
       var NodeFlags = /* @__PURE__ */ ((NodeFlags3) => {
         NodeFlags3[NodeFlags3["None"] = 0] = "None";
         NodeFlags3[NodeFlags3["Let"] = 1] = "Let";
@@ -10277,11 +10277,11 @@ ${lanes.join("\n")}
           return toComponents;
         }
         const components = toComponents.slice(start);
-        const relative7 = [];
+        const relative8 = [];
         for (; start < fromComponents.length; start++) {
-          relative7.push("..");
+          relative8.push("..");
         }
-        return ["", ...relative7, ...components];
+        return ["", ...relative8, ...components];
       }
       function getRelativePathFromDirectory(fromDirectory, to, getCanonicalFileNameOrIgnoreCase) {
         Debug.assert(getRootLength(fromDirectory) > 0 === getRootLength(to) > 0, "Paths must either both be absolute or both be relative");
@@ -54824,9 +54824,9 @@ ${lanes.join("\n")}
               if (!startsWithDirectory(target, realPathDirectory, getCanonicalFileName)) {
                 return;
               }
-              const relative7 = getRelativePathFromDirectory(realPathDirectory, target, getCanonicalFileName);
+              const relative8 = getRelativePathFromDirectory(realPathDirectory, target, getCanonicalFileName);
               for (const symlinkDirectory of symlinkDirectories) {
-                const option = resolvePath(symlinkDirectory, relative7);
+                const option = resolvePath(symlinkDirectory, relative8);
                 const result2 = cb(option, target === referenceRedirect);
                 shouldFilterIgnoredPaths = true;
                 if (result2) return result2;
@@ -63741,7 +63741,7 @@ ${lanes.join("\n")}
                   }
                 } else {
                   const type = getTypeOfSymbol(symbol);
-                  const localName = getInternalSymbolName(symbol, symbolName2);
+                  const localName2 = getInternalSymbolName(symbol, symbolName2);
                   if (type.symbol && type.symbol !== symbol && type.symbol.flags & 16 && some(type.symbol.declarations, isFunctionExpressionOrArrowFunction) && (((_a22 = type.symbol.members) == null ? void 0 : _a22.size) || ((_b = type.symbol.exports) == null ? void 0 : _b.size))) {
                     if (!context.remappedSymbolReferences) {
                       context.remappedSymbolReferences = /* @__PURE__ */ new Map();
@@ -63750,17 +63750,17 @@ ${lanes.join("\n")}
                     serializeSymbolWorker(type.symbol, isPrivate, propertyAsAlias, escapedSymbolName);
                     context.remappedSymbolReferences.delete(getSymbolId(type.symbol));
                   } else if (!(symbol.flags & 16) && isTypeRepresentableAsFunctionNamespaceMerge(type, symbol)) {
-                    serializeAsFunctionNamespaceMerge(type, symbol, localName, modifierFlags);
+                    serializeAsFunctionNamespaceMerge(type, symbol, localName2, modifierFlags);
                   } else {
                     const flags = !(symbol.flags & 2) ? ((_c = symbol.parent) == null ? void 0 : _c.valueDeclaration) && isSourceFile((_d = symbol.parent) == null ? void 0 : _d.valueDeclaration) ? 2 : void 0 : isConstantVariable(symbol) ? 2 : 1;
-                    const name = needsPostExportDefault || !(symbol.flags & 4) ? localName : getUnusedName(localName, symbol);
+                    const name = needsPostExportDefault || !(symbol.flags & 4) ? localName2 : getUnusedName(localName2, symbol);
                     let textRange = symbol.declarations && find(symbol.declarations, (d) => isVariableDeclaration(d));
                     if (textRange && isVariableDeclarationList(textRange.parent) && textRange.parent.declarations.length === 1) {
                       textRange = textRange.parent.parent;
                     }
                     const propertyAccessRequire = (_e = symbol.declarations) == null ? void 0 : _e.find(isPropertyAccessExpression);
                     if (propertyAccessRequire && isBinaryExpression(propertyAccessRequire.parent) && isIdentifier(propertyAccessRequire.parent.right) && ((_f = type.symbol) == null ? void 0 : _f.valueDeclaration) && isSourceFile(type.symbol.valueDeclaration)) {
-                      const alias = localName === propertyAccessRequire.parent.right.escapedText ? void 0 : propertyAccessRequire.parent.right;
+                      const alias = localName2 === propertyAccessRequire.parent.right.escapedText ? void 0 : propertyAccessRequire.parent.right;
                       context.approximateLength += 12 + (((_g = alias == null ? void 0 : alias.escapedText) == null ? void 0 : _g.length) ?? 0);
                       addResult(
                         factory.createExportDeclaration(
@@ -63772,7 +63772,7 @@ ${lanes.join("\n")}
                             /*isTypeOnly*/
                             false,
                             alias,
-                            localName
+                            localName2
                           )])
                         ),
                         0
@@ -63808,9 +63808,9 @@ ${lanes.join("\n")}
                         textRange
                       );
                       context.approximateLength += 7 + name.length;
-                      addResult(statement, name !== localName ? modifierFlags & ~32 : modifierFlags);
-                      if (name !== localName && !isPrivate) {
-                        context.approximateLength += 16 + name.length + localName.length;
+                      addResult(statement, name !== localName2 ? modifierFlags & ~32 : modifierFlags);
+                      if (name !== localName2 && !isPrivate) {
+                        context.approximateLength += 16 + name.length + localName2.length;
                         addResult(
                           factory.createExportDeclaration(
                             /*modifiers*/
@@ -63821,7 +63821,7 @@ ${lanes.join("\n")}
                               /*isTypeOnly*/
                               false,
                               name,
-                              localName
+                              localName2
                             )])
                           ),
                           0
@@ -64100,11 +64100,11 @@ ${lanes.join("\n")}
               const realMembers = locationMap.get("real") || emptyArray;
               const mergedMembers = locationMap.get("merged") || emptyArray;
               if (length(realMembers) || expanding) {
-                let localName;
+                let localName2;
                 if (expanding) {
                   const oldFlags = context.flags;
                   context.flags |= 512 | 2;
-                  localName = symbolToNode(
+                  localName2 = symbolToNode(
                     symbol,
                     context,
                     /*meaning*/
@@ -64114,14 +64114,14 @@ ${lanes.join("\n")}
                   context.flags = oldFlags;
                 } else {
                   const localText = getInternalSymbolName(symbol, symbolName2);
-                  localName = factory.createIdentifier(localText);
+                  localName2 = factory.createIdentifier(localText);
                   context.approximateLength += localText.length;
                 }
-                serializeAsNamespaceDeclaration(realMembers, localName, modifierFlags, !!(symbol.flags & (16 | 67108864)));
+                serializeAsNamespaceDeclaration(realMembers, localName2, modifierFlags, !!(symbol.flags & (16 | 67108864)));
               }
               if (length(mergedMembers)) {
                 const containingFile = getSourceFileOfNode(context.enclosingDeclaration);
-                const localName = getInternalSymbolName(symbol, symbolName2);
+                const localName2 = getInternalSymbolName(symbol, symbolName2);
                 const nsBody = factory.createModuleBlock([factory.createExportDeclaration(
                   /*modifiers*/
                   void 0,
@@ -64134,7 +64134,7 @@ ${lanes.join("\n")}
                   ), (s) => {
                     var _a22, _b;
                     const name = unescapeLeadingUnderscores(s.escapedName);
-                    const localName2 = getInternalSymbolName(s, name);
+                    const localName22 = getInternalSymbolName(s, name);
                     const aliasDecl = s.declarations && getDeclarationOfAliasSymbol(s);
                     if (containingFile && (aliasDecl ? containingFile !== getSourceFileOfNode(aliasDecl) : !some(s.declarations, (d) => getSourceFileOfNode(d) === containingFile))) {
                       (_b = (_a22 = context.tracker) == null ? void 0 : _a22.reportNonlocalAugmentation) == null ? void 0 : _b.call(_a22, containingFile, symbol, s);
@@ -64146,7 +64146,7 @@ ${lanes.join("\n")}
                       true
                     );
                     includePrivateSymbol(target || s);
-                    const targetName = target ? getInternalSymbolName(target, unescapeLeadingUnderscores(target.escapedName)) : localName2;
+                    const targetName = target ? getInternalSymbolName(target, unescapeLeadingUnderscores(target.escapedName)) : localName22;
                     return factory.createExportSpecifier(
                       /*isTypeOnly*/
                       false,
@@ -64159,7 +64159,7 @@ ${lanes.join("\n")}
                   factory.createModuleDeclaration(
                     /*modifiers*/
                     void 0,
-                    factory.createIdentifier(localName),
+                    factory.createIdentifier(localName2),
                     nsBody,
                     32
                     /* Namespace */
@@ -64219,7 +64219,7 @@ ${lanes.join("\n")}
                 modifierFlags
               );
             }
-            function serializeAsFunctionNamespaceMerge(type, symbol, localName, modifierFlags) {
+            function serializeAsFunctionNamespaceMerge(type, symbol, localName2, modifierFlags) {
               const signatures = getSignaturesOfType(
                 type,
                 0
@@ -64227,15 +64227,15 @@ ${lanes.join("\n")}
               );
               for (const sig of signatures) {
                 context.approximateLength += 1;
-                const decl = signatureToSignatureDeclarationHelper(sig, 263, context, { name: factory.createIdentifier(localName) });
+                const decl = signatureToSignatureDeclarationHelper(sig, 263, context, { name: factory.createIdentifier(localName2) });
                 addResult(setTextRange2(context, decl, getSignatureTextRangeLocation(sig)), modifierFlags);
               }
               if (!(symbol.flags & (512 | 1024) && !!symbol.exports && !!symbol.exports.size)) {
                 const props = filter2(getPropertiesOfType(type), isNamespaceMember);
-                context.approximateLength += localName.length;
+                context.approximateLength += localName2.length;
                 serializeAsNamespaceDeclaration(
                   props,
-                  factory.createIdentifier(localName),
+                  factory.createIdentifier(localName2),
                   modifierFlags,
                   /*suppressNewPrivateContext*/
                   true
@@ -64259,8 +64259,8 @@ ${lanes.join("\n")}
               }
               return signature.declaration;
             }
-            function serializeAsNamespaceDeclaration(props, localName, modifierFlags, suppressNewPrivateContext) {
-              const nodeFlags = isIdentifier(localName) ? 32 : 0;
+            function serializeAsNamespaceDeclaration(props, localName2, modifierFlags, suppressNewPrivateContext) {
+              const nodeFlags = isIdentifier(localName2) ? 32 : 0;
               const expanding = isExpanding(context);
               if (length(props)) {
                 context.approximateLength += 14;
@@ -64269,7 +64269,7 @@ ${lanes.join("\n")}
                 let fakespace = parseNodeFactory.createModuleDeclaration(
                   /*modifiers*/
                   void 0,
-                  localName,
+                  localName2,
                   factory.createModuleBlock([]),
                   nodeFlags
                 );
@@ -64326,7 +64326,7 @@ ${lanes.join("\n")}
                   factory.createModuleDeclaration(
                     /*modifiers*/
                     void 0,
-                    localName,
+                    localName2,
                     factory.createModuleBlock([]),
                     nodeFlags
                   ),
@@ -64372,9 +64372,9 @@ ${lanes.join("\n")}
               }
               return void 0;
             }
-            function serializeAsClass(symbol, localName, modifierFlags) {
+            function serializeAsClass(symbol, localName2, modifierFlags) {
               var _a22, _b;
-              context.approximateLength += 9 + localName.length;
+              context.approximateLength += 9 + localName2.length;
               const originalDecl = (_a22 = symbol.declarations) == null ? void 0 : _a22.find(isClassLike);
               const oldEnclosing = context.enclosingDeclaration;
               context.enclosingDeclaration = originalDecl || oldEnclosing;
@@ -64390,7 +64390,7 @@ ${lanes.join("\n")}
               const staticBaseType = isClass ? getBaseConstructorTypeOfClass(staticType) : anyType;
               context.approximateLength += (length(baseTypes) ? 8 : 0) + (length(implementsExpressions) ? 11 : 0);
               const heritageClauses = [
-                ...!length(baseTypes) ? [] : [factory.createHeritageClause(96, map(baseTypes, (b) => serializeBaseType(b, staticBaseType, localName)))],
+                ...!length(baseTypes) ? [] : [factory.createHeritageClause(96, map(baseTypes, (b) => serializeBaseType(b, staticBaseType, localName2)))],
                 ...!length(implementsExpressions) ? [] : [factory.createHeritageClause(119, implementsExpressions)]
               ];
               const symbolProps = getNonInheritedProperties(classType, baseTypes, getPropertiesOfType(classType));
@@ -64462,7 +64462,7 @@ ${lanes.join("\n")}
                   factory.createClassDeclaration(
                     /*modifiers*/
                     void 0,
-                    localName,
+                    localName2,
                     typeParamDecls,
                     heritageClauses,
                     [...indexSignatures, ...staticMembers, ...constructors, ...publicProperties, ...privateProperties]
@@ -64492,7 +64492,7 @@ ${lanes.join("\n")}
                 return void 0;
               });
             }
-            function serializeAsAlias(symbol, localName, modifierFlags) {
+            function serializeAsAlias(symbol, localName2, modifierFlags) {
               var _a22, _b, _c, _d, _e;
               const node = getDeclarationOfAliasSymbol(symbol);
               if (!node) return Debug.fail();
@@ -64516,7 +64516,7 @@ ${lanes.join("\n")}
                     const specifier2 = getSpecifierForModuleSymbol(target.parent || target, context);
                     const { propertyName: propertyName2 } = node;
                     const propertyNameText = propertyName2 && isIdentifier(propertyName2) ? idText(propertyName2) : void 0;
-                    context.approximateLength += 24 + localName.length + specifier2.length + ((propertyNameText == null ? void 0 : propertyNameText.length) ?? 0);
+                    context.approximateLength += 24 + localName2.length + specifier2.length + ((propertyNameText == null ? void 0 : propertyNameText.length) ?? 0);
                     addResult(
                       factory.createImportDeclaration(
                         /*modifiers*/
@@ -64530,7 +64530,7 @@ ${lanes.join("\n")}
                             /*isTypeOnly*/
                             false,
                             propertyNameText ? factory.createIdentifier(propertyNameText) : void 0,
-                            factory.createIdentifier(localName)
+                            factory.createIdentifier(localName2)
                           )])
                         ),
                         factory.createStringLiteral(specifier2),
@@ -64555,7 +64555,7 @@ ${lanes.join("\n")}
                 case 261:
                   if (isPropertyAccessExpression(node.initializer)) {
                     const initializer = node.initializer;
-                    const uniqueName = factory.createUniqueName(localName);
+                    const uniqueName = factory.createUniqueName(localName2);
                     const specifier2 = getSpecifierForModuleSymbol(target.parent || target, context);
                     context.approximateLength += 22 + specifier2.length + idText(uniqueName).length;
                     addResult(
@@ -64570,14 +64570,14 @@ ${lanes.join("\n")}
                       0
                       /* None */
                     );
-                    context.approximateLength += 12 + localName.length + idText(uniqueName).length + idText(initializer.name).length;
+                    context.approximateLength += 12 + localName2.length + idText(uniqueName).length + idText(initializer.name).length;
                     addResult(
                       factory.createImportEqualsDeclaration(
                         /*modifiers*/
                         void 0,
                         /*isTypeOnly*/
                         false,
-                        factory.createIdentifier(localName),
+                        factory.createIdentifier(localName2),
                         factory.createQualifiedName(uniqueName, initializer.name)
                       ),
                       modifierFlags
@@ -64591,14 +64591,14 @@ ${lanes.join("\n")}
                     break;
                   }
                   const isLocalImport = !(target.flags & 512) && !isVariableDeclaration(node);
-                  context.approximateLength += 11 + localName.length + unescapeLeadingUnderscores(target.escapedName).length;
+                  context.approximateLength += 11 + localName2.length + unescapeLeadingUnderscores(target.escapedName).length;
                   addResult(
                     factory.createImportEqualsDeclaration(
                       /*modifiers*/
                       void 0,
                       /*isTypeOnly*/
                       false,
-                      factory.createIdentifier(localName),
+                      factory.createIdentifier(localName2),
                       isLocalImport ? symbolToName(
                         target,
                         context,
@@ -64623,7 +64623,7 @@ ${lanes.join("\n")}
                   const specifier2 = context.bundled ? factory.createStringLiteral(generatedSpecifier) : node.parent.moduleSpecifier;
                   const attributes = isImportDeclaration(node.parent) ? node.parent.attributes : void 0;
                   const isTypeOnly = isJSDocImportTag(node.parent);
-                  context.approximateLength += 14 + localName.length + 3 + (isTypeOnly ? 4 : 0);
+                  context.approximateLength += 14 + localName2.length + 3 + (isTypeOnly ? 4 : 0);
                   addResult(
                     factory.createImportDeclaration(
                       /*modifiers*/
@@ -64631,7 +64631,7 @@ ${lanes.join("\n")}
                       factory.createImportClause(
                         /* phaseModifier */
                         isTypeOnly ? 156 : void 0,
-                        factory.createIdentifier(localName),
+                        factory.createIdentifier(localName2),
                         /*namedBindings*/
                         void 0
                       ),
@@ -64647,7 +64647,7 @@ ${lanes.join("\n")}
                   const generatedSpecifier = getSpecifierForModuleSymbol(target.parent || target, context);
                   const specifier2 = context.bundled ? factory.createStringLiteral(generatedSpecifier) : node.parent.parent.moduleSpecifier;
                   const isTypeOnly = isJSDocImportTag(node.parent.parent);
-                  context.approximateLength += 19 + localName.length + 3 + (isTypeOnly ? 4 : 0);
+                  context.approximateLength += 19 + localName2.length + 3 + (isTypeOnly ? 4 : 0);
                   addResult(
                     factory.createImportDeclaration(
                       /*modifiers*/
@@ -64657,7 +64657,7 @@ ${lanes.join("\n")}
                         isTypeOnly ? 156 : void 0,
                         /*name*/
                         void 0,
-                        factory.createNamespaceImport(factory.createIdentifier(localName))
+                        factory.createNamespaceImport(factory.createIdentifier(localName2))
                       ),
                       specifier2,
                       node.parent.attributes
@@ -64668,14 +64668,14 @@ ${lanes.join("\n")}
                   break;
                 }
                 case 281:
-                  context.approximateLength += 19 + localName.length + 3;
+                  context.approximateLength += 19 + localName2.length + 3;
                   addResult(
                     factory.createExportDeclaration(
                       /*modifiers*/
                       void 0,
                       /*isTypeOnly*/
                       false,
-                      factory.createNamespaceExport(factory.createIdentifier(localName)),
+                      factory.createNamespaceExport(factory.createIdentifier(localName2)),
                       factory.createStringLiteral(getSpecifierForModuleSymbol(target, context))
                     ),
                     0
@@ -64686,7 +64686,7 @@ ${lanes.join("\n")}
                   const generatedSpecifier = getSpecifierForModuleSymbol(target.parent || target, context);
                   const specifier2 = context.bundled ? factory.createStringLiteral(generatedSpecifier) : node.parent.parent.parent.moduleSpecifier;
                   const isTypeOnly = isJSDocImportTag(node.parent.parent.parent);
-                  context.approximateLength += 19 + localName.length + 3 + (isTypeOnly ? 4 : 0);
+                  context.approximateLength += 19 + localName2.length + 3 + (isTypeOnly ? 4 : 0);
                   addResult(
                     factory.createImportDeclaration(
                       /*modifiers*/
@@ -64700,8 +64700,8 @@ ${lanes.join("\n")}
                           factory.createImportSpecifier(
                             /*isTypeOnly*/
                             false,
-                            localName !== verbatimTargetName ? factory.createIdentifier(verbatimTargetName) : void 0,
-                            factory.createIdentifier(localName)
+                            localName2 !== verbatimTargetName ? factory.createIdentifier(verbatimTargetName) : void 0,
+                            factory.createIdentifier(localName2)
                           )
                         ])
                       ),
@@ -64736,15 +64736,15 @@ ${lanes.join("\n")}
                   if (symbol.escapedName === "default" || symbol.escapedName === "export=") {
                     serializeMaybeAliasAssignment(symbol);
                   } else {
-                    serializeExportSpecifier(localName, targetName);
+                    serializeExportSpecifier(localName2, targetName);
                   }
                   break;
                 default:
                   return Debug.failBadSyntaxKind(node, "Unhandled alias declaration kind in symbol serializer!");
               }
             }
-            function serializeExportSpecifier(localName, targetName, specifier) {
-              context.approximateLength += 16 + localName.length + (localName !== targetName ? targetName.length : 0);
+            function serializeExportSpecifier(localName2, targetName, specifier) {
+              context.approximateLength += 16 + localName2.length + (localName2 !== targetName ? targetName.length : 0);
               addResult(
                 factory.createExportDeclaration(
                   /*modifiers*/
@@ -64754,8 +64754,8 @@ ${lanes.join("\n")}
                   factory.createNamedExports([factory.createExportSpecifier(
                     /*isTypeOnly*/
                     false,
-                    localName !== targetName ? targetName : void 0,
-                    localName
+                    localName2 !== targetName ? targetName : void 0,
+                    localName2
                   )]),
                   specifier
                 ),
@@ -65283,30 +65283,30 @@ ${lanes.join("\n")}
               }
               return input;
             }
-            function getNameCandidateWorker(symbol, localName) {
-              if (localName === "default" || localName === "__class" || localName === "__function") {
+            function getNameCandidateWorker(symbol, localName2) {
+              if (localName2 === "default" || localName2 === "__class" || localName2 === "__function") {
                 const restoreFlags = saveRestoreFlags(context);
                 context.flags |= 16777216;
                 const nameCandidate = getNameOfSymbolAsWritten(symbol, context);
                 restoreFlags();
-                localName = nameCandidate.length > 0 && isSingleOrDoubleQuote(nameCandidate.charCodeAt(0)) ? stripQuotes(nameCandidate) : nameCandidate;
+                localName2 = nameCandidate.length > 0 && isSingleOrDoubleQuote(nameCandidate.charCodeAt(0)) ? stripQuotes(nameCandidate) : nameCandidate;
               }
-              if (localName === "default") {
-                localName = "_default";
-              } else if (localName === "export=") {
-                localName = "_exports";
+              if (localName2 === "default") {
+                localName2 = "_default";
+              } else if (localName2 === "export=") {
+                localName2 = "_exports";
               }
-              localName = isIdentifierText(localName, languageVersion) && !isStringANonContextualKeyword(localName) ? localName : "_" + localName.replace(/[^a-z0-9]/gi, "_");
-              return localName;
+              localName2 = isIdentifierText(localName2, languageVersion) && !isStringANonContextualKeyword(localName2) ? localName2 : "_" + localName2.replace(/[^a-z0-9]/gi, "_");
+              return localName2;
             }
-            function getInternalSymbolName(symbol, localName) {
+            function getInternalSymbolName(symbol, localName2) {
               const id = getSymbolId(symbol);
               if (context.remappedSymbolNames.has(id)) {
                 return context.remappedSymbolNames.get(id);
               }
-              localName = getNameCandidateWorker(symbol, localName);
-              context.remappedSymbolNames.set(id, localName);
-              return localName;
+              localName2 = getNameCandidateWorker(symbol, localName2);
+              context.remappedSymbolNames.set(id, localName2);
+              return localName2;
             }
           }
           function isExpanding(context) {
@@ -107416,8 +107416,8 @@ ${lanes.join("\n")}
               20
               /* CloseBraceToken */
             );
-            const localName = factory2.getInternalName(node);
-            const outer = factory2.createPartiallyEmittedExpression(localName);
+            const localName2 = factory2.getInternalName(node);
+            const outer = factory2.createPartiallyEmittedExpression(localName2);
             setTextRangeEnd(outer, closingBraceLocation.end);
             setEmitFlags(
               outer,
@@ -107862,9 +107862,9 @@ ${lanes.join("\n")}
             3072 | 96
             /* NoSourceMap */
           );
-          const localName = setParent(setTextRange(factory2.cloneNode(name), name), name.parent);
+          const localName2 = setParent(setTextRange(factory2.cloneNode(name), name), name.parent);
           setEmitFlags(
-            localName,
+            localName2,
             3072
             /* NoComments */
           );
@@ -107881,7 +107881,7 @@ ${lanes.join("\n")}
                         ),
                         node.name
                       ),
-                      localName
+                      localName2
                     )
                   ),
                   node
@@ -108204,14 +108204,14 @@ ${lanes.join("\n")}
             )
           );
           if (isExportOfNamespace(node)) {
-            const localName = factory2.getLocalName(
+            const localName2 = factory2.getLocalName(
               node,
               /*allowComments*/
               false,
               /*allowSourceMaps*/
               true
             );
-            moduleArg = factory2.createAssignment(localName, moduleArg);
+            moduleArg = factory2.createAssignment(localName2, moduleArg);
           }
           const enumStatement = factory2.createExpressionStatement(
             factory2.createCallExpression(
@@ -108250,9 +108250,9 @@ ${lanes.join("\n")}
           statements.push(enumStatement);
           return statements;
         }
-        function transformEnumBody(node, localName) {
+        function transformEnumBody(node, localName2) {
           const savedCurrentNamespaceLocalName = currentNamespaceContainerName;
-          currentNamespaceContainerName = localName;
+          currentNamespaceContainerName = localName2;
           const statements = [];
           startLexicalEnvironment();
           const members = map(node.members, transformEnumMember);
@@ -108413,14 +108413,14 @@ ${lanes.join("\n")}
             )
           );
           if (isExportOfNamespace(node)) {
-            const localName = factory2.getLocalName(
+            const localName2 = factory2.getLocalName(
               node,
               /*allowComments*/
               false,
               /*allowSourceMaps*/
               true
             );
-            moduleArg = factory2.createAssignment(localName, moduleArg);
+            moduleArg = factory2.createAssignment(localName2, moduleArg);
           }
           const moduleStatement = factory2.createExpressionStatement(
             factory2.createCallExpression(
@@ -110638,23 +110638,23 @@ ${lanes.join("\n")}
           }
           let initializer = visitNode(property.initializer, visitor, isExpression);
           if (isParameterPropertyDeclaration(propertyOriginalNode, propertyOriginalNode.parent) && isIdentifier(propertyName2)) {
-            const localName = factory2.cloneNode(propertyName2);
+            const localName2 = factory2.cloneNode(propertyName2);
             if (initializer) {
               if (isParenthesizedExpression(initializer) && isCommaExpression(initializer.expression) && isCallToHelper(initializer.expression.left, "___runInitializers") && isVoidExpression(initializer.expression.right) && isNumericLiteral(initializer.expression.right.expression)) {
                 initializer = initializer.expression.left;
               }
-              initializer = factory2.inlineExpressions([initializer, localName]);
+              initializer = factory2.inlineExpressions([initializer, localName2]);
             } else {
-              initializer = localName;
+              initializer = localName2;
             }
             setEmitFlags(
               propertyName2,
               3072 | 96
               /* NoSourceMap */
             );
-            setSourceMapRange(localName, propertyOriginalNode.name);
+            setSourceMapRange(localName2, propertyOriginalNode.name);
             setEmitFlags(
-              localName,
+              localName2,
               3072
               /* NoComments */
             );
@@ -112035,7 +112035,7 @@ ${lanes.join("\n")}
             return void 0;
           }
           const classAlias = classAliases && classAliases[getOriginalNodeId(node)];
-          const localName = languageVersion < 2 ? factory2.getInternalName(
+          const localName2 = languageVersion < 2 ? factory2.getInternalName(
             node,
             /*allowComments*/
             false,
@@ -112048,8 +112048,8 @@ ${lanes.join("\n")}
             /*allowSourceMaps*/
             true
           );
-          const decorate = emitHelpers().createDecorateHelper(decoratorExpressions, localName);
-          const expression = factory2.createAssignment(localName, classAlias ? factory2.createAssignment(classAlias, decorate) : decorate);
+          const decorate = emitHelpers().createDecorateHelper(decoratorExpressions, localName2);
+          const expression = factory2.createAssignment(localName2, classAlias ? factory2.createAssignment(classAlias, decorate) : decorate);
           setEmitFlags(
             expression,
             3072
@@ -117342,12 +117342,12 @@ ${lanes.join("\n")}
               exportVars.push(varDecl);
               return;
             }
-            const localName = exportAlias !== void 0 ? name : void 0;
+            const localName2 = exportAlias !== void 0 ? name : void 0;
             const exportName = exportAlias !== void 0 ? exportAlias : name;
             const specifier = factory2.createExportSpecifier(
               /*isTypeOnly*/
               false,
-              localName,
+              localName2,
               exportName
             );
             if (original) {
@@ -125164,7 +125164,7 @@ ${lanes.join("\n")}
           }
         }
         function createImportCallExpressionAMD(arg, containsLexicalThis) {
-          const resolve5 = factory2.createUniqueName("resolve");
+          const resolve6 = factory2.createUniqueName("resolve");
           const reject = factory2.createUniqueName("reject");
           const parameters = [
             factory2.createParameterDeclaration(
@@ -125173,7 +125173,7 @@ ${lanes.join("\n")}
               /*dotDotDotToken*/
               void 0,
               /*name*/
-              resolve5
+              resolve6
             ),
             factory2.createParameterDeclaration(
               /*modifiers*/
@@ -125190,7 +125190,7 @@ ${lanes.join("\n")}
                 factory2.createIdentifier("require"),
                 /*typeArguments*/
                 void 0,
-                [factory2.createArrayLiteralExpression([arg || factory2.createOmittedExpression()]), resolve5, reject]
+                [factory2.createArrayLiteralExpression([arg || factory2.createOmittedExpression()]), resolve6, reject]
               )
             )
           ]);
@@ -126631,8 +126631,8 @@ ${lanes.join("\n")}
         function createSettersArray(exportStarFunction, dependencyGroups) {
           const setters = [];
           for (const group2 of dependencyGroups) {
-            const localName = forEach(group2.externalImports, (i) => getLocalNameForExternalImport(factory2, i, currentSourceFile));
-            const parameterName = localName ? factory2.getGeneratedNameForNode(localName) : factory2.createUniqueName("");
+            const localName2 = forEach(group2.externalImports, (i) => getLocalNameForExternalImport(factory2, i, currentSourceFile));
+            const parameterName = localName2 ? factory2.getGeneratedNameForNode(localName2) : factory2.createUniqueName("");
             const statements = [];
             for (const entry of group2.externalImports) {
               const importVariableName = getLocalNameForExternalImport(factory2, entry, currentSourceFile);
@@ -169362,9 +169362,9 @@ ${newComment.split("\n").map((c) => ` * ${c}`).join("\n")}
           replaceImportUseSites(cls.members, useSitesToUnqualify)
         );
       }
-      function makeSingleImport(localName, propertyName2, moduleSpecifier, quotePreference) {
+      function makeSingleImport(localName2, propertyName2, moduleSpecifier, quotePreference) {
         return propertyName2 === "default" ? makeImport(
-          factory.createIdentifier(localName),
+          factory.createIdentifier(localName2),
           /*namedImports*/
           void 0,
           moduleSpecifier,
@@ -169372,7 +169372,7 @@ ${newComment.split("\n").map((c) => ` * ${c}`).join("\n")}
         ) : makeImport(
           /*defaultImport*/
           void 0,
-          [makeImportSpecifier2(propertyName2, localName)],
+          [makeImportSpecifier2(propertyName2, localName2)],
           moduleSpecifier,
           quotePreference
         );
@@ -170137,13 +170137,13 @@ ${newComment.split("\n").map((c) => ` * ${c}`).join("\n")}
             preferences
           );
           if (fix) {
-            const localName = ((_b = tryCast(referenceImport == null ? void 0 : referenceImport.name, isIdentifier)) == null ? void 0 : _b.text) ?? symbolName2;
+            const localName2 = ((_b = tryCast(referenceImport == null ? void 0 : referenceImport.name, isIdentifier)) == null ? void 0 : _b.text) ?? symbolName2;
             let addAsTypeOnly;
             let propertyName2;
             if (referenceImport && isTypeOnlyImportDeclaration(referenceImport) && (fix.kind === 3 || fix.kind === 2) && fix.addAsTypeOnly === 1) {
               addAsTypeOnly = 2;
             }
-            if (exportedSymbol.name !== localName) {
+            if (exportedSymbol.name !== localName2) {
               propertyName2 = exportedSymbol.name;
             }
             fix = {
@@ -170151,7 +170151,7 @@ ${newComment.split("\n").map((c) => ` * ${c}`).join("\n")}
               ...addAsTypeOnly === void 0 ? {} : { addAsTypeOnly },
               ...propertyName2 === void 0 ? {} : { propertyName: propertyName2 }
             };
-            addImport({ fix, symbolName: localName ?? symbolName2, errorIdentifierText: void 0 });
+            addImport({ fix, symbolName: localName2 ?? symbolName2, errorIdentifierText: void 0 });
           }
         }
         function addImportForModuleSymbol(symbolAlias, isValidTypeOnlyUseSite, referenceImport) {
@@ -170500,9 +170500,9 @@ ${newComment.split("\n").map((c) => ` * ${c}`).join("\n")}
               compilerOptions,
               preferences
             );
-            newDeclarations = combine2(newDeclarations, declarations);
+            newDeclarations = combine3(newDeclarations, declarations);
           });
-          newDeclarations = combine2(newDeclarations, getCombinedVerbatimImports());
+          newDeclarations = combine3(newDeclarations, getCombinedVerbatimImports());
           if (newDeclarations) {
             insertImports(
               changeTracker,
@@ -171535,7 +171535,7 @@ ${newComment.split("\n").map((c) => ` * ${c}`).join("\n")}
             (i) => i.addAsTypeOnly === 4
             /* NotAllowed */
           );
-          statements = combine2(
+          statements = combine3(
             statements,
             makeImport(
               defaultImport && factory.createIdentifier(defaultImport.name),
@@ -171572,7 +171572,7 @@ ${newComment.split("\n").map((c) => ` * ${c}`).join("\n")}
             /*attributes*/
             void 0
           );
-          statements = combine2(statements, declaration);
+          statements = combine3(statements, declaration);
         }
         return Debug.checkDefined(statements);
       }
@@ -171595,11 +171595,11 @@ ${newComment.split("\n").map((c) => ` * ${c}`).join("\n")}
             ));
           }
           const declaration = createConstEqualsRequireDeclaration(factory.createObjectBindingPattern(bindingElements), quotedModuleSpecifier);
-          statements = combine2(statements, declaration);
+          statements = combine3(statements, declaration);
         }
         if (namespaceLikeImport) {
           const declaration = createConstEqualsRequireDeclaration(namespaceLikeImport.name, quotedModuleSpecifier);
-          statements = combine2(statements, declaration);
+          statements = combine3(statements, declaration);
         }
         return Debug.checkDefined(statements);
       }
@@ -177093,7 +177093,7 @@ ${newComment.split("\n").map((c) => ` * ${c}`).join("\n")}
         function createModifiers() {
           let modifiers2;
           if (modifierFlags) {
-            modifiers2 = combine2(modifiers2, factory.createModifiersFromModifierFlags(modifierFlags));
+            modifiers2 = combine3(modifiers2, factory.createModifiersFromModifierFlags(modifierFlags));
           }
           if (shouldAddOverrideKeyword()) {
             modifiers2 = append(modifiers2, factory.createToken(
@@ -197288,7 +197288,7 @@ ${options.prefix}` : "\n" : options.prefix
         SymbolDisplayPartKind: () => SymbolDisplayPartKind,
         SymbolFlags: () => SymbolFlags,
         SymbolFormatFlags: () => SymbolFormatFlags,
-        SyntaxKind: () => SyntaxKind14,
+        SyntaxKind: () => SyntaxKind16,
         Ternary: () => Ternary,
         ThrottledCancellationToken: () => ThrottledCancellationToken,
         TokenClass: () => TokenClass,
@@ -197406,7 +197406,7 @@ ${options.prefix}` : "\n" : options.prefix
         codefix: () => ts_codefix_exports,
         collapseTextChangeRangesAcrossMultipleVersions: () => collapseTextChangeRangesAcrossMultipleVersions,
         collectExternalModuleInfo: () => collectExternalModuleInfo,
-        combine: () => combine2,
+        combine: () => combine3,
         combinePaths: () => combinePaths,
         commandLineOptionOfCustomType: () => commandLineOptionOfCustomType,
         commentPragmas: () => commentPragmas,
@@ -212101,8 +212101,8 @@ Additional information: BADCLIENT: Bad error code, ${badCode} not found in range
         installPackage(options) {
           this.packageInstallId++;
           const request2 = { kind: "installPackage", ...options, id: this.packageInstallId };
-          const promise = new Promise((resolve5, reject) => {
-            (this.packageInstalledPromise ?? (this.packageInstalledPromise = /* @__PURE__ */ new Map())).set(this.packageInstallId, { resolve: resolve5, reject });
+          const promise = new Promise((resolve6, reject) => {
+            (this.packageInstalledPromise ?? (this.packageInstalledPromise = /* @__PURE__ */ new Map())).set(this.packageInstallId, { resolve: resolve6, reject });
           });
           this.installer.send(request2);
           return promise;
@@ -212533,7 +212533,7 @@ var require_commonjs2 = __commonJS({
     function gte2(i, y) {
       return i >= y;
     }
-    function combine2(acc, pre, values, max, maxLength, dropEmpties) {
+    function combine3(acc, pre, values, max, maxLength, dropEmpties) {
       const out = [];
       let length = 0;
       for (let a = 0; a < acc.length; a++) {
@@ -212608,11 +212608,11 @@ var require_commonjs2 = __commonJS({
       for (; ; ) {
         const m = (0, balanced_match_1.balanced)("{", "}", str);
         if (!m) {
-          return combine2(acc, str, [""], max, maxLength, dropEmpties);
+          return combine3(acc, str, [""], max, maxLength, dropEmpties);
         }
         const pre = m.pre;
         if (/\$$/.test(pre)) {
-          acc = combine2(acc, pre + "{" + m.body + "}", [""], max, maxLength, dropEmpties && !m.post.length);
+          acc = combine3(acc, pre + "{" + m.body + "}", [""], max, maxLength, dropEmpties && !m.post.length);
           firstGroup = false;
           if (!m.post.length)
             break;
@@ -212630,7 +212630,7 @@ var require_commonjs2 = __commonJS({
             isTop = true;
             continue;
           }
-          return combine2(acc, pre + "{" + m.body + "}" + m.post, [""], max, maxLength, dropEmpties);
+          return combine3(acc, pre + "{" + m.body + "}" + m.post, [""], max, maxLength, dropEmpties);
         }
         if (firstGroup) {
           dropEmpties = isTop && !isSequence;
@@ -212644,7 +212644,7 @@ var require_commonjs2 = __commonJS({
           if (n.length === 1 && n[0] !== void 0) {
             n = expand_2(n[0], max, maxLength, maxDepth, depth + 1, maxRewrites, false).map(embrace2);
             if (n.length === 1) {
-              acc = combine2(acc, pre + n[0], [""], max, maxLength, dropEmpties && !m.post.length);
+              acc = combine3(acc, pre + n[0], [""], max, maxLength, dropEmpties && !m.post.length);
               if (!m.post.length)
                 break;
               str = m.post;
@@ -212673,7 +212673,7 @@ var require_commonjs2 = __commonJS({
             }
           }
         }
-        acc = combine2(acc, pre, values, max, maxLength, dropEmpties && !m.post.length);
+        acc = combine3(acc, pre, values, max, maxLength, dropEmpties && !m.post.length);
         if (!m.post.length)
           break;
         str = m.post;
@@ -214430,7 +214430,7 @@ var require_path_browserify = __commonJS({
     }
     var posix5 = {
       // path.resolve([from ...], to)
-      resolve: function resolve5() {
+      resolve: function resolve6() {
         var resolvedPath = "";
         var resolvedAbsolute = false;
         var cwd;
@@ -214495,7 +214495,7 @@ var require_path_browserify = __commonJS({
           return ".";
         return posix5.normalize(joined);
       },
-      relative: function relative7(from, to) {
+      relative: function relative8(from, to) {
         assertPath(from);
         assertPath(to);
         if (from === to) return "";
@@ -217328,12 +217328,12 @@ var require_dist2 = __commonJS({
       return patterns.length > 0 ? buildCrawler(options, patterns) : [];
     }
     async function glob(globInput, options) {
-      const [crawler, relative7] = getCrawler(globInput, options);
-      return crawler ? formatPaths(await crawler.withPromise(), relative7) : [];
+      const [crawler, relative8] = getCrawler(globInput, options);
+      return crawler ? formatPaths(await crawler.withPromise(), relative8) : [];
     }
     function globSync(globInput, options) {
-      const [crawler, relative7] = getCrawler(globInput, options);
-      return crawler ? formatPaths(crawler.sync(), relative7) : [];
+      const [crawler, relative8] = getCrawler(globInput, options);
+      return crawler ? formatPaths(crawler.sync(), relative8) : [];
     }
     exports2.convertPathToPattern = convertPathToPattern;
     exports2.escapePath = escapePath;
@@ -218624,12 +218624,12 @@ ${nodeLocation}` : message;
     };
     var NodeRuntimeFileSystem = class {
       delete(path3) {
-        return new Promise((resolve5, reject) => {
+        return new Promise((resolve6, reject) => {
           fs__namespace.rm(path3, { recursive: true }, (err) => {
             if (err)
               reject(err);
             else
-              resolve5();
+              resolve6();
           });
         });
       }
@@ -218648,12 +218648,12 @@ ${nodeLocation}` : message;
         }));
       }
       readFile(filePath, encoding = "utf-8") {
-        return new Promise((resolve5, reject) => {
+        return new Promise((resolve6, reject) => {
           fs__namespace.readFile(filePath, encoding, (err, data) => {
             if (err)
               reject(err);
             else
-              resolve5(data);
+              resolve6(data);
           });
         });
       }
@@ -218661,12 +218661,12 @@ ${nodeLocation}` : message;
         return fs__namespace.readFileSync(filePath, encoding);
       }
       async writeFile(filePath, fileText) {
-        await new Promise((resolve5, reject) => {
+        await new Promise((resolve6, reject) => {
           fs__namespace.writeFile(filePath, fileText, (err) => {
             if (err)
               reject(err);
             else
-              resolve5();
+              resolve6();
           });
         });
       }
@@ -218680,12 +218680,12 @@ ${nodeLocation}` : message;
         fs__namespace.mkdirSync(dirPath, { recursive: true });
       }
       move(srcPath, destPath) {
-        return new Promise((resolve5, reject) => {
+        return new Promise((resolve6, reject) => {
           fs__namespace.rename(srcPath, destPath, (err) => {
             if (err)
               reject(err);
             else
-              resolve5();
+              resolve6();
           });
         });
       }
@@ -218693,12 +218693,12 @@ ${nodeLocation}` : message;
         fs__namespace.renameSync(srcPath, destPath);
       }
       copy(srcPath, destPath) {
-        return new Promise((resolve5, reject) => {
+        return new Promise((resolve6, reject) => {
           fs__namespace.copyFile(srcPath, destPath, (err) => {
             if (err)
               reject(err);
             else
-              resolve5();
+              resolve6();
           });
         });
       }
@@ -218706,15 +218706,15 @@ ${nodeLocation}` : message;
         fs__namespace.copyFileSync(srcPath, destPath);
       }
       stat(path3) {
-        return new Promise((resolve5, reject) => {
+        return new Promise((resolve6, reject) => {
           fs__namespace.stat(path3, (err, stat) => {
             if (err) {
               if (err.code === "ENOENT" || err.code === "ENOTDIR")
-                resolve5(void 0);
+                resolve6(void 0);
               else
                 reject(err);
             } else {
-              resolve5(stat);
+              resolve6(stat);
             }
           });
         });
@@ -221561,7 +221561,7 @@ var require_ts_morph = __commonJS({
       const nameNode = node.getNameNode();
       if (nameNode == null)
         return false;
-      if (Node15.isArrayBindingPattern(nameNode) || Node15.isObjectBindingPattern(nameNode))
+      if (Node18.isArrayBindingPattern(nameNode) || Node18.isObjectBindingPattern(nameNode))
         return nameNode.getElements().some((element) => nodeHasName(element, name));
       const nodeName = node.getName != null ? node.getName() : nameNode.getText();
       return nodeName === name;
@@ -221991,7 +221991,7 @@ var require_ts_morph = __commonJS({
     }
     function checkNodeIsAmbient(node) {
       const isThisAmbient = (node.getCombinedModifierFlags() & common.ts.ModifierFlags.Ambient) === common.ts.ModifierFlags.Ambient;
-      return isThisAmbient || Node15.isInterfaceDeclaration(node) || Node15.isTypeAliasDeclaration(node);
+      return isThisAmbient || Node18.isInterfaceDeclaration(node) || Node18.isTypeAliasDeclaration(node);
     }
     function isStringKind(kind) {
       switch (kind) {
@@ -222392,15 +222392,15 @@ var require_ts_morph = __commonJS({
       #getSourceFileForLiteral(literal) {
         const parent = literal.getParentOrThrow();
         const grandParent = parent.getParent();
-        if (Node15.isImportDeclaration(parent) || Node15.isExportDeclaration(parent))
+        if (Node18.isImportDeclaration(parent) || Node18.isExportDeclaration(parent))
           return parent.getModuleSpecifierSourceFile();
-        else if (grandParent != null && Node15.isImportEqualsDeclaration(grandParent))
+        else if (grandParent != null && Node18.isImportEqualsDeclaration(grandParent))
           return grandParent.getExternalModuleReferenceSourceFile();
-        else if (grandParent != null && Node15.isImportTypeNode(grandParent)) {
+        else if (grandParent != null && Node18.isImportTypeNode(grandParent)) {
           const importTypeSymbol = grandParent.getSymbol();
           if (importTypeSymbol != null)
             return ModuleUtils.getReferencedSourceFileFromSymbol(importTypeSymbol);
-        } else if (Node15.isCallExpression(parent)) {
+        } else if (Node18.isCallExpression(parent)) {
           const literalSymbol = literal.getSymbol();
           if (literalSymbol != null)
             return ModuleUtils.getReferencedSourceFileFromSymbol(literalSymbol);
@@ -222492,16 +222492,16 @@ var require_ts_morph = __commonJS({
       FormattingKind2[FormattingKind2["None"] = 3] = "None";
     })(FormattingKind || (FormattingKind = {}));
     function getClassMemberFormatting(parent, member) {
-      if (Node15.isAmbientable(parent) && parent.isAmbient())
+      if (Node18.isAmbientable(parent) && parent.isAmbient())
         return FormattingKind.Newline;
       if (hasBody$1(member))
         return FormattingKind.Blankline;
       return FormattingKind.Newline;
     }
     function hasBody$1(node) {
-      if (Node15.isBodyable(node) && node.getBody() != null)
+      if (Node18.isBodyable(node) && node.getBody() != null)
         return true;
-      if (Node15.isBodied(node))
+      if (Node18.isBodied(node))
         return true;
       return false;
     }
@@ -222523,11 +222523,11 @@ var require_ts_morph = __commonJS({
       return FormattingKind.Newline;
     }
     function hasBody(node) {
-      if (Node15.isBodyable(node) && node.hasBody())
+      if (Node18.isBodyable(node) && node.hasBody())
         return true;
-      if (Node15.isBodied(node))
+      if (Node18.isBodied(node))
         return true;
-      return Node15.isInterfaceDeclaration(node) || Node15.isClassDeclaration(node) || Node15.isEnumDeclaration(node);
+      return Node18.isInterfaceDeclaration(node) || Node18.isClassDeclaration(node) || Node18.isEnumDeclaration(node);
     }
     function getStatementedNodeChildFormatting(parent, member) {
       if (hasBody(member))
@@ -222538,9 +222538,9 @@ var require_ts_morph = __commonJS({
       return FormattingKind.Newline;
     }
     function getGeneralFormatting(parent, child) {
-      if (Node15.isClassDeclaration(parent))
+      if (Node18.isClassDeclaration(parent))
         return getClassMemberFormatting(parent, child);
-      if (Node15.isInterfaceDeclaration(parent))
+      if (Node18.isInterfaceDeclaration(parent))
         return getInterfaceMemberFormatting();
       return getStatementedNodeChildFormatting(parent, child);
     }
@@ -222714,9 +222714,9 @@ var require_ts_morph = __commonJS({
     function getInsertPosFromIndex(index, syntaxList, children) {
       if (index === 0) {
         const parent = syntaxList.getParentOrThrow();
-        if (Node15.isSourceFile(parent))
+        if (Node18.isSourceFile(parent))
           return 0;
-        else if (Node15.isCaseClause(parent) || Node15.isDefaultClause(parent)) {
+        else if (Node18.isCaseClause(parent) || Node18.isDefaultClause(parent)) {
           const colonToken = parent.getFirstChildByKindOrThrow(common.SyntaxKind.ColonToken);
           return colonToken.getEnd();
         }
@@ -222733,9 +222733,9 @@ var require_ts_morph = __commonJS({
     function getEndPosFromIndex(index, parent, children, fullText) {
       let endPos;
       if (index === children.length) {
-        if (Node15.isSourceFile(parent))
+        if (Node18.isSourceFile(parent))
           endPos = parent.getEnd();
-        else if (Node15.isCaseClause(parent) || Node15.isDefaultClause(parent))
+        else if (Node18.isCaseClause(parent) || Node18.isDefaultClause(parent))
           endPos = parent.getEnd();
         else {
           const parentContainer = getParentContainerOrThrow(parent);
@@ -222751,14 +222751,14 @@ var require_ts_morph = __commonJS({
       return getPosAtStartOfLineOrNonWhitespace(fullText, endPos);
     }
     function getParentContainerOrThrow(parent) {
-      if (Node15.isModuleDeclaration(parent)) {
+      if (Node18.isModuleDeclaration(parent)) {
         const innerBody = parent._getInnerBody();
         if (innerBody == null)
           throw new common.errors.InvalidOperationError("This operation requires the module to have a body.");
         return innerBody;
-      } else if (Node15.isBodied(parent))
+      } else if (Node18.isBodied(parent))
         return parent.getBody();
-      else if (Node15.isBodyable(parent))
+      else if (Node18.isBodyable(parent))
         return parent.getBodyOrThrow();
       else
         return parent;
@@ -222805,7 +222805,7 @@ var require_ts_morph = __commonJS({
       const result = [];
       for (let i = 0; i < newLength; i++) {
         const currentChild = newChildren[index + i];
-        if (allowCommentNodes || !Node15.isCommentNode(currentChild))
+        if (allowCommentNodes || !Node18.isCommentNode(currentChild))
           result.push(currentChild);
       }
       return result;
@@ -223258,7 +223258,7 @@ var require_ts_morph = __commonJS({
         this.#handler = handler;
       }
       handleNode(currentNode, newNode, newSourceFile) {
-        if (!Node15.isSourceFile(currentNode))
+        if (!Node18.isSourceFile(currentNode))
           throw new common.errors.InvalidOperationError(`Can only use a TryOrForgetNodeHandler with a source file.`);
         try {
           this.#handler.handleNode(currentNode, newNode, newSourceFile);
@@ -223414,7 +223414,7 @@ var require_ts_morph = __commonJS({
         const lowerIndex = Math.min(newIndex, oldIndex);
         const upperIndex = Math.max(newIndex, oldIndex);
         const childrenInNewOrder = getChildrenInNewOrder();
-        const isParentSourceFile = Node15.isSourceFile(parent.getParentOrThrow());
+        const isParentSourceFile = Node18.isSourceFile(parent.getParentOrThrow());
         let finalText = "";
         fillPrefixText();
         fillTextForIndex(lowerIndex);
@@ -223741,14 +223741,14 @@ var require_ts_morph = __commonJS({
         const bodyNode = getBodyNodeOrThrow();
         return [bodyNode.getStart() + 1, bodyNode.getEnd() - 1];
         function getBodyNodeOrThrow() {
-          if (Node15.isModuleDeclaration(node)) {
+          if (Node18.isModuleDeclaration(node)) {
             const bodyNode2 = node._getInnerBody();
             if (bodyNode2 == null)
               throw new common.errors.InvalidOperationError("This operation requires the module to have a body.");
             return bodyNode2;
-          } else if (Node15.isBodied(node))
+          } else if (Node18.isBodied(node))
             return node.getBody();
-          else if (Node15.isBodyable(node))
+          else if (Node18.isBodyable(node))
             return node.getBodyOrThrow();
           else
             common.errors.throwNotImplementedForSyntaxKindError(node.getKind(), node);
@@ -223923,14 +223923,14 @@ Path: ` + sourceFile.getFilePath() + "\nText: " + JSON.stringify(textManipulator
       }
       function getPreviousNonCommentNode() {
         for (let i = insertIndex - 1; i >= 0; i--) {
-          if (!Node15.isCommentNode(currentNodes[i]))
+          if (!Node18.isCommentNode(currentNodes[i]))
             return currentNodes[i];
         }
         return void 0;
       }
       function getNextNonCommentNode() {
         for (let i = insertIndex; i < currentNodes.length; i++) {
-          if (!Node15.isCommentNode(currentNodes[i]))
+          if (!Node18.isCommentNode(currentNodes[i]))
             return currentNodes[i];
         }
         return void 0;
@@ -223982,7 +223982,7 @@ Path: ` + sourceFile.getFilePath() + "\nText: " + JSON.stringify(textManipulator
         function getChild(child) {
           if (child == null)
             return child;
-          else if (Node15.isOverloadable(child))
+          else if (Node18.isOverloadable(child))
             return child.getImplementation() || child;
           else
             return child;
@@ -224013,7 +224013,7 @@ Path: ` + sourceFile.getFilePath() + "\nText: " + JSON.stringify(textManipulator
         let count = 0;
         for (let i = index - 1; i >= 0; i--) {
           const node = startChildren[i];
-          if (Node15.isCommentNode(node)) {
+          if (Node18.isCommentNode(node)) {
             commentCount++;
             if (node.getText().startsWith("/**"))
               count = commentCount;
@@ -224083,12 +224083,12 @@ Path: ` + sourceFile.getFilePath() + "\nText: " + JSON.stringify(textManipulator
       }));
     }
     function removeClassMember(classMember) {
-      if (Node15.isOverloadable(classMember)) {
+      if (Node18.isOverloadable(classMember)) {
         if (classMember.isImplementation())
           removeClassMembers([...classMember.getOverloads(), classMember]);
         else {
           const parent = classMember.getParentOrThrow();
-          if (Node15.isAmbientable(parent) && parent.isAmbient())
+          if (Node18.isAmbientable(parent) && parent.isAmbient())
             removeClassMembers([classMember]);
           else
             removeChildren({ children: [classMember], removeFollowingSpaces: true, removeFollowingNewLines: true });
@@ -224409,7 +224409,7 @@ Path: ` + sourceFile.getFilePath() + "\nText: " + JSON.stringify(textManipulator
         return this.compilerObject.kind;
       }
     };
-    var Node15 = class _Node {
+    var Node18 = class _Node {
       #compilerNode;
       #forgottenText;
       #childStringRanges;
@@ -227108,7 +227108,7 @@ Node text: ${this.#forgottenText}`;
       return condition == null ? void 0 : ((c) => condition(thisNode._getNodeFromCompilerNode(c)));
     }
     function insertWhiteSpaceTextAtPos(node, insertPos, textOrWriterFunction, methodName2) {
-      const parent = Node15.isSourceFile(node) ? node.getChildSyntaxListOrThrow() : node.getParentSyntaxList() || node.getParentOrThrow();
+      const parent = Node18.isSourceFile(node) ? node.getChildSyntaxListOrThrow() : node.getParentSyntaxList() || node.getParentOrThrow();
       const newText = getTextFromStringOrWriter(node._getWriterWithQueuedIndentation(), textOrWriterFunction);
       if (!/^[\s\r\n]*$/.test(newText))
         throw new common.errors.InvalidOperationError(`Cannot insert non-whitespace into ${methodName2}.`);
@@ -227151,7 +227151,7 @@ Node text: ${this.#forgottenText}`;
       Scope["Protected"] = "protected";
       Scope["Private"] = "private";
     })(exports2.Scope || (exports2.Scope = {}));
-    var SyntaxList = class extends Node15 {
+    var SyntaxList = class extends Node18 {
       addChildText(textOrWriterFunction) {
         return this.insertChildText(this.getChildCount(), textOrWriterFunction);
       }
@@ -227170,12 +227170,12 @@ Node text: ${this.#forgottenText}`;
           else
             insertText = " " + insertText;
         } else {
-          if (index === 0 && Node15.isSourceFile(parent)) {
+          if (index === 0 && Node18.isSourceFile(parent)) {
             if (!insertText.endsWith("\n"))
               insertText += newLineKind;
           } else {
             insertText = newLineKind + insertText;
-            if (!Node15.isSourceFile(parent) && index === initialChildCount && insertText.endsWith("\n"))
+            if (!Node18.isSourceFile(parent) && index === initialChildCount && insertText.endsWith("\n"))
               insertText = insertText.replace(/\r?\n$/, "");
           }
         }
@@ -227424,7 +227424,7 @@ Node text: ${this.#forgottenText}`;
           if (value === hasExclamationToken)
             return this;
           if (value) {
-            if (Node15.isQuestionTokenable(this))
+            if (Node18.isQuestionTokenable(this))
               this.setHasQuestionToken(false);
             const colonNode = this.getFirstChildByKind(common.SyntaxKind.ColonToken);
             if (colonNode == null)
@@ -227458,11 +227458,11 @@ Node text: ${this.#forgottenText}`;
           return this.getExportKeyword() != null;
         }
         getExportKeyword() {
-          if (Node15.isVariableDeclaration(this)) {
+          if (Node18.isVariableDeclaration(this)) {
             const variableStatement = this.getVariableStatement();
             return variableStatement?.getExportKeyword();
           }
-          if (!Node15.isModifierable(this))
+          if (!Node18.isModifierable(this))
             return throwForNotModifierableNode();
           return this.getFirstModifierByKind(common.SyntaxKind.ExportKeyword);
         }
@@ -227473,11 +227473,11 @@ Node text: ${this.#forgottenText}`;
           return this.getDefaultKeyword() != null;
         }
         getDefaultKeyword() {
-          if (Node15.isVariableDeclaration(this)) {
+          if (Node18.isVariableDeclaration(this)) {
             const variableStatement = this.getVariableStatement();
             return variableStatement?.getDefaultKeyword();
           }
-          if (!Node15.isModifierable(this))
+          if (!Node18.isModifierable(this))
             return throwForNotModifierableNode();
           return this.getFirstModifierByKind(common.SyntaxKind.DefaultKeyword);
         }
@@ -227533,7 +227533,7 @@ Node text: ${this.#forgottenText}`;
         setIsDefaultExport(value) {
           if (value === this.isDefaultExport())
             return this;
-          if (value && !Node15.isSourceFile(this.getParentOrThrow()))
+          if (value && !Node18.isSourceFile(this.getParentOrThrow()))
             throw new common.errors.InvalidOperationError("The parent must be a source file in order to set this node as a default export.");
           const sourceFile = this.getSourceFile();
           const fileDefaultExportSymbol = sourceFile.getDefaultExportSymbol();
@@ -227541,7 +227541,7 @@ Node text: ${this.#forgottenText}`;
             sourceFile.removeDefaultExport(fileDefaultExportSymbol);
           if (!value)
             return this;
-          if (Node15.hasName(this) && shouldWriteAsSeparateStatement.call(this)) {
+          if (Node18.hasName(this) && shouldWriteAsSeparateStatement.call(this)) {
             const parentSyntaxList = this.getFirstAncestorByKindOrThrow(common.SyntaxKind.SyntaxList);
             const name = this.getName();
             parentSyntaxList.insertChildText(this.getChildIndex() + 1, (writer) => {
@@ -227553,15 +227553,15 @@ Node text: ${this.#forgottenText}`;
           }
           return this;
           function shouldWriteAsSeparateStatement() {
-            if (Node15.isEnumDeclaration(this) || Node15.isModuleDeclaration(this) || Node15.isTypeAliasDeclaration(this))
+            if (Node18.isEnumDeclaration(this) || Node18.isModuleDeclaration(this) || Node18.isTypeAliasDeclaration(this))
               return true;
-            if (Node15.isAmbientable(this) && this.isAmbient())
+            if (Node18.isAmbientable(this) && this.isAmbient())
               return true;
             return false;
           }
         }
         setIsExported(value) {
-          if (Node15.isSourceFile(this.getParentOrThrow()))
+          if (Node18.isSourceFile(this.getParentOrThrow()))
             this.toggleModifier("default", false);
           this.toggleModifier("export", value);
           return this;
@@ -231017,8 +231017,8 @@ Node text: ${this.#forgottenText}`;
               this._standardWrite(writer, info, () => {
                 this._context.structurePrinterFactory.forImportDeclaration().printTexts(writer, structures);
               }, {
-                previousNewLine: (previousMember) => Node15.isImportDeclaration(previousMember) || isComment(previousMember.compilerNode),
-                nextNewLine: (nextMember) => Node15.isImportDeclaration(nextMember)
+                previousNewLine: (previousMember) => Node18.isImportDeclaration(previousMember) || isComment(previousMember.compilerNode),
+                nextNewLine: (nextMember) => Node18.isImportDeclaration(nextMember)
               });
             }
           });
@@ -231036,7 +231036,7 @@ Node text: ${this.#forgottenText}`;
           return common.errors.throwIfNullOrUndefined(this.getImportDeclaration(conditionOrModuleSpecifier), message ?? "Expected to find an import with the provided condition.", this);
         }
         getImportDeclarations() {
-          return this.getStatements().filter(Node15.isImportDeclaration);
+          return this.getStatements().filter(Node18.isImportDeclaration);
         }
         addExportDeclaration(structure) {
           return this.addExportDeclarations([structure])[0];
@@ -231056,8 +231056,8 @@ Node text: ${this.#forgottenText}`;
               this._standardWrite(writer, info, () => {
                 this._context.structurePrinterFactory.forExportDeclaration().printTexts(writer, structures);
               }, {
-                previousNewLine: (previousMember) => Node15.isExportDeclaration(previousMember) || isComment(previousMember.compilerNode),
-                nextNewLine: (nextMember) => Node15.isExportDeclaration(nextMember)
+                previousNewLine: (previousMember) => Node18.isExportDeclaration(previousMember) || isComment(previousMember.compilerNode),
+                nextNewLine: (nextMember) => Node18.isExportDeclaration(nextMember)
               });
             }
           });
@@ -231075,7 +231075,7 @@ Node text: ${this.#forgottenText}`;
           return common.errors.throwIfNullOrUndefined(this.getExportDeclaration(conditionOrModuleSpecifier), message ?? "Expected to find an export declaration with the provided condition.", this);
         }
         getExportDeclarations() {
-          return this.getStatements().filter(Node15.isExportDeclaration);
+          return this.getStatements().filter(Node18.isExportDeclaration);
         }
         addExportAssignment(structure) {
           return this.addExportAssignments([structure])[0];
@@ -231095,8 +231095,8 @@ Node text: ${this.#forgottenText}`;
               this._standardWrite(writer, info, () => {
                 this._context.structurePrinterFactory.forExportAssignment().printTexts(writer, structures);
               }, {
-                previousNewLine: (previousMember) => Node15.isExportAssignment(previousMember) || isComment(previousMember.compilerNode),
-                nextNewLine: (nextMember) => Node15.isExportAssignment(nextMember)
+                previousNewLine: (previousMember) => Node18.isExportAssignment(previousMember) || isComment(previousMember.compilerNode),
+                nextNewLine: (nextMember) => Node18.isExportAssignment(nextMember)
               });
             }
           });
@@ -231108,7 +231108,7 @@ Node text: ${this.#forgottenText}`;
           return common.errors.throwIfNullOrUndefined(this.getExportAssignment(condition), message ?? "Expected to find an export assignment with the provided condition.", this);
         }
         getExportAssignments() {
-          return this.getStatements().filter(Node15.isExportAssignment);
+          return this.getStatements().filter(Node18.isExportAssignment);
         }
         getDefaultExportSymbol() {
           const sourceFileSymbol = this.getSymbol();
@@ -231139,23 +231139,23 @@ Node text: ${this.#forgottenText}`;
           }
           return result;
           function* getDeclarationHandlingImportsAndExports(declaration) {
-            if (Node15.isExportSpecifier(declaration)) {
+            if (Node18.isExportSpecifier(declaration)) {
               for (const d of declaration.getLocalTargetDeclarations())
                 yield* getDeclarationHandlingImportsAndExports(d);
-            } else if (Node15.isExportAssignment(declaration)) {
+            } else if (Node18.isExportAssignment(declaration)) {
               const expression = declaration.getExpression();
               if (expression == null || expression.getKind() !== common.SyntaxKind.Identifier) {
                 yield expression;
                 return;
               }
               yield* getDeclarationsForSymbol(expression.getSymbol());
-            } else if (Node15.isImportSpecifier(declaration)) {
+            } else if (Node18.isImportSpecifier(declaration)) {
               const identifier = declaration.getNameNode();
               const symbol = identifier.getSymbol();
               if (symbol == null)
                 return;
               yield* getDeclarationsForSymbol(symbol.getAliasedSymbol() || symbol);
-            } else if (Node15.isImportClause(declaration)) {
+            } else if (Node18.isImportClause(declaration)) {
               const identifier = declaration.getDefaultImport();
               if (identifier == null)
                 return;
@@ -231163,7 +231163,7 @@ Node text: ${this.#forgottenText}`;
               if (symbol == null)
                 return;
               yield* getDeclarationsForSymbol(symbol.getAliasedSymbol() || symbol);
-            } else if (Node15.isNamespaceImport(declaration) || Node15.isNamespaceExport(declaration)) {
+            } else if (Node18.isNamespaceImport(declaration) || Node18.isNamespaceExport(declaration)) {
               const symbol = declaration.getNameNode().getSymbol();
               if (symbol == null)
                 return;
@@ -231186,7 +231186,7 @@ Node text: ${this.#forgottenText}`;
           const declaration = defaultExportSymbol.getDeclarations()[0];
           if (declaration.compilerNode.kind === common.SyntaxKind.ExportAssignment)
             removeChildrenWithFormatting({ children: [declaration], getSiblingFormatting: () => FormattingKind.Newline });
-          else if (Node15.isModifierable(declaration)) {
+          else if (Node18.isModifierable(declaration)) {
             declaration.toggleModifier("default", false);
             declaration.toggleModifier("export", false);
           }
@@ -231226,12 +231226,12 @@ Node text: ${this.#forgottenText}`;
       };
     }
     function getNodeForReferences(node) {
-      if (Node15.isIdentifier(node) || Node15.isStringLiteral(node))
+      if (Node18.isIdentifier(node) || Node18.isStringLiteral(node))
         return node;
       const nameNode = node.getNodeProperty("name");
       if (nameNode != null)
         return nameNode;
-      if (Node15.isExportable(node))
+      if (Node18.isExportable(node))
         return node.getDefaultKeyword() || node;
       return node;
     }
@@ -231241,12 +231241,12 @@ Node text: ${this.#forgottenText}`;
           renameNode(getNodeToRename(this), newName, options);
           return this;
           function getNodeToRename(thisNode) {
-            if (Node15.isIdentifier(thisNode) || Node15.isPrivateIdentifier(thisNode) || Node15.isStringLiteral(thisNode))
+            if (Node18.isIdentifier(thisNode) || Node18.isPrivateIdentifier(thisNode) || Node18.isStringLiteral(thisNode))
               return thisNode;
             else if (thisNode.getNameNode != null) {
               const node = thisNode.getNameNode();
               common.errors.throwIfNullOrUndefined(node, "Expected to find a name node when renaming.");
-              if (Node15.isArrayBindingPattern(node) || Node15.isObjectBindingPattern(node))
+              if (Node18.isArrayBindingPattern(node) || Node18.isObjectBindingPattern(node))
                 throw new common.errors.NotImplementedError(`Not implemented renameable scenario for ${node.getKindName()}.`);
               return node;
             } else {
@@ -231328,7 +231328,7 @@ Node text: ${this.#forgottenText}`;
       };
     }
     function addNameNode(node, newName) {
-      if (Node15.isClassDeclaration(node) || Node15.isClassExpression(node)) {
+      if (Node18.isClassDeclaration(node) || Node18.isClassExpression(node)) {
         const classKeyword = node.getFirstChildByKindOrThrow(common.SyntaxKind.ClassKeyword);
         insertIntoParentTextRange({
           insertPos: classKeyword.getEnd(),
@@ -231450,7 +231450,7 @@ Node text: ${this.#forgottenText}`;
           if (value === hasQuestionDotToken)
             return this;
           if (value) {
-            if (Node15.isPropertyAccessExpression(this))
+            if (Node18.isPropertyAccessExpression(this))
               this.getFirstChildByKindOrThrow(common.SyntaxKind.DotToken).replaceWithText("?.");
             else {
               insertIntoParentTextRange({
@@ -231460,16 +231460,16 @@ Node text: ${this.#forgottenText}`;
               });
             }
           } else {
-            if (Node15.isPropertyAccessExpression(this))
+            if (Node18.isPropertyAccessExpression(this))
               questionDotTokenNode.replaceWithText(".");
             else
               removeChildren({ children: [questionDotTokenNode] });
           }
           return this;
           function getInsertPos2() {
-            if (Node15.isCallExpression(this))
+            if (Node18.isCallExpression(this))
               return this.getFirstChildByKindOrThrow(common.SyntaxKind.OpenParenToken).getStart();
-            if (Node15.isElementAccessExpression(this))
+            if (Node18.isElementAccessExpression(this))
               return this.getFirstChildByKindOrThrow(common.SyntaxKind.OpenBracketToken).getStart();
             common.errors.throwNotImplementedForSyntaxKindError(this.compilerNode.kind);
           }
@@ -231504,7 +231504,7 @@ Node text: ${this.#forgottenText}`;
           if (value === hasQuestionToken)
             return this;
           if (value) {
-            if (Node15.isExclamationTokenable(this))
+            if (Node18.isExclamationTokenable(this))
               this.setHasExclamationToken(false);
             insertIntoParentTextRange({
               insertPos: getInsertPos2.call(this),
@@ -231516,7 +231516,7 @@ Node text: ${this.#forgottenText}`;
           }
           return this;
           function getInsertPos2() {
-            if (Node15.hasName(this))
+            if (Node18.hasName(this))
               return this.getNameNode().getEnd();
             const colonNode = this.getFirstChildByKind(common.SyntaxKind.ColonToken);
             if (colonNode != null)
@@ -231637,7 +231637,7 @@ Node text: ${this.#forgottenText}`;
           const scope = getScopeForNode(this);
           if (scope != null)
             return scope;
-          if (Node15.isParameterDeclaration(this) && this.isReadonly())
+          if (Node18.isParameterDeclaration(this) && this.isReadonly())
             return exports2.Scope.Public;
           return void 0;
         }
@@ -231784,14 +231784,14 @@ Node text: ${this.#forgottenText}`;
     }
     function getValidRange(thisNode) {
       const rangeNode = getRangeNode();
-      const openBrace = Node15.isSourceFile(rangeNode) ? void 0 : rangeNode.getPreviousSiblingIfKind(common.SyntaxKind.OpenBraceToken);
+      const openBrace = Node18.isSourceFile(rangeNode) ? void 0 : rangeNode.getPreviousSiblingIfKind(common.SyntaxKind.OpenBraceToken);
       const closeBrace = openBrace == null ? void 0 : rangeNode.getNextSiblingIfKind(common.SyntaxKind.CloseBraceToken);
       if (openBrace != null && closeBrace != null)
         return [openBrace.getEnd(), closeBrace.getStart()];
       else
         return [rangeNode.getPos(), rangeNode.getEnd()];
       function getRangeNode() {
-        if (Node15.isSourceFile(thisNode))
+        if (Node18.isSourceFile(thisNode))
           return thisNode;
         return thisNode.getChildSyntaxListOrThrow();
       }
@@ -231818,8 +231818,8 @@ Node text: ${this.#forgottenText}`;
           const typeArguments = this.getTypeArguments();
           index = verifyAndGetIndex(index, typeArguments.length);
           if (typeArguments.length === 0) {
-            const expression = Node15.hasExpression(this) ? this.getExpression() : void 0;
-            const identifier = Node15.isPropertyAccessExpression(expression) ? expression.getLastChildByKindOrThrow(common.SyntaxKind.Identifier) : this.getFirstChildByKindOrThrow(common.SyntaxKind.Identifier);
+            const expression = Node18.hasExpression(this) ? this.getExpression() : void 0;
+            const identifier = Node18.isPropertyAccessExpression(expression) ? expression.getLastChildByKindOrThrow(common.SyntaxKind.Identifier) : this.getFirstChildByKindOrThrow(common.SyntaxKind.Identifier);
             insertIntoParentTextRange({
               insertPos: identifier.getEnd(),
               parent: this,
@@ -232306,7 +232306,7 @@ Node text: ${this.#forgottenText}`;
       const namedNode = node;
       if (namedNode.getNameNode != null)
         return namedNode.getNameNode().getEnd();
-      else if (Node15.isCallSignatureDeclaration(node) || Node15.isFunctionTypeNode(node))
+      else if (Node18.isCallSignatureDeclaration(node) || Node18.isFunctionTypeNode(node))
         return node.getFirstChildByKindOrThrow(common.SyntaxKind.OpenParenToken).getStart();
       else
         throw new common.errors.NotImplementedError(`Not implemented scenario inserting type parameters for node with kind ${node.getKindName()}.`);
@@ -232318,13 +232318,13 @@ Node text: ${this.#forgottenText}`;
         }
       };
     }
-    var ArrayBindingPattern = class extends Node15 {
+    var ArrayBindingPattern = class extends Node18 {
       getElements() {
         return this.compilerNode.elements.map((e) => this._getNodeFromCompilerNode(e));
       }
     };
     var createBase$F = (ctor) => DotDotDotTokenableNode(InitializerExpressionableNode(BindingNamedNode(ctor)));
-    var BindingElementBase = createBase$F(Node15);
+    var BindingElementBase = createBase$F(Node18);
     var BindingElement = class extends BindingElementBase {
       getPropertyNameNodeOrThrow(message) {
         return common.errors.throwIfNullOrUndefined(this.getPropertyNameNode(), message ?? "Expected to find a property name node.", this);
@@ -232333,7 +232333,7 @@ Node text: ${this.#forgottenText}`;
         return this._getNodeFromCompilerNodeIfExists(this.compilerNode.propertyName);
       }
     };
-    var ObjectBindingPattern = class extends Node15 {
+    var ObjectBindingPattern = class extends Node18 {
       getElements() {
         return this.compilerNode.elements.map((e) => this._getNodeFromCompilerNode(e));
       }
@@ -232366,7 +232366,7 @@ Node text: ${this.#forgottenText}`;
         }
       };
     }
-    var Expression = class extends Node15 {
+    var Expression = class extends Node18 {
       getContextualType() {
         return this._context.typeChecker.getContextualType(this);
       }
@@ -232594,7 +232594,7 @@ Node text: ${this.#forgottenText}`;
     var NonNullExpressionBase = ExpressionedNode(LeftHandSideExpression);
     var NonNullExpression = class extends NonNullExpressionBase {
     };
-    var ObjectLiteralElement = class extends Node15 {
+    var ObjectLiteralElement = class extends Node18 {
       remove() {
         removeCommaSeparatedChild(this);
       }
@@ -232938,7 +232938,7 @@ Node text: ${this.#forgottenText}`;
     var YieldExpressionBase = ExpressionableNode(GeneratorableNode(Expression));
     var YieldExpression = class extends YieldExpressionBase {
     };
-    var StatementBase = ChildOrderableNode(Node15);
+    var StatementBase = ChildOrderableNode(Node18);
     var Statement = class extends StatementBase {
       remove() {
         removeStatementedNodeChild(this);
@@ -232979,7 +232979,7 @@ Node text: ${this.#forgottenText}`;
           return getChildSyntaxList.call(this).insertChildText(index, writerFunction);
           function getChildSyntaxList() {
             const childSyntaxList = this.getChildSyntaxListOrThrow();
-            if (Node15.isCaseClause(this) || Node15.isDefaultClause(this)) {
+            if (Node18.isCaseClause(this) || Node18.isDefaultClause(this)) {
               const block = childSyntaxList.getFirstChildIfKind(common.SyntaxKind.Block);
               if (block != null)
                 return block.getChildSyntaxListOrThrow();
@@ -233019,7 +233019,7 @@ Node text: ${this.#forgottenText}`;
           });
         }
         getClasses() {
-          return this.getStatements().filter(Node15.isClassDeclaration);
+          return this.getStatements().filter(Node18.isClassDeclaration);
         }
         getClass(nameOrFindFunction) {
           return getNodeByNameOrFindFunction(this.getClasses(), nameOrFindFunction);
@@ -233049,7 +233049,7 @@ Node text: ${this.#forgottenText}`;
           });
         }
         getEnums() {
-          return this.getStatements().filter(Node15.isEnumDeclaration);
+          return this.getStatements().filter(Node18.isEnumDeclaration);
         }
         getEnum(nameOrFindFunction) {
           return getNodeByNameOrFindFunction(this.getEnums(), nameOrFindFunction);
@@ -233077,14 +233077,14 @@ Node text: ${this.#forgottenText}`;
                   isAmbient: isNodeAmbientOrInAmbientContext(this)
                 }).printTexts(writer, structures);
               }, {
-                previousNewLine: (previousMember) => structures[0].hasDeclareKeyword === true && Node15.isFunctionDeclaration(previousMember) && previousMember.getBody() == null,
-                nextNewLine: (nextMember) => structures[structures.length - 1].hasDeclareKeyword === true && Node15.isFunctionDeclaration(nextMember) && nextMember.getBody() == null
+                previousNewLine: (previousMember) => structures[0].hasDeclareKeyword === true && Node18.isFunctionDeclaration(previousMember) && previousMember.getBody() == null,
+                nextNewLine: (nextMember) => structures[structures.length - 1].hasDeclareKeyword === true && Node18.isFunctionDeclaration(nextMember) && nextMember.getBody() == null
               });
             }
           });
         }
         getFunctions() {
-          return this.getStatements().filter(Node15.isFunctionDeclaration).filter((f) => f.isAmbient() || f.isImplementation());
+          return this.getStatements().filter(Node18.isFunctionDeclaration).filter((f) => f.isAmbient() || f.isImplementation());
         }
         getFunction(nameOrFindFunction) {
           return getNodeByNameOrFindFunction(this.getFunctions(), nameOrFindFunction);
@@ -233114,7 +233114,7 @@ Node text: ${this.#forgottenText}`;
           });
         }
         getInterfaces() {
-          return this.getStatements().filter(Node15.isInterfaceDeclaration);
+          return this.getStatements().filter(Node18.isInterfaceDeclaration);
         }
         getInterface(nameOrFindFunction) {
           return getNodeByNameOrFindFunction(this.getInterfaces(), nameOrFindFunction);
@@ -233144,7 +233144,7 @@ Node text: ${this.#forgottenText}`;
           });
         }
         getModules() {
-          return this.getStatements().filter(Node15.isModuleDeclaration);
+          return this.getStatements().filter(Node18.isModuleDeclaration);
         }
         getModule(nameOrFindFunction) {
           return getNodeByNameOrFindFunction(this.getModules(), nameOrFindFunction);
@@ -233170,14 +233170,14 @@ Node text: ${this.#forgottenText}`;
               this._standardWrite(writer, info, () => {
                 this._context.structurePrinterFactory.forTypeAliasDeclaration().printTexts(writer, structures);
               }, {
-                previousNewLine: (previousMember) => Node15.isTypeAliasDeclaration(previousMember),
-                nextNewLine: (nextMember) => Node15.isTypeAliasDeclaration(nextMember)
+                previousNewLine: (previousMember) => Node18.isTypeAliasDeclaration(previousMember),
+                nextNewLine: (nextMember) => Node18.isTypeAliasDeclaration(nextMember)
               });
             }
           });
         }
         getTypeAliases() {
-          return this.getStatements().filter(Node15.isTypeAliasDeclaration);
+          return this.getStatements().filter(Node18.isTypeAliasDeclaration);
         }
         getTypeAlias(nameOrFindFunction) {
           return getNodeByNameOrFindFunction(this.getTypeAliases(), nameOrFindFunction);
@@ -233186,7 +233186,7 @@ Node text: ${this.#forgottenText}`;
           return common.errors.throwIfNullOrUndefined(this.getTypeAlias(nameOrFindFunction), () => getNotFoundErrorMessageForNameOrFindFunction("type alias", nameOrFindFunction));
         }
         getVariableStatements() {
-          return this.getStatements().filter(Node15.isVariableStatement);
+          return this.getStatements().filter(Node18.isVariableStatement);
         }
         getVariableStatement(nameOrFindFunction) {
           return this.getVariableStatements().find(getFindFunction());
@@ -233217,8 +233217,8 @@ Node text: ${this.#forgottenText}`;
               this._standardWrite(writer, info, () => {
                 this._context.structurePrinterFactory.forVariableStatement().printTexts(writer, structures);
               }, {
-                previousNewLine: (previousMember) => Node15.isVariableStatement(previousMember),
-                nextNewLine: (nextMember) => Node15.isVariableStatement(nextMember)
+                previousNewLine: (previousMember) => Node18.isVariableStatement(previousMember),
+                nextNewLine: (nextMember) => Node18.isVariableStatement(nextMember)
               });
             }
           });
@@ -233237,11 +233237,11 @@ Node text: ${this.#forgottenText}`;
         }
         getStructure() {
           const structure = {};
-          if (Node15.isBodyable(this) && !this.hasBody())
+          if (Node18.isBodyable(this) && !this.hasBody())
             structure.statements = void 0;
           else {
             structure.statements = this.getStatements().map((s) => {
-              if (Node15._hasStructure(s))
+              if (Node18._hasStructure(s))
                 return s.getStructure();
               return s.getText({ trimLeadingIndentation: true });
             });
@@ -233249,7 +233249,7 @@ Node text: ${this.#forgottenText}`;
           return callBaseGetStructure(Base.prototype, this, structure);
         }
         set(structure) {
-          if (Node15.isBodyable(this) && structure.statements == null && structure.hasOwnProperty(common.nameof(structure, "statements")))
+          if (Node18.isBodyable(this) && structure.statements == null && structure.hasOwnProperty(common.nameof(structure, "statements")))
             this.removeBody();
           else if (structure.statements != null) {
             const statementCount = this._getCompilerStatementsWithComments().length;
@@ -233270,17 +233270,17 @@ Node text: ${this.#forgottenText}`;
           }
         }
         _getCompilerStatementsContainer() {
-          if (Node15.isSourceFile(this) || Node15.isCaseClause(this) || Node15.isDefaultClause(this))
+          if (Node18.isSourceFile(this) || Node18.isCaseClause(this) || Node18.isDefaultClause(this))
             return this.compilerNode;
-          else if (Node15.isModuleDeclaration(this)) {
+          else if (Node18.isModuleDeclaration(this)) {
             const body = this._getInnerBody();
             if (body == null)
               return void 0;
             else
               return body.compilerNode;
-          } else if (Node15.isBodyable(this) || Node15.isBodied(this))
+          } else if (Node18.isBodyable(this) || Node18.isBodied(this))
             return this.getBody()?.compilerNode;
-          else if (Node15.isBlock(this) || Node15.isModuleBlock(this))
+          else if (Node18.isBlock(this) || Node18.isModuleBlock(this))
             return this.compilerNode;
           else
             throw new common.errors.NotImplementedError(`Could not find the statements for node kind: ${this.getKindName()}, text: ${this.getText()}`);
@@ -233297,7 +233297,7 @@ Node text: ${this.#forgottenText}`;
           });
         }
         _standardWrite(writer, info, writeStructures, opts = {}) {
-          if (info.previousMember != null && (opts.previousNewLine == null || !opts.previousNewLine(info.previousMember)) && !Node15.isCommentNode(info.previousMember)) {
+          if (info.previousMember != null && (opts.previousNewLine == null || !opts.previousNewLine(info.previousMember)) && !Node18.isCommentNode(info.previousMember)) {
             writer.blankLine();
           } else if (!info.isStartOfFile) {
             writer.newLineIfLastNot();
@@ -233311,7 +233311,7 @@ Node text: ${this.#forgottenText}`;
       };
     }
     function addBodyIfNotExists(node) {
-      if (Node15.isBodyable(node) && !node.hasBody())
+      if (Node18.isBodyable(node) && !node.hasBody())
         node.addBody();
     }
     var createBase$v = (ctor) => TextInsertableNode(StatementedNode(ctor));
@@ -233326,7 +233326,7 @@ Node text: ${this.#forgottenText}`;
         return common.errors.throwIfNullOrUndefined(this.getLabel(), message ?? "Expected to find a label.", this);
       }
     };
-    var CaseBlockBase = TextInsertableNode(Node15);
+    var CaseBlockBase = TextInsertableNode(Node18);
     var CaseBlock = class extends CaseBlockBase {
       getClauses() {
         const clauses = this.compilerNode.clauses || [];
@@ -233344,13 +233344,13 @@ Node text: ${this.#forgottenText}`;
       }
     };
     var createBase$u = (ctor) => JSDocableNode(ExpressionedNode(TextInsertableNode(StatementedNode(ctor))));
-    var CaseClauseBase = createBase$u(Node15);
+    var CaseClauseBase = createBase$u(Node18);
     var CaseClause = class extends CaseClauseBase {
       remove() {
         removeClausedNodeChild(this);
       }
     };
-    var CatchClauseBase = Node15;
+    var CatchClauseBase = Node18;
     var CatchClause = class extends CatchClauseBase {
       getBlock() {
         return this._getNodeFromCompilerNode(this.compilerNode.block);
@@ -233376,7 +233376,7 @@ Node text: ${this.#forgottenText}`;
     var DebuggerStatement = class extends DebuggerStatementBase {
     };
     var createBase$t = (ctor) => TextInsertableNode(StatementedNode(ctor));
-    var DefaultClauseBase = createBase$t(Node15);
+    var DefaultClauseBase = createBase$t(Node18);
     var DefaultClause = class extends DefaultClauseBase {
       remove() {
         removeClausedNodeChild(this);
@@ -233439,7 +233439,7 @@ Node text: ${this.#forgottenText}`;
       }
       remove() {
         const nodes = [];
-        if (Node15.isIfStatement(this.getParentOrThrow()))
+        if (Node18.isIfStatement(this.getParentOrThrow()))
           nodes.push(this.getPreviousSiblingIfKindOrThrow(common.SyntaxKind.ElseKeyword));
         nodes.push(this);
         removeStatementedNodeChildren(nodes);
@@ -233553,7 +233553,7 @@ Node text: ${this.#forgottenText}`;
       }
       getNamespaceExport() {
         const exportClause = this.getNodeProperty("exportClause");
-        return exportClause != null && Node15.isNamespaceExport(exportClause) ? exportClause : void 0;
+        return exportClause != null && Node18.isNamespaceExport(exportClause) ? exportClause : void 0;
       }
       getNamespaceExportOrThrow(message) {
         return common.errors.throwIfNullOrUndefined(this.getNamespaceExport(), message ?? "Expected to find a namespace export.", this);
@@ -233571,7 +233571,7 @@ Node text: ${this.#forgottenText}`;
               textLength: 1
             }
           });
-        } else if (Node15.isNamespaceExport(exportClause))
+        } else if (Node18.isNamespaceExport(exportClause))
           exportClause.getNameNode().replaceWithText(name);
         else {
           insertIntoParentTextRange({
@@ -233609,7 +233609,7 @@ Node text: ${this.#forgottenText}`;
         const moduleSpecifier = this._getNodeFromCompilerNodeIfExists(this.compilerNode.moduleSpecifier);
         if (moduleSpecifier == null)
           return void 0;
-        if (!Node15.isStringLiteral(moduleSpecifier))
+        if (!Node18.isStringLiteral(moduleSpecifier))
           throw new common.errors.InvalidOperationError("Expected the module specifier to be a string literal.");
         return moduleSpecifier;
       }
@@ -233628,7 +233628,7 @@ Node text: ${this.#forgottenText}`;
         if (symbol == null)
           return void 0;
         const declaration = symbol.getDeclarations()[0];
-        return declaration != null && Node15.isSourceFile(declaration) ? declaration : void 0;
+        return declaration != null && Node18.isSourceFile(declaration) ? declaration : void 0;
       }
       isModuleSpecifierRelative() {
         const moduleSpecifierValue = this.getModuleSpecifierValue();
@@ -233809,7 +233809,7 @@ Node text: ${this.#forgottenText}`;
         }
       });
     }
-    var ExportSpecifierBase = Node15;
+    var ExportSpecifierBase = Node18;
     var ExportSpecifier = class extends ExportSpecifierBase {
       setName(name) {
         const nameNode = this.getNameNode();
@@ -233942,7 +233942,7 @@ Node text: ${this.#forgottenText}`;
       }
       getStructure() {
         const alias = this.getAliasNode();
-        return callBaseGetStructure(Node15.prototype, this, {
+        return callBaseGetStructure(Node18.prototype, this, {
           kind: exports2.StructureKind.ExportSpecifier,
           alias: alias ? alias.getText() : void 0,
           name: this.getNameNode().getText(),
@@ -233950,14 +233950,14 @@ Node text: ${this.#forgottenText}`;
         });
       }
     };
-    var ExternalModuleReferenceBase = ExpressionableNode(Node15);
+    var ExternalModuleReferenceBase = ExpressionableNode(Node18);
     var ExternalModuleReference = class extends ExternalModuleReferenceBase {
       getReferencedSourceFileOrThrow(message) {
         return common.errors.throwIfNullOrUndefined(this.getReferencedSourceFile(), message ?? "Expected to find the referenced source file.", this);
       }
       isRelative() {
         const expression = this.getExpression();
-        if (expression == null || !Node15.isStringLiteral(expression))
+        if (expression == null || !Node18.isStringLiteral(expression))
           return false;
         return ModuleUtils.isModuleSpecifierRelative(expression.getLiteralText());
       }
@@ -233971,7 +233971,7 @@ Node text: ${this.#forgottenText}`;
         return ModuleUtils.getReferencedSourceFileFromSymbol(symbol);
       }
     };
-    var ImportAttributeBase = ImportAttributeNamedNode(Node15);
+    var ImportAttributeBase = ImportAttributeNamedNode(Node18);
     var ImportAttribute = class extends ImportAttributeBase {
       getValue() {
         return this._getNodeFromCompilerNode(this.compilerNode.value);
@@ -233989,7 +233989,7 @@ Node text: ${this.#forgottenText}`;
         });
       }
     };
-    var ImportAttributesBase = Node15;
+    var ImportAttributesBase = Node18;
     var ImportAttributes = class extends ImportAttributesBase {
       setElements(elements) {
         this.replaceWithText((writer) => {
@@ -234009,7 +234009,7 @@ Node text: ${this.#forgottenText}`;
         });
       }
     };
-    var ImportClauseBase = Node15;
+    var ImportClauseBase = Node18;
     var ImportClause = class extends ImportClauseBase {
       getPhaseModifier() {
         return this.compilerNode.phaseModifier;
@@ -234075,13 +234075,13 @@ Node text: ${this.#forgottenText}`;
       }
       getNamespaceImport() {
         const namedBindings = this.getNamedBindings();
-        if (namedBindings == null || !Node15.isNamespaceImport(namedBindings))
+        if (namedBindings == null || !Node18.isNamespaceImport(namedBindings))
           return void 0;
         return namedBindings.getNameNode();
       }
       getNamedImports() {
         const namedBindings = this.getNamedBindings();
-        if (namedBindings == null || !Node15.isNamedImports(namedBindings))
+        if (namedBindings == null || !Node18.isNamedImports(namedBindings))
           return [];
         return namedBindings.getElements();
       }
@@ -234126,7 +234126,7 @@ Node text: ${this.#forgottenText}`;
       }
       getModuleSpecifier() {
         const moduleSpecifier = this._getNodeFromCompilerNode(this.compilerNode.moduleSpecifier);
-        if (!Node15.isStringLiteral(moduleSpecifier))
+        if (!Node18.isStringLiteral(moduleSpecifier))
           throw new common.errors.InvalidOperationError("Expected the module specifier to be a string literal.");
         return moduleSpecifier;
       }
@@ -234489,14 +234489,14 @@ Node text: ${this.#forgottenText}`;
       }
       isExternalModuleReferenceRelative() {
         const moduleReference = this.getModuleReference();
-        if (!Node15.isExternalModuleReference(moduleReference))
+        if (!Node18.isExternalModuleReference(moduleReference))
           return false;
         return moduleReference.isRelative();
       }
       setExternalModuleReference(textOrSourceFile) {
         const text2 = typeof textOrSourceFile === "string" ? textOrSourceFile : this._sourceFile.getRelativePathAsModuleSpecifierTo(textOrSourceFile);
         const moduleReference = this.getModuleReference();
-        if (Node15.isExternalModuleReference(moduleReference) && moduleReference.getExpression() != null)
+        if (Node18.isExternalModuleReference(moduleReference) && moduleReference.getExpression() != null)
           moduleReference.getExpressionOrThrow().replaceWithText((writer) => writer.quote(text2));
         else
           moduleReference.replaceWithText((writer) => writer.write("require(").quote(text2).write(")"));
@@ -234507,12 +234507,12 @@ Node text: ${this.#forgottenText}`;
       }
       getExternalModuleReferenceSourceFile() {
         const moduleReference = this.getModuleReference();
-        if (!Node15.isExternalModuleReference(moduleReference))
+        if (!Node18.isExternalModuleReference(moduleReference))
           return void 0;
         return moduleReference.getReferencedSourceFile();
       }
     };
-    var ImportSpecifierBase = Node15;
+    var ImportSpecifierBase = Node18;
     var ImportSpecifier = class extends ImportSpecifierBase {
       setName(name) {
         const nameNode = this.getNameNode();
@@ -234651,7 +234651,7 @@ Node text: ${this.#forgottenText}`;
         }
         getParentModule() {
           let parent = this.getParentOrThrow();
-          if (!Node15.isModuleBlock(parent))
+          if (!Node18.isModuleBlock(parent))
             return void 0;
           while (parent.getParentOrThrow().getKind() === common.SyntaxKind.ModuleDeclaration)
             parent = parent.getParentOrThrow();
@@ -234710,7 +234710,7 @@ Node text: ${this.#forgottenText}`;
       }
       getNameNodes() {
         const name = this.getNameNode();
-        if (Node15.isStringLiteral(name))
+        if (Node18.isStringLiteral(name))
           return name;
         else {
           const nodes = [];
@@ -234782,7 +234782,7 @@ Node text: ${this.#forgottenText}`;
       }
       _getInnerBody() {
         let node = this.getBody();
-        while (node != null && Node15.isBodyable(node) && node.compilerNode.statements == null)
+        while (node != null && Node18.isBodyable(node) && node.compilerNode.statements == null)
           node = node.getBody();
         return node;
       }
@@ -234797,19 +234797,19 @@ Node text: ${this.#forgottenText}`;
       if (!namespaceDec.hasDeclareKeyword())
         namespaceDec.setHasDeclareKeyword(true);
     }
-    var NamedExportsBase = Node15;
+    var NamedExportsBase = Node18;
     var NamedExports = class extends NamedExportsBase {
       getElements() {
         return this.compilerNode.elements.map((e) => this._getNodeFromCompilerNode(e));
       }
     };
-    var NamedImportsBase = Node15;
+    var NamedImportsBase = Node18;
     var NamedImports = class extends NamedImportsBase {
       getElements() {
         return this.compilerNode.elements.map((e) => this._getNodeFromCompilerNode(e));
       }
     };
-    var NamespaceExportBase = RenameableNode(Node15);
+    var NamespaceExportBase = RenameableNode(Node18);
     var NamespaceExport = class extends NamespaceExportBase {
       setName(name) {
         const nameNode = this.getNameNode();
@@ -234832,7 +234832,7 @@ Node text: ${this.#forgottenText}`;
         return this._getNodeFromCompilerNode(this.compilerNode.name);
       }
     };
-    var NamespaceImportBase = RenameableNode(Node15);
+    var NamespaceImportBase = RenameableNode(Node18);
     var NamespaceImport = class extends NamespaceImportBase {
       setName(name) {
         const nameNode = this.getNameNode();
@@ -234862,7 +234862,7 @@ Node text: ${this.#forgottenText}`;
       FileSystemRefreshResult[FileSystemRefreshResult["Updated"] = 1] = "Updated";
       FileSystemRefreshResult[FileSystemRefreshResult["Deleted"] = 2] = "Deleted";
     })(exports2.FileSystemRefreshResult || (exports2.FileSystemRefreshResult = {}));
-    var SourceFileBase = ModuledNode(TextInsertableNode(StatementedNode(Node15)));
+    var SourceFileBase = ModuledNode(TextInsertableNode(StatementedNode(Node18)));
     var SourceFile = (() => {
       let _classSuper = SourceFileBase;
       let _instanceExtraInitializers = [];
@@ -235367,7 +235367,7 @@ Node text: ${this.#forgottenText}`;
     function getReferencingNodeFromStringLiteral(literal) {
       const parent = literal.getParentOrThrow();
       const grandParent = parent.getParent();
-      if (grandParent != null && Node15.isImportEqualsDeclaration(grandParent))
+      if (grandParent != null && Node18.isImportEqualsDeclaration(grandParent))
         return grandParent;
       else
         return parent;
@@ -235580,7 +235580,7 @@ Node text: ${this.#forgottenText}`;
     var FunctionExpression = class extends FunctionExpressionBase {
     };
     var createBase$m = (ctor) => OverrideableNode(QuestionTokenableNode(DecoratableNode(ScopeableNode(ReadonlyableNode(ModifierableNode(DotDotDotTokenableNode(TypedNode(InitializerExpressionableNode(BindingNamedNode(ctor))))))))));
-    var ParameterDeclarationBase = createBase$m(Node15);
+    var ParameterDeclarationBase = createBase$m(Node18);
     var ParameterDeclaration = class extends ParameterDeclarationBase {
       isRestParameter() {
         return this.compilerNode.dotDotDotToken != null;
@@ -235643,7 +235643,7 @@ Node text: ${this.#forgottenText}`;
       if (isParameterWithoutParens())
         addParens();
       function isParameterWithoutParens() {
-        return Node15.isArrowFunction(parent) && parent.compilerNode.parameters.length === 1 && parameter.getParentSyntaxListOrThrow().getPreviousSiblingIfKind(common.SyntaxKind.OpenParenToken) == null;
+        return Node18.isArrowFunction(parent) && parent.compilerNode.parameters.length === 1 && parameter.getParentSyntaxListOrThrow().getPreviousSiblingIfKind(common.SyntaxKind.OpenParenToken) == null;
       }
       function addParens() {
         const paramText = parameter.getText();
@@ -235660,14 +235660,14 @@ Node text: ${this.#forgottenText}`;
         });
       }
     }
-    var ClassElement = class extends Node15 {
+    var ClassElement = class extends Node18 {
       remove() {
         const parent = this.getParentOrThrow();
-        if (Node15.isClassDeclaration(parent) || Node15.isClassExpression(parent))
+        if (Node18.isClassDeclaration(parent) || Node18.isClassExpression(parent))
           removeClassMember(this);
-        else if (Node15.isObjectLiteralExpression(parent))
+        else if (Node18.isObjectLiteralExpression(parent))
           removeCommaSeparatedChild(this);
-        else if (Node15.isInterfaceDeclaration(parent))
+        else if (Node18.isInterfaceDeclaration(parent))
           removeInterfaceMember(this);
         else
           common.errors.throwNotImplementedForSyntaxKindError(parent.getKind());
@@ -235809,7 +235809,7 @@ Node text: ${this.#forgottenText}`;
             index,
             parent: this,
             write: (writer, info) => {
-              const previousMemberHasBody = !isAmbient && info.previousMember != null && Node15.isBodyable(info.previousMember) && info.previousMember.hasBody();
+              const previousMemberHasBody = !isAmbient && info.previousMember != null && Node18.isBodyable(info.previousMember) && info.previousMember.hasBody();
               const firstStructureHasBody = !isAmbient && members instanceof Array && structureHasBody(members[0]);
               if (previousMemberHasBody || info.previousMember != null && firstStructureHasBody)
                 writer.blankLineIfLastNot();
@@ -235820,7 +235820,7 @@ Node text: ${this.#forgottenText}`;
               memberPrinter.printTexts(memberWriter, members);
               writer.write(memberWriter.toString());
               const lastStructureHasBody = !isAmbient && members instanceof Array && structureHasBody(members[members.length - 1]);
-              const nextMemberHasBody = !isAmbient && info.nextMember != null && Node15.isBodyable(info.nextMember) && info.nextMember.hasBody();
+              const nextMemberHasBody = !isAmbient && info.nextMember != null && Node18.isBodyable(info.nextMember) && info.nextMember.hasBody();
               if (info.nextMember != null && lastStructureHasBody || nextMemberHasBody)
                 writer.blankLineIfLastNot();
               else
@@ -235850,7 +235850,7 @@ Node text: ${this.#forgottenText}`;
             structures,
             expectedKind: common.SyntaxKind.Constructor,
             write: (writer, info) => {
-              if (!isAmbient && info.previousMember != null && !Node15.isCommentNode(info.previousMember))
+              if (!isAmbient && info.previousMember != null && !Node18.isCommentNode(info.previousMember))
                 writer.blankLineIfLastNot();
               else
                 writer.newLineIfLastNot();
@@ -235863,7 +235863,7 @@ Node text: ${this.#forgottenText}`;
           });
         }
         getConstructors() {
-          return this.getMembers().filter((m) => Node15.isConstructorDeclaration(m));
+          return this.getMembers().filter((m) => Node18.isConstructorDeclaration(m));
         }
         addStaticBlock(structure = {}) {
           return this.insertStaticBlock(getEndIndexFromArray(this.getMembersWithComments()), structure);
@@ -235881,7 +235881,7 @@ Node text: ${this.#forgottenText}`;
             structures,
             expectedKind: common.SyntaxKind.ClassStaticBlockDeclaration,
             write: (writer, info) => {
-              if (!isAmbient && info.previousMember != null && !Node15.isCommentNode(info.previousMember))
+              if (!isAmbient && info.previousMember != null && !Node18.isCommentNode(info.previousMember))
                 writer.blankLineIfLastNot();
               else
                 writer.newLineIfLastNot();
@@ -235894,7 +235894,7 @@ Node text: ${this.#forgottenText}`;
           });
         }
         getStaticBlocks() {
-          return this.getMembers().filter((m) => Node15.isClassStaticBlockDeclaration(m));
+          return this.getMembers().filter((m) => Node18.isClassStaticBlockDeclaration(m));
         }
         addGetAccessor(structure) {
           return this.addGetAccessors([structure])[0];
@@ -235911,7 +235911,7 @@ Node text: ${this.#forgottenText}`;
             structures,
             expectedKind: common.SyntaxKind.GetAccessor,
             write: (writer, info) => {
-              if (info.previousMember != null && !Node15.isCommentNode(info.previousMember))
+              if (info.previousMember != null && !Node18.isCommentNode(info.previousMember))
                 writer.blankLineIfLastNot();
               else
                 writer.newLineIfLastNot();
@@ -235940,7 +235940,7 @@ Node text: ${this.#forgottenText}`;
             structures,
             expectedKind: common.SyntaxKind.SetAccessor,
             write: (writer, info) => {
-              if (info.previousMember != null && !Node15.isCommentNode(info.previousMember))
+              if (info.previousMember != null && !Node18.isCommentNode(info.previousMember))
                 writer.blankLineIfLastNot();
               else
                 writer.newLineIfLastNot();
@@ -235969,12 +235969,12 @@ Node text: ${this.#forgottenText}`;
             structures,
             expectedKind: common.SyntaxKind.PropertyDeclaration,
             write: (writer, info) => {
-              if (info.previousMember != null && Node15.hasBody(info.previousMember))
+              if (info.previousMember != null && Node18.hasBody(info.previousMember))
                 writer.blankLineIfLastNot();
               else
                 writer.newLineIfLastNot();
               this._context.structurePrinterFactory.forPropertyDeclaration().printTexts(writer, structures);
-              if (info.nextMember != null && Node15.hasBody(info.nextMember))
+              if (info.nextMember != null && Node18.hasBody(info.nextMember))
                 writer.blankLineIfLastNot();
               else
                 writer.newLineIfLastNot();
@@ -235996,7 +235996,7 @@ Node text: ${this.#forgottenText}`;
           return insertChildren(this, {
             index,
             write: (writer, info) => {
-              if (!isAmbient && info.previousMember != null && !Node15.isCommentNode(info.previousMember))
+              if (!isAmbient && info.previousMember != null && !Node18.isCommentNode(info.previousMember))
                 writer.blankLineIfLastNot();
               else
                 writer.newLineIfLastNot();
@@ -236035,7 +236035,7 @@ Node text: ${this.#forgottenText}`;
           return common.errors.throwIfNullOrUndefined(this.getProperty(nameOrFindFunction), () => getNotFoundErrorMessageForNameOrFindFunction("class property declaration", nameOrFindFunction));
         }
         getProperties() {
-          return this.getMembers().filter((m) => Node15.isPropertyDeclaration(m));
+          return this.getMembers().filter((m) => Node18.isPropertyDeclaration(m));
         }
         getGetAccessor(nameOrFindFunction) {
           return getNodeByNameOrFindFunction(this.getGetAccessors(), nameOrFindFunction);
@@ -236044,7 +236044,7 @@ Node text: ${this.#forgottenText}`;
           return common.errors.throwIfNullOrUndefined(this.getGetAccessor(nameOrFindFunction), () => getNotFoundErrorMessageForNameOrFindFunction("class getAccessor declaration", nameOrFindFunction));
         }
         getGetAccessors() {
-          return this.getMembers().filter((m) => Node15.isGetAccessorDeclaration(m));
+          return this.getMembers().filter((m) => Node18.isGetAccessorDeclaration(m));
         }
         getSetAccessor(nameOrFindFunction) {
           return getNodeByNameOrFindFunction(this.getSetAccessors(), nameOrFindFunction);
@@ -236053,7 +236053,7 @@ Node text: ${this.#forgottenText}`;
           return common.errors.throwIfNullOrUndefined(this.getSetAccessor(nameOrFindFunction), () => getNotFoundErrorMessageForNameOrFindFunction("class setAccessor declaration", nameOrFindFunction));
         }
         getSetAccessors() {
-          return this.getMembers().filter((m) => Node15.isSetAccessorDeclaration(m));
+          return this.getMembers().filter((m) => Node18.isSetAccessorDeclaration(m));
         }
         getMethod(nameOrFindFunction) {
           return getNodeByNameOrFindFunction(this.getMethods(), nameOrFindFunction);
@@ -236062,7 +236062,7 @@ Node text: ${this.#forgottenText}`;
           return common.errors.throwIfNullOrUndefined(this.getMethod(nameOrFindFunction), () => getNotFoundErrorMessageForNameOrFindFunction("class method declaration", nameOrFindFunction));
         }
         getMethods() {
-          return this.getMembers().filter((m) => Node15.isMethodDeclaration(m));
+          return this.getMembers().filter((m) => Node18.isMethodDeclaration(m));
         }
         getInstanceMethod(nameOrFindFunction) {
           return getNodeByNameOrFindFunction(this.getInstanceMethods(), nameOrFindFunction);
@@ -236090,9 +236090,9 @@ Node text: ${this.#forgottenText}`;
         }
         getInstanceMembers() {
           return this.getMembersWithParameterProperties().filter((m) => {
-            if (Node15.isConstructorDeclaration(m))
+            if (Node18.isConstructorDeclaration(m))
               return false;
-            return Node15.isParameterDeclaration(m) || !m.isStatic();
+            return Node18.isParameterDeclaration(m) || !m.isStatic();
           });
         }
         getStaticMember(nameOrFindFunction) {
@@ -236103,14 +236103,14 @@ Node text: ${this.#forgottenText}`;
         }
         getStaticMembers() {
           return this.getMembers().filter((m) => {
-            if (Node15.isConstructorDeclaration(m))
+            if (Node18.isConstructorDeclaration(m))
               return false;
-            return !Node15.isParameterDeclaration(m) && m.isStatic();
+            return !Node18.isParameterDeclaration(m) && m.isStatic();
           });
         }
         getMembersWithParameterProperties() {
           const members = this.getMembers();
-          const implementationCtors = members.filter((c) => Node15.isConstructorDeclaration(c) && c.isImplementation());
+          const implementationCtors = members.filter((c) => Node18.isConstructorDeclaration(c) && c.isImplementation());
           for (const ctor of implementationCtors) {
             let insertIndex = members.indexOf(ctor) + 1;
             for (const param of ctor.getParameters()) {
@@ -236128,7 +236128,7 @@ Node text: ${this.#forgottenText}`;
         getMembersWithComments() {
           const compilerNode = this.compilerNode;
           const members = ExtendedParser.getContainerArray(compilerNode, this.getSourceFile().compilerNode);
-          return getAllMembers(this, members).filter((m) => isSupportedClassMember(m) || Node15.isCommentClassElement(m));
+          return getAllMembers(this, members).filter((m) => isSupportedClassMember(m) || Node18.isCommentClassElement(m));
         }
         getMember(nameOrFindFunction) {
           return getNodeByNameOrFindFunction(this.getMembers(), nameOrFindFunction);
@@ -236166,9 +236166,9 @@ Node text: ${this.#forgottenText}`;
       const isAmbient = isNodeAmbientOrInAmbientContext(classDec);
       const members = compilerMembers.map((m) => classDec._getNodeFromCompilerNode(m));
       return isAmbient ? members : members.filter((m) => {
-        if (!(Node15.isConstructorDeclaration(m) || Node15.isMethodDeclaration(m)))
+        if (!(Node18.isConstructorDeclaration(m) || Node18.isMethodDeclaration(m)))
           return true;
-        if (Node15.isMethodDeclaration(m) && m.isAbstract())
+        if (Node18.isMethodDeclaration(m) && m.isAbstract())
           return true;
         return m.isImplementation();
       });
@@ -236194,10 +236194,10 @@ Node text: ${this.#forgottenText}`;
       return classes;
     }
     function isClassPropertyType(m) {
-      return Node15.isPropertyDeclaration(m) || Node15.isSetAccessorDeclaration(m) || Node15.isGetAccessorDeclaration(m) || Node15.isParameterDeclaration(m);
+      return Node18.isPropertyDeclaration(m) || Node18.isSetAccessorDeclaration(m) || Node18.isGetAccessorDeclaration(m) || Node18.isParameterDeclaration(m);
     }
     function isSupportedClassMember(m) {
-      return Node15.isMethodDeclaration(m) || Node15.isPropertyDeclaration(m) || Node15.isGetAccessorDeclaration(m) || Node15.isSetAccessorDeclaration(m) || Node15.isConstructorDeclaration(m) || Node15.isClassStaticBlockDeclaration(m);
+      return Node18.isMethodDeclaration(m) || Node18.isPropertyDeclaration(m) || Node18.isGetAccessorDeclaration(m) || Node18.isSetAccessorDeclaration(m) || Node18.isConstructorDeclaration(m) || Node18.isClassStaticBlockDeclaration(m);
     }
     function insertChildren(classDeclaration, opts) {
       return insertIntoBracesOrSourceFileWithGetChildren({
@@ -236265,7 +236265,7 @@ Node text: ${this.#forgottenText}`;
           typeParameters: this.getTypeParameters().map((p) => p.getStructure()),
           properties: [
             ...parameterProperties.map((p) => {
-              const jsDocComment = p.getParentOrThrow().getJsDocs().map((j) => j.getTags()).flat().filter(Node15.isJSDocParameterTag).filter((t) => t.getTagName() === "param" && t.getName() === p.getName() && t.getComment() != null).map((t) => t.getCommentText().trim())[0];
+              const jsDocComment = p.getParentOrThrow().getJsDocs().map((j) => j.getTags()).flat().filter(Node18.isJSDocParameterTag).filter((t) => t.getTagName() === "param" && t.getName() === p.getName() && t.getComment() != null).map((t) => t.getCommentText().trim())[0];
               return {
                 kind: exports2.StructureKind.PropertySignature,
                 docs: jsDocComment == null ? [] : [{ kind: exports2.StructureKind.JSDoc, description: jsDocComment }],
@@ -236340,7 +236340,7 @@ Node text: ${this.#forgottenText}`;
         name: getAndSet[0].getName(),
         type: getAndSet[0].getType().getText(getAndSet[0]),
         hasQuestionToken: false,
-        isReadonly: getAndSet.every(Node15.isGetAccessorDeclaration)
+        isReadonly: getAndSet.every(Node18.isGetAccessorDeclaration)
       };
     }
     function getExtractedInterfaceMethodStructure(method) {
@@ -236457,7 +236457,7 @@ Node text: ${this.#forgottenText}`;
         const thisName = this.getName();
         const isStatic = this.isStatic();
         return this.getParentOrThrow().forEachChild((sibling) => {
-          if (Node15.isSetAccessorDeclaration(sibling) && sibling.getName() === thisName && sibling.isStatic() === isStatic)
+          if (Node18.isSetAccessorDeclaration(sibling) && sibling.getName() === thisName && sibling.isStatic() === isStatic)
             return sibling;
           return void 0;
         });
@@ -236514,7 +236514,7 @@ Node text: ${this.#forgottenText}`;
         const thisName = this.getName();
         const isStatic = this.isStatic();
         return this.getParentOrThrow().forEachChild((sibling) => {
-          if (Node15.isGetAccessorDeclaration(sibling) && sibling.getName() === thisName && sibling.isStatic() === isStatic)
+          if (Node18.isGetAccessorDeclaration(sibling) && sibling.getName() === thisName && sibling.isStatic() === isStatic)
             return sibling;
           return void 0;
         });
@@ -236528,7 +236528,7 @@ Node text: ${this.#forgottenText}`;
         });
       }
     };
-    var DecoratorBase = LeftHandSideExpressionedNode(Node15);
+    var DecoratorBase = LeftHandSideExpressionedNode(Node18);
     var Decorator = class extends DecoratorBase {
       getName() {
         return this.getNameNode().getText();
@@ -236541,13 +236541,13 @@ Node text: ${this.#forgottenText}`;
           return getIdentifierFromName(this._getInnerExpression());
         function getIdentifierFromName(expression) {
           const identifier = getNameFromExpression(expression);
-          if (!Node15.isIdentifier(identifier)) {
+          if (!Node18.isIdentifier(identifier)) {
             throw new common.errors.NotImplementedError(`Expected the decorator expression '${identifier.getText()}' to be an identifier. Please deal directly with 'getExpression()' on the decorator to handle more complex scenarios.`);
           }
           return identifier;
         }
         function getNameFromExpression(expression) {
-          if (Node15.isPropertyAccessExpression(expression))
+          if (Node18.isPropertyAccessExpression(expression))
             return expression.getNameNode();
           return expression;
         }
@@ -236559,7 +236559,7 @@ Node text: ${this.#forgottenText}`;
         return this.compilerNode.expression.getText(sourceFile.compilerNode);
       }
       isDecoratorFactory() {
-        return Node15.isCallExpression(this._getInnerExpression());
+        return Node18.isCallExpression(this._getInnerExpression());
       }
       setIsDecoratorFactory(isDecoratorFactory) {
         if (this.isDecoratorFactory() === isDecoratorFactory)
@@ -236601,7 +236601,7 @@ Node text: ${this.#forgottenText}`;
       }
       getCallExpression() {
         const expression = this._getInnerExpression();
-        return Node15.isCallExpression(expression) ? expression : void 0;
+        return Node18.isCallExpression(expression) ? expression : void 0;
       }
       getArguments() {
         return this.getCallExpression()?.getArguments() ?? [];
@@ -236665,7 +236665,7 @@ Node text: ${this.#forgottenText}`;
       }
       _getInnerExpression() {
         let expr = this.getExpression();
-        while (Node15.isParenthesizedExpression(expr))
+        while (Node18.isParenthesizedExpression(expr))
           expr = expr.getExpression();
         return expr;
       }
@@ -236754,7 +236754,7 @@ Node text: ${this.#forgottenText}`;
         return -1;
       }
     }
-    var JSDocBase = Node15;
+    var JSDocBase = Node18;
     var JSDoc = class extends JSDocBase {
       isMultiLine() {
         return this.getText().includes("\n");
@@ -236895,7 +236895,7 @@ Node text: ${this.#forgottenText}`;
         });
       }
     };
-    var TypeNode = class extends Node15 {
+    var TypeNode = class extends Node18 {
     };
     var NodeWithTypeArgumentsBase = TypeArgumentedNode(TypeNode);
     var NodeWithTypeArguments = class extends NodeWithTypeArgumentsBase {
@@ -236934,9 +236934,9 @@ Node text: ${this.#forgottenText}`;
     var ImportTypeNode = class extends NodeWithTypeArguments {
       setArgument(text2) {
         const arg = this.getArgument();
-        if (Node15.isLiteralTypeNode(arg)) {
+        if (Node18.isLiteralTypeNode(arg)) {
           const literal = arg.getLiteral();
-          if (Node15.isStringLiteral(literal)) {
+          if (Node18.isStringLiteral(literal)) {
             literal.setLiteralValue(text2);
             return this;
           }
@@ -237115,7 +237115,7 @@ Node text: ${this.#forgottenText}`;
       TypeParameterVariance[TypeParameterVariance["InOut"] = 3] = "InOut";
     })(exports2.TypeParameterVariance || (exports2.TypeParameterVariance = {}));
     var createBase$c = (ctor) => ModifierableNode(NamedNode(ctor));
-    var TypeParameterDeclarationBase = createBase$c(Node15);
+    var TypeParameterDeclarationBase = createBase$c(Node18);
     var TypeParameterDeclaration = class extends TypeParameterDeclarationBase {
       isConst() {
         return this.hasModifier(common.SyntaxKind.ConstKeyword);
@@ -237285,7 +237285,7 @@ Node text: ${this.#forgottenText}`;
     };
     var JSDocAllType = class extends JSDocType {
     };
-    var JSDocTagBase = Node15;
+    var JSDocTagBase = Node18;
     var JSDocTag = class extends JSDocTagBase {
       getTagName() {
         return this.getTagNameNode().getText();
@@ -237411,20 +237411,20 @@ Node text: ${this.#forgottenText}`;
     };
     var JSDocImportTag = class extends JSDocTag {
     };
-    var JSDocLink = class extends Node15 {
+    var JSDocLink = class extends Node18 {
     };
-    var JSDocLinkCode = class extends Node15 {
+    var JSDocLinkCode = class extends Node18 {
     };
-    var JSDocLinkPlain = class extends Node15 {
+    var JSDocLinkPlain = class extends Node18 {
     };
-    var JSDocMemberName = class extends Node15 {
+    var JSDocMemberName = class extends Node18 {
     };
     var JSDocNamepathType = class extends JSDocType {
       getTypeNode() {
         return this._getNodeFromCompilerNode(this.compilerNode.type);
       }
     };
-    var JSDocNameReference = class extends Node15 {
+    var JSDocNameReference = class extends Node18 {
       getName() {
         return this._getNodeFromCompilerNode(this.compilerNode.name);
       }
@@ -237507,7 +237507,7 @@ Node text: ${this.#forgottenText}`;
         return common.errors.throwIfNullOrUndefined(this.getConstraint(), message ?? "Expected to find the JS doc template tag's constraint.", this);
       }
     };
-    var JSDocText = class extends Node15 {
+    var JSDocText = class extends Node18 {
     };
     var JSDocThisTagBase = JSDocTypeExpressionableTag(JSDocTag);
     var JSDocThisTag = class extends JSDocThisTagBase {
@@ -237547,7 +237547,7 @@ Node text: ${this.#forgottenText}`;
         return this._getNodeFromCompilerNode(this.compilerNode.type);
       }
     };
-    var CommentEnumMember = class extends Node15 {
+    var CommentEnumMember = class extends Node18 {
       remove() {
         removeChildrenWithFormatting({
           children: [this],
@@ -237631,7 +237631,7 @@ Node text: ${this.#forgottenText}`;
       }
     };
     var createBase$a = (ctor) => JSDocableNode(InitializerExpressionableNode(PropertyNamedNode(ctor)));
-    var EnumMemberBase = createBase$a(Node15);
+    var EnumMemberBase = createBase$a(Node18);
     var EnumMember = class extends EnumMemberBase {
       getValue() {
         return this._context.typeChecker.getConstantValue(this);
@@ -237672,7 +237672,7 @@ Node text: ${this.#forgottenText}`;
         });
       }
     };
-    var HeritageClause = class extends Node15 {
+    var HeritageClause = class extends Node18 {
       getTypeNodes() {
         return this.compilerNode.types?.map((t) => this._getNodeFromCompilerNode(t)) ?? [];
       }
@@ -237697,7 +237697,7 @@ Node text: ${this.#forgottenText}`;
         }
       }
     };
-    var TypeElement = class extends Node15 {
+    var TypeElement = class extends Node18 {
       remove() {
         removeInterfaceMember(this);
       }
@@ -237910,7 +237910,7 @@ Node text: ${this.#forgottenText}`;
         }
       };
     }
-    var ComputedPropertyNameBase = ExpressionedNode(Node15);
+    var ComputedPropertyNameBase = ExpressionedNode(Node18);
     var ComputedPropertyName = class extends ComputedPropertyNameBase {
     };
     var IdentifierBase = CommonIdentifierBase(ReferenceFindableNode(RenameableNode(PrimaryExpression)));
@@ -237919,10 +237919,10 @@ Node text: ${this.#forgottenText}`;
         return this._context.languageService.getImplementations(this);
       }
     };
-    var PrivateIdentifierBase = CommonIdentifierBase(ReferenceFindableNode(RenameableNode(Node15)));
+    var PrivateIdentifierBase = CommonIdentifierBase(ReferenceFindableNode(RenameableNode(Node18)));
     var PrivateIdentifier = class extends PrivateIdentifierBase {
     };
-    var QualifiedName = class extends Node15 {
+    var QualifiedName = class extends Node18 {
       getLeft() {
         return this._getNodeFromCompilerNode(this.compilerNode.left);
       }
@@ -237930,7 +237930,7 @@ Node text: ${this.#forgottenText}`;
         return this._getNodeFromCompilerNode(this.compilerNode.right);
       }
     };
-    var JsxAttributeBase = Node15;
+    var JsxAttributeBase = Node18;
     var JsxAttribute = class extends JsxAttributeBase {
       getNameNode() {
         return this._getNodeFromCompilerNode(this.compilerNode.name);
@@ -238007,7 +238007,7 @@ Node text: ${this.#forgottenText}`;
       }
     };
     var createBase$3 = (ctor) => JsxTagNamedNode(ctor);
-    var JsxClosingElementBase = createBase$3(Node15);
+    var JsxClosingElementBase = createBase$3(Node18);
     var JsxClosingElement = class extends JsxClosingElementBase {
     };
     var JsxClosingFragment = class extends Expression {
@@ -238096,7 +238096,7 @@ Node text: ${this.#forgottenText}`;
         return this._getNodeFromCompilerNode(this.compilerNode.closingFragment);
       }
     };
-    var JsxNamespacedNameBase = Node15;
+    var JsxNamespacedNameBase = Node18;
     var JsxNamespacedName = class extends JsxNamespacedNameBase {
       getNamespaceNode() {
         return this._getNodeFromCompilerNode(this.compilerNode.namespace);
@@ -238135,7 +238135,7 @@ Node text: ${this.#forgottenText}`;
         });
       }
     };
-    var JsxSpreadAttributeBase = ExpressionedNode(Node15);
+    var JsxSpreadAttributeBase = ExpressionedNode(Node18);
     var JsxSpreadAttribute = class extends JsxSpreadAttributeBase {
       remove() {
         removeChildren({
@@ -238157,7 +238157,7 @@ Node text: ${this.#forgottenText}`;
         });
       }
     };
-    var JsxTextBase = LiteralLikeNode(Node15);
+    var JsxTextBase = LiteralLikeNode(Node18);
     var JsxText = class extends JsxTextBase {
       containsOnlyTriviaWhiteSpaces() {
         const oldCompilerNode = this.compilerNode;
@@ -238346,23 +238346,23 @@ Node text: ${this.#forgottenText}`;
         return parent.getChildAtIndex(childIndex);
       }
     };
-    var TemplateHeadBase = LiteralLikeNode(Node15);
+    var TemplateHeadBase = LiteralLikeNode(Node18);
     var TemplateHead = class extends TemplateHeadBase {
     };
-    var TemplateMiddleBase = LiteralLikeNode(Node15);
+    var TemplateMiddleBase = LiteralLikeNode(Node18);
     var TemplateMiddle = class extends TemplateMiddleBase {
     };
-    var TemplateSpanBase = ExpressionedNode(Node15);
+    var TemplateSpanBase = ExpressionedNode(Node18);
     var TemplateSpan = class extends TemplateSpanBase {
       getLiteral() {
         return this._getNodeFromCompilerNode(this.compilerNode.literal);
       }
     };
-    var TemplateTailBase = LiteralLikeNode(Node15);
+    var TemplateTailBase = LiteralLikeNode(Node18);
     var TemplateTail = class extends TemplateTailBase {
     };
     var createBase = (ctor) => ExportGetableNode(ExclamationTokenableNode(TypedNode(InitializerExpressionableNode(BindingNamedNode(ctor)))));
-    var VariableDeclarationBase = createBase(Node15);
+    var VariableDeclarationBase = createBase(Node18);
     var VariableDeclaration = class extends VariableDeclarationBase {
       remove() {
         const parent = this.getParentOrThrow();
@@ -238400,7 +238400,7 @@ Node text: ${this.#forgottenText}`;
       }
       getVariableStatement() {
         const grandParent = this.getParentOrThrow().getParentOrThrow();
-        return Node15.isVariableStatement(grandParent) ? grandParent : void 0;
+        return Node18.isVariableStatement(grandParent) ? grandParent : void 0;
       }
       set(structure) {
         callBaseSet(VariableDeclarationBase.prototype, this, structure);
@@ -238412,7 +238412,7 @@ Node text: ${this.#forgottenText}`;
         });
       }
     };
-    var VariableDeclarationListBase = ModifierableNode(Node15);
+    var VariableDeclarationListBase = ModifierableNode(Node18);
     var VariableDeclarationList = class extends VariableDeclarationListBase {
       getDeclarations() {
         return this.compilerNode.declarations.map((d) => this._getNodeFromCompilerNode(d));
@@ -239873,7 +239873,7 @@ Node text: ${this.#forgottenText}`;
         if (symbol == null)
           return false;
         const valueDeclaration = symbol.getValueDeclaration();
-        return valueDeclaration != null && Node15.isEnumDeclaration(valueDeclaration);
+        return valueDeclaration != null && Node18.isEnumDeclaration(valueDeclaration);
       }
       isInterface() {
         return this.#hasObjectFlag(common.ObjectFlags.Interface);
@@ -239958,7 +239958,7 @@ Node text: ${this.#forgottenText}`;
         const declaration = symbol.getDeclarations()[0];
         if (declaration == null)
           return void 0;
-        if (!Node15.isTypeParameterDeclaration(declaration))
+        if (!Node18.isTypeParameterDeclaration(declaration))
           return void 0;
         return declaration;
       }
@@ -240942,13 +240942,13 @@ Node text: ${this.#forgottenText}`;
       [common.SyntaxKind.WhileStatement]: WhileStatement,
       [common.SyntaxKind.WithStatement]: WithStatement,
       [common.SyntaxKind.YieldExpression]: YieldExpression,
-      [common.SyntaxKind.SemicolonToken]: Node15,
+      [common.SyntaxKind.SemicolonToken]: Node18,
       [common.SyntaxKind.AnyKeyword]: Expression,
       [common.SyntaxKind.BooleanKeyword]: Expression,
       [common.SyntaxKind.FalseKeyword]: FalseLiteral,
       [common.SyntaxKind.ImportKeyword]: ImportExpression,
-      [common.SyntaxKind.InferKeyword]: Node15,
-      [common.SyntaxKind.NeverKeyword]: Node15,
+      [common.SyntaxKind.InferKeyword]: Node18,
+      [common.SyntaxKind.NeverKeyword]: Node18,
       [common.SyntaxKind.NullKeyword]: NullLiteral,
       [common.SyntaxKind.NumberKeyword]: Expression,
       [common.SyntaxKind.ObjectKeyword]: Expression,
@@ -241112,7 +241112,7 @@ Node text: ${this.#forgottenText}`;
               return new CommentEnumMember(this.#context, compilerNode, sourceFile);
             return common.errors.throwNotImplementedForNeverValueError(compilerNode);
           }
-          const ctor = kindToWrapperMappings[compilerNode.kind] || Node15;
+          const ctor = kindToWrapperMappings[compilerNode.kind] || Node18;
           return new ctor(this.#context, compilerNode, sourceFile);
         }
         function isCommentNode(node) {
@@ -241243,8 +241243,8 @@ Node text: ${this.#forgottenText}`;
         return this.#jsDocTagInfoCache.getOrCreate(jsDocTagInfo, () => new JSDocTagInfo(jsDocTagInfo));
       }
       replaceCompilerNode(oldNode, newNode) {
-        const nodeToReplace = oldNode instanceof Node15 ? oldNode.compilerNode : oldNode;
-        const node = oldNode instanceof Node15 ? oldNode : this.#nodeCache.get(oldNode);
+        const nodeToReplace = oldNode instanceof Node18 ? oldNode.compilerNode : oldNode;
+        const node = oldNode instanceof Node18 ? oldNode : this.#nodeCache.get(oldNode);
         if (nodeToReplace.kind === common.SyntaxKind.SourceFile && nodeToReplace.fileName !== newNode.fileName) {
           const sourceFile = node;
           this.#removeCompilerNodeFromCache(nodeToReplace);
@@ -241289,12 +241289,12 @@ Node text: ${this.#forgottenText}`;
             for (const node of nodes)
               this.#nodeCache.rememberNode(node);
           });
-          if (Node15.isNode(result))
+          if (Node18.isNode(result))
             this.#nodeCache.rememberNode(result);
           if (isPromise(result)) {
             wasPromise = true;
             return result.then((value) => {
-              if (Node15.isNode(value))
+              if (Node18.isNode(value))
                 this.#nodeCache.rememberNode(value);
               this.#nodeCache.forgetLastPoint();
               return value;
@@ -242422,7 +242422,7 @@ Node text: ${this.#forgottenText}`;
     exports2.NewExpressionBase = NewExpressionBase;
     exports2.NoSubstitutionTemplateLiteral = NoSubstitutionTemplateLiteral;
     exports2.NoSubstitutionTemplateLiteralBase = NoSubstitutionTemplateLiteralBase;
-    exports2.Node = Node15;
+    exports2.Node = Node18;
     exports2.NodeWithTypeArguments = NodeWithTypeArguments;
     exports2.NodeWithTypeArgumentsBase = NodeWithTypeArgumentsBase;
     exports2.NonNullExpression = NonNullExpression;
@@ -243191,9 +243191,9 @@ var require_Alias = __commonJS({
     var anchors = require_anchors();
     var visit = require_visit();
     var identity = require_identity();
-    var Node15 = require_Node();
+    var Node18 = require_Node();
     var toJS = require_toJS();
-    var Alias = class extends Node15.NodeBase {
+    var Alias = class extends Node18.NodeBase {
       constructor(source) {
         super(identity.ALIAS);
         this.source = source;
@@ -243307,10 +243307,10 @@ var require_Scalar = __commonJS({
   "node_modules/yaml/dist/nodes/Scalar.js"(exports2) {
     "use strict";
     var identity = require_identity();
-    var Node15 = require_Node();
+    var Node18 = require_Node();
     var toJS = require_toJS();
     var isScalarValue = (value) => !value || typeof value !== "function" && typeof value !== "object";
-    var Scalar = class extends Node15.NodeBase {
+    var Scalar = class extends Node18.NodeBase {
       constructor(value) {
         super(identity.SCALAR);
         this.value = value;
@@ -243413,7 +243413,7 @@ var require_Collection = __commonJS({
     "use strict";
     var createNode = require_createNode();
     var identity = require_identity();
-    var Node15 = require_Node();
+    var Node18 = require_Node();
     function collectionFromPath(schema, path2, value) {
       let v = value;
       for (let i = path2.length - 1; i >= 0; --i) {
@@ -243437,7 +243437,7 @@ var require_Collection = __commonJS({
       });
     }
     var isEmptyPath = (path2) => path2 == null || typeof path2 === "object" && !!path2[Symbol.iterator]().next().done;
-    var Collection = class extends Node15.NodeBase {
+    var Collection = class extends Node18.NodeBase {
       constructor(type, schema) {
         super(type);
         Object.defineProperty(this, "schema", {
@@ -253654,6 +253654,31 @@ var RULES = {
     description: "No app.onError() handler was found. Hono's default handler logs the error and replies with a plain-text 500, so clients get a response that does not match the API's error format and errors reach no logger or error tracker beyond the console.",
     defaultSeverity: "info"
   },
+  // API Health: tRPC
+  "missing-trpc-auth-middleware": {
+    analyzer: "API Health",
+    title: "tRPC mutation without auth middleware",
+    description: "A tRPC mutation is built on a procedure whose .use() middleware chain has no recognizable authentication: no middleware throws a TRPCError with code UNAUTHORIZED or FORBIDDEN, throws when ctx.session, ctx.user, or ctx.auth is missing, or is named like an auth check. Builders are followed through variables and imports to t.procedure, so a builder named protectedProcedure is judged by its middleware, and a .use() whose result is discarded protects nothing, because builders are immutable. Queries and subscriptions are not reported. Findings about builders or middleware imported from packages rely on names and have low confidence.",
+    defaultSeverity: "warning",
+    cwe: ["CWE-306"],
+    owasp: [OWASP.authentication]
+  },
+  "unvalidated-trpc-input": {
+    analyzer: "API Health",
+    title: "tRPC input without validation",
+    description: "A tRPC procedure's .input() parser accepts every value: z.any(), z.unknown(), or z.custom() without a check (also when optional, nullable, or defaulted), Valibot's any() or unknown(), or a parser function that only returns its argument, such as (value) => value as Input. The resolver's input is typed but never checked.",
+    defaultSeverity: "warning",
+    cwe: ["CWE-20"],
+    owasp: [OWASP.injection]
+  },
+  "trpc-stack-trace-exposed": {
+    analyzer: "API Health",
+    title: "tRPC errors expose stack traces",
+    description: "The initTRPC instance is created with isDev: true, or with an errorFormatter that returns error.stack outside a condition, so error responses carry server stack traces in production. Without them, tRPC adds the stack only when NODE_ENV is not production.",
+    defaultSeverity: "warning",
+    cwe: ["CWE-209"],
+    owasp: [OWASP.misconfiguration]
+  },
   // API Health: Next.js
   "no-nextjs-handlers": {
     analyzer: "API Health",
@@ -254454,6 +254479,8 @@ function detectStack(projectPath) {
     info.framework = "express";
   } else if (allDeps.hono) {
     info.framework = "hono";
+  } else if (allDeps["@trpc/server"]) {
+    info.framework = "trpc";
   } else if (pkg.dependencies || pkg.devDependencies) {
     info.framework = "generic";
   }
@@ -257975,18 +258002,53 @@ function moduleOf(node) {
   const declaration = value.getSymbol()?.getDeclarations()[0];
   return declaration ? importSource(declaration)?.specifier ?? null : null;
 }
+function pathAliases(options, projectPath) {
+  const base = options.baseUrl ?? (typeof options.pathsBasePath === "string" ? options.pathsBasePath : projectPath);
+  return Object.entries(options.paths ?? {}).flatMap(([pattern, targets]) => {
+    const [prefix = "", suffix = "", ...rest] = pattern.split("*");
+    if (rest.length > 0) return [];
+    return [
+      {
+        prefix,
+        suffix,
+        targets: targets.map(
+          (target) => (0, import_node_path8.relative)(projectPath, (0, import_node_path8.resolve)(base, target)).replace(/\\/g, "/")
+        )
+      }
+    ];
+  });
+}
+function importBases(index, fromFile, specifier) {
+  if (specifier.startsWith(".")) {
+    return [import_node_path8.posix.normalize(import_node_path8.posix.join(import_node_path8.posix.dirname(fromFile), specifier))];
+  }
+  return (index.aliases ?? []).flatMap(({ prefix, suffix, targets }) => {
+    if (specifier.length < prefix.length + suffix.length || !specifier.startsWith(prefix) || !specifier.endsWith(suffix)) {
+      return [];
+    }
+    const matched = specifier.slice(
+      prefix.length,
+      specifier.length - suffix.length
+    );
+    return targets.map(
+      (target) => import_node_path8.posix.normalize(target.replace("*", matched))
+    );
+  });
+}
 function resolveImport(index, from, specifier) {
   const fromFile = index.paths.get(from);
-  if (!fromFile || !specifier.startsWith(".")) return void 0;
-  const base = import_node_path8.posix.normalize(import_node_path8.posix.join(import_node_path8.posix.dirname(fromFile), specifier));
-  const stem = base.replace(/\.(?:[cm]?js|jsx)$/, "");
-  const candidates = [
-    base,
-    ...MODULE_EXTENSIONS2.map((extension) => `${stem}${extension}`),
-    ...MODULE_EXTENSIONS2.map((extension) => `${base}/index${extension}`)
-  ];
-  const match2 = candidates.find((candidate) => index.files.has(candidate));
-  return match2 ? index.files.get(match2) : void 0;
+  if (!fromFile) return void 0;
+  for (const base of importBases(index, fromFile, specifier)) {
+    const stem = base.replace(/\.(?:[cm]?js|jsx)$/, "");
+    const candidates = [
+      base,
+      ...MODULE_EXTENSIONS2.map((extension) => `${stem}${extension}`),
+      ...MODULE_EXTENSIONS2.map((extension) => `${base}/index${extension}`)
+    ];
+    const match2 = candidates.find((candidate) => index.files.has(candidate));
+    if (match2) return index.files.get(match2);
+  }
+  return void 0;
 }
 function exportedValue(sourceFile, name) {
   const isDefault = name === "default";
@@ -258211,9 +258273,9 @@ function directoryOf(index, node, depth = 0) {
   }
   if (import_ts_morph4.Node.isNewExpression(value)) {
     const [path2, base] = value.getArguments();
-    const relative7 = literalText2(path2);
+    const relative8 = literalText2(path2);
     const file = fileOf(index, value);
-    return relative7 !== null && base?.getText() === "import.meta.url" && file !== void 0 ? within(import_node_path9.posix.dirname(file), [relative7]) : null;
+    return relative8 !== null && base?.getText() === "import.meta.url" && file !== void 0 ? within(import_node_path9.posix.dirname(file), [relative8]) : null;
   }
   if (import_ts_morph4.Node.isCallExpression(value)) {
     const name = calleeName(value);
@@ -258271,8 +258333,8 @@ function directories(index, options) {
   const root = options.dir ? `${options.dir}/` : "";
   for (const file of [...index.files.keys()].sort()) {
     if (!file.startsWith(root)) continue;
-    const relative7 = file.slice(root.length);
-    const segments = relative7.split("/");
+    const relative8 = file.slice(root.length);
+    const segments = relative8.split("/");
     const name = segments.pop() ?? "";
     if (segments.length > options.maxDepth) continue;
     if (!SCRIPT.test(name) || DECLARATION.test(name)) continue;
@@ -258283,7 +258345,7 @@ function directories(index, options) {
       if (options.autoHooks) directory.hooks = file;
       continue;
     }
-    const filtered = options.matchFilter !== null && !`/${relative7}`.includes(options.matchFilter) || options.ignoreFilter !== null && `/${relative7}`.includes(options.ignoreFilter);
+    const filtered = options.matchFilter !== null && !`/${relative8}`.includes(options.matchFilter) || options.ignoreFilter !== null && `/${relative8}`.includes(options.ignoreFilter);
     if (filtered) continue;
     if (INDEX.test(name)) directory.index = file;
     else directory.scripts.push(file);
@@ -259628,7 +259690,828 @@ async function analyzeNestjsApi(context) {
 }
 
 // src/analyzers/nextjs-api.ts
+var import_ts_morph12 = __toESM(require_ts_morph(), 1);
+
+// src/analyzers/trpc-syntax.ts
+var import_ts_morph11 = __toESM(require_ts_morph(), 1);
+
+// src/analyzers/taint-calls.ts
+var import_ts_morph10 = __toESM(require_ts_morph(), 1);
+
+// src/analyzers/taint.ts
 var import_ts_morph9 = __toESM(require_ts_morph(), 1);
+var SOURCE_PATTERN4 = "**/*.{ts,tsx,js,jsx,mjs,cjs}";
+var RUNTIME_IGNORES = [
+  "**/*.test.{ts,tsx,js,jsx,mjs,cjs}",
+  "**/*.spec.{ts,tsx,js,jsx,mjs,cjs}",
+  "**/__tests__/**",
+  "**/test/**",
+  "**/tests/**"
+];
+var REQUEST_DATA = /\b(?:req(?:uest)?|ctx)\s*(?:\.|\[)|\bprocess\s*\.\s*argv\b|\b(?:body|params|query)\s*(?:\.|\[)|\bsearchParams\b/i;
+var MAX_TAINT_HOPS = 3;
+var LOCAL_TAINT = {
+  isRequestValue: (node) => isRequestValue(node),
+  isTainted: (node) => isTainted(node),
+  throughCallers: () => void 0
+};
+function isModuleCall(expression, modules) {
+  if (!import_ts_morph9.Node.isCallExpression(expression)) return false;
+  if (expression.getExpression().getText() !== "require") return false;
+  const moduleArgument = expression.getArguments()[0];
+  return import_ts_morph9.Node.isStringLiteral(moduleArgument) && modules.has(moduleArgument.getLiteralText());
+}
+function moduleBindings(sourceFile, modules, sinkFunctions) {
+  const functions = /* @__PURE__ */ new Set();
+  const namespaces = /* @__PURE__ */ new Set();
+  for (const declaration of sourceFile.getImportDeclarations()) {
+    if (!modules.has(declaration.getModuleSpecifierValue())) continue;
+    const namespace = declaration.getNamespaceImport();
+    if (namespace) namespaces.add(namespace.getText());
+    const defaultImport = declaration.getDefaultImport();
+    if (defaultImport) namespaces.add(defaultImport.getText());
+    for (const namedImport of declaration.getNamedImports()) {
+      const local = namedImport.getAliasNode()?.getText() ?? namedImport.getName();
+      if (sinkFunctions.has(namedImport.getName())) functions.add(local);
+      if (namedImport.getName() === "promises") namespaces.add(local);
+    }
+  }
+  for (const declaration of sourceFile.getVariableDeclarations()) {
+    const initializer = declaration.getInitializer();
+    if (!initializer || !isModuleCall(initializer, modules)) continue;
+    const nameNode = declaration.getNameNode();
+    if (import_ts_morph9.Node.isIdentifier(nameNode)) {
+      namespaces.add(nameNode.getText());
+      continue;
+    }
+    if (!import_ts_morph9.Node.isObjectBindingPattern(nameNode)) continue;
+    for (const element of nameNode.getElements()) {
+      const importedName = element.getPropertyNameNode()?.getText() ?? element.getName();
+      if (sinkFunctions.has(importedName)) functions.add(element.getName());
+      if (importedName === "promises") namespaces.add(element.getName());
+    }
+  }
+  return { functions, namespaces };
+}
+function moduleCall(call, bindings, modules, sinkFunctions) {
+  const expression = call.getExpression();
+  if (import_ts_morph9.Node.isIdentifier(expression)) {
+    return bindings.functions.has(expression.getText());
+  }
+  if (!import_ts_morph9.Node.isPropertyAccessExpression(expression)) return false;
+  if (!sinkFunctions.has(expression.getName())) return false;
+  const receiver = expression.getExpression();
+  const namespace = receiver.getText().replace(/\.promises$/, "");
+  return bindings.namespaces.has(namespace) || isModuleCall(receiver, modules) || import_ts_morph9.Node.isPropertyAccessExpression(receiver) && receiver.getName() === "promises" && isModuleCall(receiver.getExpression(), modules);
+}
+function isStaticString(node) {
+  return Boolean(
+    node && (import_ts_morph9.Node.isStringLiteral(node) || import_ts_morph9.Node.isNoSubstitutionTemplateLiteral(node))
+  );
+}
+function enclosingScope(node) {
+  return node.getFirstAncestor(
+    (ancestor) => import_ts_morph9.Node.isFunctionDeclaration(ancestor) || import_ts_morph9.Node.isFunctionExpression(ancestor) || import_ts_morph9.Node.isArrowFunction(ancestor) || import_ts_morph9.Node.isMethodDeclaration(ancestor) || import_ts_morph9.Node.isConstructorDeclaration(ancestor)
+  ) ?? node.getSourceFile();
+}
+function boundNames(name) {
+  if (import_ts_morph9.Node.isIdentifier(name)) return [name.getText()];
+  if (import_ts_morph9.Node.isObjectBindingPattern(name) || import_ts_morph9.Node.isArrayBindingPattern(name)) {
+    return name.getDescendantsOfKind(import_ts_morph9.SyntaxKind.Identifier).filter((element) => import_ts_morph9.Node.isBindingElement(element.getParent())).map((element) => element.getText());
+  }
+  return [];
+}
+var scopeIndexes = /* @__PURE__ */ new WeakMap();
+function add2(map, name, node) {
+  const list = map.get(name);
+  if (list) list.push(node);
+  else map.set(name, [node]);
+}
+function indexScope(scope) {
+  const existing = scopeIndexes.get(scope);
+  if (existing) return existing;
+  const index = { declarations: /* @__PURE__ */ new Map(), assignments: /* @__PURE__ */ new Map() };
+  for (const declaration of scope.getDescendantsOfKind(
+    import_ts_morph9.SyntaxKind.VariableDeclaration
+  )) {
+    if (enclosingScope(declaration) !== scope) continue;
+    for (const name of boundNames(declaration.getNameNode())) {
+      const initializer = declaration.getInitializer();
+      if (initializer) add2(index.declarations, name, initializer);
+      else if (!index.declarations.has(name)) index.declarations.set(name, []);
+    }
+  }
+  for (const binary of scope.getDescendantsOfKind(
+    import_ts_morph9.SyntaxKind.BinaryExpression
+  )) {
+    if (binary.getOperatorToken().getKind() === import_ts_morph9.SyntaxKind.EqualsToken && import_ts_morph9.Node.isIdentifier(binary.getLeft())) {
+      add2(index.assignments, binary.getLeft().getText(), binary.getRight());
+    }
+  }
+  scopeIndexes.set(scope, index);
+  return index;
+}
+function valueSources(identifier) {
+  const name = identifier.getText();
+  let scope = enclosingScope(identifier);
+  while (scope) {
+    const index = indexScope(scope);
+    const declared = index.declarations.get(name);
+    if (declared) return [...declared, ...index.assignments.get(name) ?? []];
+    scope = import_ts_morph9.Node.isSourceFile(scope) ? void 0 : enclosingScope(scope);
+  }
+  return [];
+}
+function isPropertyName(identifier) {
+  const parent = identifier.getParent();
+  return Boolean(
+    parent && import_ts_morph9.Node.isPropertyAccessExpression(parent) && parent.getNameNode() === identifier
+  );
+}
+function isCallee(identifier) {
+  const parent = identifier.getParent();
+  return Boolean(
+    parent && import_ts_morph9.Node.isCallExpression(parent) && parent.getExpression() === identifier
+  );
+}
+var taintCache = /* @__PURE__ */ new WeakMap();
+function isTainted(node, calls) {
+  if (calls) return traceTaint(node, 0, /* @__PURE__ */ new Set(), calls);
+  const cached = taintCache.get(node);
+  if (cached !== void 0) return cached;
+  const tainted = traceTaint(node, 0, /* @__PURE__ */ new Set());
+  taintCache.set(node, tainted);
+  return tainted;
+}
+function traceTaint(node, hops, seen, calls) {
+  if (REQUEST_DATA.test(node.getText())) return true;
+  if (calls && callReturnsRequestData(node, calls)) return true;
+  if (hops >= MAX_TAINT_HOPS) return false;
+  const identifiers = import_ts_morph9.Node.isIdentifier(node) ? [node] : node.getDescendantsOfKind(import_ts_morph9.SyntaxKind.Identifier);
+  for (const identifier of identifiers) {
+    if (isPropertyName(identifier)) continue;
+    if (isProcedureInput(identifier)) return true;
+    for (const source of valueSources(identifier)) {
+      if (seen.has(source)) continue;
+      seen.add(source);
+      if (traceTaint(source, hops + 1, seen, calls)) return true;
+    }
+    if (calls && !isCallee(identifier) && calls.parameter(identifier, false)) {
+      return true;
+    }
+  }
+  return false;
+}
+function callReturnsRequestData(node, calls) {
+  const expressions = node.getDescendantsOfKind(import_ts_morph9.SyntaxKind.CallExpression);
+  if (import_ts_morph9.Node.isCallExpression(node)) expressions.unshift(node);
+  return expressions.some((call) => calls.result(call));
+}
+function dynamicStringShape(node, hops = 0) {
+  if (import_ts_morph9.Node.isTemplateExpression(node)) return node;
+  if (import_ts_morph9.Node.isBinaryExpression(node) && node.getOperatorToken().getKind() === import_ts_morph9.SyntaxKind.PlusToken) {
+    return node;
+  }
+  if (import_ts_morph9.Node.isIdentifier(node) && hops < MAX_TAINT_HOPS) {
+    for (const source of valueSources(node)) {
+      const shape = dynamicStringShape(source, hops + 1);
+      if (shape) return shape;
+    }
+  }
+  return null;
+}
+var REQUEST_VALUE_METHODS = /* @__PURE__ */ new Set([
+  "at",
+  "formData",
+  "get",
+  "getAll",
+  "json",
+  "replace",
+  "replaceAll",
+  "slice",
+  "substring",
+  "text",
+  "toLowerCase",
+  "toString",
+  "toUpperCase",
+  "trim",
+  "trimEnd",
+  "trimStart"
+]);
+var REQUEST_VALUE_FUNCTIONS = /* @__PURE__ */ new Set([
+  "String",
+  "decodeURI",
+  "decodeURIComponent",
+  "join",
+  "normalize",
+  "resolve"
+]);
+var SERVER_SET_REQUEST_DATA = /\b(?:req(?:uest)?|ctx)\s*\.\s*(?:app|auth|file|files|ip|ips|method|protocol|secure|session|state|user)\b/;
+var REQUEST_OBJECT = /^(?:req|request|ctx)$/;
+var RESPONSE_OBJECT = /^(?:res|response|reply)$/;
+var REQUEST_DECORATORS = /* @__PURE__ */ new Set(["Body", "Headers", "Param", "Query"]);
+function requestDecorator(identifier) {
+  for (const declaration of identifier.getSymbol()?.getDeclarations() ?? []) {
+    if (!import_ts_morph9.Node.isParameterDeclaration(declaration)) continue;
+    const decorator = declaration.getDecorators().find((candidate) => REQUEST_DECORATORS.has(candidate.getName()));
+    if (decorator) return decorator;
+  }
+  return void 0;
+}
+var PROCEDURE_METHODS = /* @__PURE__ */ new Set(["mutation", "query", "subscription"]);
+function isResolverOptions(parameter) {
+  const fn = parameter.getParent();
+  if (!fn || !(import_ts_morph9.Node.isArrowFunction(fn) || import_ts_morph9.Node.isFunctionExpression(fn)) || fn.getParameters()[0] !== parameter) {
+    return false;
+  }
+  const call = fn.getParent();
+  if (!import_ts_morph9.Node.isCallExpression(call) || !call.getArguments().includes(fn)) {
+    return false;
+  }
+  const callee = call.getExpression();
+  return import_ts_morph9.Node.isPropertyAccessExpression(callee) && PROCEDURE_METHODS.has(callee.getName());
+}
+function isProcedureInput(identifier) {
+  const parent = identifier.getParent();
+  const symbol = import_ts_morph9.Node.isShorthandPropertyAssignment(parent) ? parent.getValueSymbol() : identifier.getSymbol();
+  for (const declaration of symbol?.getDeclarations() ?? []) {
+    let field;
+    let node = declaration;
+    while (node && (import_ts_morph9.Node.isBindingElement(node) || import_ts_morph9.Node.isObjectBindingPattern(node) || import_ts_morph9.Node.isArrayBindingPattern(node))) {
+      if (import_ts_morph9.Node.isBindingElement(node)) field = node;
+      node = node.getParent();
+    }
+    if (!node || !import_ts_morph9.Node.isParameterDeclaration(node)) continue;
+    if (!isResolverOptions(node)) continue;
+    if (import_ts_morph9.Node.isBindingElement(field)) {
+      const key = field.getPropertyNameNode()?.getText() ?? field.getName();
+      if (key === "input") return true;
+    } else if (node === declaration && readsInput(parent, identifier)) {
+      return true;
+    }
+  }
+  return false;
+}
+function readsInput(access, object) {
+  if (import_ts_morph9.Node.isPropertyAccessExpression(access)) {
+    return access.getExpression() === object && access.getName() === "input";
+  }
+  if (!import_ts_morph9.Node.isElementAccessExpression(access)) return false;
+  const key = access.getArgumentExpression();
+  return access.getExpression() === object && (import_ts_morph9.Node.isStringLiteral(key) || import_ts_morph9.Node.isNoSubstitutionTemplateLiteral(key)) && key.getLiteralText() === "input";
+}
+function unwrap2(node) {
+  let current = node;
+  while (import_ts_morph9.Node.isAwaitExpression(current) || import_ts_morph9.Node.isParenthesizedExpression(current) || import_ts_morph9.Node.isAsExpression(current) || import_ts_morph9.Node.isNonNullExpression(current)) {
+    current = current.getExpression();
+  }
+  return current;
+}
+function isRequestValue(node, hops = 0, calls) {
+  const value = unwrap2(node);
+  if (import_ts_morph9.Node.isIdentifier(value)) {
+    if (requestDecorator(value) || isProcedureInput(value)) return true;
+    if (hops < MAX_TAINT_HOPS && valueSources(value).some(
+      (source) => isRequestValue(source, hops + 1, calls)
+    )) {
+      return true;
+    }
+    return calls?.parameter(value, true) ?? false;
+  }
+  if (import_ts_morph9.Node.isPropertyAccessExpression(value) || import_ts_morph9.Node.isElementAccessExpression(value)) {
+    const text2 = value.getText();
+    if (SERVER_SET_REQUEST_DATA.test(text2)) return false;
+    if (REQUEST_DATA.test(text2) && !hasCallInside(value)) return true;
+    return isRequestValue(value.getExpression(), hops, calls);
+  }
+  if (import_ts_morph9.Node.isCallExpression(value)) {
+    return isRequestValueCall(value, hops, calls) || (calls?.result(value) ?? false);
+  }
+  if (import_ts_morph9.Node.isNewExpression(value)) {
+    return value.getExpression().getText() === "URL" && isRequestValue(value.getArguments()[0] ?? value, hops, calls);
+  }
+  if (import_ts_morph9.Node.isConditionalExpression(value)) {
+    return isRequestValue(value.getWhenTrue(), hops, calls) || isRequestValue(value.getWhenFalse(), hops, calls);
+  }
+  if (import_ts_morph9.Node.isTemplateExpression(value) || import_ts_morph9.Node.isBinaryExpression(value) && value.getOperatorToken().getKind() === import_ts_morph9.SyntaxKind.PlusToken) {
+    return stringParts(value).some(
+      (part) => typeof part !== "string" && isRequestValue(part, hops, calls)
+    );
+  }
+  return false;
+}
+function isRequestValueCall(call, hops, calls) {
+  const callee = call.getExpression();
+  if (import_ts_morph9.Node.isPropertyAccessExpression(callee) && REQUEST_VALUE_METHODS.has(callee.getName())) {
+    const receiver = unwrap2(callee.getExpression());
+    if (import_ts_morph9.Node.isIdentifier(receiver) && REQUEST_OBJECT.test(receiver.getText())) {
+      return true;
+    }
+    return isRequestValue(receiver, hops, calls);
+  }
+  return REQUEST_VALUE_FUNCTIONS.has(calleeName2(call)) && call.getArguments().some((argument) => isRequestValue(argument, hops, calls));
+}
+function hasCallInside(node) {
+  return node.getDescendantsOfKind(import_ts_morph9.SyntaxKind.CallExpression).length > 0;
+}
+function calleeName2(call) {
+  const expression = call.getExpression();
+  return import_ts_morph9.Node.isPropertyAccessExpression(expression) ? expression.getName() : expression.getText();
+}
+function stringParts(node, hops = 0) {
+  const value = unwrap2(node);
+  if (import_ts_morph9.Node.isStringLiteral(value) || import_ts_morph9.Node.isNoSubstitutionTemplateLiteral(value)) {
+    return [value.getLiteralText()];
+  }
+  if (import_ts_morph9.Node.isTemplateExpression(value)) {
+    const parts = [value.getHead().getLiteralText()];
+    for (const span of value.getTemplateSpans()) {
+      parts.push(...stringParts(span.getExpression(), hops));
+      parts.push(span.getLiteral().getLiteralText());
+    }
+    return parts;
+  }
+  if (import_ts_morph9.Node.isBinaryExpression(value) && value.getOperatorToken().getKind() === import_ts_morph9.SyntaxKind.PlusToken) {
+    return [
+      ...stringParts(value.getLeft(), hops),
+      ...stringParts(value.getRight(), hops)
+    ];
+  }
+  if (import_ts_morph9.Node.isIdentifier(value) && hops < MAX_TAINT_HOPS) {
+    const sources = valueSources(value);
+    if (sources.length === 1) return stringParts(sources[0], hops + 1);
+  }
+  return [value];
+}
+function objectProperty(node, names) {
+  if (!node || !import_ts_morph9.Node.isObjectLiteralExpression(node)) return null;
+  for (const name of names) {
+    const property = node.getProperty(name);
+    if (import_ts_morph9.Node.isPropertyAssignment(property)) {
+      return property.getInitializer() ?? null;
+    }
+    if (import_ts_morph9.Node.isShorthandPropertyAssignment(property)) {
+      return property.getNameNode();
+    }
+  }
+  return null;
+}
+
+// src/analyzers/taint-calls.ts
+var MAX_CALL_DEPTH = 2;
+function isFunctionLike2(node) {
+  return import_ts_morph10.Node.isFunctionDeclaration(node) || import_ts_morph10.Node.isFunctionExpression(node) || import_ts_morph10.Node.isArrowFunction(node) || import_ts_morph10.Node.isMethodDeclaration(node);
+}
+function callParameters(fn) {
+  return fn.getParameters().filter((parameter) => parameter.getName() !== "this");
+}
+function parameterOf(identifier) {
+  for (const declaration of identifier.getSymbol()?.getDeclarations() ?? []) {
+    let parameter = declaration;
+    while (parameter && (import_ts_morph10.Node.isBindingElement(parameter) || import_ts_morph10.Node.isObjectBindingPattern(parameter) || import_ts_morph10.Node.isArrayBindingPattern(parameter))) {
+      parameter = parameter.getParent();
+    }
+    if (!import_ts_morph10.Node.isParameterDeclaration(parameter) || parameter.isRestParameter()) {
+      continue;
+    }
+    const fn = parameter.getParent();
+    if (!isFunctionLike2(fn)) continue;
+    const index = callParameters(fn).indexOf(parameter);
+    if (index >= 0) {
+      return { fn, index, destructured: parameter !== declaration };
+    }
+  }
+  return void 0;
+}
+function functionOf(declaration, depth = 0) {
+  if ((import_ts_morph10.Node.isFunctionDeclaration(declaration) || import_ts_morph10.Node.isMethodDeclaration(declaration)) && declaration.hasBody()) {
+    return declaration;
+  }
+  if (import_ts_morph10.Node.isVariableDeclaration(declaration) || import_ts_morph10.Node.isPropertyAssignment(declaration) || import_ts_morph10.Node.isPropertyDeclaration(declaration)) {
+    const initializer = declaration.getInitializer();
+    const value = initializer ? unwrap2(initializer) : void 0;
+    return isFunctionLike2(value) ? value : void 0;
+  }
+  if (import_ts_morph10.Node.isShorthandPropertyAssignment(declaration) && depth === 0) {
+    for (const target of declaration.getValueSymbol()?.getDeclarations() ?? []) {
+      const fn = functionOf(target, depth + 1);
+      if (fn) return fn;
+    }
+  }
+  return void 0;
+}
+function functionNames(fn) {
+  if (import_ts_morph10.Node.isFunctionDeclaration(fn) || import_ts_morph10.Node.isMethodDeclaration(fn)) {
+    const name2 = fn.getName();
+    return name2 ? [name2] : [];
+  }
+  const parent = fn.getParent();
+  if (import_ts_morph10.Node.isVariableDeclaration(parent) || import_ts_morph10.Node.isPropertyAssignment(parent) || import_ts_morph10.Node.isPropertyDeclaration(parent)) {
+    return [parent.getName()];
+  }
+  const name = import_ts_morph10.Node.isFunctionExpression(fn) ? fn.getName() : void 0;
+  return name ? [name] : [];
+}
+function isMethodLike(fn) {
+  const parent = fn.getParent();
+  return import_ts_morph10.Node.isMethodDeclaration(fn) || import_ts_morph10.Node.isPropertyAssignment(parent) || import_ts_morph10.Node.isPropertyDeclaration(parent);
+}
+function moduleNames(sourceFile) {
+  const names = { renamed: /* @__PURE__ */ new Set(), objects: /* @__PURE__ */ new Set() };
+  for (const declaration of sourceFile.getImportDeclarations()) {
+    const defaultImport = declaration.getDefaultImport()?.getText();
+    if (defaultImport) {
+      names.renamed.add(defaultImport);
+      names.objects.add(defaultImport);
+    }
+    const namespace = declaration.getNamespaceImport()?.getText();
+    if (namespace) names.objects.add(namespace);
+    for (const namedImport of declaration.getNamedImports()) {
+      const alias = namedImport.getAliasNode();
+      if (alias) names.renamed.add(alias.getText());
+    }
+  }
+  for (const declaration of sourceFile.getVariableDeclarations()) {
+    const initializer = declaration.getInitializer();
+    if (!initializer || !import_ts_morph10.Node.isCallExpression(initializer) || initializer.getExpression().getText() !== "require") {
+      continue;
+    }
+    const nameNode = declaration.getNameNode();
+    if (import_ts_morph10.Node.isIdentifier(nameNode)) {
+      names.renamed.add(nameNode.getText());
+      names.objects.add(nameNode.getText());
+    } else if (import_ts_morph10.Node.isObjectBindingPattern(nameNode)) {
+      for (const element of nameNode.getElements()) {
+        if (element.getPropertyNameNode()) names.renamed.add(element.getName());
+      }
+    }
+  }
+  return names;
+}
+function buildCallIndex(files) {
+  const index = { byName: /* @__PURE__ */ new Map(), renamed: [] };
+  for (const sourceFile of files) {
+    const modules = moduleNames(sourceFile);
+    for (const call of sourceFile.getDescendantsOfKind(
+      import_ts_morph10.SyntaxKind.CallExpression
+    )) {
+      const callee = unwrap2(call.getExpression());
+      let entry;
+      let name;
+      if (import_ts_morph10.Node.isIdentifier(callee)) {
+        name = callee.getText();
+        entry = { call, via: "name" };
+        if (modules.renamed.has(name)) index.renamed.push(call);
+      } else if (import_ts_morph10.Node.isPropertyAccessExpression(callee)) {
+        name = callee.getName();
+        const receiver = callee.getExpression();
+        entry = {
+          call,
+          via: import_ts_morph10.Node.isIdentifier(receiver) && modules.objects.has(receiver.getText()) ? "module" : "member"
+        };
+      } else {
+        continue;
+      }
+      const calls = index.byName.get(name);
+      if (calls) calls.push(entry);
+      else index.byName.set(name, [entry]);
+    }
+  }
+  return index;
+}
+function returnedValues2(fn) {
+  const body = fn.getBody();
+  if (!body) return [];
+  if (!import_ts_morph10.Node.isBlock(body)) return [body];
+  return body.getDescendantsOfKind(import_ts_morph10.SyntaxKind.ReturnStatement).filter((statement) => enclosingScope(statement) === fn).flatMap((statement) => statement.getExpression() ?? []);
+}
+var CallTracer = class {
+  /** @param files The scanned runtime source files and their project paths. */
+  constructor(files) {
+    this.files = files;
+  }
+  files;
+  /**
+   * The call that passes request data in during the current trace: of a
+   * chain of helpers, the caller farthest from the sink.
+   */
+  origin;
+  depth = 0;
+  frame = { followsCallers: true };
+  index;
+  targets = /* @__PURE__ */ new WeakMap();
+  callerLists = /* @__PURE__ */ new WeakMap();
+  callerOrigins = /* @__PURE__ */ new WeakMap();
+  returnSummaries = /* @__PURE__ */ new WeakMap();
+  /**
+   * Runs a request-data check within the sink's function first and, when
+   * that finds nothing, again through project functions. Null when neither
+   * finds request data.
+   */
+  trace(check) {
+    if (check(LOCAL_TAINT)) return { crossesCalls: false };
+    this.origin = void 0;
+    if (!check(this)) return null;
+    const origin = this.origin;
+    return {
+      crossesCalls: true,
+      ...origin ? { origin: this.location(origin) } : {}
+    };
+  }
+  isRequestValue(node) {
+    return isRequestValue(node, 0, this);
+  }
+  isTainted(node) {
+    return isTainted(node, this);
+  }
+  throughCallers(value, check) {
+    const node = unwrap2(value);
+    if (!import_ts_morph10.Node.isIdentifier(node) || !this.frame.followsCallers || requestDecorator(node)) {
+      return void 0;
+    }
+    const parameter = parameterOf(node);
+    if (!parameter || parameter.destructured) return void 0;
+    if (this.depth >= MAX_CALL_DEPTH) return false;
+    for (const call of this.callers(parameter.fn)) {
+      const argument = call.getArguments()[parameter.index];
+      if (!argument || import_ts_morph10.Node.isSpreadElement(argument)) continue;
+      const found = this.inCaller(call, () => check(argument));
+      if (found) {
+        this.origin ??= found;
+        return true;
+      }
+    }
+    return false;
+  }
+  parameter(identifier, strict) {
+    const parameter = parameterOf(identifier);
+    if (!parameter) return false;
+    const { assumed, followsCallers } = this.frame;
+    if (!followsCallers) {
+      return assumed !== void 0 && assumed.fn === parameter.fn && assumed.index === parameter.index;
+    }
+    if (this.depth >= MAX_CALL_DEPTH) return false;
+    const key = `${parameter.index}:${strict}:${this.depth}`;
+    const found = this.memoized(
+      this.callerOrigins,
+      parameter.fn,
+      key,
+      null,
+      () => {
+        for (const call of this.callers(parameter.fn)) {
+          const argument = call.getArguments()[parameter.index];
+          if (!argument || import_ts_morph10.Node.isSpreadElement(argument)) continue;
+          const origin = this.inCaller(
+            call,
+            () => strict ? isRequestValue(argument, 0, this) : isTainted(argument, this)
+          );
+          if (origin) return origin;
+        }
+        return null;
+      }
+    );
+    if (found) this.origin ??= found;
+    return found !== null;
+  }
+  result(call) {
+    if (this.depth >= MAX_CALL_DEPTH) return false;
+    const fn = this.target(call);
+    if (!fn) return false;
+    if (this.returnsRequestData(fn, void 0)) return true;
+    return call.getArguments().some(
+      (argument, index) => !import_ts_morph10.Node.isSpreadElement(argument) && this.returnsRequestData(fn, index) && isRequestValue(argument, 0, this)
+    );
+  }
+  /**
+   * Whether a function returns request data it reads itself (no index), or
+   * the request data its parameter at `index` receives.
+   */
+  returnsRequestData(fn, index) {
+    if (index !== void 0 && index >= callParameters(fn).length) return false;
+    const key = `${index ?? "own"}:${this.depth}`;
+    return this.memoized(
+      this.returnSummaries,
+      fn,
+      key,
+      false,
+      () => this.enter(
+        {
+          followsCallers: false,
+          ...index === void 0 ? {} : { assumed: { fn, index } }
+        },
+        () => returnedValues2(fn).some((value) => isRequestValue(value, 0, this))
+      )
+    );
+  }
+  /**
+   * Evaluates a check on a caller's argument one function boundary deeper.
+   * Returns the call that passes request data in: a caller of this caller
+   * when nested traces found one, or this call.
+   */
+  inCaller(call, check) {
+    const outer = this.origin;
+    this.origin = void 0;
+    try {
+      const found = this.enter({ followsCallers: true }, check);
+      return found ? this.origin ?? call : null;
+    } finally {
+      this.origin = outer;
+    }
+  }
+  enter(frame, evaluate) {
+    const outer = this.frame;
+    this.frame = frame;
+    this.depth++;
+    try {
+      return evaluate();
+    } finally {
+      this.depth--;
+      this.frame = outer;
+    }
+  }
+  /** Memoizes per function; a recursive request sees `fallback`. */
+  memoized(memos, fn, key, fallback2, compute) {
+    let memo = memos.get(fn);
+    if (!memo) {
+      memo = /* @__PURE__ */ new Map();
+      memos.set(fn, memo);
+    }
+    const cached = memo.get(key);
+    if (cached === "pending") return fallback2;
+    if (cached !== void 0) return cached;
+    memo.set(key, "pending");
+    let value = fallback2;
+    try {
+      value = compute();
+    } finally {
+      memo.set(key, value);
+    }
+    return value;
+  }
+  /** The project function a call invokes, through imports and instances. */
+  target(call) {
+    const cached = this.targets.get(call);
+    if (cached !== void 0) return cached;
+    const callee = unwrap2(call.getExpression());
+    const nameNode = import_ts_morph10.Node.isPropertyAccessExpression(callee) ? callee.getNameNode() : import_ts_morph10.Node.isIdentifier(callee) ? callee : void 0;
+    let symbol = nameNode?.getSymbol();
+    if (symbol?.isAlias()) symbol = symbol.getAliasedSymbol();
+    let target = null;
+    for (const declaration of symbol?.getDeclarations() ?? []) {
+      const fn = functionOf(declaration);
+      if (fn && this.files.has(fn.getSourceFile())) {
+        target = fn;
+        break;
+      }
+    }
+    this.targets.set(call, target);
+    return target;
+  }
+  /** Calls of a function in the scanned runtime files. */
+  callers(fn) {
+    const cached = this.callerLists.get(fn);
+    if (cached) return cached;
+    this.index ??= buildCallIndex(this.files.keys());
+    const method = isMethodLike(fn);
+    const candidates = new Set(
+      functionNames(fn).flatMap((name) => this.index?.byName.get(name) ?? []).filter(({ via }) => method ? via !== "name" : via !== "member").map(({ call }) => call)
+    );
+    if (!method) {
+      for (const call of this.index.renamed) candidates.add(call);
+    }
+    const callers = [...candidates].filter((call) => this.target(call) === fn);
+    this.callerLists.set(fn, callers);
+    return callers;
+  }
+  location(call) {
+    const file = this.files.get(call.getSourceFile()) ?? call.getSourceFile().getBaseName();
+    return `${file}:${call.getStartLineNumber()}`;
+  }
+};
+function traceDetails(trace, fix) {
+  if (!trace.crossesCalls) return { fix };
+  return {
+    confidence: "medium",
+    fix: trace.origin ? `Request data reaches this call from ${trace.origin}; ${fix.charAt(0).toLowerCase()}${fix.slice(1)}` : fix
+  };
+}
+
+// src/analyzers/trpc-syntax.ts
+var TRPC_SERVER = "@trpc/server";
+var ADAPTER_MODULE = /^@trpc\/server\/adapters\/|^@hono\/trpc-server$/;
+var AUTH_ERROR_CODES = /* @__PURE__ */ new Set(["FORBIDDEN", "UNAUTHORIZED"]);
+var AUTH_NAMES4 = /auth|permission|permit|protect|require.*(?:user|role|login)|jwt|bearer|api[-_]?key|admin/i;
+var IDENTITY = /\bctx\??\.\s*(?:auth|session|user|userId|viewer)\b/;
+var ERROR_VALUE = /(?:^|\.)(?:cause|err|error)$/;
+function trpcExport(node) {
+  if (import_ts_morph11.Node.isPropertyAccessExpression(node)) {
+    return moduleOf(node.getExpression()) === TRPC_SERVER ? node.getName() : null;
+  }
+  if (!import_ts_morph11.Node.isIdentifier(node)) return null;
+  const declaration = node.getSymbol()?.getDeclarations()[0];
+  const source = declaration ? importSource(declaration) : null;
+  return source?.specifier === TRPC_SERVER ? source.name : null;
+}
+function isCreateCall(call) {
+  if (methodName(call) !== "create") return false;
+  let current = unwrap(receiverOf(call));
+  while (import_ts_morph11.Node.isCallExpression(current) && ["context", "meta"].includes(methodName(current))) {
+    current = unwrap(receiverOf(current));
+  }
+  return trpcExport(current) === "initTRPC";
+}
+function bindingKey(node) {
+  if (!import_ts_morph11.Node.isBindingElement(node)) return null;
+  return node.getPropertyNameNode()?.getText() ?? node.getName();
+}
+function bindingSource(node) {
+  return node.getFirstAncestorByKind(import_ts_morph11.SyntaxKind.VariableDeclaration)?.getInitializer();
+}
+function throwsAuthError(fn) {
+  return fn.getDescendantsOfKind(import_ts_morph11.SyntaxKind.NewExpression).some((created) => {
+    if (!/(?:^|\.)TRPCError$/.test(created.getExpression().getText())) {
+      return false;
+    }
+    const [options] = created.getArguments();
+    const code = import_ts_morph11.Node.isObjectLiteralExpression(options) ? propertyValue(options.getProperty("code")) : void 0;
+    return AUTH_ERROR_CODES.has(literalText2(code) ?? "");
+  });
+}
+function guardsIdentity(fn) {
+  return fn.getDescendantsOfKind(import_ts_morph11.SyntaxKind.IfStatement).some((statement) => {
+    const then = statement.getThenStatement();
+    return IDENTITY.test(statement.getExpression().getText()) && (import_ts_morph11.Node.isThrowStatement(then) || then.getDescendantsOfKind(import_ts_morph11.SyntaxKind.ThrowStatement).length > 0);
+  });
+}
+function authenticates(fn) {
+  return throwsAuthError(fn) || guardsIdentity(fn) || AUTH_NAMES4.test(fn.getText());
+}
+function returnsArgument(fn) {
+  const name = fn.getParameters()[0]?.getNameNode();
+  if (!name || !import_ts_morph11.Node.isIdentifier(name)) return false;
+  const body = fn.getBody();
+  if (!body) return false;
+  if (import_ts_morph11.Node.isBlock(body)) {
+    const statements = body.getStatements();
+    if (statements.length !== 1 || !import_ts_morph11.Node.isReturnStatement(statements[0])) {
+      return false;
+    }
+  }
+  const results = returnedValues2(fn);
+  return results.length > 0 && results.every((result) => {
+    const value = unwrap(result);
+    return import_ts_morph11.Node.isIdentifier(value) && value.getText() === name.getText();
+  });
+}
+function isGuarded(node, root) {
+  let current = node;
+  while (current !== root) {
+    const parent = current.getParent();
+    if (!parent) return false;
+    if (import_ts_morph11.Node.isConditionalExpression(parent) && parent.getCondition() !== current || import_ts_morph11.Node.isBinaryExpression(parent) && parent.getOperatorToken().getKind() === import_ts_morph11.SyntaxKind.AmpersandAmpersandToken && parent.getRight() === current || import_ts_morph11.Node.isCallExpression(parent) && parent.getArguments().includes(current)) {
+      return true;
+    }
+    current = parent;
+  }
+  return false;
+}
+function leakedStack(fn) {
+  for (const value of returnedValues2(fn)) {
+    const branch = value.getFirstAncestor(
+      (ancestor) => ancestor === fn || import_ts_morph11.Node.isIfStatement(ancestor) || import_ts_morph11.Node.isCaseClause(ancestor)
+    );
+    if (branch !== fn) continue;
+    const access = [
+      value,
+      ...value.getDescendantsOfKind(import_ts_morph11.SyntaxKind.PropertyAccessExpression)
+    ].find(
+      (node) => import_ts_morph11.Node.isPropertyAccessExpression(node) && node.getName() === "stack" && ERROR_VALUE.test(node.getExpression().getText()) && !isGuarded(node, value)
+    );
+    if (access) return access;
+  }
+  return void 0;
+}
+function importsTrpcAdapter(sourceFile) {
+  if (!/@trpc\/server\/adapters\/|@hono\/trpc-server/.test(
+    sourceFile.getFullText()
+  )) {
+    return false;
+  }
+  return sourceFile.getImportDeclarations().some(
+    (declaration) => ADAPTER_MODULE.test(declaration.getModuleSpecifierValue())
+  ) || sourceFile.getDescendantsOfKind(import_ts_morph11.SyntaxKind.CallExpression).some(
+    (call) => call.getExpression().getText() === "require" && ADAPTER_MODULE.test(literalText2(call.getArguments()[0]) ?? "")
+  );
+}
+function localName(call) {
+  const holder = call.getParentWhile(
+    (parent2) => import_ts_morph11.Node.isParenthesizedExpression(parent2) || import_ts_morph11.Node.isAsExpression(parent2) || import_ts_morph11.Node.isSatisfiesExpression(parent2)
+  );
+  const parent = (holder ?? call).getParent();
+  return import_ts_morph11.Node.isPropertyAssignment(parent) || import_ts_morph11.Node.isVariableDeclaration(parent) ? parent.getName() : "(unnamed)";
+}
+
+// src/analyzers/nextjs-api.ts
 var HTTP_METHODS3 = /* @__PURE__ */ new Set([
   "DELETE",
   "GET",
@@ -259695,7 +260578,7 @@ function appRouterEndpoints(sourceFile, file) {
 }
 function pagesRouterEndpoints(sourceFile, file) {
   const methods = /* @__PURE__ */ new Set();
-  for (const literal of sourceFile.getDescendants().filter(import_ts_morph9.Node.isStringLiteral)) {
+  for (const literal of sourceFile.getDescendants().filter(import_ts_morph12.Node.isStringLiteral)) {
     const value = literal.getLiteralText().toUpperCase();
     if (HTTP_METHODS3.has(value)) methods.add(value);
   }
@@ -259723,7 +260606,10 @@ async function analyzeNextjsApi(context) {
         "**/*.spec.{ts,tsx,js,mjs,cjs}"
       ]
     }
-  );
+  ).filter((file) => {
+    const sourceFile = context.getSourceFile(file);
+    return !sourceFile || !importsTrpcAdapter(sourceFile);
+  });
   if (routeFiles.length === 0) return null;
   const endpoints = [];
   for (const routeFile of routeFiles) {
@@ -259825,328 +260711,10 @@ var import_node_fs9 = require("fs");
 var import_node_path10 = require("path");
 
 // src/analyzers/security-sinks.ts
-var import_ts_morph14 = __toESM(require_ts_morph(), 1);
+var import_ts_morph15 = __toESM(require_ts_morph(), 1);
 
 // src/analyzers/security-auth.ts
-var import_ts_morph11 = __toESM(require_ts_morph(), 1);
-
-// src/analyzers/taint.ts
-var import_ts_morph10 = __toESM(require_ts_morph(), 1);
-var SOURCE_PATTERN4 = "**/*.{ts,tsx,js,jsx,mjs,cjs}";
-var RUNTIME_IGNORES = [
-  "**/*.test.{ts,tsx,js,jsx,mjs,cjs}",
-  "**/*.spec.{ts,tsx,js,jsx,mjs,cjs}",
-  "**/__tests__/**",
-  "**/test/**",
-  "**/tests/**"
-];
-var REQUEST_DATA = /\b(?:req(?:uest)?|ctx)\s*(?:\.|\[)|\bprocess\s*\.\s*argv\b|\b(?:body|params|query)\s*(?:\.|\[)|\bsearchParams\b/i;
-var MAX_TAINT_HOPS = 3;
-var LOCAL_TAINT = {
-  isRequestValue: (node) => isRequestValue(node),
-  isTainted: (node) => isTainted(node),
-  throughCallers: () => void 0
-};
-function isModuleCall(expression, modules) {
-  if (!import_ts_morph10.Node.isCallExpression(expression)) return false;
-  if (expression.getExpression().getText() !== "require") return false;
-  const moduleArgument = expression.getArguments()[0];
-  return import_ts_morph10.Node.isStringLiteral(moduleArgument) && modules.has(moduleArgument.getLiteralText());
-}
-function moduleBindings(sourceFile, modules, sinkFunctions) {
-  const functions = /* @__PURE__ */ new Set();
-  const namespaces = /* @__PURE__ */ new Set();
-  for (const declaration of sourceFile.getImportDeclarations()) {
-    if (!modules.has(declaration.getModuleSpecifierValue())) continue;
-    const namespace = declaration.getNamespaceImport();
-    if (namespace) namespaces.add(namespace.getText());
-    const defaultImport = declaration.getDefaultImport();
-    if (defaultImport) namespaces.add(defaultImport.getText());
-    for (const namedImport of declaration.getNamedImports()) {
-      const local = namedImport.getAliasNode()?.getText() ?? namedImport.getName();
-      if (sinkFunctions.has(namedImport.getName())) functions.add(local);
-      if (namedImport.getName() === "promises") namespaces.add(local);
-    }
-  }
-  for (const declaration of sourceFile.getVariableDeclarations()) {
-    const initializer = declaration.getInitializer();
-    if (!initializer || !isModuleCall(initializer, modules)) continue;
-    const nameNode = declaration.getNameNode();
-    if (import_ts_morph10.Node.isIdentifier(nameNode)) {
-      namespaces.add(nameNode.getText());
-      continue;
-    }
-    if (!import_ts_morph10.Node.isObjectBindingPattern(nameNode)) continue;
-    for (const element of nameNode.getElements()) {
-      const importedName = element.getPropertyNameNode()?.getText() ?? element.getName();
-      if (sinkFunctions.has(importedName)) functions.add(element.getName());
-      if (importedName === "promises") namespaces.add(element.getName());
-    }
-  }
-  return { functions, namespaces };
-}
-function moduleCall(call, bindings, modules, sinkFunctions) {
-  const expression = call.getExpression();
-  if (import_ts_morph10.Node.isIdentifier(expression)) {
-    return bindings.functions.has(expression.getText());
-  }
-  if (!import_ts_morph10.Node.isPropertyAccessExpression(expression)) return false;
-  if (!sinkFunctions.has(expression.getName())) return false;
-  const receiver = expression.getExpression();
-  const namespace = receiver.getText().replace(/\.promises$/, "");
-  return bindings.namespaces.has(namespace) || isModuleCall(receiver, modules) || import_ts_morph10.Node.isPropertyAccessExpression(receiver) && receiver.getName() === "promises" && isModuleCall(receiver.getExpression(), modules);
-}
-function isStaticString(node) {
-  return Boolean(
-    node && (import_ts_morph10.Node.isStringLiteral(node) || import_ts_morph10.Node.isNoSubstitutionTemplateLiteral(node))
-  );
-}
-function enclosingScope(node) {
-  return node.getFirstAncestor(
-    (ancestor) => import_ts_morph10.Node.isFunctionDeclaration(ancestor) || import_ts_morph10.Node.isFunctionExpression(ancestor) || import_ts_morph10.Node.isArrowFunction(ancestor) || import_ts_morph10.Node.isMethodDeclaration(ancestor) || import_ts_morph10.Node.isConstructorDeclaration(ancestor)
-  ) ?? node.getSourceFile();
-}
-function boundNames(name) {
-  if (import_ts_morph10.Node.isIdentifier(name)) return [name.getText()];
-  if (import_ts_morph10.Node.isObjectBindingPattern(name) || import_ts_morph10.Node.isArrayBindingPattern(name)) {
-    return name.getDescendantsOfKind(import_ts_morph10.SyntaxKind.Identifier).filter((element) => import_ts_morph10.Node.isBindingElement(element.getParent())).map((element) => element.getText());
-  }
-  return [];
-}
-var scopeIndexes = /* @__PURE__ */ new WeakMap();
-function add2(map, name, node) {
-  const list = map.get(name);
-  if (list) list.push(node);
-  else map.set(name, [node]);
-}
-function indexScope(scope) {
-  const existing = scopeIndexes.get(scope);
-  if (existing) return existing;
-  const index = { declarations: /* @__PURE__ */ new Map(), assignments: /* @__PURE__ */ new Map() };
-  for (const declaration of scope.getDescendantsOfKind(
-    import_ts_morph10.SyntaxKind.VariableDeclaration
-  )) {
-    if (enclosingScope(declaration) !== scope) continue;
-    for (const name of boundNames(declaration.getNameNode())) {
-      const initializer = declaration.getInitializer();
-      if (initializer) add2(index.declarations, name, initializer);
-      else if (!index.declarations.has(name)) index.declarations.set(name, []);
-    }
-  }
-  for (const binary of scope.getDescendantsOfKind(
-    import_ts_morph10.SyntaxKind.BinaryExpression
-  )) {
-    if (binary.getOperatorToken().getKind() === import_ts_morph10.SyntaxKind.EqualsToken && import_ts_morph10.Node.isIdentifier(binary.getLeft())) {
-      add2(index.assignments, binary.getLeft().getText(), binary.getRight());
-    }
-  }
-  scopeIndexes.set(scope, index);
-  return index;
-}
-function valueSources(identifier) {
-  const name = identifier.getText();
-  let scope = enclosingScope(identifier);
-  while (scope) {
-    const index = indexScope(scope);
-    const declared = index.declarations.get(name);
-    if (declared) return [...declared, ...index.assignments.get(name) ?? []];
-    scope = import_ts_morph10.Node.isSourceFile(scope) ? void 0 : enclosingScope(scope);
-  }
-  return [];
-}
-function isPropertyName(identifier) {
-  const parent = identifier.getParent();
-  return Boolean(
-    parent && import_ts_morph10.Node.isPropertyAccessExpression(parent) && parent.getNameNode() === identifier
-  );
-}
-function isCallee(identifier) {
-  const parent = identifier.getParent();
-  return Boolean(
-    parent && import_ts_morph10.Node.isCallExpression(parent) && parent.getExpression() === identifier
-  );
-}
-var taintCache = /* @__PURE__ */ new WeakMap();
-function isTainted(node, calls) {
-  if (calls) return traceTaint(node, 0, /* @__PURE__ */ new Set(), calls);
-  const cached = taintCache.get(node);
-  if (cached !== void 0) return cached;
-  const tainted = traceTaint(node, 0, /* @__PURE__ */ new Set());
-  taintCache.set(node, tainted);
-  return tainted;
-}
-function traceTaint(node, hops, seen, calls) {
-  if (REQUEST_DATA.test(node.getText())) return true;
-  if (calls && callReturnsRequestData(node, calls)) return true;
-  if (hops >= MAX_TAINT_HOPS) return false;
-  const identifiers = import_ts_morph10.Node.isIdentifier(node) ? [node] : node.getDescendantsOfKind(import_ts_morph10.SyntaxKind.Identifier);
-  for (const identifier of identifiers) {
-    if (isPropertyName(identifier)) continue;
-    for (const source of valueSources(identifier)) {
-      if (seen.has(source)) continue;
-      seen.add(source);
-      if (traceTaint(source, hops + 1, seen, calls)) return true;
-    }
-    if (calls && !isCallee(identifier) && calls.parameter(identifier, false)) {
-      return true;
-    }
-  }
-  return false;
-}
-function callReturnsRequestData(node, calls) {
-  const expressions = node.getDescendantsOfKind(import_ts_morph10.SyntaxKind.CallExpression);
-  if (import_ts_morph10.Node.isCallExpression(node)) expressions.unshift(node);
-  return expressions.some((call) => calls.result(call));
-}
-function dynamicStringShape(node, hops = 0) {
-  if (import_ts_morph10.Node.isTemplateExpression(node)) return node;
-  if (import_ts_morph10.Node.isBinaryExpression(node) && node.getOperatorToken().getKind() === import_ts_morph10.SyntaxKind.PlusToken) {
-    return node;
-  }
-  if (import_ts_morph10.Node.isIdentifier(node) && hops < MAX_TAINT_HOPS) {
-    for (const source of valueSources(node)) {
-      const shape = dynamicStringShape(source, hops + 1);
-      if (shape) return shape;
-    }
-  }
-  return null;
-}
-var REQUEST_VALUE_METHODS = /* @__PURE__ */ new Set([
-  "at",
-  "formData",
-  "get",
-  "getAll",
-  "json",
-  "replace",
-  "replaceAll",
-  "slice",
-  "substring",
-  "text",
-  "toLowerCase",
-  "toString",
-  "toUpperCase",
-  "trim",
-  "trimEnd",
-  "trimStart"
-]);
-var REQUEST_VALUE_FUNCTIONS = /* @__PURE__ */ new Set([
-  "String",
-  "decodeURI",
-  "decodeURIComponent",
-  "join",
-  "normalize",
-  "resolve"
-]);
-var SERVER_SET_REQUEST_DATA = /\b(?:req(?:uest)?|ctx)\s*\.\s*(?:app|auth|file|files|ip|ips|method|protocol|secure|session|state|user)\b/;
-var REQUEST_OBJECT = /^(?:req|request|ctx)$/;
-var RESPONSE_OBJECT = /^(?:res|response|reply)$/;
-var REQUEST_DECORATORS = /* @__PURE__ */ new Set(["Body", "Headers", "Param", "Query"]);
-function requestDecorator(identifier) {
-  for (const declaration of identifier.getSymbol()?.getDeclarations() ?? []) {
-    if (!import_ts_morph10.Node.isParameterDeclaration(declaration)) continue;
-    const decorator = declaration.getDecorators().find((candidate) => REQUEST_DECORATORS.has(candidate.getName()));
-    if (decorator) return decorator;
-  }
-  return void 0;
-}
-function unwrap2(node) {
-  let current = node;
-  while (import_ts_morph10.Node.isAwaitExpression(current) || import_ts_morph10.Node.isParenthesizedExpression(current) || import_ts_morph10.Node.isAsExpression(current) || import_ts_morph10.Node.isNonNullExpression(current)) {
-    current = current.getExpression();
-  }
-  return current;
-}
-function isRequestValue(node, hops = 0, calls) {
-  const value = unwrap2(node);
-  if (import_ts_morph10.Node.isIdentifier(value)) {
-    if (requestDecorator(value)) return true;
-    if (hops < MAX_TAINT_HOPS && valueSources(value).some(
-      (source) => isRequestValue(source, hops + 1, calls)
-    )) {
-      return true;
-    }
-    return calls?.parameter(value, true) ?? false;
-  }
-  if (import_ts_morph10.Node.isPropertyAccessExpression(value) || import_ts_morph10.Node.isElementAccessExpression(value)) {
-    const text2 = value.getText();
-    if (SERVER_SET_REQUEST_DATA.test(text2)) return false;
-    if (REQUEST_DATA.test(text2) && !hasCallInside(value)) return true;
-    return isRequestValue(value.getExpression(), hops, calls);
-  }
-  if (import_ts_morph10.Node.isCallExpression(value)) {
-    return isRequestValueCall(value, hops, calls) || (calls?.result(value) ?? false);
-  }
-  if (import_ts_morph10.Node.isNewExpression(value)) {
-    return value.getExpression().getText() === "URL" && isRequestValue(value.getArguments()[0] ?? value, hops, calls);
-  }
-  if (import_ts_morph10.Node.isConditionalExpression(value)) {
-    return isRequestValue(value.getWhenTrue(), hops, calls) || isRequestValue(value.getWhenFalse(), hops, calls);
-  }
-  if (import_ts_morph10.Node.isTemplateExpression(value) || import_ts_morph10.Node.isBinaryExpression(value) && value.getOperatorToken().getKind() === import_ts_morph10.SyntaxKind.PlusToken) {
-    return stringParts(value).some(
-      (part) => typeof part !== "string" && isRequestValue(part, hops, calls)
-    );
-  }
-  return false;
-}
-function isRequestValueCall(call, hops, calls) {
-  const callee = call.getExpression();
-  if (import_ts_morph10.Node.isPropertyAccessExpression(callee) && REQUEST_VALUE_METHODS.has(callee.getName())) {
-    const receiver = unwrap2(callee.getExpression());
-    if (import_ts_morph10.Node.isIdentifier(receiver) && REQUEST_OBJECT.test(receiver.getText())) {
-      return true;
-    }
-    return isRequestValue(receiver, hops, calls);
-  }
-  return REQUEST_VALUE_FUNCTIONS.has(calleeName2(call)) && call.getArguments().some((argument) => isRequestValue(argument, hops, calls));
-}
-function hasCallInside(node) {
-  return node.getDescendantsOfKind(import_ts_morph10.SyntaxKind.CallExpression).length > 0;
-}
-function calleeName2(call) {
-  const expression = call.getExpression();
-  return import_ts_morph10.Node.isPropertyAccessExpression(expression) ? expression.getName() : expression.getText();
-}
-function stringParts(node, hops = 0) {
-  const value = unwrap2(node);
-  if (import_ts_morph10.Node.isStringLiteral(value) || import_ts_morph10.Node.isNoSubstitutionTemplateLiteral(value)) {
-    return [value.getLiteralText()];
-  }
-  if (import_ts_morph10.Node.isTemplateExpression(value)) {
-    const parts = [value.getHead().getLiteralText()];
-    for (const span of value.getTemplateSpans()) {
-      parts.push(...stringParts(span.getExpression(), hops));
-      parts.push(span.getLiteral().getLiteralText());
-    }
-    return parts;
-  }
-  if (import_ts_morph10.Node.isBinaryExpression(value) && value.getOperatorToken().getKind() === import_ts_morph10.SyntaxKind.PlusToken) {
-    return [
-      ...stringParts(value.getLeft(), hops),
-      ...stringParts(value.getRight(), hops)
-    ];
-  }
-  if (import_ts_morph10.Node.isIdentifier(value) && hops < MAX_TAINT_HOPS) {
-    const sources = valueSources(value);
-    if (sources.length === 1) return stringParts(sources[0], hops + 1);
-  }
-  return [value];
-}
-function objectProperty(node, names) {
-  if (!node || !import_ts_morph10.Node.isObjectLiteralExpression(node)) return null;
-  for (const name of names) {
-    const property = node.getProperty(name);
-    if (import_ts_morph10.Node.isPropertyAssignment(property)) {
-      return property.getInitializer() ?? null;
-    }
-    if (import_ts_morph10.Node.isShorthandPropertyAssignment(property)) {
-      return property.getNameNode();
-    }
-  }
-  return null;
-}
-
-// src/analyzers/security-auth.ts
+var import_ts_morph13 = __toESM(require_ts_morph(), 1);
 var JWT_CALLEE = /jwt|sign|token/i;
 var SENSITIVE_COOKIE = /sess|\bsid\b|sid$|token|jwt|auth/i;
 var SESSION_MODULES = /* @__PURE__ */ new Set([
@@ -260158,47 +260726,47 @@ var SESSION_MODULES = /* @__PURE__ */ new Set([
 var COOKIE_FLAGS = ["httpOnly", "secure"];
 function isNone(node) {
   return Boolean(
-    node && (import_ts_morph11.Node.isStringLiteral(node) || import_ts_morph11.Node.isNoSubstitutionTemplateLiteral(node)) && node.getLiteralText().toLowerCase() === "none"
+    node && (import_ts_morph13.Node.isStringLiteral(node) || import_ts_morph13.Node.isNoSubstitutionTemplateLiteral(node)) && node.getLiteralText().toLowerCase() === "none"
   );
 }
 function isInJwtCall(node) {
   return Boolean(
     node.getFirstAncestor(
-      (ancestor) => (import_ts_morph11.Node.isCallExpression(ancestor) || import_ts_morph11.Node.isNewExpression(ancestor)) && JWT_CALLEE.test(ancestor.getExpression().getText())
+      (ancestor) => (import_ts_morph13.Node.isCallExpression(ancestor) || import_ts_morph13.Node.isNewExpression(ancestor)) && JWT_CALLEE.test(ancestor.getExpression().getText())
     )
   );
 }
 function acceptsNoneAlgorithm(property) {
-  if (!import_ts_morph11.Node.isPropertyAssignment(property)) return false;
+  if (!import_ts_morph13.Node.isPropertyAssignment(property)) return false;
   const name = property.getName().replace(/["']/g, "");
   const value = property.getInitializer();
-  if (name === "algorithms" && import_ts_morph11.Node.isArrayLiteralExpression(value)) {
+  if (name === "algorithms" && import_ts_morph13.Node.isArrayLiteralExpression(value)) {
     return value.getElements().some(isNone);
   }
   return name === "algorithm" && isNone(value) && isInJwtCall(property);
 }
 function ignoresExpiration(property) {
-  return import_ts_morph11.Node.isPropertyAssignment(property) && property.getName().replace(/["']/g, "") === "ignoreExpiration" && property.getInitializer()?.getKind() === import_ts_morph11.SyntaxKind.TrueKeyword;
+  return import_ts_morph13.Node.isPropertyAssignment(property) && property.getName().replace(/["']/g, "") === "ignoreExpiration" && property.getInitializer()?.getKind() === import_ts_morph13.SyntaxKind.TrueKeyword;
 }
 function flagValue(options, flag2) {
   if (!options) return "missing";
-  if (!import_ts_morph11.Node.isObjectLiteralExpression(options)) return "dynamic";
-  if (options.getProperties().some(import_ts_morph11.Node.isSpreadAssignment)) return "dynamic";
+  if (!import_ts_morph13.Node.isObjectLiteralExpression(options)) return "dynamic";
+  if (options.getProperties().some(import_ts_morph13.Node.isSpreadAssignment)) return "dynamic";
   const value = objectProperty(options, [flag2]);
   if (!value) return "missing";
-  if (value.getKind() === import_ts_morph11.SyntaxKind.TrueKeyword) return true;
-  if (value.getKind() === import_ts_morph11.SyntaxKind.FalseKeyword) return false;
+  if (value.getKind() === import_ts_morph13.SyntaxKind.TrueKeyword) return true;
+  if (value.getKind() === import_ts_morph13.SyntaxKind.FalseKeyword) return false;
   return "dynamic";
 }
 function cookieCall(call) {
   const expression = call.getExpression();
-  if (!import_ts_morph11.Node.isPropertyAccessExpression(expression)) return null;
+  if (!import_ts_morph13.Node.isPropertyAccessExpression(expression)) return null;
   const method = expression.getName();
   const receiver = expression.getExpression().getText();
   const isCookieSetter = method === "cookie" && RESPONSE_OBJECT.test(receiver) || method === "setCookie" || method === "set" && /(?:^|\.)cookies(?:\(\))?$/.test(receiver);
   if (!isCookieSetter) return null;
   const [name, , options] = call.getArguments();
-  if (!name || !(import_ts_morph11.Node.isStringLiteral(name) || import_ts_morph11.Node.isNoSubstitutionTemplateLiteral(name))) {
+  if (!name || !(import_ts_morph13.Node.isStringLiteral(name) || import_ts_morph13.Node.isNoSubstitutionTemplateLiteral(name))) {
     return null;
   }
   return { name: name.getLiteralText(), options };
@@ -260223,12 +260791,12 @@ function sessionOptions(call, sessions) {
   const expression = call.getExpression();
   const args = call.getArguments();
   let options;
-  if (import_ts_morph11.Node.isIdentifier(expression) && sessions.namespaces.has(expression.getText())) {
+  if (import_ts_morph13.Node.isIdentifier(expression) && sessions.namespaces.has(expression.getText())) {
     options = args[0];
-  } else if (import_ts_morph11.Node.isPropertyAccessExpression(expression) && expression.getName() === "register" && args[0] && sessions.namespaces.has(args[0].getText())) {
+  } else if (import_ts_morph13.Node.isPropertyAccessExpression(expression) && expression.getName() === "register" && args[0] && sessions.namespaces.has(args[0].getText())) {
     options = args[1];
   }
-  return options && import_ts_morph11.Node.isObjectLiteralExpression(options) ? options : null;
+  return options && import_ts_morph13.Node.isObjectLiteralExpression(options) ? options : null;
 }
 function insecureSession(call, sessions, file) {
   const options = sessionOptions(call, sessions);
@@ -260259,7 +260827,7 @@ function inspectAuthConfiguration(sourceFile, file) {
   const issues = [];
   const sessions = moduleBindings(sourceFile, SESSION_MODULES, /* @__PURE__ */ new Set());
   for (const object of sourceFile.getDescendantsOfKind(
-    import_ts_morph11.SyntaxKind.ObjectLiteralExpression
+    import_ts_morph13.SyntaxKind.ObjectLiteralExpression
   )) {
     for (const property of object.getProperties()) {
       if (acceptsNoneAlgorithm(property)) {
@@ -260283,14 +260851,14 @@ function inspectAuthConfiguration(sourceFile, file) {
     }
   }
   for (const expression of sourceFile.getDescendantsOfKind(
-    import_ts_morph11.SyntaxKind.NewExpression
+    import_ts_morph13.SyntaxKind.NewExpression
   )) {
     if (expression.getExpression().getText() === "UnsecuredJWT") {
       issues.push(unsecuredJwt(expression, file));
     }
   }
   for (const call of sourceFile.getDescendantsOfKind(
-    import_ts_morph11.SyntaxKind.CallExpression
+    import_ts_morph13.SyntaxKind.CallExpression
   )) {
     if (call.getExpression().getText() === "UnsecuredJWT.decode") {
       issues.push(unsecuredJwt(call, file));
@@ -260303,349 +260871,7 @@ function inspectAuthConfiguration(sourceFile, file) {
 }
 
 // src/analyzers/security-injection.ts
-var import_ts_morph13 = __toESM(require_ts_morph(), 1);
-
-// src/analyzers/taint-calls.ts
-var import_ts_morph12 = __toESM(require_ts_morph(), 1);
-var MAX_CALL_DEPTH = 2;
-function isFunctionLike2(node) {
-  return import_ts_morph12.Node.isFunctionDeclaration(node) || import_ts_morph12.Node.isFunctionExpression(node) || import_ts_morph12.Node.isArrowFunction(node) || import_ts_morph12.Node.isMethodDeclaration(node);
-}
-function callParameters(fn) {
-  return fn.getParameters().filter((parameter) => parameter.getName() !== "this");
-}
-function parameterOf(identifier) {
-  for (const declaration of identifier.getSymbol()?.getDeclarations() ?? []) {
-    let parameter = declaration;
-    while (parameter && (import_ts_morph12.Node.isBindingElement(parameter) || import_ts_morph12.Node.isObjectBindingPattern(parameter) || import_ts_morph12.Node.isArrayBindingPattern(parameter))) {
-      parameter = parameter.getParent();
-    }
-    if (!import_ts_morph12.Node.isParameterDeclaration(parameter) || parameter.isRestParameter()) {
-      continue;
-    }
-    const fn = parameter.getParent();
-    if (!isFunctionLike2(fn)) continue;
-    const index = callParameters(fn).indexOf(parameter);
-    if (index >= 0) {
-      return { fn, index, destructured: parameter !== declaration };
-    }
-  }
-  return void 0;
-}
-function functionOf(declaration, depth = 0) {
-  if ((import_ts_morph12.Node.isFunctionDeclaration(declaration) || import_ts_morph12.Node.isMethodDeclaration(declaration)) && declaration.hasBody()) {
-    return declaration;
-  }
-  if (import_ts_morph12.Node.isVariableDeclaration(declaration) || import_ts_morph12.Node.isPropertyAssignment(declaration) || import_ts_morph12.Node.isPropertyDeclaration(declaration)) {
-    const initializer = declaration.getInitializer();
-    const value = initializer ? unwrap2(initializer) : void 0;
-    return isFunctionLike2(value) ? value : void 0;
-  }
-  if (import_ts_morph12.Node.isShorthandPropertyAssignment(declaration) && depth === 0) {
-    for (const target of declaration.getValueSymbol()?.getDeclarations() ?? []) {
-      const fn = functionOf(target, depth + 1);
-      if (fn) return fn;
-    }
-  }
-  return void 0;
-}
-function functionNames(fn) {
-  if (import_ts_morph12.Node.isFunctionDeclaration(fn) || import_ts_morph12.Node.isMethodDeclaration(fn)) {
-    const name2 = fn.getName();
-    return name2 ? [name2] : [];
-  }
-  const parent = fn.getParent();
-  if (import_ts_morph12.Node.isVariableDeclaration(parent) || import_ts_morph12.Node.isPropertyAssignment(parent) || import_ts_morph12.Node.isPropertyDeclaration(parent)) {
-    return [parent.getName()];
-  }
-  const name = import_ts_morph12.Node.isFunctionExpression(fn) ? fn.getName() : void 0;
-  return name ? [name] : [];
-}
-function isMethodLike(fn) {
-  const parent = fn.getParent();
-  return import_ts_morph12.Node.isMethodDeclaration(fn) || import_ts_morph12.Node.isPropertyAssignment(parent) || import_ts_morph12.Node.isPropertyDeclaration(parent);
-}
-function moduleNames(sourceFile) {
-  const names = { renamed: /* @__PURE__ */ new Set(), objects: /* @__PURE__ */ new Set() };
-  for (const declaration of sourceFile.getImportDeclarations()) {
-    const defaultImport = declaration.getDefaultImport()?.getText();
-    if (defaultImport) {
-      names.renamed.add(defaultImport);
-      names.objects.add(defaultImport);
-    }
-    const namespace = declaration.getNamespaceImport()?.getText();
-    if (namespace) names.objects.add(namespace);
-    for (const namedImport of declaration.getNamedImports()) {
-      const alias = namedImport.getAliasNode();
-      if (alias) names.renamed.add(alias.getText());
-    }
-  }
-  for (const declaration of sourceFile.getVariableDeclarations()) {
-    const initializer = declaration.getInitializer();
-    if (!initializer || !import_ts_morph12.Node.isCallExpression(initializer) || initializer.getExpression().getText() !== "require") {
-      continue;
-    }
-    const nameNode = declaration.getNameNode();
-    if (import_ts_morph12.Node.isIdentifier(nameNode)) {
-      names.renamed.add(nameNode.getText());
-      names.objects.add(nameNode.getText());
-    } else if (import_ts_morph12.Node.isObjectBindingPattern(nameNode)) {
-      for (const element of nameNode.getElements()) {
-        if (element.getPropertyNameNode()) names.renamed.add(element.getName());
-      }
-    }
-  }
-  return names;
-}
-function buildCallIndex(files) {
-  const index = { byName: /* @__PURE__ */ new Map(), renamed: [] };
-  for (const sourceFile of files) {
-    const modules = moduleNames(sourceFile);
-    for (const call of sourceFile.getDescendantsOfKind(
-      import_ts_morph12.SyntaxKind.CallExpression
-    )) {
-      const callee = unwrap2(call.getExpression());
-      let entry;
-      let name;
-      if (import_ts_morph12.Node.isIdentifier(callee)) {
-        name = callee.getText();
-        entry = { call, via: "name" };
-        if (modules.renamed.has(name)) index.renamed.push(call);
-      } else if (import_ts_morph12.Node.isPropertyAccessExpression(callee)) {
-        name = callee.getName();
-        const receiver = callee.getExpression();
-        entry = {
-          call,
-          via: import_ts_morph12.Node.isIdentifier(receiver) && modules.objects.has(receiver.getText()) ? "module" : "member"
-        };
-      } else {
-        continue;
-      }
-      const calls = index.byName.get(name);
-      if (calls) calls.push(entry);
-      else index.byName.set(name, [entry]);
-    }
-  }
-  return index;
-}
-function returnedValues2(fn) {
-  const body = fn.getBody();
-  if (!body) return [];
-  if (!import_ts_morph12.Node.isBlock(body)) return [body];
-  return body.getDescendantsOfKind(import_ts_morph12.SyntaxKind.ReturnStatement).filter((statement) => enclosingScope(statement) === fn).flatMap((statement) => statement.getExpression() ?? []);
-}
-var CallTracer = class {
-  /** @param files The scanned runtime source files and their project paths. */
-  constructor(files) {
-    this.files = files;
-  }
-  files;
-  /**
-   * The call that passes request data in during the current trace: of a
-   * chain of helpers, the caller farthest from the sink.
-   */
-  origin;
-  depth = 0;
-  frame = { followsCallers: true };
-  index;
-  targets = /* @__PURE__ */ new WeakMap();
-  callerLists = /* @__PURE__ */ new WeakMap();
-  callerOrigins = /* @__PURE__ */ new WeakMap();
-  returnSummaries = /* @__PURE__ */ new WeakMap();
-  /**
-   * Runs a request-data check within the sink's function first and, when
-   * that finds nothing, again through project functions. Null when neither
-   * finds request data.
-   */
-  trace(check) {
-    if (check(LOCAL_TAINT)) return { crossesCalls: false };
-    this.origin = void 0;
-    if (!check(this)) return null;
-    const origin = this.origin;
-    return {
-      crossesCalls: true,
-      ...origin ? { origin: this.location(origin) } : {}
-    };
-  }
-  isRequestValue(node) {
-    return isRequestValue(node, 0, this);
-  }
-  isTainted(node) {
-    return isTainted(node, this);
-  }
-  throughCallers(value, check) {
-    const node = unwrap2(value);
-    if (!import_ts_morph12.Node.isIdentifier(node) || !this.frame.followsCallers || requestDecorator(node)) {
-      return void 0;
-    }
-    const parameter = parameterOf(node);
-    if (!parameter || parameter.destructured) return void 0;
-    if (this.depth >= MAX_CALL_DEPTH) return false;
-    for (const call of this.callers(parameter.fn)) {
-      const argument = call.getArguments()[parameter.index];
-      if (!argument || import_ts_morph12.Node.isSpreadElement(argument)) continue;
-      const found = this.inCaller(call, () => check(argument));
-      if (found) {
-        this.origin ??= found;
-        return true;
-      }
-    }
-    return false;
-  }
-  parameter(identifier, strict) {
-    const parameter = parameterOf(identifier);
-    if (!parameter) return false;
-    const { assumed, followsCallers } = this.frame;
-    if (!followsCallers) {
-      return assumed !== void 0 && assumed.fn === parameter.fn && assumed.index === parameter.index;
-    }
-    if (this.depth >= MAX_CALL_DEPTH) return false;
-    const key = `${parameter.index}:${strict}:${this.depth}`;
-    const found = this.memoized(
-      this.callerOrigins,
-      parameter.fn,
-      key,
-      null,
-      () => {
-        for (const call of this.callers(parameter.fn)) {
-          const argument = call.getArguments()[parameter.index];
-          if (!argument || import_ts_morph12.Node.isSpreadElement(argument)) continue;
-          const origin = this.inCaller(
-            call,
-            () => strict ? isRequestValue(argument, 0, this) : isTainted(argument, this)
-          );
-          if (origin) return origin;
-        }
-        return null;
-      }
-    );
-    if (found) this.origin ??= found;
-    return found !== null;
-  }
-  result(call) {
-    if (this.depth >= MAX_CALL_DEPTH) return false;
-    const fn = this.target(call);
-    if (!fn) return false;
-    if (this.returnsRequestData(fn, void 0)) return true;
-    return call.getArguments().some(
-      (argument, index) => !import_ts_morph12.Node.isSpreadElement(argument) && this.returnsRequestData(fn, index) && isRequestValue(argument, 0, this)
-    );
-  }
-  /**
-   * Whether a function returns request data it reads itself (no index), or
-   * the request data its parameter at `index` receives.
-   */
-  returnsRequestData(fn, index) {
-    if (index !== void 0 && index >= callParameters(fn).length) return false;
-    const key = `${index ?? "own"}:${this.depth}`;
-    return this.memoized(
-      this.returnSummaries,
-      fn,
-      key,
-      false,
-      () => this.enter(
-        {
-          followsCallers: false,
-          ...index === void 0 ? {} : { assumed: { fn, index } }
-        },
-        () => returnedValues2(fn).some((value) => isRequestValue(value, 0, this))
-      )
-    );
-  }
-  /**
-   * Evaluates a check on a caller's argument one function boundary deeper.
-   * Returns the call that passes request data in: a caller of this caller
-   * when nested traces found one, or this call.
-   */
-  inCaller(call, check) {
-    const outer = this.origin;
-    this.origin = void 0;
-    try {
-      const found = this.enter({ followsCallers: true }, check);
-      return found ? this.origin ?? call : null;
-    } finally {
-      this.origin = outer;
-    }
-  }
-  enter(frame, evaluate) {
-    const outer = this.frame;
-    this.frame = frame;
-    this.depth++;
-    try {
-      return evaluate();
-    } finally {
-      this.depth--;
-      this.frame = outer;
-    }
-  }
-  /** Memoizes per function; a recursive request sees `fallback`. */
-  memoized(memos, fn, key, fallback2, compute) {
-    let memo = memos.get(fn);
-    if (!memo) {
-      memo = /* @__PURE__ */ new Map();
-      memos.set(fn, memo);
-    }
-    const cached = memo.get(key);
-    if (cached === "pending") return fallback2;
-    if (cached !== void 0) return cached;
-    memo.set(key, "pending");
-    let value = fallback2;
-    try {
-      value = compute();
-    } finally {
-      memo.set(key, value);
-    }
-    return value;
-  }
-  /** The project function a call invokes, through imports and instances. */
-  target(call) {
-    const cached = this.targets.get(call);
-    if (cached !== void 0) return cached;
-    const callee = unwrap2(call.getExpression());
-    const nameNode = import_ts_morph12.Node.isPropertyAccessExpression(callee) ? callee.getNameNode() : import_ts_morph12.Node.isIdentifier(callee) ? callee : void 0;
-    let symbol = nameNode?.getSymbol();
-    if (symbol?.isAlias()) symbol = symbol.getAliasedSymbol();
-    let target = null;
-    for (const declaration of symbol?.getDeclarations() ?? []) {
-      const fn = functionOf(declaration);
-      if (fn && this.files.has(fn.getSourceFile())) {
-        target = fn;
-        break;
-      }
-    }
-    this.targets.set(call, target);
-    return target;
-  }
-  /** Calls of a function in the scanned runtime files. */
-  callers(fn) {
-    const cached = this.callerLists.get(fn);
-    if (cached) return cached;
-    this.index ??= buildCallIndex(this.files.keys());
-    const method = isMethodLike(fn);
-    const candidates = new Set(
-      functionNames(fn).flatMap((name) => this.index?.byName.get(name) ?? []).filter(({ via }) => method ? via !== "name" : via !== "member").map(({ call }) => call)
-    );
-    if (!method) {
-      for (const call of this.index.renamed) candidates.add(call);
-    }
-    const callers = [...candidates].filter((call) => this.target(call) === fn);
-    this.callerLists.set(fn, callers);
-    return callers;
-  }
-  location(call) {
-    const file = this.files.get(call.getSourceFile()) ?? call.getSourceFile().getBaseName();
-    return `${file}:${call.getStartLineNumber()}`;
-  }
-};
-function traceDetails(trace, fix) {
-  if (!trace.crossesCalls) return { fix };
-  return {
-    confidence: "medium",
-    fix: trace.origin ? `Request data reaches this call from ${trace.origin}; ${fix.charAt(0).toLowerCase()}${fix.slice(1)}` : fix
-  };
-}
-
-// src/analyzers/security-injection.ts
+var import_ts_morph14 = __toESM(require_ts_morph(), 1);
 var TEMPLATE_ENGINES = [
   { modules: /* @__PURE__ */ new Set(["ejs"]), functions: /* @__PURE__ */ new Set(["compile", "render"]) },
   {
@@ -260685,16 +260911,16 @@ var WRITE_GUARD = new RegExp(
   `${MERGE_GUARD.source}|\\bhasOwn(?:Property)?\\s*\\(|\\.(?:has|includes)\\s*\\(`
 );
 var FUNCTION_KINDS = [
-  import_ts_morph13.SyntaxKind.FunctionDeclaration,
-  import_ts_morph13.SyntaxKind.FunctionExpression,
-  import_ts_morph13.SyntaxKind.ArrowFunction,
-  import_ts_morph13.SyntaxKind.MethodDeclaration
+  import_ts_morph14.SyntaxKind.FunctionDeclaration,
+  import_ts_morph14.SyntaxKind.FunctionExpression,
+  import_ts_morph14.SyntaxKind.ArrowFunction,
+  import_ts_morph14.SyntaxKind.MethodDeclaration
 ];
 var KEY_ITERATION = /\bfor\s*\(\s*(?:const|let|var)\s+[\w$]+\s+in\b|\b(?:Object\.(?:keys|entries|getOwnPropertyNames)|Reflect\.ownKeys)\s*\(/;
 function compiledTemplate(call, engines, taint) {
   const expression = call.getExpression();
   const isCompile = engines.some(
-    ({ engine, bindings }) => moduleCall(call, bindings, engine.modules, engine.functions) || engine.callableDefault && import_ts_morph13.Node.isIdentifier(expression) && bindings.namespaces.has(expression.getText())
+    ({ engine, bindings }) => moduleCall(call, bindings, engine.modules, engine.functions) || engine.callableDefault && import_ts_morph14.Node.isIdentifier(expression) && bindings.namespaces.has(expression.getText())
   );
   const [source] = call.getArguments();
   return isCompile && source && taint.isRequestValue(source) ? source : void 0;
@@ -260702,12 +260928,12 @@ function compiledTemplate(call, engines, taint) {
 function constructedTemplate(expression, nunjucks, taint) {
   const callee = expression.getExpression();
   const [source] = expression.getArguments();
-  return import_ts_morph13.Node.isPropertyAccessExpression(callee) && callee.getName() === "Template" && nunjucks.namespaces.has(callee.getExpression().getText()) && source !== void 0 && taint.isRequestValue(source);
+  return import_ts_morph14.Node.isPropertyAccessExpression(callee) && callee.getName() === "Template" && nunjucks.namespaces.has(callee.getExpression().getText()) && source !== void 0 && taint.isRequestValue(source);
 }
 function containerKeys(target) {
   const keys = [];
-  let container = import_ts_morph13.Node.isElementAccessExpression(target) ? target.getExpression() : void 0;
-  while (container && import_ts_morph13.Node.isElementAccessExpression(container)) {
+  let container = import_ts_morph14.Node.isElementAccessExpression(target) ? target.getExpression() : void 0;
+  while (container && import_ts_morph14.Node.isElementAccessExpression(container)) {
     const key = container.getArgumentExpression();
     if (key) keys.push(key);
     container = container.getExpression();
@@ -260715,12 +260941,12 @@ function containerKeys(target) {
   return keys;
 }
 function functionName(node) {
-  if (import_ts_morph13.Node.isFunctionDeclaration(node) || import_ts_morph13.Node.isMethodDeclaration(node)) {
+  if (import_ts_morph14.Node.isFunctionDeclaration(node) || import_ts_morph14.Node.isMethodDeclaration(node)) {
     return node.getName();
   }
-  if (import_ts_morph13.Node.isFunctionExpression(node) && node.getName()) return node.getName();
+  if (import_ts_morph14.Node.isFunctionExpression(node) && node.getName()) return node.getName();
   const parent = node.getParent();
-  if (import_ts_morph13.Node.isVariableDeclaration(parent) || import_ts_morph13.Node.isPropertyAssignment(parent)) {
+  if (import_ts_morph14.Node.isVariableDeclaration(parent) || import_ts_morph14.Node.isPropertyAssignment(parent)) {
     return parent.getName();
   }
   return void 0;
@@ -260730,11 +260956,11 @@ function isUnguardedRecursiveMerge(node) {
   if (!name) return false;
   const text2 = node.getText();
   if (!KEY_ITERATION.test(text2) || MERGE_GUARD.test(text2)) return false;
-  const writesComputedKey = node.getDescendantsOfKind(import_ts_morph13.SyntaxKind.BinaryExpression).some((binary) => {
+  const writesComputedKey = node.getDescendantsOfKind(import_ts_morph14.SyntaxKind.BinaryExpression).some((binary) => {
     const left = binary.getLeft();
-    return binary.getOperatorToken().getKind() === import_ts_morph13.SyntaxKind.EqualsToken && import_ts_morph13.Node.isElementAccessExpression(left) && import_ts_morph13.Node.isIdentifier(left.getArgumentExpression());
+    return binary.getOperatorToken().getKind() === import_ts_morph14.SyntaxKind.EqualsToken && import_ts_morph14.Node.isElementAccessExpression(left) && import_ts_morph14.Node.isIdentifier(left.getArgumentExpression());
   });
-  const callsItself = node.getDescendantsOfKind(import_ts_morph13.SyntaxKind.CallExpression).some(
+  const callsItself = node.getDescendantsOfKind(import_ts_morph14.SyntaxKind.CallExpression).some(
     (call) => [name, `this.${name}`].includes(call.getExpression().getText())
   );
   return writesComputedKey && callsItself;
@@ -260759,7 +260985,7 @@ function inspectInjection(sourceFile, file, tracer) {
   }));
   const nunjucks = moduleBindings(sourceFile, /* @__PURE__ */ new Set(["nunjucks"]), /* @__PURE__ */ new Set());
   for (const call of sourceFile.getDescendantsOfKind(
-    import_ts_morph13.SyntaxKind.CallExpression
+    import_ts_morph14.SyntaxKind.CallExpression
   )) {
     const trace = tracer.trace(
       (taint) => compiledTemplate(call, engines, taint) !== void 0
@@ -260769,7 +260995,7 @@ function inspectInjection(sourceFile, file, tracer) {
     }
   }
   for (const expression of sourceFile.getDescendantsOfKind(
-    import_ts_morph13.SyntaxKind.NewExpression
+    import_ts_morph14.SyntaxKind.NewExpression
   )) {
     const trace = tracer.trace(
       (taint) => constructedTemplate(expression, nunjucks, taint)
@@ -260781,9 +261007,9 @@ function inspectInjection(sourceFile, file, tracer) {
     }
   }
   for (const binary of sourceFile.getDescendantsOfKind(
-    import_ts_morph13.SyntaxKind.BinaryExpression
+    import_ts_morph14.SyntaxKind.BinaryExpression
   )) {
-    if (binary.getOperatorToken().getKind() !== import_ts_morph13.SyntaxKind.EqualsToken) {
+    if (binary.getOperatorToken().getKind() !== import_ts_morph14.SyntaxKind.EqualsToken) {
       continue;
     }
     const keys = containerKeys(binary.getLeft());
@@ -260890,14 +261116,14 @@ function sourceLocation(file, line) {
 }
 function sqlQuery(call) {
   const expression = call.getExpression();
-  if (!import_ts_morph14.Node.isPropertyAccessExpression(expression)) return null;
+  if (!import_ts_morph15.Node.isPropertyAccessExpression(expression)) return null;
   if (!SQL_METHODS.has(expression.getName())) return null;
   const query = call.getArguments()[0];
   return query && !isStaticString(query) ? query : null;
 }
 function isSqlClient(call) {
   const expression = call.getExpression();
-  return import_ts_morph14.Node.isPropertyAccessExpression(expression) && (expression.getName().endsWith("Unsafe") || SQL_RECEIVER.test(expression.getExpression().getText()));
+  return import_ts_morph15.Node.isPropertyAccessExpression(expression) && (expression.getName().endsWith("Unsafe") || SQL_RECEIVER.test(expression.getExpression().getText()));
 }
 function isTaintedSql(query, taint) {
   const shape = dynamicStringShape(query);
@@ -260927,14 +261153,14 @@ function requestControlsTarget(node, taint, start = "") {
 }
 function responseCall(call) {
   const expression = call.getExpression();
-  if (!import_ts_morph14.Node.isPropertyAccessExpression(expression)) return null;
+  if (!import_ts_morph15.Node.isPropertyAccessExpression(expression)) return null;
   const chain = [];
   let receiver = expression.getExpression();
-  while (import_ts_morph14.Node.isCallExpression(receiver) && import_ts_morph14.Node.isPropertyAccessExpression(receiver.getExpression())) {
+  while (import_ts_morph15.Node.isCallExpression(receiver) && import_ts_morph15.Node.isPropertyAccessExpression(receiver.getExpression())) {
     chain.push(receiver);
     receiver = receiver.getExpression().getExpression();
   }
-  if (!import_ts_morph14.Node.isIdentifier(receiver) || !RESPONSE_OBJECT.test(receiver.getText())) {
+  if (!import_ts_morph15.Node.isIdentifier(receiver) || !RESPONSE_OBJECT.test(receiver.getText())) {
     return null;
   }
   return { method: expression.getName(), chain };
@@ -260942,7 +261168,7 @@ function responseCall(call) {
 function isPrefixChecked(argument) {
   const scopeText = enclosingScope(argument).getText();
   const value = unwrap2(argument);
-  const identifiers = import_ts_morph14.Node.isIdentifier(value) ? [value] : value.getDescendantsOfKind(import_ts_morph14.SyntaxKind.Identifier);
+  const identifiers = import_ts_morph15.Node.isIdentifier(value) ? [value] : value.getDescendantsOfKind(import_ts_morph15.SyntaxKind.Identifier);
   return identifiers.some(
     (identifier) => new RegExp(
       `\\b${identifier.getText().replace(/\$/g, "\\$")}\\s*\\.\\s*startsWith\\s*\\(`
@@ -260969,7 +261195,7 @@ function traversalPath(call, files, taint) {
 }
 function forgedRequestUrl(call, taint) {
   const expression = call.getExpression();
-  const isClient = import_ts_morph14.Node.isIdentifier(expression) ? HTTP_CLIENT_FUNCTIONS.has(expression.getText()) : import_ts_morph14.Node.isPropertyAccessExpression(expression) && HTTP_CLIENT_METHODS.has(expression.getName()) && HTTP_CLIENT_RECEIVER.test(expression.getExpression().getText());
+  const isClient = import_ts_morph15.Node.isIdentifier(expression) ? HTTP_CLIENT_FUNCTIONS.has(expression.getText()) : import_ts_morph15.Node.isPropertyAccessExpression(expression) && HTTP_CLIENT_METHODS.has(expression.getName()) && HTTP_CLIENT_RECEIVER.test(expression.getExpression().getText());
   if (!isClient) return null;
   const [first] = call.getArguments();
   const url = objectProperty(first, ["url", "baseURL", "host", "hostname"]) ?? first;
@@ -260979,7 +261205,7 @@ var REDIRECT_RECEIVER = /^(?:NextResponse|Response)$/;
 function openRedirectTarget(call, taint) {
   const expression = call.getExpression();
   let target;
-  if (import_ts_morph14.Node.isPropertyAccessExpression(expression) && expression.getName() === "redirect" && REDIRECT_RECEIVER.test(expression.getExpression().getText())) {
+  if (import_ts_morph15.Node.isPropertyAccessExpression(expression) && expression.getName() === "redirect" && REDIRECT_RECEIVER.test(expression.getExpression().getText())) {
     target = call.getArguments()[0];
   } else if (responseCall(call)?.method === "redirect") {
     target = call.getArguments().at(-1);
@@ -260992,7 +261218,7 @@ var REQUEST_OBJECT_VALUE = /(?:^|\.)(?:body|cookies|headers|params|query)$|\.(?:
 function reflectsRequestData(body, taint) {
   if (!body) return false;
   const value = unwrap2(body);
-  if (import_ts_morph14.Node.isIdentifier(value) && value.getSymbol()?.getDeclarations().some((declaration) => import_ts_morph14.Node.isBindingElement(declaration))) {
+  if (import_ts_morph15.Node.isIdentifier(value) && value.getSymbol()?.getDeclarations().some((declaration) => import_ts_morph15.Node.isBindingElement(declaration))) {
     return taint.isRequestValue(value);
   }
   const parts = stringParts(value);
@@ -261005,7 +261231,7 @@ function reflectsRequestData(body, taint) {
       (argument) => reflectsRequestData(argument, taint)
     );
     if (forwarded !== void 0) return forwarded;
-    const decorator = import_ts_morph14.Node.isIdentifier(node) ? requestDecorator(node) : void 0;
+    const decorator = import_ts_morph15.Node.isIdentifier(node) ? requestDecorator(node) : void 0;
     if (decorator && decorator.getArguments().length === 0) return false;
     return !REQUEST_OBJECT_VALUE.test(node.getText()) && taint.isRequestValue(node);
   }
@@ -261027,16 +261253,16 @@ function reflectedResponseBody(call, taint) {
 function enablesShell(options) {
   const shell = objectProperty(options, ["shell"]);
   return Boolean(
-    shell && (shell.getKind() === import_ts_morph14.SyntaxKind.TrueKeyword || import_ts_morph14.Node.isStringLiteral(shell) && shell.getLiteralText() !== "")
+    shell && (shell.getKind() === import_ts_morph15.SyntaxKind.TrueKeyword || import_ts_morph15.Node.isStringLiteral(shell) && shell.getLiteralText() !== "")
   );
 }
 function shellCommandParts(call) {
   const [command, second] = call.getArguments();
   if (!command || !call.getArguments().some(enablesShell)) return [];
   const parts = [command];
-  if (second && import_ts_morph14.Node.isArrayLiteralExpression(second)) {
+  if (second && import_ts_morph15.Node.isArrayLiteralExpression(second)) {
     parts.push(...second.getElements());
-  } else if (second && !import_ts_morph14.Node.isObjectLiteralExpression(second)) {
+  } else if (second && !import_ts_morph15.Node.isObjectLiteralExpression(second)) {
     parts.push(second);
   }
   return parts.filter((part) => !isStaticString(part));
@@ -261058,10 +261284,10 @@ function inspectSourceFile(sourceFile, file, tracer) {
   );
   const files = moduleBindings(sourceFile, FS_MODULES, FILE_FUNCTIONS);
   for (const call of sourceFile.getDescendantsOfKind(
-    import_ts_morph14.SyntaxKind.CallExpression
+    import_ts_morph15.SyntaxKind.CallExpression
   )) {
     const expression = call.getExpression();
-    const isEval = import_ts_morph14.Node.isIdentifier(expression) && expression.getText() === "eval" || import_ts_morph14.Node.isPropertyAccessExpression(expression) && expression.getExpression().getText() === "globalThis" && expression.getName() === "eval";
+    const isEval = import_ts_morph15.Node.isIdentifier(expression) && expression.getText() === "eval" || import_ts_morph15.Node.isPropertyAccessExpression(expression) && expression.getExpression().getText() === "globalThis" && expression.getName() === "eval";
     if (isEval) {
       issues.push({
         ...fromRule("unsafe-dynamic-code"),
@@ -261177,7 +261403,7 @@ function inspectSourceFile(sourceFile, file, tracer) {
     }
   }
   for (const expression of sourceFile.getDescendantsOfKind(
-    import_ts_morph14.SyntaxKind.NewExpression
+    import_ts_morph15.SyntaxKind.NewExpression
   )) {
     const constructorName = expression.getExpression().getText();
     const [body, init] = expression.getArguments();
@@ -261205,11 +261431,11 @@ function inspectSourceFile(sourceFile, file, tracer) {
     });
   }
   for (const property of sourceFile.getDescendantsOfKind(
-    import_ts_morph14.SyntaxKind.PropertyAssignment
+    import_ts_morph15.SyntaxKind.PropertyAssignment
   )) {
     const name = property.getName().replace(/["']/g, "");
     const initializer = property.getInitializer();
-    const disablesTls = name === "rejectUnauthorized" && initializer?.getKind() === import_ts_morph14.SyntaxKind.FalseKeyword || name === "NODE_TLS_REJECT_UNAUTHORIZED" && import_ts_morph14.Node.isStringLiteral(initializer) && initializer.getLiteralText() === "0";
+    const disablesTls = name === "rejectUnauthorized" && initializer?.getKind() === import_ts_morph15.SyntaxKind.FalseKeyword || name === "NODE_TLS_REJECT_UNAUTHORIZED" && import_ts_morph15.Node.isStringLiteral(initializer) && initializer.getLiteralText() === "0";
     if (!disablesTls) continue;
     issues.push({
       ...fromRule("tls-verification-disabled"),
@@ -261219,13 +261445,13 @@ function inspectSourceFile(sourceFile, file, tracer) {
     });
   }
   for (const assignment of sourceFile.getDescendantsOfKind(
-    import_ts_morph14.SyntaxKind.BinaryExpression
+    import_ts_morph15.SyntaxKind.BinaryExpression
   )) {
-    if (assignment.getOperatorToken().getKind() !== import_ts_morph14.SyntaxKind.EqualsToken || assignment.getLeft().getText() !== "process.env.NODE_TLS_REJECT_UNAUTHORIZED") {
+    if (assignment.getOperatorToken().getKind() !== import_ts_morph15.SyntaxKind.EqualsToken || assignment.getLeft().getText() !== "process.env.NODE_TLS_REJECT_UNAUTHORIZED") {
       continue;
     }
     const value = assignment.getRight();
-    if (!import_ts_morph14.Node.isStringLiteral(value) || value.getLiteralText() !== "0") {
+    if (!import_ts_morph15.Node.isStringLiteral(value) || value.getLiteralText() !== "0") {
       continue;
     }
     issues.push({
@@ -261553,15 +261779,15 @@ function readSources(context) {
     context.matchFiles(SOURCE_PATTERN5, { exclude: RUNTIME_IGNORES2 })
   );
   const allSources = [];
-  const runtimeSources = [];
+  const runtimeSources2 = [];
   for (const file of context.matchFiles(SOURCE_PATTERN5)) {
     const content = context.readText(file);
     if (content === null) continue;
     const source = { file, content: stripComments(content) };
     allSources.push(source);
-    if (runtimeFiles.has(file)) runtimeSources.push(source);
+    if (runtimeFiles.has(file)) runtimeSources2.push(source);
   }
-  return { allSources, runtimeSources };
+  return { allSources, runtimeSources: runtimeSources2 };
 }
 async function analyzeSecurity(context, options = {}) {
   const { projectPath } = context;
@@ -261613,7 +261839,7 @@ async function analyzeSecurity(context, options = {}) {
       });
     }
   }
-  const { allSources, runtimeSources } = readSources(context);
+  const { allSources, runtimeSources: runtimeSources2 } = readSources(context);
   checksRun++;
   let secretsFound = false;
   for (const source of allSources) {
@@ -261649,8 +261875,8 @@ async function analyzeSecurity(context, options = {}) {
     issues.push(...history.issues);
     historyNote2 = history.note;
   }
-  const detectedPasswordIssues = passwordIssues(runtimeSources);
-  if (detectedPasswordIssues.length > 0 || runtimeSources.some(({ content }) => PASSWORD_TERM.test(content))) {
+  const detectedPasswordIssues = passwordIssues(runtimeSources2);
+  if (detectedPasswordIssues.length > 0 || runtimeSources2.some(({ content }) => PASSWORD_TERM.test(content))) {
     checksRun++;
     if (detectedPasswordIssues.length === 0) checksPassed++;
     issues.push(...detectedPasswordIssues);
@@ -261661,7 +261887,7 @@ async function analyzeSecurity(context, options = {}) {
   issues.push(...sinkIssues);
   if (isWebServer) {
     checksRun++;
-    if (hasHelmetUsage(runtimeSources)) {
+    if (hasHelmetUsage(runtimeSources2)) {
       checksPassed++;
     } else {
       issues.push({
@@ -261671,7 +261897,7 @@ async function analyzeSecurity(context, options = {}) {
       });
     }
     checksRun++;
-    const openCors = findOpenCors(runtimeSources);
+    const openCors = findOpenCors(runtimeSources2);
     if (!openCors) {
       checksPassed++;
     } else {
@@ -261684,7 +261910,7 @@ async function analyzeSecurity(context, options = {}) {
       });
     }
     checksRun++;
-    if (hasRateLimitUsage(runtimeSources)) {
+    if (hasRateLimitUsage(runtimeSources2)) {
       checksPassed++;
     } else {
       issues.push({
@@ -261982,7 +262208,7 @@ async function analyzeStructure(context) {
 // src/analyzers/testing.ts
 var import_node_fs11 = require("fs");
 var import_node_path12 = require("path");
-var import_ts_morph15 = __toESM(require_ts_morph(), 1);
+var import_ts_morph16 = __toESM(require_ts_morph(), 1);
 var TEST_CONFIG_FILES = ["jest", "vitest"].flatMap(
   (tool) => ["ts", "js", "mjs", "mts"].map((extension) => `${tool}.config.${extension}`)
 );
@@ -262045,17 +262271,17 @@ function readCoverageReport(projectPath) {
   };
 }
 function propertyName(node) {
-  return import_ts_morph15.Node.isPropertyAssignment(node) || import_ts_morph15.Node.isShorthandPropertyAssignment(node) ? node.getName().replace(/["']/g, "") : void 0;
+  return import_ts_morph16.Node.isPropertyAssignment(node) || import_ts_morph16.Node.isShorthandPropertyAssignment(node) ? node.getName().replace(/["']/g, "") : void 0;
 }
 function configDeclaresThreshold(context, file) {
   const sourceFile = context.getSourceFile(file);
   if (!sourceFile) return false;
   for (const property of sourceFile.getDescendantsOfKind(
-    import_ts_morph15.SyntaxKind.PropertyAssignment
+    import_ts_morph16.SyntaxKind.PropertyAssignment
   )) {
     const name = propertyName(property);
     if (name === "coverageThreshold") return true;
-    const parent = property.getParentIfKind(import_ts_morph15.SyntaxKind.ObjectLiteralExpression)?.getParent();
+    const parent = property.getParentIfKind(import_ts_morph16.SyntaxKind.ObjectLiteralExpression)?.getParent();
     const parentName = parent ? propertyName(parent) : void 0;
     if (parentName === "coverage" && (name === "thresholds" || METRIC_KEYS.has(name ?? ""))) {
       return true;
@@ -262224,6 +262450,584 @@ async function analyzeTesting(context) {
     summary: `${testFiles.length} test files, framework: ${framework}, coverage: ${coverageReport ? `${coverageReport.score}%` : "not reported"}`
   };
 }
+
+// src/analyzers/trpc-api.ts
+var import_ts_morph18 = __toESM(require_ts_morph(), 1);
+
+// src/analyzers/trpc-procedures.ts
+var import_ts_morph17 = __toESM(require_ts_morph(), 1);
+var PROCEDURE_KINDS = /* @__PURE__ */ new Set([
+  "mutation",
+  "query",
+  "subscription"
+]);
+var PASS_THROUGH = /* @__PURE__ */ new Set(["experimental_caller", "meta", "output"]);
+var CONCAT = /* @__PURE__ */ new Set(["concat", "unstable_concat"]);
+var PIPE = /* @__PURE__ */ new Set(["pipe", "unstable_pipe"]);
+var PROTECTED_BUILDER_NAMES = new RegExp(
+  `${AUTH_NAMES4.source}|private|member|user`,
+  "i"
+);
+var BUILDER_NAMES = /procedure$/i;
+var ROUTER_NAMES2 = /^(?:createTRPCRouter|router)$/;
+var ANY_SCHEMAS = /* @__PURE__ */ new Set(["any", "custom", "unknown"]);
+var SCHEMA_MODULES = /^(?:zod(?:\/.+)?|valibot)$/;
+var SCHEMA_WRAPPERS = /* @__PURE__ */ new Set([
+  "brand",
+  "default",
+  "describe",
+  "nullable",
+  "nullish",
+  "optional",
+  "readonly"
+]);
+var MAX_RESOLUTION_DEPTH3 = 8;
+var OPAQUE = { auth: false, opaque: true };
+var TrpcResolver = class {
+  constructor(index) {
+    this.index = index;
+  }
+  index;
+  builders = /* @__PURE__ */ new Map();
+  verdicts = /* @__PURE__ */ new Map();
+  routerKinds = /* @__PURE__ */ new Map();
+  procedures = /* @__PURE__ */ new Map();
+  collect(sources) {
+    const instances = [];
+    const routers = [];
+    let adapters = 0;
+    for (const { file, sourceFile } of sources) {
+      if (importsTrpcAdapter(sourceFile)) adapters++;
+      for (const call of sourceFile.getDescendantsOfKind(
+        import_ts_morph17.SyntaxKind.CallExpression
+      )) {
+        if (isCreateCall(call)) instances.push(call);
+        else if (this.routerKind(call)) routers.push(call);
+        else this.addProcedure(file, call);
+      }
+    }
+    const paths = this.procedurePaths(routers);
+    const procedures = [...this.procedures.values()].map((procedure) => ({
+      ...procedure,
+      path: paths.get(procedure.call) ?? procedure.path
+    }));
+    return { procedures, routers: routers.length, instances, adapters };
+  }
+  /**
+   * The node that defines a value, narrowed to one binding when that is a
+   * destructuring export: `router` in `export const { router, procedure } = t`.
+   */
+  resolve(node) {
+    const resolved = definition(this.index, node);
+    const pattern = import_ts_morph17.Node.isVariableDeclaration(resolved) ? resolved.getNameNode() : void 0;
+    if (!import_ts_morph17.Node.isObjectBindingPattern(pattern)) return resolved;
+    const value = unwrap(node);
+    const declaration = import_ts_morph17.Node.isIdentifier(value) ? value.getSymbol()?.getDeclarations()[0] : void 0;
+    const name = (declaration && importSource(declaration)?.name) ?? value.getText();
+    return pattern.getElements().find((element) => element.getName() === name);
+  }
+  /** The `initTRPC...create()` call an expression holds, if any. */
+  instance(node, depth = 0) {
+    const value = unwrap(node);
+    if (import_ts_morph17.Node.isCallExpression(value)) return isCreateCall(value) ? value : null;
+    if (depth > MAX_RESOLUTION_DEPTH3) return null;
+    const resolved = this.resolve(value);
+    const initializer = import_ts_morph17.Node.isVariableDeclaration(resolved) ? resolved.getInitializer() : void 0;
+    return initializer ? this.instance(initializer, depth + 1) : null;
+  }
+  /**
+   * The procedure builder an expression evaluates to. Chains are followed
+   * through `.use()`, `.input()`, variables, and imports back to
+   * `t.procedure`; a builder that cannot be resolved is matched by a name
+   * ending in "procedure" with low confidence.
+   */
+  builder(node, depth = 0) {
+    const value = unwrap(node);
+    const cached = this.builders.get(value);
+    if (cached !== void 0) return cached;
+    if (depth > MAX_RESOLUTION_DEPTH3) return null;
+    this.builders.set(value, null);
+    const result = this.evaluate(value, depth);
+    this.builders.set(value, result);
+    return result;
+  }
+  /** Why an `.input()` call's parser accepts every value, or null. */
+  permissiveInput(call) {
+    const [parser] = call.getArguments();
+    return parser ? this.permissive(parser, 0) : null;
+  }
+  /** Options of an `initTRPC...create()` call that send stacks to clients. */
+  stackExposures(create) {
+    const options = objectLiteral(this.index, create.getArguments()[0]);
+    if (!options) return [];
+    const exposures = [];
+    const isDev = options.getProperty("isDev");
+    if (import_ts_morph17.Node.isPropertyAssignment(isDev) && isDev.getInitializer()?.getKind() === import_ts_morph17.SyntaxKind.TrueKeyword) {
+      exposures.push({ node: isDev, via: "isDev" });
+    }
+    const formatter = this.functionOf(
+      propertyValue(options.getProperty("errorFormatter"))
+    );
+    const leak = formatter && leakedStack(formatter);
+    if (leak) exposures.push({ node: leak, via: "errorFormatter" });
+    return exposures;
+  }
+  addProcedure(file, call) {
+    const kind = methodName(call);
+    const resolver = call.getArguments().at(-1);
+    if (!PROCEDURE_KINDS.has(kind) || !resolver) return;
+    const value = unwrap(resolver);
+    if (!isFunctionLike(value) && !import_ts_morph17.Node.isIdentifier(value) && !import_ts_morph17.Node.isPropertyAccessExpression(value)) {
+      return;
+    }
+    const builder = this.builder(receiverOf(call));
+    if (!builder) return;
+    const callee = call.getExpression();
+    this.procedures.set(call, {
+      kind,
+      call,
+      builder,
+      path: localName(call),
+      file,
+      line: import_ts_morph17.Node.isPropertyAccessExpression(callee) ? callee.getNameNode().getStartLineNumber() : call.getStartLineNumber()
+    });
+  }
+  evaluate(value, depth) {
+    if (import_ts_morph17.Node.isCallExpression(value)) return this.chained(value, depth);
+    if (import_ts_morph17.Node.isPropertyAccessExpression(value) && value.getName() === "procedure") {
+      const instance = this.instance(value.getExpression(), depth + 1);
+      return {
+        middleware: [],
+        inputs: [],
+        confidence: instance ? "high" : "low"
+      };
+    }
+    if (!import_ts_morph17.Node.isIdentifier(value) && !import_ts_morph17.Node.isPropertyAccessExpression(value)) {
+      return null;
+    }
+    const resolved = this.resolve(value);
+    if (import_ts_morph17.Node.isVariableDeclaration(resolved)) {
+      const initializer = resolved.getInitializer();
+      const built = initializer && this.builder(initializer, depth + 1);
+      if (built) return built;
+    }
+    const source = resolved && bindingSource(resolved);
+    if (resolved && bindingKey(resolved) === "procedure" && source && this.instance(source, depth + 1)) {
+      return { middleware: [], inputs: [], confidence: "high" };
+    }
+    return this.namedBuilder(value, resolved);
+  }
+  /** `.use()`, `.input()`, and other builder methods on a builder. */
+  chained(call, depth) {
+    const name = methodName(call);
+    if (name !== "use" && name !== "input" && !PASS_THROUGH.has(name) && !CONCAT.has(name)) {
+      return null;
+    }
+    const base = this.builder(receiverOf(call), depth);
+    if (!base) return null;
+    const [argument] = call.getArguments();
+    if (name === "input") return { ...base, inputs: [...base.inputs, call] };
+    if (name === "use") {
+      return argument ? {
+        ...base,
+        middleware: [...base.middleware, this.middleware(argument)]
+      } : base;
+    }
+    if (CONCAT.has(name)) {
+      const other = argument && this.builder(argument, depth + 1);
+      return {
+        ...base,
+        middleware: [...base.middleware, ...other?.middleware ?? [OPAQUE]],
+        inputs: [...base.inputs, ...other?.inputs ?? []]
+      };
+    }
+    return base;
+  }
+  /** A builder known only by its name, such as an imported `protectedProcedure`. */
+  namedBuilder(value, resolved) {
+    const name = import_ts_morph17.Node.isPropertyAccessExpression(value) ? value.getName() : value.getText();
+    if (!BUILDER_NAMES.test(name)) return null;
+    const typed = import_ts_morph17.Node.isParameterDeclaration(resolved) ? resolved.getTypeNode()?.getText() ?? "" : "";
+    const named = PROTECTED_BUILDER_NAMES.test(name) || PROTECTED_BUILDER_NAMES.test(typed);
+    return {
+      middleware: named ? [{ auth: true, opaque: true }] : [],
+      inputs: [],
+      confidence: "low"
+    };
+  }
+  /**
+   * What a `.use()` argument does. Middleware whose definition is found is
+   * judged by its code; anything else by its name, and marked opaque.
+   */
+  middleware(node, depth = 0) {
+    const value = unwrap(node);
+    const cached = this.verdicts.get(value);
+    if (cached) return cached;
+    this.verdicts.set(value, OPAQUE);
+    const verdict = depth > MAX_RESOLUTION_DEPTH3 ? { auth: AUTH_NAMES4.test(value.getText()), opaque: true } : this.judge(value, depth);
+    this.verdicts.set(value, verdict);
+    return verdict;
+  }
+  judge(value, depth) {
+    if (isFunctionLike(value)) {
+      return { auth: authenticates(value), opaque: false };
+    }
+    if (import_ts_morph17.Node.isCallExpression(value)) return this.judgeCall(value, depth);
+    if (!import_ts_morph17.Node.isIdentifier(value) && !import_ts_morph17.Node.isPropertyAccessExpression(value)) {
+      return OPAQUE;
+    }
+    const name = import_ts_morph17.Node.isPropertyAccessExpression(value) ? value.getName() : value.getText();
+    const resolved = this.resolve(value);
+    const target = import_ts_morph17.Node.isVariableDeclaration(resolved) ? resolved.getInitializer() : isFunctionLike(resolved) ? resolved : void 0;
+    const inner = target ? this.middleware(target, depth + 1) : OPAQUE;
+    return { auth: inner.auth || AUTH_NAMES4.test(name), opaque: inner.opaque };
+  }
+  /**
+   * `t.middleware(fn)` and `isAuthed.unstable_pipe(fn)` are judged by the
+   * middleware they combine; a project factory such as `requireRole("admin")`
+   * by the middleware it returns.
+   */
+  judgeCall(call, depth) {
+    const callee = call.getExpression();
+    const name = methodName(call) || callee.getText();
+    const named = AUTH_NAMES4.test(name);
+    const resolved = import_ts_morph17.Node.isIdentifier(callee) ? this.resolve(callee) : void 0;
+    const initializer = import_ts_morph17.Node.isVariableDeclaration(resolved) ? resolved.getInitializer() : resolved;
+    const factory = initializer && unwrap(initializer);
+    const parts = isFunctionLike(factory) ? returnedValues2(factory) : [
+      ...PIPE.has(name) ? [receiverOf(call)] : [],
+      ...call.getArguments().filter(
+        (argument) => isFunctionLike(unwrap(argument)) || import_ts_morph17.Node.isIdentifier(unwrap(argument)) || import_ts_morph17.Node.isPropertyAccessExpression(unwrap(argument)) || import_ts_morph17.Node.isCallExpression(unwrap(argument))
+      )
+    ];
+    const verdicts = parts.map((part) => this.middleware(part, depth + 1));
+    return {
+      auth: named || verdicts.some((verdict) => verdict.auth),
+      opaque: verdicts.length === 0 || verdicts.some((verdict) => verdict.opaque)
+    };
+  }
+  permissive(node, depth) {
+    const value = unwrap(node);
+    if (depth > MAX_RESOLUTION_DEPTH3) return null;
+    if (isFunctionLike(value)) {
+      return returnsArgument(value) ? { schema: null, confidence: "high" } : null;
+    }
+    if (import_ts_morph17.Node.isIdentifier(value)) {
+      const resolved = this.resolve(value);
+      const initializer = import_ts_morph17.Node.isVariableDeclaration(resolved) ? resolved.getInitializer() : void 0;
+      return initializer ? this.permissive(initializer, depth + 1) : null;
+    }
+    if (!import_ts_morph17.Node.isCallExpression(value)) return null;
+    const name = methodName(value);
+    if (SCHEMA_WRAPPERS.has(name)) {
+      const receiver = unwrap(receiverOf(value));
+      const wrapped = import_ts_morph17.Node.isCallExpression(receiver) ? receiver : value.getArguments()[0];
+      return wrapped ? this.permissive(wrapped, depth + 1) : null;
+    }
+    if (!ANY_SCHEMAS.has(name) || value.getArguments().length > 0) return null;
+    const namespace = receiverOf(value);
+    const module2 = moduleOf(namespace);
+    const schema = module2 !== null && SCHEMA_MODULES.test(module2);
+    if (!schema && namespace.getText() !== "z") return null;
+    return { schema: value.getText(), confidence: schema ? "high" : "low" };
+  }
+  /** The function a property or variable holds: `errorFormatter(opts) {}`. */
+  functionOf(node) {
+    if (!node) return void 0;
+    if (import_ts_morph17.Node.isMethodDeclaration(node)) return node;
+    const value = this.resolve(node);
+    const target = import_ts_morph17.Node.isVariableDeclaration(value) ? value.getInitializer() : value;
+    const fn = target && unwrap(target);
+    return isFunctionLike(fn) ? fn : void 0;
+  }
+  /** "router" for `t.router` and its aliases, "merge" for `mergeRouters`. */
+  routerKind(call) {
+    const kind = this.factoryKind(call.getExpression(), 0);
+    if (kind === "router") {
+      return objectLiteral(this.index, call.getArguments()[0]) ? kind : null;
+    }
+    return kind;
+  }
+  factoryKind(node, depth) {
+    const value = unwrap(node);
+    const cached = this.routerKinds.get(value);
+    if (cached !== void 0) return cached;
+    this.routerKinds.set(value, null);
+    const kind = depth > MAX_RESOLUTION_DEPTH3 ? null : this.resolveFactory(value, depth);
+    this.routerKinds.set(value, kind);
+    return kind;
+  }
+  resolveFactory(value, depth) {
+    const asKind = (name) => name === "router" ? "router" : name === "mergeRouters" ? "merge" : null;
+    if (import_ts_morph17.Node.isPropertyAccessExpression(value)) {
+      const kind2 = asKind(value.getName());
+      return kind2 && this.instance(value.getExpression(), depth + 1) ? kind2 : null;
+    }
+    if (!import_ts_morph17.Node.isIdentifier(value) || !/router/i.test(value.getText())) {
+      return null;
+    }
+    if (trpcExport(value) === "mergeRouters") return "merge";
+    const resolved = this.resolve(value);
+    if (import_ts_morph17.Node.isVariableDeclaration(resolved)) {
+      const initializer = resolved.getInitializer();
+      return initializer ? this.factoryKind(initializer, depth + 1) : null;
+    }
+    const source = resolved && bindingSource(resolved);
+    const kind = resolved ? asKind(bindingKey(resolved)) : null;
+    if (kind && source && this.instance(source, depth + 1)) return kind;
+    return ROUTER_NAMES2.test(value.getText()) ? "router" : null;
+  }
+  /** A router's record entries and the routers mergeRouters() combines. */
+  members(call) {
+    const kind = this.routerKind(call);
+    if (kind === "merge") {
+      return call.getArguments().map((node) => ({ key: "", node }));
+    }
+    const record = objectLiteral(this.index, call.getArguments()[0]);
+    return record ? this.recordMembers(record, 0) : [];
+  }
+  recordMembers(record, depth) {
+    return record.getProperties().flatMap((property) => {
+      if (import_ts_morph17.Node.isSpreadAssignment(property)) {
+        const spread = objectLiteral(this.index, property.getExpression());
+        return spread && depth < MAX_RESOLUTION_DEPTH3 ? this.recordMembers(spread, depth + 1) : [];
+      }
+      if (!import_ts_morph17.Node.isPropertyAssignment(property) && !import_ts_morph17.Node.isShorthandPropertyAssignment(property)) {
+        return [];
+      }
+      const node = propertyValue(property);
+      const nameNode = property.getNameNode();
+      const key = literalText2(nameNode) ?? nameNode.getText();
+      return node ? [{ key, node }] : [];
+    });
+  }
+  /** What a router entry holds: a procedure, a router, or a nested record. */
+  routerValue(node, depth) {
+    const value = unwrap(node);
+    if (import_ts_morph17.Node.isCallExpression(value)) {
+      if (this.procedures.has(value)) return { kind: "procedure", call: value };
+      return this.routerKind(value) ? { kind: "router", call: value } : null;
+    }
+    if (import_ts_morph17.Node.isObjectLiteralExpression(value)) {
+      return { kind: "record", record: value };
+    }
+    if (depth > MAX_RESOLUTION_DEPTH3) return null;
+    const resolved = this.resolve(value);
+    const initializer = import_ts_morph17.Node.isVariableDeclaration(resolved) ? resolved.getInitializer() : void 0;
+    return initializer ? this.routerValue(initializer, depth + 1) : null;
+  }
+  /**
+   * Dotted paths such as `post.create`, from the routers that no other router
+   * includes. A procedure reachable in several places keeps its first path.
+   */
+  procedurePaths(routers) {
+    const children = /* @__PURE__ */ new Set();
+    const entries = new Map(
+      routers.map((router) => [
+        router,
+        this.members(router).flatMap(({ key, node }) => {
+          const value = this.routerValue(node, 0);
+          if (value?.kind === "router") children.add(value.call);
+          return value ? [{ key, value }] : [];
+        })
+      ])
+    );
+    const paths = /* @__PURE__ */ new Map();
+    const join11 = (prefix, key) => [prefix, key].filter(Boolean).join(".");
+    const visit = (members, prefix, visiting) => {
+      for (const { key, value } of members) {
+        const path2 = join11(prefix, key);
+        if (value.kind === "procedure") {
+          if (!paths.has(value.call)) paths.set(value.call, path2);
+        } else if (value.kind === "record") {
+          if (visiting.has(value.record)) continue;
+          visiting.add(value.record);
+          const nested = this.recordMembers(value.record, 0).flatMap(
+            ({ key: nestedKey, node }) => {
+              const nestedValue = this.routerValue(node, 0);
+              return nestedValue ? [{ key: nestedKey, value: nestedValue }] : [];
+            }
+          );
+          visit(nested, path2, visiting);
+          visiting.delete(value.record);
+        } else if (!visiting.has(value.call)) {
+          visiting.add(value.call);
+          visit(entries.get(value.call) ?? [], path2, visiting);
+          visiting.delete(value.call);
+        }
+      }
+    };
+    for (const router of routers) {
+      if (!children.has(router)) {
+        visit(entries.get(router) ?? [], "", /* @__PURE__ */ new Set([router]));
+      }
+    }
+    for (const router of routers) {
+      visit(entries.get(router) ?? [], "", /* @__PURE__ */ new Set([router]));
+    }
+    return paths;
+  }
+};
+
+// src/analyzers/trpc-api.ts
+var SOURCE_PATTERN6 = "**/*.{ts,tsx,js,mjs,cjs}";
+var HEALTH_SEGMENT = /^(?:health|healthz|healthcheck|live|liveness|ready|readiness)$/i;
+var AUTH_POINTS = 35;
+var VALIDATION_POINTS = 30;
+var ERROR_POINTS = 20;
+var HEALTH_POINTS = 15;
+function dependsOnTrpc(context) {
+  return "@trpc/server" in (context.packageJson?.dependencies ?? {}) || "@trpc/server" in (context.packageJson?.devDependencies ?? {});
+}
+function runtimeSources(context) {
+  const sources = [];
+  for (const file of context.matchFiles(SOURCE_PATTERN6, {
+    exclude: [
+      "**/*.test.{ts,tsx,js,mjs,cjs}",
+      "**/*.spec.{ts,tsx,js,mjs,cjs}",
+      "**/__tests__/**"
+    ]
+  })) {
+    const sourceFile = context.getSourceFile(file);
+    if (sourceFile) sources.push({ file, sourceFile });
+  }
+  return sources;
+}
+function moduleIndex(context, sources) {
+  const typescript = context.typescriptConfig();
+  return {
+    paths: new Map(sources.map(({ file, sourceFile }) => [sourceFile, file])),
+    files: new Map(sources.map(({ file, sourceFile }) => [file, sourceFile])),
+    // T3 apps import their builders through `~/server/api/trpc`.
+    aliases: typescript.status === "ok" ? pathAliases(typescript.options, context.projectPath) : []
+  };
+}
+function isProtected(procedure) {
+  return procedure.builder.middleware.some((step) => step.auth);
+}
+function authIssues(mutations) {
+  return mutations.filter((procedure) => !isProtected(procedure)).map((procedure) => ({
+    ...fromRule("missing-trpc-auth-middleware"),
+    message: `Mutation ${procedure.path} has no recognizable auth middleware`,
+    file: procedure.file,
+    line: procedure.line,
+    fix: "Build the mutation on a procedure whose .use() middleware rejects anonymous callers, for example by throwing new TRPCError({ code: 'UNAUTHORIZED' }) when ctx.session is missing",
+    // A builder or middleware known only by name makes this a guess.
+    confidence: procedure.builder.confidence === "low" || procedure.builder.middleware.some((step) => step.opaque) ? "low" : "high"
+  }));
+}
+function inputIssues(resolver, index, procedures) {
+  const users = /* @__PURE__ */ new Map();
+  for (const procedure of procedures) {
+    for (const input of procedure.builder.inputs) {
+      if (!users.has(input)) users.set(input, procedure);
+    }
+  }
+  const issues = [];
+  const permissive = /* @__PURE__ */ new Set();
+  for (const [call, procedure] of users) {
+    const parser = resolver.permissiveInput(call);
+    if (!parser) continue;
+    permissive.add(call);
+    const callee = call.getExpression();
+    issues.push({
+      ...fromRule("unvalidated-trpc-input"),
+      message: `Input of ${procedure.kind} ${procedure.path} is not validated: ${parser.schema === null ? "the parser returns its argument without checking it" : `${parser.schema} accepts any value`}`,
+      file: index.paths.get(call.getSourceFile()) ?? procedure.file,
+      line: import_ts_morph18.Node.isPropertyAccessExpression(callee) ? callee.getNameNode().getStartLineNumber() : call.getStartLineNumber(),
+      fix: "Pass a schema that describes the input, such as z.object({ ... }), or a parser function that throws on invalid values",
+      confidence: parser.confidence
+    });
+  }
+  return { issues, permissive };
+}
+function stackIssue(file, exposure) {
+  return {
+    ...fromRule("trpc-stack-trace-exposed"),
+    file,
+    line: exposure.node.getStartLineNumber(),
+    ...exposure.via === "isDev" ? {
+      message: "initTRPC.create() sets isDev: true, so error responses include stack traces in production",
+      fix: "Remove isDev: true; tRPC derives it from NODE_ENV"
+    } : {
+      message: `The tRPC errorFormatter returns ${exposure.node.getText()} in every environment`,
+      fix: "Return the stack only when NODE_ENV is development, or keep shape.data.stack, which tRPC fills only outside production"
+    }
+  };
+}
+function plural2(count, noun) {
+  return `${count} ${noun}${count === 1 ? "" : "s"}`;
+}
+function analyzeProcedures(context) {
+  const sources = runtimeSources(context);
+  const index = moduleIndex(context, sources);
+  const resolver = new TrpcResolver(index);
+  const project = resolver.collect(sources);
+  const { procedures } = project;
+  const mutations = procedures.filter(({ kind }) => kind === "mutation");
+  const auth = authIssues(mutations);
+  const inputs = inputIssues(resolver, index, procedures);
+  const stacks = project.instances.flatMap((create) => {
+    const file = index.paths.get(create.getSourceFile()) ?? "";
+    return resolver.stackExposures(create).map((exposure) => stackIssue(file, exposure));
+  });
+  const withInput = procedures.filter(({ builder }) => builder.inputs.length);
+  const validated = withInput.filter(
+    ({ builder }) => builder.inputs.every((input) => !inputs.permissive.has(input))
+  );
+  const authRate = mutations.length === 0 ? 1 : (mutations.length - auth.length) / mutations.length;
+  const validationRate = withInput.length === 0 ? 1 : validated.length / withInput.length;
+  return {
+    issues: [...auth, ...inputs.issues, ...stacks],
+    procedures: procedures.length,
+    adapters: project.adapters,
+    hasHealthEndpoint: procedures.some(
+      ({ path: path2 }) => path2.split(".").some((segment) => HEALTH_SEGMENT.test(segment))
+    ),
+    points: authRate * AUTH_POINTS + validationRate * VALIDATION_POINTS + (stacks.length === 0 ? ERROR_POINTS : 0),
+    summary: `${plural2(procedures.length, "tRPC procedure")}${project.routers > 0 ? ` in ${plural2(project.routers, "router")}` : ""}`
+  };
+}
+function foundNothing(issue) {
+  return getRule(issue.rule)?.failsAnalyzer === true;
+}
+function combine2(framework, trpc) {
+  const evaluated = framework !== null && !framework.issues.some(foundNothing);
+  if (trpc.procedures === 0) {
+    return !evaluated && trpc.adapters > 0 ? null : framework;
+  }
+  const frameworkHealthy = evaluated && !framework.issues.some((issue) => issue.rule === "missing-health-endpoint");
+  const healthy = trpc.hasHealthEndpoint || frameworkHealthy;
+  const issues = [
+    ...evaluated ? framework.issues.filter(
+      (issue) => !healthy || issue.rule !== "missing-health-endpoint"
+    ) : [],
+    ...trpc.issues,
+    ...healthy || evaluated ? [] : [
+      {
+        ...fromRule("missing-health-endpoint"),
+        message: "No health, readiness, or liveness endpoint or procedure detected",
+        fix: "Add a lightweight health procedure or route for runtime monitoring"
+      }
+    ]
+  ];
+  const score = Math.round(trpc.points + (healthy ? HEALTH_POINTS : 0));
+  return {
+    name: "API Health",
+    score: evaluated ? Math.round((framework.score + score) / 2) : score,
+    issues,
+    summary: evaluated ? `${framework.summary}; ${trpc.summary}` : trpc.summary
+  };
+}
+function withTrpcProcedures(analyze) {
+  return async (context) => {
+    const result = await analyze(context);
+    return dependsOnTrpc(context) ? combine2(result, analyzeProcedures(context)) : result;
+  };
+}
+var analyzeTrpcApi = withTrpcProcedures(
+  () => Promise.resolve(null)
+);
 
 // src/core/changed-files.ts
 var import_node_child_process4 = require("child_process");
@@ -262397,7 +263201,7 @@ function applyScoring(results, version2, rules = {}) {
 }
 
 // src/core/suppressions.ts
-var SOURCE_PATTERN6 = "**/*.{ts,tsx,js,jsx,mjs,cjs,mts,cts}";
+var SOURCE_PATTERN7 = "**/*.{ts,tsx,js,jsx,mjs,cjs,mts,cts}";
 var MARKER = "codediag-ignore";
 var DIRECTIVE = /^\s*(?:\/\/|\/\*+)\s*codediag-ignore-(next-line|file)\b(.*?)(?:\*\/)?\s*$/;
 function parseDirectives(file, content) {
@@ -262460,7 +263264,7 @@ function directiveIssue(directive) {
   };
 }
 function applySuppressions(results, context) {
-  const directives = context.matchFiles(SOURCE_PATTERN6).flatMap((file) => {
+  const directives = context.matchFiles(SOURCE_PATTERN7).flatMap((file) => {
     const content = context.readText(file);
     return content?.includes(MARKER) ? parseDirectives(file, content) : [];
   });
@@ -262494,11 +263298,12 @@ function applySuppressions(results, context) {
 
 // src/scanner.ts
 var API_ANALYZERS = {
-  nestjs: analyzeNestjsApi,
-  express: analyzeExpressApi,
-  fastify: analyzeFastifyApi,
-  hono: analyzeHonoApi,
-  nextjs: analyzeNextjsApi
+  nestjs: withTrpcProcedures(analyzeNestjsApi),
+  express: withTrpcProcedures(analyzeExpressApi),
+  fastify: withTrpcProcedures(analyzeFastifyApi),
+  hono: withTrpcProcedures(analyzeHonoApi),
+  nextjs: withTrpcProcedures(analyzeNextjsApi),
+  trpc: analyzeTrpcApi
 };
 function createProgressReporter(options) {
   const spinner = options.interactive === false ? null : ora({ color: "cyan" });
@@ -262853,7 +263658,7 @@ function lernaPatterns(root) {
 }
 function candidateDirectories(root, markers) {
   const found = [];
-  const walk = (directory, relative7, depth) => {
+  const walk = (directory, relative8, depth) => {
     if (depth > MAX_DEPTH) return;
     let entries;
     try {
@@ -262861,8 +263666,8 @@ function candidateDirectories(root, markers) {
     } catch {
       return;
     }
-    if (relative7 && markers.some((marker) => entries.some((entry) => entry.name === marker))) {
-      found.push(relative7);
+    if (relative8 && markers.some((marker) => entries.some((entry) => entry.name === marker))) {
+      found.push(relative8);
     }
     for (const entry of entries) {
       if (!entry.isDirectory()) continue;
@@ -262871,7 +263676,7 @@ function candidateDirectories(root, markers) {
       }
       walk(
         (0, import_node_path16.join)(directory, entry.name),
-        relative7 ? `${relative7}/${entry.name}` : entry.name,
+        relative8 ? `${relative8}/${entry.name}` : entry.name,
         depth + 1
       );
     }
