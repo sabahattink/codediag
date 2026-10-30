@@ -29,6 +29,42 @@ export const REQUEST_DATA =
 /** How many variable assignments taint tracking follows back from a sink. */
 export const MAX_TAINT_HOPS = 3;
 
+/**
+ * Steps across function boundaries. Without them, taint tracking stays within
+ * a function and its enclosing scopes; taint-calls.ts implements them.
+ */
+export interface CallSteps {
+  /**
+   * True when a parameter reference holds request data because callers pass
+   * it: strictly (`isRequestValue`) or visibly (`isTainted`).
+   */
+  parameter(identifier: Node, strict: boolean): boolean;
+  /** True when a call to a project function returns request data. */
+  result(call: CallExpression): boolean;
+}
+
+/** The request-data checks a sink rule uses, with or without call steps. */
+export interface Taint {
+  isRequestValue(node: Node): boolean;
+  isTainted(node: Node): boolean;
+  /**
+   * For a value that is exactly a parameter of a project function: whether
+   * `check` holds for the argument some caller passes in its place.
+   * Undefined when the value is no such parameter or tracking stays local.
+   */
+  throughCallers(
+    value: Node,
+    check: (argument: Node) => boolean,
+  ): boolean | undefined;
+}
+
+/** Taint tracking within a function and its enclosing scopes. */
+export const LOCAL_TAINT: Taint = {
+  isRequestValue: (node) => isRequestValue(node),
+  isTainted: (node) => isTainted(node),
+  throughCallers: () => undefined,
+};
+
 export function isModuleCall(
   expression: Expression,
   modules: Set<string>,
@@ -224,29 +260,40 @@ function isPropertyName(identifier: Node): boolean {
   );
 }
 
+function isCallee(identifier: Node): boolean {
+  const parent = identifier.getParent();
+  return Boolean(
+    parent &&
+      Node.isCallExpression(parent) &&
+      parent.getExpression() === identifier,
+  );
+}
+
 /**
  * True when an expression visibly contains request data, directly or through
- * up to MAX_TAINT_HOPS variable assignments in enclosing scopes.
+ * up to MAX_TAINT_HOPS variable assignments in enclosing scopes. With call
+ * steps, parameters are followed to their callers and project functions'
+ * results to what they return.
  */
 const taintCache = new WeakMap<Node, boolean>();
 
-export function isTainted(
-  node: Node,
-  hops = 0,
-  seen = new Set<Node>(),
-): boolean {
-  if (hops === 0) {
-    const cached = taintCache.get(node);
-    if (cached !== undefined) return cached;
-    const tainted = traceTaint(node, 0, seen);
-    taintCache.set(node, tainted);
-    return tainted;
-  }
-  return traceTaint(node, hops, seen);
+export function isTainted(node: Node, calls?: CallSteps): boolean {
+  if (calls) return traceTaint(node, 0, new Set(), calls);
+  const cached = taintCache.get(node);
+  if (cached !== undefined) return cached;
+  const tainted = traceTaint(node, 0, new Set());
+  taintCache.set(node, tainted);
+  return tainted;
 }
 
-function traceTaint(node: Node, hops: number, seen: Set<Node>): boolean {
+function traceTaint(
+  node: Node,
+  hops: number,
+  seen: Set<Node>,
+  calls?: CallSteps,
+): boolean {
   if (REQUEST_DATA.test(node.getText())) return true;
+  if (calls && callReturnsRequestData(node, calls)) return true;
   if (hops >= MAX_TAINT_HOPS) return false;
 
   const identifiers = Node.isIdentifier(node)
@@ -257,10 +304,20 @@ function traceTaint(node: Node, hops: number, seen: Set<Node>): boolean {
     for (const source of valueSources(identifier)) {
       if (seen.has(source)) continue;
       seen.add(source);
-      if (isTainted(source, hops + 1, seen)) return true;
+      if (traceTaint(source, hops + 1, seen, calls)) return true;
+    }
+    if (calls && !isCallee(identifier) && calls.parameter(identifier, false)) {
+      return true;
     }
   }
   return false;
+}
+
+/** True when the node is, or contains, a call whose result is request data. */
+function callReturnsRequestData(node: Node, calls: CallSteps): boolean {
+  const expressions = node.getDescendantsOfKind(SyntaxKind.CallExpression);
+  if (Node.isCallExpression(node)) expressions.unshift(node);
+  return expressions.some((call) => calls.result(call));
 }
 
 /** A template with substitutions or a `+` concatenation, seen through variables. */
@@ -357,17 +414,28 @@ export function unwrap(node: Node): Node {
  * lookup such as `db.find(req.params.id)` is not request data, and wrapping
  * the value in `basename()`, `escapeHtml()`, `Number()`, or
  * `encodeURIComponent()` ends the trace, because those calls are not
- * pass-throughs.
+ * pass-throughs. With call steps, a parameter is request data when a caller
+ * passes request data for it, and a project function's result is when the
+ * function returns its request-data parameter or request data it reads.
  */
-export function isRequestValue(node: Node, hops = 0): boolean {
+export function isRequestValue(
+  node: Node,
+  hops = 0,
+  calls?: CallSteps,
+): boolean {
   const value = unwrap(node);
 
   if (Node.isIdentifier(value)) {
     if (requestDecorator(value)) return true;
-    if (hops >= MAX_TAINT_HOPS) return false;
-    return valueSources(value).some((source) =>
-      isRequestValue(source, hops + 1),
-    );
+    if (
+      hops < MAX_TAINT_HOPS &&
+      valueSources(value).some((source) =>
+        isRequestValue(source, hops + 1, calls),
+      )
+    ) {
+      return true;
+    }
+    return calls?.parameter(value, true) ?? false;
   }
   if (
     Node.isPropertyAccessExpression(value) ||
@@ -376,39 +444,23 @@ export function isRequestValue(node: Node, hops = 0): boolean {
     const text = value.getText();
     if (SERVER_SET_REQUEST_DATA.test(text)) return false;
     if (REQUEST_DATA.test(text) && !hasCallInside(value)) return true;
-    return isRequestValue(value.getExpression(), hops);
+    return isRequestValue(value.getExpression(), hops, calls);
   }
   if (Node.isCallExpression(value)) {
-    const callee = value.getExpression();
-    if (
-      Node.isPropertyAccessExpression(callee) &&
-      REQUEST_VALUE_METHODS.has(callee.getName())
-    ) {
-      const receiver = unwrap(callee.getExpression());
-      // `request.json()`, `req.get("host")`: a method of the request itself.
-      if (
-        Node.isIdentifier(receiver) &&
-        REQUEST_OBJECT.test(receiver.getText())
-      ) {
-        return true;
-      }
-      return isRequestValue(receiver, hops);
-    }
     return (
-      REQUEST_VALUE_FUNCTIONS.has(calleeName(value)) &&
-      value.getArguments().some((argument) => isRequestValue(argument, hops))
+      isRequestValueCall(value, hops, calls) || (calls?.result(value) ?? false)
     );
   }
   if (Node.isNewExpression(value)) {
     return (
       value.getExpression().getText() === "URL" &&
-      isRequestValue(value.getArguments()[0] ?? value, hops)
+      isRequestValue(value.getArguments()[0] ?? value, hops, calls)
     );
   }
   if (Node.isConditionalExpression(value)) {
     return (
-      isRequestValue(value.getWhenTrue(), hops) ||
-      isRequestValue(value.getWhenFalse(), hops)
+      isRequestValue(value.getWhenTrue(), hops, calls) ||
+      isRequestValue(value.getWhenFalse(), hops, calls)
     );
   }
   if (
@@ -417,10 +469,39 @@ export function isRequestValue(node: Node, hops = 0): boolean {
       value.getOperatorToken().getKind() === SyntaxKind.PlusToken)
   ) {
     return stringParts(value).some(
-      (part) => typeof part !== "string" && isRequestValue(part, hops),
+      (part) => typeof part !== "string" && isRequestValue(part, hops, calls),
     );
   }
   return false;
+}
+
+/** Built-in calls that pass request data through: `query.get("x").trim()`. */
+function isRequestValueCall(
+  call: CallExpression,
+  hops: number,
+  calls: CallSteps | undefined,
+): boolean {
+  const callee = call.getExpression();
+  if (
+    Node.isPropertyAccessExpression(callee) &&
+    REQUEST_VALUE_METHODS.has(callee.getName())
+  ) {
+    const receiver = unwrap(callee.getExpression());
+    // `request.json()`, `req.get("host")`: a method of the request itself.
+    if (
+      Node.isIdentifier(receiver) &&
+      REQUEST_OBJECT.test(receiver.getText())
+    ) {
+      return true;
+    }
+    return isRequestValue(receiver, hops, calls);
+  }
+  return (
+    REQUEST_VALUE_FUNCTIONS.has(calleeName(call)) &&
+    call
+      .getArguments()
+      .some((argument) => isRequestValue(argument, hops, calls))
+  );
 }
 
 export function hasCallInside(node: Node): boolean {

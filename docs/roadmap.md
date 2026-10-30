@@ -10,8 +10,11 @@ tests green.
 
 ## Precision and depth
 
-- **Cross-file taint:** follow request data through helper functions and
-  service calls, not only within one function and its enclosing scopes.
+- **Deeper cross-file taint:** helper functions and service methods are
+  followed two calls deep; still missing are request data stored on objects
+  (`this.name = req.query.name`) or module state, callbacks and
+  constructors, and methods reached through an interface or a dependency
+  injection token instead of the class.
 - **Fastify autoload:** follow `@fastify/autoload` directories so hooks and
   prefixes from autoloaded plugins apply to their routes.
 - **Secret scanning in Git history:** report credentials that were committed

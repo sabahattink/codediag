@@ -335,7 +335,7 @@ export const RULES = {
     analyzer: "Security",
     title: "Dynamic shell command",
     description:
-      "A shell is invoked through exec or execSync, or through spawn, spawnSync, execFile, or execFileSync with a `shell` option, with a non-literal command or argument. The finding is critical when the command comes from request data, directly or through up to three variable assignments.",
+      "A shell is invoked through exec or execSync, or through spawn, spawnSync, execFile, or execFileSync with a `shell` option, with a non-literal command or argument. The finding is critical when the command comes from request data, directly, through up to three variable assignments, or through project helper functions up to two calls deep, such as a route passing `req.body.cmd` to `run(cmd)`; findings that depend on such a call have medium confidence.",
     defaultSeverity: "warning",
     cwe: ["CWE-78"],
     owasp: [OWASP.injection],
@@ -344,7 +344,7 @@ export const RULES = {
     analyzer: "Security",
     title: "File path from request data",
     description:
-      "A file system call (fs, fs/promises, fs-extra) or res.sendFile()/res.download() without a root option receives a path that comes from request data, so `../` segments can reach files outside the intended directory. Values passed through path.basename() or checked with startsWith() in the same function are not reported.",
+      "A file system call (fs, fs/promises, fs-extra) or res.sendFile()/res.download() without a root option receives a path that comes from request data, so `../` segments can reach files outside the intended directory. Request data is also followed into project helper functions and services up to two calls deep (medium confidence). Values passed through path.basename() or checked with startsWith() in the same function are not reported.",
     defaultSeverity: "critical",
     cwe: ["CWE-22"],
     owasp: [OWASP.accessControl],
@@ -398,7 +398,7 @@ export const RULES = {
     analyzer: "Security",
     title: "Dynamically built SQL query",
     description:
-      "A raw SQL execution method receives a non-literal query. The finding is critical when the query is built from request data, directly or through up to three variable assignments; queries built from request data are reported for any client variable name.",
+      "A raw SQL execution method receives a non-literal query. The finding is critical when the query is built from request data, directly, through up to three variable assignments, or through project helper functions up to two calls deep (medium confidence); queries built from request data are reported for any client variable name.",
     defaultSeverity: "warning",
     cwe: ["CWE-89"],
     owasp: [OWASP.injection],

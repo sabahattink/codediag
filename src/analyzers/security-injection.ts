@@ -8,12 +8,13 @@ import {
 } from "ts-morph";
 import { fromRule } from "../rules/registry.js";
 import type { DiagnosticIssue } from "../types.js";
+import { type CallTracer, type Trace, traceDetails } from "./taint-calls.js";
 import {
   enclosingScope,
-  isRequestValue,
   type ModuleBindings,
   moduleBindings,
   moduleCall,
+  type Taint,
 } from "./taint.js";
 
 interface TemplateEngine {
@@ -79,6 +80,7 @@ const KEY_ITERATION =
 function compiledTemplate(
   call: CallExpression,
   engines: Array<{ engine: TemplateEngine; bindings: ModuleBindings }>,
+  taint: Taint,
 ): Node | undefined {
   const expression = call.getExpression();
   const isCompile = engines.some(
@@ -89,13 +91,16 @@ function compiledTemplate(
         bindings.namespaces.has(expression.getText())),
   );
   const [source] = call.getArguments();
-  return isCompile && source && isRequestValue(source) ? source : undefined;
+  return isCompile && source && taint.isRequestValue(source)
+    ? source
+    : undefined;
 }
 
 /** `new nunjucks.Template(source)` from request data. */
 function constructedTemplate(
   expression: NewExpression,
   nunjucks: ModuleBindings,
+  taint: Taint,
 ): boolean {
   const callee = expression.getExpression();
   const [source] = expression.getArguments();
@@ -104,7 +109,7 @@ function constructedTemplate(
     callee.getName() === "Template" &&
     nunjucks.namespaces.has(callee.getExpression().getText()) &&
     source !== undefined &&
-    isRequestValue(source)
+    taint.isRequestValue(source)
   );
 }
 
@@ -159,13 +164,20 @@ function isUnguardedRecursiveMerge(node: Node): boolean {
   return writesComputedKey && callsItself;
 }
 
-function templateInjection(file: string, line: number): DiagnosticIssue {
+function templateInjection(
+  file: string,
+  line: number,
+  trace: Trace,
+): DiagnosticIssue {
   return {
     ...fromRule("server-side-template-injection"),
     message: "A template is compiled from request data",
     file,
     line,
-    fix: "Load templates from files or constants and pass request data only as template variables",
+    ...traceDetails(
+      trace,
+      "Load templates from files or constants and pass request data only as template variables",
+    ),
   };
 }
 
@@ -177,6 +189,7 @@ function templateInjection(file: string, line: number): DiagnosticIssue {
 export function inspectInjection(
   sourceFile: SourceFile,
   file: string,
+  tracer: CallTracer,
 ): DiagnosticIssue[] {
   const issues: DiagnosticIssue[] = [];
   const engines = TEMPLATE_ENGINES.map((engine) => ({
@@ -188,32 +201,47 @@ export function inspectInjection(
   for (const call of sourceFile.getDescendantsOfKind(
     SyntaxKind.CallExpression,
   )) {
-    if (compiledTemplate(call, engines)) {
-      issues.push(templateInjection(file, call.getStartLineNumber()));
+    const trace = tracer.trace(
+      (taint) => compiledTemplate(call, engines, taint) !== undefined,
+    );
+    if (trace) {
+      issues.push(templateInjection(file, call.getStartLineNumber(), trace));
     }
   }
   for (const expression of sourceFile.getDescendantsOfKind(
     SyntaxKind.NewExpression,
   )) {
-    if (constructedTemplate(expression, nunjucks)) {
-      issues.push(templateInjection(file, expression.getStartLineNumber()));
+    const trace = tracer.trace((taint) =>
+      constructedTemplate(expression, nunjucks, taint),
+    );
+    if (trace) {
+      issues.push(
+        templateInjection(file, expression.getStartLineNumber(), trace),
+      );
     }
   }
 
   for (const binary of sourceFile.getDescendantsOfKind(
     SyntaxKind.BinaryExpression,
   )) {
-    if (
-      binary.getOperatorToken().getKind() === SyntaxKind.EqualsToken &&
-      containerKeys(binary.getLeft()).some((key) => isRequestValue(key)) &&
-      !WRITE_GUARD.test(enclosingScope(binary).getText())
-    ) {
+    if (binary.getOperatorToken().getKind() !== SyntaxKind.EqualsToken) {
+      continue;
+    }
+    const keys = containerKeys(binary.getLeft());
+    const trace =
+      keys.length > 0 && !WRITE_GUARD.test(enclosingScope(binary).getText())
+        ? tracer.trace((taint) => keys.some((key) => taint.isRequestValue(key)))
+        : null;
+    if (trace) {
       issues.push({
         ...fromRule("prototype-pollution"),
         message: "A nested object write uses keys from request data",
         file,
         line: binary.getStartLineNumber(),
-        fix: "Reject __proto__, constructor, and prototype keys, check keys against an allowlist, or store the data in a Map",
+        ...traceDetails(
+          trace,
+          "Reject __proto__, constructor, and prototype keys, check keys against an allowlist, or store the data in a Map",
+        ),
       });
     }
   }

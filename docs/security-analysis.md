@@ -62,7 +62,8 @@ A dynamic shell or SQL value is critical when it comes from request data:
 `req`/`request`/`ctx` properties, `process.argv`, Next.js `request.json()`,
 or `searchParams`. CodeDiag follows the value back through variable
 declarations, destructuring, and reassignments in the enclosing scopes, up to
-three assignments, so this is critical:
+three assignments, and through the project's helper functions (see
+[below](#helper-functions-and-services)), so this is critical:
 
 ```ts
 const { id } = req.params;
@@ -100,9 +101,50 @@ Path traversal and reflected XSS are critical. SSRF and open redirects are
 warnings, because fetching or redirecting to a user-supplied URL is
 sometimes the feature (webhooks, link previews, sign-in return URLs); add an
 allowlist and suppress the finding with the reason. Dynamic code execution and disabled
-TLS verification are always critical. Taint tracking stays within a function
-and its enclosing scopes; values passed through helper functions are not
-followed yet (see the [roadmap](roadmap.md)).
+TLS verification are always critical.
+
+### Helper functions and services
+
+Request data is also followed through the project's own functions, across
+files:
+
+- **Into helpers.** When a sink's value comes from a parameter of a project
+  function, CodeDiag checks the function's call sites. If one passes request
+  data for that parameter, the sink is reported. This covers plain and arrow
+  functions, imports (named, default, renamed, namespace, and `require()`),
+  object methods, and class methods called on an instance or through
+  `this.service.method()`, including NestJS services injected through the
+  constructor.
+- **Out of helpers.** A project function whose returned value is request
+  data makes its result request data: `function getName(req) { return
+  req.query.name; }` or `const pick = (query) => query.file` called with
+  `req.query`. Other results still are not request data, so a database
+  lookup, `basename()`, `Number()`, or an escaping function inside the helper
+  ends the trace.
+
+```ts
+// src/lib/files.ts: reported here, at the file call
+export function readUpload(name: string) {
+  return fs.readFile(path.join(UPLOADS, name));
+}
+// src/routes/files.ts
+app.get("/f", (req, res) => readUpload(req.query.name));
+```
+
+The finding stays at the sink, with the same message, so suppressions and
+fingerprints stay where the dangerous call is. It has medium confidence, and
+when a caller passes the data in, its fix names that call: "Request data
+reaches this call from src/routes/files.ts:12; ...". A shell or SQL warning
+that becomes critical this way is still one finding. URL and HTML sinks judge
+what each caller passes as a whole, so
+``apiGet(`https://api.example.com/users/${id}`)`` keeps the origin fixed
+inside `apiGet(url)`, and `reply(res, req.body)` still counts as JSON.
+
+Functions are resolved with TypeScript's type checker. Only functions in the
+scanned runtime files are followed (never `node_modules`, declaration files,
+or tests), calls from test files do not count, and a trace crosses at most
+two function boundaries, such as a route calling a helper that calls another
+helper. A helper that only ever receives constants is not upgraded.
 
 ## Scope
 
@@ -137,8 +179,21 @@ Run `codediag explain <rule>` for any rule's details.
 The analysis is intentionally conservative. It does not perform whole-program
 taint tracking, inspect Git history for removed secrets, prove authorization
 correctness, or replace dependency advisories and a full SAST review. Dynamic
-imports, wrapper functions, custom database APIs, and values assembled across
-multiple modules may not be recognized.
+imports, custom database APIs, and values assembled in other ways may not be
+recognized. Across functions in particular, CodeDiag does not follow:
+
+- chains longer than two calls, constructors, callbacks passed to other
+  functions (`items.map(helper)`), `.call()`/`.apply()`/`.bind()`, rest
+  parameters, or spread arguments;
+- calls that cannot be matched to the function: methods on a value whose
+  type is unknown (an untyped JavaScript parameter), methods reached through
+  an interface or a dependency injection token instead of the class, and
+  calls through a name re-exported under an alias;
+- request data stored on an object (`this.name = req.query.name`) or in
+  module state and read elsewhere;
+- a whole request object passed to a helper under another name, unless the
+  helper reads `body`, `params`, or `query` from it (`function f(r) { return
+  r.query.name; }` is followed; `r.headers.host` is not).
 
 Treat findings as review prompts with source locations and fixes. A clean scan
 means the implemented checks passed; it is not proof that an application is

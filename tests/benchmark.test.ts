@@ -135,6 +135,34 @@ test("defects/express-session keeps its JWT, cookie, injection, and secret findi
   ]);
 });
 
+test("defects/express-helpers follows request data into and out of helper modules", async () => {
+  const result = await scanFixture("defects/express-helpers");
+  const security = result.analyzers.find(
+    (analyzer) => analyzer.name === "Security",
+  );
+  const located = (security?.issues ?? [])
+    .filter((issue) => issue.line !== undefined)
+    .map(
+      ({ rule, severity, file, line, confidence }) =>
+        `${severity} ${rule} ${file}:${line} ${confidence ?? "high"}`,
+    )
+    .sort();
+
+  assert.deepEqual(located, [
+    "critical dynamic-command-execution src/lib/convert.js:4 medium",
+    "critical dynamic-sql-query src/services/reports.js:7 medium",
+    "critical path-traversal src/lib/files.js:7 medium",
+    "warning server-side-request-forgery src/app.js:25 medium",
+  ]);
+  const traversal = security?.issues.find(
+    (issue) => issue.rule === "path-traversal",
+  );
+  assert.match(
+    traversal?.fix ?? "",
+    /^Request data reaches this call from src\/app\.js:12; /,
+  );
+});
+
 test("defects/fastify keeps its auth hook, schema, and error handler findings", async () => {
   const result = await scanFixture("defects/fastify");
   const api = result.analyzers.find(
