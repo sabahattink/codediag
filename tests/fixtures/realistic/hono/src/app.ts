@@ -4,6 +4,7 @@ import { HTTPException } from 'hono/http-exception';
 import { jwt } from 'hono/jwt';
 import { logger } from 'hono/logger';
 import { secureHeaders } from 'hono/secure-headers';
+import { rateLimiter } from 'hono-rate-limiter';
 import type { Config } from './config.js';
 import books from './routes/books.js';
 import reviews from './routes/reviews.js';
@@ -13,6 +14,14 @@ export function createApp(config: Config): Hono {
 
   app.use(logger());
   app.use(secureHeaders());
+  app.use(
+    '/api/*',
+    rateLimiter({
+      windowMs: 15 * 60 * 1000,
+      limit: 300,
+      keyGenerator: (c) => c.req.header('x-forwarded-for') ?? 'anonymous',
+    }),
+  );
   app.use('/api/*', cors({ origin: config.allowedOrigins }));
 
   app.get('/health', (c) => c.json({ status: 'ok' }));

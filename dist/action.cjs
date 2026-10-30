@@ -257925,6 +257925,29 @@ function importedDefaultBindings(content, moduleNames) {
   }
   return bindings;
 }
+function importedNamedBindings(content, moduleName, exportName) {
+  const bindings = /* @__PURE__ */ new Set();
+  const modulePattern = escapeRegExp(moduleName);
+  const lists = [
+    new RegExp(
+      `\\bimport\\s*(?:[A-Za-z_$][\\w$]*\\s*,\\s*)?\\{([^}]*)\\}\\s*from\\s*['"]${modulePattern}['"]`,
+      "g"
+    ),
+    new RegExp(
+      `\\b(?:const|let|var)\\s*\\{([^}]*)\\}\\s*=\\s*require\\(\\s*['"]${modulePattern}['"]\\s*\\)`,
+      "g"
+    )
+  ];
+  for (const pattern of lists) {
+    for (const match2 of content.matchAll(pattern)) {
+      for (const entry of (match2[1] ?? "").split(",")) {
+        const [imported, local] = entry.trim().replace(/^type\s+/, "").split(/\s+as\s+|\s*:\s*/);
+        if (imported === exportName) bindings.add(local ?? imported);
+      }
+    }
+  }
+  return bindings;
+}
 function bindingIsCalled(content, binding) {
   const name = escapeRegExp(binding);
   return new RegExp(`\\b${name}\\s*\\(`).test(content);
@@ -257939,7 +257962,12 @@ function hasHelmetUsage(sources) {
     const fastifyBindings = importedDefaultBindings(content, [
       "@fastify/helmet"
     ]);
-    return [...helmetBindings].some(
+    const honoBindings = importedNamedBindings(
+      content,
+      "hono/secure-headers",
+      "secureHeaders"
+    );
+    return [...helmetBindings, ...honoBindings].some(
       (binding) => bindingIsCalled(content, binding)
     ) || [...fastifyBindings].some(
       (binding) => bindingIsRegistered(content, binding)
@@ -257960,7 +257988,12 @@ function hasRateLimitUsage(sources) {
     const fastifyBindings = importedDefaultBindings(content, [
       "@fastify/rate-limit"
     ]);
-    return [...factoryBindings].some(
+    const honoBindings = importedNamedBindings(
+      content,
+      "hono-rate-limiter",
+      "rateLimiter"
+    );
+    return [...factoryBindings, ...honoBindings].some(
       (binding) => bindingIsCalled(content, binding)
     ) || [...fastifyBindings].some(
       (binding) => bindingIsRegistered(content, binding)
@@ -257973,9 +258006,9 @@ function findOpenCors(sources) {
       /\benableCors\s*\(\s*\)/,
       /\benableCors\s*\(\s*\{[\s\S]{0,800}?\borigin\s*:\s*(?:true|['"]\*['"])/
     ];
-    const corsBindings = importedDefaultBindings(source.content, [
-      "cors",
-      "@fastify/cors"
+    const corsBindings = /* @__PURE__ */ new Set([
+      ...importedDefaultBindings(source.content, ["cors", "@fastify/cors"]),
+      ...importedNamedBindings(source.content, "hono/cors", "cors")
     ]);
     for (const binding of corsBindings) {
       const name = escapeRegExp(binding);
@@ -258071,6 +258104,7 @@ async function analyzeSecurity(context) {
     "@nestjs/core",
     "express",
     "fastify",
+    "hono",
     "koa",
     "@hapi/hapi"
   ].some((name) => name in dependencies);

@@ -242,3 +242,64 @@ test("interpolated values are not hardcoded secrets", async () => {
     },
   );
 });
+
+test("Hono servers need secure headers and a rate limiter, and cors() is open", async () => {
+  const manifest = JSON.stringify({
+    name: "hono-app",
+    dependencies: { hono: "^4.6.0", "hono-rate-limiter": "^0.4.0" },
+  });
+
+  await withProject(
+    {
+      ".gitignore": ".env\n",
+      "package.json": manifest,
+      "src/app.ts": [
+        'import { Hono } from "hono";',
+        'import { cors as allowOrigins } from "hono/cors";',
+        "const app = new Hono();",
+        "app.use(allowOrigins());",
+        "export default app;",
+      ].join("\n"),
+    },
+    async (directory) => {
+      const result = await analyzeSecurity(createScanContext(directory));
+      assert.deepEqual(
+        rules(result).filter((rule) =>
+          ["no-helmet", "no-rate-limiting", "open-cors"].includes(rule),
+        ),
+        ["no-helmet", "open-cors", "no-rate-limiting"],
+      );
+      assert.equal(
+        result.issues.find((issue) => issue.rule === "open-cors")?.line,
+        4,
+      );
+    },
+  );
+
+  await withProject(
+    {
+      ".gitignore": ".env\n",
+      "package.json": manifest,
+      "src/app.ts": [
+        'import { Hono } from "hono";',
+        'import { cors } from "hono/cors";',
+        'import { secureHeaders } from "hono/secure-headers";',
+        'import { rateLimiter } from "hono-rate-limiter";',
+        "const app = new Hono();",
+        "app.use(secureHeaders());",
+        'app.use(cors({ origin: ["https://app.example.com"] }));',
+        "app.use(rateLimiter({ windowMs: 60_000, limit: 100, keyGenerator: (c) => c.req.header('x-real-ip') ?? '' }));",
+        "export default app;",
+      ].join("\n"),
+    },
+    async (directory) => {
+      const result = await analyzeSecurity(createScanContext(directory));
+      assert.deepEqual(
+        rules(result).filter((rule) =>
+          ["no-helmet", "no-rate-limiting", "open-cors"].includes(rule),
+        ),
+        [],
+      );
+    },
+  );
+});
