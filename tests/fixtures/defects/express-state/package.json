@@ -1,0 +1,10 @@
+{
+  "name": "defects-express-state",
+  "type": "module",
+  "dependencies": {
+    "express": "^5.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  }
+}

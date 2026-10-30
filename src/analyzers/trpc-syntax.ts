@@ -13,7 +13,7 @@ import {
   receiverOf,
   unwrap,
 } from "./fastify-plugins.js";
-import { type FunctionLike, returnedValues } from "./taint-calls.js";
+import { type FunctionLike, returnedValues } from "./taint-graph.js";
 
 /**
  * Checks on single tRPC nodes, without following other files: what an import
