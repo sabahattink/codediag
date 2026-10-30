@@ -15,6 +15,8 @@ import {
   literalText,
   type ModuleIndex,
   methodName,
+  moduleOf,
+  unwrap,
 } from "./fastify-plugins.js";
 import {
   appParameters,
@@ -37,6 +39,7 @@ const MUTATING_METHODS = new Set(["delete", "patch", "post", "put"]);
 const BODY_METHODS = new Set(["patch", "post", "put"]);
 const APP_METHODS = new Set(["on", "use", "route", "onError", "openapi"]);
 const SOURCE_PATTERN = "**/*.{ts,tsx,js,mjs,cjs}";
+const TRPC_SERVER = "@hono/trpc-server";
 
 interface Order {
   file: string;
@@ -50,6 +53,8 @@ interface RouteEvent extends Order, Protection {
   path: string;
   line: number;
   confidence: Confidence;
+  /** The trpcServer() call a tRPC mount passes to use(); not a route itself. */
+  trpc?: CallExpression;
 }
 
 interface UseEvent extends Order, Protection {
@@ -71,6 +76,8 @@ interface Collected {
   events: Map<string, AppEvent[]>;
   homes: Map<string, string>;
   routes: RouteEvent[];
+  /** use() calls that mount tRPC, placed like routes to find their middleware. */
+  trpc: RouteEvent[];
   errorHandler: boolean;
 }
 
@@ -84,7 +91,25 @@ function add(collected: Collected, app: Instance, event: AppEvent): void {
     ...(collected.events.get(app.context) ?? []),
     event,
   ]);
-  if (event.kind === "route") collected.routes.push(event);
+  if (event.kind === "route") {
+    (event.trpc ? collected.trpc : collected.routes).push(event);
+  }
+}
+
+/** The trpcServer() call a use() argument is, directly or through a variable. */
+function trpcServerCall(
+  index: ModuleIndex,
+  node: Node,
+): CallExpression | undefined {
+  const resolved = definition(index, node);
+  const value = Node.isVariableDeclaration(resolved)
+    ? resolved.getInitializer()
+    : resolved;
+  const call = value && unwrap(value);
+  return Node.isCallExpression(call) &&
+    moduleOf(call.getExpression()) === TRPC_SERVER
+    ? call
+    : undefined;
 }
 
 function collectAppCall(
@@ -121,6 +146,22 @@ function collectAppCall(
   }
   if (name === "use") {
     const path = literalText(args[0]);
+    const handlers = path === null ? args : args.slice(1);
+    const mount = handlers.findIndex((arg) => trpcServerCall(index, arg));
+    const trpc = handlers[mount] && trpcServerCall(index, handlers[mount]);
+    if (trpc) {
+      // Middleware before trpcServer() in the same use() runs before it.
+      add(collected, app, {
+        kind: "route",
+        ...order,
+        methods: ["all"],
+        path: joinPath(app.basePath, path ?? "*"),
+        line: nameNode.getStartLineNumber(),
+        confidence: app.confidence,
+        trpc,
+        ...protects(index, handlers.slice(0, mount)),
+      });
+    }
     add(collected, app, {
       kind: "use",
       ...order,
@@ -310,6 +351,7 @@ function collect(
     events: new Map(),
     homes: new Map(),
     routes: [],
+    trpc: [],
     errorHandler: false,
   };
   const functions = new Map(
@@ -336,6 +378,34 @@ function collect(
       left.position - right.position,
   );
   return collected;
+}
+
+/**
+ * Whether auth middleware runs before each tRPC mount, by its trpcServer()
+ * call. A mount served from several places is protected only if every place
+ * is.
+ */
+export function honoTrpcMounts(
+  index: ModuleIndex,
+  sources: ReadonlyArray<{ file: string; sourceFile: SourceFile }>,
+): ReadonlyMap<Node, boolean> {
+  const collected = collect(index, sources);
+  if (collected.trpc.length === 0) return new Map();
+  const placements = placeRoutes(collected);
+  return new Map(
+    collected.trpc.flatMap((event) =>
+      event.trpc
+        ? [
+            [
+              event.trpc,
+              (placements.get(event) ?? [event]).every(
+                (placement) => placement.auth,
+              ),
+            ] as const,
+          ]
+        : [],
+    ),
+  );
 }
 
 export async function analyzeHonoApi(

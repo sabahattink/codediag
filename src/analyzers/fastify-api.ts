@@ -50,6 +50,7 @@ const VALIDATION_NAMES =
   /valid|schema|sanitize|zod|joi|yup|ajv|check(?:body|params|query)/i;
 /** Plugins that add an authentication hook to the context registering them. */
 const AUTH_PLUGINS = new Set(["@fastify/bearer-auth"]);
+const TRPC_PLUGIN = "@trpc/server/adapters/fastify";
 const SOURCE_PATTERN = "**/*.{ts,tsx,js,mjs,cjs}";
 
 interface Protection {
@@ -87,8 +88,12 @@ interface Collected {
   routes: Route[];
   registrations: Registration[];
   hooks: Hook[];
+  /** register(fastifyTRPCPlugin) calls and the context registering each. */
+  trpc: Array<{ context: string; call: CallExpression }>;
   errorHandler: boolean;
 }
+
+type Sources = ReadonlyArray<{ file: string; sourceFile: SourceFile }>;
 
 const NONE: Protection = { auth: false, validation: false };
 
@@ -273,9 +278,11 @@ function collectRegistration(
       prefix: target.encapsulated ? (prefix ?? "") : "",
     });
   }
-  if (args[0] && AUTH_PLUGINS.has(moduleOf(args[0]) ?? "")) {
+  const plugin = args[0] ? moduleOf(args[0]) : null;
+  if (plugin && AUTH_PLUGINS.has(plugin)) {
     collected.hooks.push({ context: parent, auth: true, validation: false });
   }
+  if (plugin === TRPC_PLUGIN) collected.trpc.push({ context: parent, call });
 }
 
 function collectCalls(
@@ -412,6 +419,50 @@ function memberCalls(sourceFile: SourceFile): CallExpression[] {
     .filter((call) => Node.isPropertyAccessExpression(call.getExpression()));
 }
 
+function collectProject(sources: Sources): Collected {
+  const index = createProjectIndex(sources, autoloadedPlugins);
+  const collected: Collected = {
+    routes: [],
+    registrations: [],
+    hooks: [],
+    trpc: [],
+    errorHandler: false,
+  };
+  for (const { file, sourceFile } of sources) {
+    collectCalls(index, file, memberCalls(sourceFile), collected);
+  }
+  return collected;
+}
+
+/** What a context inherits from where it is registered plus its own hooks. */
+function protectionOf(
+  context: string,
+  collected: Collected,
+): Protection & { prefix: string } {
+  const parent = inherited(context, collected, new Set());
+  return {
+    ...either(parent, contextHooks(context, collected, new Set())),
+    prefix: parent.prefix,
+  };
+}
+
+/**
+ * Whether an auth hook runs before each tRPC plugin, by its register()
+ * call: a hook on the registering context, an ancestor, or a fastify-plugin
+ * plugin sharing one of them.
+ */
+export function fastifyTrpcMounts(
+  sources: Sources,
+): ReadonlyMap<Node, boolean> {
+  const collected = collectProject(sources);
+  return new Map(
+    collected.trpc.map(({ context, call }) => [
+      call,
+      protectionOf(context, collected).auth,
+    ]),
+  );
+}
+
 export async function analyzeFastifyApi(
   context: ScanContext,
 ): Promise<AnalyzerResult> {
@@ -429,16 +480,7 @@ export async function analyzeFastifyApi(
     if (sourceFile) sources.push({ file, sourceFile });
   }
 
-  const index = createProjectIndex(sources, autoloadedPlugins);
-  const collected: Collected = {
-    routes: [],
-    registrations: [],
-    hooks: [],
-    errorHandler: false,
-  };
-  for (const { file, sourceFile } of sources) {
-    collectCalls(index, file, memberCalls(sourceFile), collected);
-  }
+  const collected = collectProject(sources);
 
   if (collected.routes.length === 0) {
     return {
@@ -455,15 +497,11 @@ export async function analyzeFastifyApi(
   }
 
   const endpoints = collected.routes.map((route) => {
-    const parent = inherited(route.context, collected, new Set());
-    const protection = either(
-      either(route, parent),
-      contextHooks(route.context, collected, new Set()),
-    );
+    const { prefix, ...protection } = protectionOf(route.context, collected);
     return {
       ...route,
-      ...protection,
-      path: joinPath(parent.prefix, route.path),
+      ...either(route, protection),
+      path: joinPath(prefix, route.path),
     };
   });
 

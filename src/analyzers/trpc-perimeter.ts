@@ -4,9 +4,8 @@ import {
   type SourceFile,
   SyntaxKind,
 } from "ts-morph";
+import { fastifyTrpcMounts } from "./fastify-api.js";
 import {
-  definition,
-  isFunctionLike,
   literalText,
   methodName,
   type ModuleIndex,
@@ -16,62 +15,44 @@ import {
   receiverOf,
   unwrap,
 } from "./fastify-plugins.js";
+import { honoTrpcMounts } from "./hono-api.js";
+import {
+  functionValue,
+  guardsAnonymous,
+  middlewareFile,
+  middlewareRejects,
+} from "./next-middleware.js";
 import { AUTH_NAMES, throwsAuthError } from "./trpc-syntax.js";
 
 /**
  * Authentication in front of every tRPC procedure rather than in their
  * middleware: a createContext that rejects anonymous callers, auth
- * middleware ahead of the Express mount that serves the router, or a
- * Next.js middleware (`proxy` in Next.js 16) that rejects unauthenticated
- * requests to the tRPC endpoint. Each is reported by where it was found.
+ * middleware ahead of the Express or Hono mount that serves the router, an
+ * auth hook over the Fastify plugin, or a Next.js middleware (`proxy` in
+ * Next.js 16) that rejects unauthenticated requests to the tRPC endpoint.
+ * Every adapter that serves the router must be behind one; the first is
+ * reported by where it was found.
  */
 
 type Sources = ReadonlyArray<{ file: string; sourceFile: SourceFile }>;
 
+interface Adapter {
+  /** The adapter call, or the register() call for the Fastify plugin. */
+  call: CallExpression;
+  file: string;
+  module: string;
+  options: Node | undefined;
+}
+
+type Perimeter = (adapter: Adapter) => string | null;
+
 const ADAPTER_MODULE = /^@trpc\/server\/adapters\/|^@hono\/trpc-server$/;
-/** A value naming the caller: `session`, `token`, `req.auth`, `user`. */
-const IDENTITY = /(?:session|token|auth|user|userId|identity|viewer|jwt)\b/i;
-/** A response that turns an anonymous request away. */
-const REJECTION =
-  /\bredirect\s*\(|\brewrite\s*\(|status\s*:\s*40[13]\b|\b40[13]\b/;
-const NEXT_AUTH_MIDDLEWARE = "next-auth/middleware";
-const MIDDLEWARE_FILES = ["middleware", "src/middleware", "proxy", "src/proxy"];
-const MIDDLEWARE_EXTENSIONS = [".ts", ".js", ".mjs"];
+const HONO_ADAPTER = "@hono/trpc-server";
+const FASTIFY_ADAPTER = "@trpc/server/adapters/fastify";
 /** Stands in for a procedure path in a dynamic route segment; it has a dot, as real ones do. */
 const SAMPLE_PROCEDURE = "post.create";
 /** Bounds the functions followed from createContext into the project. */
 const MAX_CONTEXT_DEPTH = 2;
-
-/** The function a node holds, through variables and imports. */
-function functionValue(
-  index: ModuleIndex,
-  node: Node | undefined,
-  depth = 0,
-): Node | undefined {
-  if (!node || depth > MAX_CONTEXT_DEPTH + 2) return undefined;
-  const value = definition(index, node);
-  if (isFunctionLike(value)) return value;
-  if (Node.isVariableDeclaration(value)) {
-    return functionValue(index, value.getInitializer(), depth + 1);
-  }
-  return undefined;
-}
-
-/** `if (!session) throw ...` or `if (!token) return redirect(...)`. */
-function guardsAnonymous(
-  fn: Node,
-  rejects: (branch: Node) => boolean,
-): boolean {
-  return fn.getDescendantsOfKind(SyntaxKind.IfStatement).some((statement) => {
-    const condition = unwrap(statement.getExpression());
-    return (
-      Node.isPrefixUnaryExpression(condition) &&
-      condition.getOperatorToken() === SyntaxKind.ExclamationToken &&
-      IDENTITY.test(condition.getOperand().getText()) &&
-      rejects(statement.getThenStatement())
-    );
-  });
-}
 
 function throws(branch: Node): boolean {
   return (
@@ -97,15 +78,8 @@ function rejectingFunction(
 }
 
 /** Calls to tRPC adapters and the options object each receives. */
-function adapterCalls(
-  index: ModuleIndex,
-  sources: Sources,
-): Array<{ call: CallExpression; file: string; options: Node | undefined }> {
-  const calls: Array<{
-    call: CallExpression;
-    file: string;
-    options: Node | undefined;
-  }> = [];
+function adapterCalls(index: ModuleIndex, sources: Sources): Adapter[] {
+  const adapters: Adapter[] = [];
   for (const { file, sourceFile } of sources) {
     if (
       !/@trpc\/server\/adapters\/|@hono\/trpc-server/.test(
@@ -118,43 +92,38 @@ function adapterCalls(
       SyntaxKind.CallExpression,
     )) {
       const [first, second] = call.getArguments();
-      if (ADAPTER_MODULE.test(moduleOf(call.getExpression()) ?? "")) {
-        calls.push({ call, file, options: first });
+      const module = moduleOf(call.getExpression()) ?? "";
+      const plugin = first ? (moduleOf(first) ?? "") : "";
+      if (ADAPTER_MODULE.test(module)) {
+        adapters.push({ call, file, module, options: first });
       } else if (
         // fastify.register(fastifyTRPCPlugin, { trpcOptions: { createContext } })
         methodName(call) === "register" &&
-        first &&
-        ADAPTER_MODULE.test(moduleOf(first) ?? "")
+        ADAPTER_MODULE.test(plugin)
       ) {
         const options = objectLiteral(index, second);
-        calls.push({
+        adapters.push({
           call,
           file,
+          module: plugin,
           options: propertyValue(options?.getProperty("trpcOptions")),
         });
       }
     }
   }
-  return calls;
+  return adapters;
 }
 
-function rejectingContext(
-  index: ModuleIndex,
-  adapters: ReturnType<typeof adapterCalls>,
-): string | null {
-  const contexts = adapters.flatMap(({ options }) => {
-    const value = propertyValue(
-      objectLiteral(index, options)?.getProperty("createContext"),
-    );
-    const fn = functionValue(index, value);
-    return fn ? [fn] : [];
-  });
-  // Every adapter must reject: one open handler serves the whole router.
-  const rejecting = contexts.map((fn) => rejectingFunction(index, fn));
-  const [first] = rejecting;
-  if (!first || rejecting.some((fn) => fn === undefined)) return null;
+function contextAuth(index: ModuleIndex, adapter: Adapter): string | null {
+  const value = propertyValue(
+    objectLiteral(index, adapter.options)?.getProperty("createContext"),
+  );
+  const fn = functionValue(index, value);
+  const rejecting = fn && rejectingFunction(index, fn);
   // Name the function that rejects, not an inline arrow that calls it.
-  return `createContext in ${index.paths.get(first.getSourceFile())} rejects anonymous callers`;
+  return rejecting
+    ? `createContext in ${index.paths.get(rejecting.getSourceFile())} rejects anonymous callers`
+    : null;
 }
 
 /** The middleware text a mount argument names: `requireAuth`, `passport.authenticate`. */
@@ -219,21 +188,13 @@ function mountAuth(use: CallExpression): string | null {
   return null;
 }
 
-function expressMountAuth(
-  adapters: ReturnType<typeof adapterCalls>,
-): string | null {
-  const mounted = adapters.flatMap(({ call, file }) =>
-    mounts(call).map((use) => ({ use, file })),
-  );
-  if (mounted.length === 0) return null;
-  const guarded = mounted.map(({ use, file }) => ({
-    file,
-    middleware: mountAuth(use),
-  }));
-  if (!guarded.every(({ middleware }) => middleware !== null)) return null;
+function expressMountAuth(adapter: Adapter): string | null {
+  // Hono matches use() paths differently; its own analysis decides.
+  if (adapter.module === HONO_ADAPTER) return null;
+  const guarded = mounts(adapter.call).map(mountAuth);
   const [first] = guarded;
-  return first
-    ? `${first.middleware} runs before the tRPC mount in ${first.file}`
+  return first && guarded.every((middleware) => middleware !== null)
+    ? `${first} runs before the tRPC mount in ${adapter.file}`
     : null;
 }
 
@@ -255,142 +216,41 @@ function routePath(file: string): string | null {
   return `/${path.join("/")}`;
 }
 
-/**
- * Whether a Next.js matcher (path-to-regexp syntax with regex groups)
- * matches a path. Only the fixed sample path is tested, so a pattern from the
- * project cannot make matching slow.
- */
-function matches(pattern: string, path: string): boolean {
-  const source = pattern
-    .replace(/\/:\w+\*/g, "(?:/.*)?")
-    .replace(/\/:\w+\+/g, "/.+")
-    .replace(/\/:\w+\?/g, "(?:/[^/]+)?")
-    .replace(/:\w+/g, "[^/]+");
-  try {
-    return new RegExp(`^${source}$`).test(path);
-  } catch {
-    return false;
-  }
-}
-
-/** String patterns in a literal, an array, or `{ source }` objects; null when not literal. */
-function literalPatterns(
-  index: ModuleIndex,
-  node: Node | undefined,
-): string[] | null {
-  if (!node) return null;
-  const value = unwrap(node);
-  const single = literalText(value);
-  if (single !== null) return [single];
-  if (!Node.isArrayLiteralExpression(value)) return null;
-  const patterns: string[] = [];
-  for (const element of value.getElements()) {
-    const text =
-      literalText(element) ??
-      literalText(
-        propertyValue(objectLiteral(index, element)?.getProperty("source")),
-      );
-    if (text === null) return null;
-    patterns.push(text);
-  }
-  return patterns;
-}
-
-/** Whether the middleware runs for a path: no matcher means every path. */
-function runsFor(
-  index: ModuleIndex,
-  sourceFile: SourceFile,
-  path: string,
-): boolean {
-  const config = sourceFile.getVariableDeclaration("config");
-  if (!config?.isExported()) return true;
-  const matcher = objectLiteral(index, config.getInitializer())?.getProperty(
-    "matcher",
-  );
-  if (!matcher) return true;
-  const patterns = literalPatterns(index, propertyValue(matcher));
-  return patterns?.some((pattern) => matches(pattern, path)) ?? false;
-}
-
-/**
- * Clerk's `auth.protect()`: unconditional, or under `isProtected(req)` /
- * `!isPublic(req)` whose createRouteMatcher patterns decide the path.
- */
-function protectsPath(
-  index: ModuleIndex,
-  sourceFile: SourceFile,
-  path: string,
-): boolean {
-  return sourceFile
-    .getDescendantsOfKind(SyntaxKind.CallExpression)
-    .filter((call) => methodName(call) === "protect")
-    .some((call) => {
-      const guard = call.getFirstAncestorByKind(SyntaxKind.IfStatement);
-      if (!guard) return true;
-      let condition = unwrap(guard.getExpression());
-      let negated = false;
-      if (
-        Node.isPrefixUnaryExpression(condition) &&
-        condition.getOperatorToken() === SyntaxKind.ExclamationToken
-      ) {
-        negated = true;
-        condition = unwrap(condition.getOperand());
-      }
-      if (!Node.isCallExpression(condition)) return false;
-      const matcher = definition(index, condition.getExpression());
-      const created = Node.isVariableDeclaration(matcher)
-        ? matcher.getInitializer()
-        : undefined;
-      if (!Node.isCallExpression(created)) return false;
-      const patterns = literalPatterns(index, created.getArguments()[0]);
-      if (patterns === null) return false;
-      const covered = patterns.some((pattern) => matches(pattern, path));
-      return negated ? !covered : covered;
-    });
-}
-
-/** True when a middleware turns anonymous requests to the path away. */
-function middlewareRejects(
-  index: ModuleIndex,
-  sourceFile: SourceFile,
-  path: string,
-): boolean {
-  // next-auth v4's middleware redirects every request without a token.
-  const nextAuth = [
-    ...sourceFile.getExportDeclarations(),
-    ...sourceFile.getImportDeclarations(),
-  ].some(
-    (declaration) =>
-      declaration.getModuleSpecifierValue() === NEXT_AUTH_MIDDLEWARE,
-  );
-  return (
-    nextAuth ||
-    protectsPath(index, sourceFile, path) ||
-    guardsAnonymous(sourceFile, (branch) => REJECTION.test(branch.getText()))
-  );
-}
-
 function nextMiddlewareAuth(
   index: ModuleIndex,
-  adapters: ReturnType<typeof adapterCalls>,
+  adapter: Adapter,
 ): string | null {
-  const paths = [
-    ...new Set(adapters.flatMap(({ file }) => routePath(file) ?? [])),
+  const path = routePath(adapter.file);
+  const middleware = path ? middlewareFile(index) : null;
+  if (!path || !middleware) return null;
+  if (!middlewareRejects(index, middleware.sourceFile, path)) return null;
+  const endpoint = path.replace(`/${SAMPLE_PROCEDURE}`, "");
+  return `${middleware.file} rejects unauthenticated requests to ${endpoint}`;
+}
+
+/** Ways an adapter can sit behind authentication; framework analyses run once, when needed. */
+function perimeters(index: ModuleIndex, sources: Sources): Perimeter[] {
+  let hono: ReadonlyMap<Node, boolean> | undefined;
+  let fastify: ReadonlyMap<Node, boolean> | undefined;
+  return [
+    (adapter) => contextAuth(index, adapter),
+    expressMountAuth,
+    (adapter) => {
+      if (adapter.module !== HONO_ADAPTER) return null;
+      hono ??= honoTrpcMounts(index, sources);
+      return hono.get(adapter.call)
+        ? `auth middleware runs before the tRPC mount in ${adapter.file}`
+        : null;
+    },
+    (adapter) => {
+      if (adapter.module !== FASTIFY_ADAPTER) return null;
+      fastify ??= fastifyTrpcMounts(sources);
+      return fastify.get(adapter.call)
+        ? `an auth hook runs before the tRPC plugin in ${adapter.file}`
+        : null;
+    },
+    (adapter) => nextMiddlewareAuth(index, adapter),
   ];
-  if (paths.length === 0) return null;
-  const file = MIDDLEWARE_FILES.flatMap((name) =>
-    MIDDLEWARE_EXTENSIONS.map((extension) => `${name}${extension}`),
-  ).find((candidate) => index.files.has(candidate));
-  const sourceFile = file ? index.files.get(file) : undefined;
-  if (!file || !sourceFile) return null;
-  const covered = paths.every(
-    (path) =>
-      runsFor(index, sourceFile, path) &&
-      middlewareRejects(index, sourceFile, path),
-  );
-  if (!covered) return null;
-  const endpoint = (paths[0] ?? "").replace(`/${SAMPLE_PROCEDURE}`, "");
-  return `${file} rejects unauthenticated requests to ${endpoint}`;
 }
 
 /**
@@ -403,9 +263,16 @@ export function perimeterAuth(
 ): string | null {
   const adapters = adapterCalls(index, sources);
   if (adapters.length === 0) return null;
-  return (
-    rejectingContext(index, adapters) ??
-    expressMountAuth(adapters) ??
-    nextMiddlewareAuth(index, adapters)
-  );
+  const checks = perimeters(index, sources);
+  // One open adapter serves the whole router, so each must be covered.
+  const found: string[] = [];
+  for (const adapter of adapters) {
+    const perimeter = checks.reduce<string | null>(
+      (hit, check) => hit ?? check(adapter),
+      null,
+    );
+    if (perimeter === null) return null;
+    found.push(perimeter);
+  }
+  return found[0] ?? null;
 }

@@ -149,6 +149,15 @@ export function receiverOf(call: CallExpression): Node {
 export function importSource(
   declaration: Node,
 ): { specifier: string; name: string } | null {
+  // export { auth as middleware } from "./auth"
+  if (Node.isExportSpecifier(declaration)) {
+    const specifier = declaration
+      .getExportDeclaration()
+      .getModuleSpecifierValue();
+    return specifier === undefined
+      ? null
+      : { specifier, name: declaration.getName() };
+  }
   if (
     Node.isImportClause(declaration) ||
     Node.isImportSpecifier(declaration) ||
@@ -265,6 +274,25 @@ function resolveImport(
   return undefined;
 }
 
+/** `export const { auth, handlers } = NextAuth(config)`: the element named `name`. */
+function exportedBinding(
+  sourceFile: SourceFile,
+  name: string,
+): Node | undefined {
+  for (const statement of sourceFile.getVariableStatements()) {
+    if (!statement.isExported()) continue;
+    for (const declaration of statement.getDeclarations()) {
+      const pattern = declaration.getNameNode();
+      if (!Node.isObjectBindingPattern(pattern)) continue;
+      const element = pattern
+        .getElements()
+        .find((candidate) => candidate.getName() === name);
+      if (element) return element;
+    }
+  }
+  return undefined;
+}
+
 /** The node a module exports under a name ("default" for module.exports). */
 export function exportedValue(
   sourceFile: SourceFile,
@@ -283,17 +311,23 @@ export function exportedValue(
     ? sourceFile.getExportAssignments()[0]?.getExpression()
     : undefined;
   if (assignment) return assignment;
+  // Before getVariableDeclaration(), which also finds the destructuring.
+  const binding = exportedBinding(sourceFile, name);
+  if (binding) return binding;
   const variable = sourceFile.getVariableDeclaration(name);
   if (variable?.isExported()) return variable;
   for (const declaration of sourceFile.getExportDeclarations()) {
-    if (declaration.getModuleSpecifier()) continue;
     const specifier = declaration
       .getNamedExports()
       .find(
         (candidate) =>
           (candidate.getAliasNode()?.getText() ?? candidate.getName()) === name,
       );
-    if (specifier) return specifier.getLocalTargetDeclarations()[0];
+    if (!specifier) continue;
+    // A re-export is followed by definition() like an import.
+    return declaration.getModuleSpecifier()
+      ? specifier
+      : specifier.getLocalTargetDeclarations()[0];
   }
   for (const binary of sourceFile.getDescendantsOfKind(
     SyntaxKind.BinaryExpression,
@@ -326,8 +360,10 @@ export function definition(
     : Node.isIdentifier(value)
       ? value.getSymbol()
       : null;
-  if (symbol === null) return value;
-  const declaration = symbol?.getDeclarations()[0];
+  if (symbol === null && !Node.isExportSpecifier(value)) return value;
+  const declaration = Node.isExportSpecifier(value)
+    ? value
+    : symbol?.getDeclarations()[0];
   const source = declaration ? importSource(declaration) : null;
   if (!declaration || !source) return declaration;
   const target =

@@ -850,3 +850,268 @@ test("a Next.js middleware that rejects anonymous requests to the tRPC endpoint 
     );
   }
 });
+
+test("auth middleware ahead of Hono's trpcServer protects its procedures", async () => {
+  const app = (...lines: string[]) => ({
+    ...PERIMETER_ROUTER,
+    "src/index.ts": [
+      'import { Hono } from "hono";',
+      'import { jwt } from "hono/jwt";',
+      'import { trpcServer } from "@hono/trpc-server";',
+      'import { appRouter } from "./server/router";',
+      "const app = new Hono();",
+      ...lines,
+      "export default app;",
+    ].join("\n"),
+  });
+  const guard = 'jwt({ secret: "secret" })';
+  const trpc = 'app.use("/trpc/*", trpcServer({ router: appRouter }));';
+
+  const global = await analyze(app(`app.use("*", ${guard});`, trpc));
+  assert.deepEqual(authMessages(global), []);
+  assert.match(
+    global?.summary ?? "",
+    /; auth middleware runs before the tRPC mount in src\/index\.ts$/,
+  );
+  for (const lines of [
+    [`app.use("/trpc/*", ${guard}, trpcServer({ router: appRouter }));`],
+    [
+      "const api = new Hono();",
+      'api.use("/trpc/*", trpcServer({ router: appRouter }));',
+      `app.use("/api/*", ${guard});`,
+      'app.route("/api", api);',
+    ],
+  ]) {
+    assert.deepEqual(authMessages(await analyze(app(...lines))), [], lines[0]);
+  }
+
+  for (const lines of [
+    [trpc],
+    [trpc, `app.use("*", ${guard});`],
+    [`app.use("/admin/*", ${guard});`, trpc],
+    // Hono matches "/" against the root path only.
+    [`app.use("/", ${guard});`, trpc],
+    [`app.use("/trpc/*", trpcServer({ router: appRouter }), ${guard});`],
+  ]) {
+    assert.deepEqual(
+      authMessages(await analyze(app(...lines))),
+      UNPROTECTED,
+      lines.join(" "),
+    );
+  }
+});
+
+test("auth hooks over the Fastify tRPC plugin protect its procedures", async () => {
+  const app = (...lines: string[]) => ({
+    ...PERIMETER_ROUTER,
+    "src/app.ts": [
+      'import Fastify from "fastify";',
+      'import { fastifyTRPCPlugin } from "@trpc/server/adapters/fastify";',
+      'import { verifySession } from "./auth";',
+      'import { appRouter } from "./server/router";',
+      "const app = Fastify();",
+      "const logRequest = async () => {};",
+      ...lines,
+    ].join("\n"),
+  });
+  const plugin = (receiver: string) =>
+    `${receiver}.register(fastifyTRPCPlugin, { prefix: "/trpc", trpcOptions: { router: appRouter } });`;
+
+  const hooked = await analyze(
+    app('app.addHook("onRequest", verifySession);', plugin("app")),
+  );
+  assert.deepEqual(authMessages(hooked), []);
+  assert.match(
+    hooked?.summary ?? "",
+    /; an auth hook runs before the tRPC plugin in src\/app\.ts$/,
+  );
+  const scoped = await analyze(
+    app(
+      "app.register(async (api) => {",
+      '  api.addHook("preHandler", verifySession);',
+      `  ${plugin("api")}`,
+      '}, { prefix: "/api" });',
+    ),
+  );
+  assert.deepEqual(authMessages(scoped), []);
+
+  for (const lines of [
+    [plugin("app")],
+    ['app.addHook("onRequest", logRequest);', plugin("app")],
+    [
+      "app.register(async (admin) => {",
+      '  admin.addHook("onRequest", verifySession);',
+      "});",
+      plugin("app"),
+    ],
+  ]) {
+    assert.deepEqual(
+      authMessages(await analyze(app(...lines))),
+      UNPROTECTED,
+      lines.join(" "),
+    );
+  }
+});
+
+test("Next.js middleware is judged for an anonymous request to the tRPC endpoint", async () => {
+  const project = (files: Record<string, string>) => ({
+    ...PERIMETER_ROUTER,
+    "src/app/api/trpc/[trpc]/route.ts": [
+      'import { fetchRequestHandler } from "@trpc/server/adapters/fetch";',
+      'import { appRouter } from "../../../../server/router";',
+      "const handler = (req: Request) =>",
+      '  fetchRequestHandler({ endpoint: "/api/trpc", req, router: appRouter, createContext: () => ({ user: null }) });',
+      "export { handler as GET, handler as POST };",
+    ].join("\n"),
+    ...files,
+  });
+  const authjs = (...callbacks: string[]) =>
+    [
+      'import NextAuth from "next-auth";',
+      'import GitHub from "next-auth/providers/github";',
+      "export const { handlers, auth, signIn, signOut } = NextAuth({",
+      "  providers: [GitHub],",
+      ...(callbacks.length > 0 ? ["  callbacks: {", ...callbacks, "  },"] : []),
+      "});",
+    ].join("\n");
+  const reExport = 'export { auth as middleware } from "./auth";';
+  const dashboardOnly = [
+    "    authorized({ auth, request: { nextUrl } }) {",
+    "      const isLoggedIn = !!auth?.user;",
+    '      const isOnDashboard = nextUrl.pathname.startsWith("/dashboard");',
+    "      if (isOnDashboard) {",
+    "        if (isLoggedIn) return true;",
+    "        return false;",
+    "      } else if (isLoggedIn) {",
+    '        return Response.redirect(new URL("/dashboard", nextUrl));',
+    "      }",
+    "      return true;",
+    "    },",
+  ];
+  const wrapped = (condition: string) =>
+    [
+      'import { auth } from "./auth";',
+      "export default auth((req) => {",
+      `  if (${condition}) {`,
+      '    return Response.redirect(new URL("/login", req.nextUrl.origin));',
+      "  }",
+      "});",
+    ].join("\n");
+
+  const protecting: Array<[string, Record<string, string>]> = [
+    [
+      "Auth.js with an authorized callback that requires a session",
+      {
+        "src/auth.ts": authjs("    authorized: async ({ auth }) => !!auth,"),
+        "src/middleware.ts": reExport,
+      },
+    ],
+    [
+      "Auth.js re-exported through a tsconfig path alias",
+      {
+        "tsconfig.json": JSON.stringify({
+          compilerOptions: { baseUrl: ".", paths: { "@/*": ["./src/*"] } },
+        }),
+        "src/auth.ts": authjs("    authorized: async ({ auth }) => !!auth,"),
+        "src/middleware.ts": 'export { auth as middleware } from "@/auth";',
+      },
+    ],
+    [
+      "an authorized callback that lets public pages through",
+      {
+        "src/auth.ts": authjs(
+          "    authorized({ auth, request }) {",
+          '      if (request.nextUrl.pathname.startsWith("/public")) return true;',
+          "      return !!auth?.user;",
+          "    },",
+        ),
+        "src/middleware.ts": reExport,
+      },
+    ],
+    [
+      "a split config whose auth is the middleware",
+      {
+        "src/auth.config.ts": [
+          "export const authConfig = {",
+          '  pages: { signIn: "/login" },',
+          "  callbacks: {",
+          "    authorized({ auth }) {",
+          "      return Boolean(auth?.user);",
+          "    },",
+          "  },",
+          "  providers: [],",
+          "};",
+        ].join("\n"),
+        "src/middleware.ts": [
+          'import NextAuth from "next-auth";',
+          'import { authConfig } from "./auth.config";',
+          "export default NextAuth(authConfig).auth;",
+          'export const config = { matcher: ["/((?!_next/static|_next/image|.*\\\\.png$).*)"] };',
+        ].join("\n"),
+      },
+    ],
+    [
+      "a wrapped function that redirects anonymous requests",
+      {
+        "src/auth.ts": authjs(),
+        "src/middleware.ts": wrapped(
+          '!req.auth && req.nextUrl.pathname !== "/login"',
+        ),
+      },
+    ],
+  ];
+  for (const [name, files] of protecting) {
+    const result = await analyze(project(files));
+    assert.deepEqual(authMessages(result), [], name);
+    assert.match(
+      result?.summary ?? "",
+      /; src\/middleware\.ts rejects unauthenticated requests to \/api\/trpc$/,
+      name,
+    );
+  }
+
+  const leaving: Array<[string, Record<string, string>]> = [
+    [
+      "Auth.js without an authorized callback",
+      { "src/auth.ts": authjs(), "src/middleware.ts": reExport },
+    ],
+    [
+      "an authorized callback that only guards the dashboard",
+      {
+        "src/auth.ts": authjs(...dashboardOnly),
+        "src/middleware.ts": reExport,
+      },
+    ],
+    [
+      "a wrapped function that only guards the dashboard",
+      {
+        "src/auth.ts": authjs(),
+        "src/middleware.ts": wrapped(
+          '!req.auth && req.nextUrl.pathname.startsWith("/dashboard")',
+        ),
+      },
+    ],
+    [
+      "a custom guard scoped to other paths",
+      {
+        "src/middleware.ts": [
+          'import { NextResponse, type NextRequest } from "next/server";',
+          "export function middleware(request: NextRequest) {",
+          '  if (request.nextUrl.pathname.startsWith("/dashboard")) {',
+          '    const token = request.cookies.get("session")?.value;',
+          '    if (!token) return NextResponse.redirect(new URL("/login", request.url));',
+          "  }",
+          "  return NextResponse.next();",
+          "}",
+        ].join("\n"),
+      },
+    ],
+  ];
+  for (const [name, files] of leaving) {
+    assert.deepEqual(
+      authMessages(await analyze(project(files))),
+      UNPROTECTED,
+      name,
+    );
+  }
+});
