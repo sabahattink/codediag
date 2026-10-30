@@ -10,6 +10,7 @@ import { analyzeNestjsApi } from "./analyzers/nestjs-api.js";
 import { analyzeNextjsApi } from "./analyzers/nextjs-api.js";
 import { analyzeSecurity } from "./analyzers/security.js";
 import { analyzeStructure } from "./analyzers/structure.js";
+import { analyzeSvelteKitApi } from "./analyzers/sveltekit-api.js";
 import { analyzeTesting } from "./analyzers/testing.js";
 import {
   type ApiAnalyzer,
@@ -44,6 +45,7 @@ const API_ANALYZERS: Partial<Record<StackInfo["framework"], ApiAnalyzer>> = {
   fastify: withTrpcProcedures(analyzeFastifyApi),
   hono: withTrpcProcedures(analyzeHonoApi),
   nextjs: withTrpcProcedures(analyzeNextjsApi),
+  sveltekit: withTrpcProcedures(analyzeSvelteKitApi),
   trpc: analyzeTrpcApi,
 };
 

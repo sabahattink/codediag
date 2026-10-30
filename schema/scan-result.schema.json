@@ -113,6 +113,7 @@
           "enum": [
             "nestjs",
             "nextjs",
+            "sveltekit",
             "express",
             "fastify",
             "hono",
@@ -557,6 +558,7 @@
                 "enum": [
                   "nestjs",
                   "nextjs",
+                  "sveltekit",
                   "express",
                   "fastify",
                   "hono",

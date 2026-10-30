@@ -245,7 +245,7 @@ function importBases(
   });
 }
 
-function resolveImport(
+export function resolveImport(
   index: ModuleIndex,
   from: SourceFile,
   specifier: string,

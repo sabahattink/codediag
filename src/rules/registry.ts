@@ -280,6 +280,42 @@ export const RULES = {
       "A Pages Router API route does not branch on request methods, so it accepts every HTTP method.",
     defaultSeverity: "info",
   },
+  // API Health: SvelteKit
+  "no-sveltekit-endpoints": {
+    analyzer: "API Health",
+    title: "SvelteKit endpoints without handlers",
+    description:
+      "+server files exist but none exports a request handler (GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD, QUERY, or fallback), and no +page.server file exports form actions. An app with only pages has no API Health score.",
+    defaultSeverity: "critical",
+    failsAnalyzer: true,
+  },
+  "missing-sveltekit-auth": {
+    analyzer: "API Health",
+    title: "Mutating SvelteKit endpoint without auth check",
+    description:
+      "A POST, PUT, PATCH, or DELETE +server handler, or a form action, is not covered by the handle hook in src/hooks.server.ts (including sequence() parts) rejecting anonymous requests for its path or route id, and does not reject them itself: no check of locals.user, locals.session, locals.auth(), safeGetSession(), the session cookie, or an auth header that returns or throws, no 401 or 403 response, no redirect to sign-in, no webhook signature check, and no project helper up to two calls deep that does so. A hook that only fills event.locals, such as Auth.js's handle, protects nothing. An auth check only in a +layout.server or +page.server load is named in the message: SvelteKit runs form actions before load functions and +server handlers without any layout. Sign-in, sign-up, and sign-out routes and actions, and handlers that pass the request to another router, are not reported.",
+    defaultSeverity: "warning",
+    cwe: ["CWE-306"],
+    owasp: [OWASP.authentication],
+  },
+  "missing-sveltekit-validation": {
+    analyzer: "API Health",
+    title: "SvelteKit request body without validation",
+    description:
+      "A POST, PUT, or PATCH +server handler, or a form action, reads request.json() or request.formData() but neither parses the body with a schema (Zod, Valibot, Yup, Joi, Superforms' superValidate, ArkType, TypeBox, or a project helper up to two calls deep that does) nor answers 400 or 422, for example with fail(400), when a value from the body fails a check.",
+    defaultSeverity: "warning",
+    cwe: ["CWE-20"],
+    owasp: [OWASP.injection],
+  },
+  "sveltekit-csrf-disabled": {
+    analyzer: "API Health",
+    title: "SvelteKit CSRF origin check disabled",
+    description:
+      "svelte.config.js sets kit.csrf.checkOrigin to false, or lists '*' in kit.csrf.trustedOrigins, so SvelteKit accepts form submissions (POST, PUT, PATCH, DELETE with a form content type) from any website, and form actions can be triggered by cross-site requests carrying the user's cookies.",
+    defaultSeverity: "warning",
+    cwe: ["CWE-352"],
+    owasp: [OWASP.accessControl],
+  },
   // API Health: shared
   "missing-health-endpoint": {
     analyzer: "API Health",

@@ -3,6 +3,7 @@ import type { ScanContext } from "../core/scan-context.js";
 import { fromRule, getRule } from "../rules/registry.js";
 import type { AnalyzerResult, DiagnosticIssue } from "../types.js";
 import { type ModuleIndex, pathAliases } from "./fastify-plugins.js";
+import { svelteKitAliases } from "./sveltekit-routes.js";
 import { perimeterAuth } from "./trpc-perimeter.js";
 import {
   type Procedure,
@@ -71,11 +72,14 @@ function moduleIndex(context: ScanContext, sources: Sources): ModuleIndex {
   return {
     paths: new Map(sources.map(({ file, sourceFile }) => [sourceFile, file])),
     files: new Map(sources.map(({ file, sourceFile }) => [file, sourceFile])),
-    // T3 apps import their builders through `~/server/api/trpc`.
+    // T3 apps import their builders through `~/server/api/trpc`, SvelteKit
+    // apps through `$lib/trpc`.
     aliases:
-      typescript.status === "ok"
-        ? pathAliases(typescript.options, context.projectPath)
-        : [],
+      context.stack.framework === "sveltekit"
+        ? svelteKitAliases(context)
+        : typescript.status === "ok"
+          ? pathAliases(typescript.options, context.projectPath)
+          : [],
   };
 }
 

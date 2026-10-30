@@ -140,6 +140,24 @@ A POST, PUT, or PATCH route declares no schema.body (JSON Schema, TypeBox, or a 
 - CWE: [CWE-20](https://cwe.mitre.org/data/definitions/20.html)
 - OWASP Top 10: A03:2021
 
+### missing-sveltekit-auth
+
+**Mutating SvelteKit endpoint without auth check** · default severity: `warning`
+
+A POST, PUT, PATCH, or DELETE +server handler, or a form action, is not covered by the handle hook in src/hooks.server.ts (including sequence() parts) rejecting anonymous requests for its path or route id, and does not reject them itself: no check of locals.user, locals.session, locals.auth(), safeGetSession(), the session cookie, or an auth header that returns or throws, no 401 or 403 response, no redirect to sign-in, no webhook signature check, and no project helper up to two calls deep that does so. A hook that only fills event.locals, such as Auth.js's handle, protects nothing. An auth check only in a +layout.server or +page.server load is named in the message: SvelteKit runs form actions before load functions and +server handlers without any layout. Sign-in, sign-up, and sign-out routes and actions, and handlers that pass the request to another router, are not reported.
+
+- CWE: [CWE-306](https://cwe.mitre.org/data/definitions/306.html)
+- OWASP Top 10: A07:2021
+
+### missing-sveltekit-validation
+
+**SvelteKit request body without validation** · default severity: `warning`
+
+A POST, PUT, or PATCH +server handler, or a form action, reads request.json() or request.formData() but neither parses the body with a schema (Zod, Valibot, Yup, Joi, Superforms' superValidate, ArkType, TypeBox, or a project helper up to two calls deep that does) nor answers 400 or 422, for example with fail(400), when a value from the body fails a check.
+
+- CWE: [CWE-20](https://cwe.mitre.org/data/definitions/20.html)
+- OWASP Top 10: A03:2021
+
 ### missing-swagger
 
 **Endpoint without OpenAPI documentation** · default severity: `info`
@@ -209,6 +227,23 @@ The project depends on Hono but no route registrations with a literal path were 
 Next.js API route files exist but export no detectable HTTP method handlers.
 
 - Scoring: sets the analyzer score to 0 (nothing to evaluate)
+
+### no-sveltekit-endpoints
+
+**SvelteKit endpoints without handlers** · default severity: `critical`
+
++server files exist but none exports a request handler (GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD, QUERY, or fallback), and no +page.server file exports form actions. An app with only pages has no API Health score.
+
+- Scoring: sets the analyzer score to 0 (nothing to evaluate)
+
+### sveltekit-csrf-disabled
+
+**SvelteKit CSRF origin check disabled** · default severity: `warning`
+
+svelte.config.js sets kit.csrf.checkOrigin to false, or lists '*' in kit.csrf.trustedOrigins, so SvelteKit accepts form submissions (POST, PUT, PATCH, DELETE with a form content type) from any website, and form actions can be triggered by cross-site requests carrying the user's cookies.
+
+- CWE: [CWE-352](https://cwe.mitre.org/data/definitions/352.html)
+- OWASP Top 10: A01:2021
 
 ### trpc-stack-trace-exposed
 
