@@ -66,8 +66,10 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add dist/action.cjs dist/action.cjs.LEGAL.txt
-          git commit -m "chore(deps): rebuild the Action bundle"
+          git commit -m "chore(deps): rebuild the Action bundle [skip ci]"
           git push
+      # GitHub holds pull_request runs from this push for maintainer approval;
+      # [skip ci] drops them and CI runs through workflow_dispatch instead.
       - name: Run CI for the new commit
         env:
           GH_TOKEN: ${{ github.token }}

@@ -80,7 +80,9 @@ The GitHub Action runs the committed bundle in `dist/action.cjs`, and CI
 fails when it differs from a fresh build. Dependabot pull requests that
 change the bundle get it rebuilt by the Dependabot bundle workflow, which
 builds without write access, commits only the two bundle files, and starts CI
-for the new commit.
+for the new commit. Dependabot stops rebasing a pull request once another
+account has pushed to it; comment `@dependabot recreate` to refresh one, and
+the bundle is rebuilt again.
 
 ## Reporting security issues
 
