@@ -264354,7 +264354,7 @@ var import_node_path18 = require("path");
 var import_node_url = require("url");
 
 // package.json
-var version = "0.7.0";
+var version = "0.8.0";
 
 // src/version.ts
 function getPackageVersion() {

@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>CodeDiag — Diagnose your code before you ship</title>
-<meta name="description" content="CodeDiag scans Node.js, NestJS, Express, Fastify, Hono, and Next.js projects on your machine and returns a 0–100 health score that explains every lost point, with stable rule IDs, SARIF output, a GitHub Action, and a VS Code extension.">
+<meta name="description" content="CodeDiag scans Node.js, NestJS, Express, Fastify, Hono, tRPC, and Next.js projects on your machine and returns a 0–100 health score that explains every lost point, with stable rule IDs, SARIF output, a GitHub Action, and a VS Code extension.">
 <link rel="canonical" href="https://sabahattink.github.io/codediag/">
 <meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="#f5f8f2" media="(prefers-color-scheme: light)">
@@ -371,7 +371,7 @@ footer .links{font-size:.76rem}
     <li><a href="#analyzers">Analyzers</a></li>
     <li><a href="#scoring">Scoring</a></li>
     <li><a href="#ci">CI</a></li>
-    <li><a href="#new">New in 0.7</a></li>
+    <li><a href="#new">New in 0.8</a></li>
    </ul>
   </nav>
   <div class="top-act">
@@ -390,7 +390,7 @@ footer .links{font-size:.76rem}
   <div>
    <h1 id="h-hero">Diagnose your code before you ship.</h1>
    <p class="lede">One command. Five analyzers. One score.</p>
-   <p class="intro">CodeDiag reads a Node.js, NestJS, Express, Fastify, Hono, or Next.js project on your machine and returns a 0–100 health score that accounts for every point it takes. Each finding carries a stable rule ID, a file and line when there is one, and a suggested fix.</p>
+   <p class="intro">CodeDiag reads a Node.js, NestJS, Express, Fastify, Hono, tRPC, or Next.js project on your machine and returns a 0–100 health score that accounts for every point it takes. Each finding carries a stable rule ID, a file and line when there is one, and a suggested fix.</p>
    <div class="tape">
     <code><span class="ps" aria-hidden="true">$</span><span id="cmd-1">npx @sabahattink/codediag scan .</span></code>
     <button class="copy" type="button" data-copy="cmd-1" aria-label="Copy the scan command"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="1"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/></svg><span class="cl">Copy</span></button>
@@ -505,7 +505,7 @@ footer .links{font-size:.76rem}
  <div class="wrap">
   <div class="sec-head">
    <h2 id="h-analyzers">Five analyzers, weighted by what breaks in production</h2>
-   <p>CodeDiag detects the stack, walks the files once, and parses them into one <code>ts-morph</code> project that every analyzer shares. Routes and security sinks come from the syntax tree, not regular expressions. NestJS, Express, Fastify, Hono, and Next.js get all five analyzers; plain Node.js projects get everything except API Health.</p>
+   <p>CodeDiag detects the stack, walks the files once, and parses them into one <code>ts-morph</code> project that every analyzer shares. Routes and security sinks come from the syntax tree, not regular expressions. NestJS, Express, Fastify, Hono, tRPC, and Next.js get all five analyzers; plain Node.js projects get everything except API Health.</p>
   </div>
   <div class="weights" aria-hidden="true">
    <div style="--w:30;--h:5px"><b><span>Security </span>30</b></div>
@@ -519,7 +519,7 @@ footer .links{font-size:.76rem}
    <thead><tr><th scope="col">Analyzer</th><th scope="col">Weight</th><th scope="col">Examines</th><th scope="col">Rule IDs include</th></tr></thead>
    <tbody>
     <tr><th scope="row">Security</th><td class="num">30%</td><td>Request data traced through variables, destructuring, and reassignments into shell commands, raw SQL, file paths, outgoing requests, redirects, and HTML responses. Plus JWT and session cookie settings, template injection, prototype pollution, credentials in code, configuration files, and committed <code>.env</code> files, Helmet, rate limiting, open CORS, weak password hashing, and disabled TLS verification.</td><td><span class="ids"><code>dynamic-sql-query</code><code>path-traversal</code><code>reflected-xss</code></span></td></tr>
-    <tr><th scope="row">API Health</th><td class="num">25%</td><td>The routes your app actually exposes: NestJS guards, including global guards and <code>@Public()</code> opt-outs, DTOs and <code>ValidationPipe</code>; Express auth and validation middleware across router mounts and files; Fastify auth hooks and body schemas across plugins; Hono middleware in registration order and validators across mounted sub-apps; error handlers, health endpoints, and Next.js App and Pages Router handlers.</td><td><span class="ids"><code>missing-guard</code><code>missing-auth-middleware</code><code>dto-not-validated</code></span></td></tr>
+    <tr><th scope="row">API Health</th><td class="num">25%</td><td>The routes your app actually exposes: NestJS guards, including global guards and <code>@Public()</code> opt-outs, DTOs and <code>ValidationPipe</code>; Express auth and validation middleware across router mounts and files; Fastify auth hooks and body schemas across plugins and <code>@fastify/autoload</code> directories; tRPC procedure middleware and input parsers; Hono middleware in registration order and validators across mounted sub-apps; error handlers, health endpoints, and Next.js App and Pages Router handlers.</td><td><span class="ids"><code>missing-guard</code><code>missing-auth-middleware</code><code>dto-not-validated</code></span></td></tr>
     <tr><th scope="row">Dependencies</th><td class="num">20%</td><td>Your package manager’s own audit (npm, pnpm, Yarn Classic, Yarn Berry), lock file and <code>packageManager</code> consistency, deprecated packages, engines, and essential scripts.</td><td><span class="ids"><code>vuln-critical</code><code>no-lock-file</code><code>deprecated-dep</code></span></td></tr>
     <tr><th scope="row">Testing</th><td class="num">15%</td><td>Test files and frameworks (Jest, Vitest, Mocha, Ava, node:test), the test-to-source ratio, integration directories, and coverage measured against 80% lines and 70% branches, or a configured threshold.</td><td><span class="ids"><code>no-test-files</code><code>coverage-below-threshold</code></span></td></tr>
     <tr><th scope="row">Structure</th><td class="num">10%</td><td>README, lint and format config (also inherited from a workspace root), resolved TypeScript strict mode, NestJS feature modules, and environment templates.</td><td><span class="ids"><code>no-strict-mode</code><code>no-linter</code><code>no-env-example</code></span></td></tr>
@@ -629,7 +629,7 @@ footer .links{font-size:.76rem}
     <ul class="facts">
      <li>Critical findings and warnings become annotations, up to 50 per run, next to a job summary.</li>
      <li>JSON and SARIF reports, plus <code>score</code>, <code>grade</code>, <code>report</code>, and <code>sarif</code> outputs for later steps.</li>
-     <li>Exit 1 below the threshold, 2 when configuration or scanning fails.</li>
+     <li>Exit 1 below the threshold, below a <code>package-threshold</code>, or on a finding at the <code>fail-on</code> severity; 2 when configuration or scanning fails.</li>
      <li>Elsewhere: <code class="w">npx @sabahattink/codediag scan . --ci --threshold 80</code>. <a href="https://github.com/sabahattink/codediag/blob/main/docs/github-action.md">Action guide</a></li>
     </ul>
    </div>
@@ -702,7 +702,7 @@ codediag scan . --ci --threshold 80 --baseline .codediag-baseline.json</code></p
    <ul class="facts">
     <li>Scan on save is opt-in (<code>codediag.scanOnSave</code>) and never runs the package manager; it reuses the last audit, so scores stay consistent.</li>
     <li>Disabled in untrusted and virtual workspaces. Findings outside the workspace are not published.</li>
-    <li>Quick fixes suppress a finding with a reason or explain its rule.</li>
+    <li>Quick fixes apply a rule’s mechanical fix where it has one, such as turning TLS verification back on, suppress a finding with a reason, or explain its rule.</li>
     <li>Until Marketplace publishing, install the <code>.vsix</code> from a CI run. <a href="https://github.com/sabahattink/codediag/blob/main/docs/vscode-extension.md">Extension guide</a></li>
    </ul>
   </div>
@@ -722,17 +722,18 @@ codediag scan . --ci --threshold 80 --baseline .codediag-baseline.json</code></p
 <section class="sec add" id="new" aria-labelledby="h-new">
  <div class="wrap">
   <div class="sec-head">
-   <h2 id="h-new">New in 0.7</h2>
-   <p>Request data followed across files, whole monorepos, Hono, a score you can watch over time, and pull request feedback measured against your base branch.</p>
+   <h2 id="h-new">New in 0.8</h2>
+   <p>tRPC, <code>fastify-cli</code> projects, secrets that history still holds, gates that a good average cannot hide, and fixes you apply from the editor.</p>
   </div>
   <ul class="items">
-   <li><h3>Cross-file taint</h3><p>Request data passed into your own helpers and services is followed up to two calls deep, so <code>run(req.query.cmd)</code> is critical when <code>run</code> calls <code>exec</code> in another file. Findings stay on the sink line.</p></li>
-   <li><h3>Monorepos</h3><p>Every npm, pnpm, Yarn, Lerna, or Nx workspace package scanned with its own stack and config, combined into one report with a package table. Baselines, comparisons, and SARIF work across the repository.</p><span class="flag">--workspaces</span></li>
-   <li><h3>Hono API analysis</h3><p>Routes, <code>basePath()</code>, and mounted sub-apps replayed in registration order, with <code>jwt()</code>/<code>bearerAuth()</code> middleware and <code>zValidator</code> body validation.</p></li>
-   <li><h3>Score history</h3><p>Each scan is recorded; the terminal shows a sparkline and the HTML report a chart with grade guides and a table view.</p><span class="flag">--history .codediag/history</span></li>
-   <li><h3>Base-branch delta</h3><p>The GitHub Action compares the pull request with your base branch’s report: score change, new and fixed findings, new ones marked in the comment.</p><span class="flag">compare: codediag-main.json</span></li>
-   <li><h3>Audit details</h3><p>Vulnerability findings name the affected packages and their advisories; <code>audit: production</code> skips devDependencies.</p></li>
-   <li><h3>Earlier in 0.6</h3><p>Fastify, JWT and cookie rules, template injection, prototype pollution, config-file secrets, <code>--compare</code>, <code>--changed-since</code>, and VS Code quick fixes.</p></li>
+   <li><h3>tRPC procedures</h3><p>Builders followed from <code>initTRPC</code> through <code>.use()</code> chains and merged routers across files: mutations whose middleware never rejects anonymous callers, <code>.input()</code> parsers that accept anything, and leaked stack traces. Procedure <code>input</code> is request data for the security rules.</p></li>
+   <li><h3>Fastify autoload</h3><p><code>@fastify/autoload</code> directories as they load: directory prefixes, <code>autoPrefix</code>, and autohooks that protect a directory’s routes.</p></li>
+   <li><h3>Secrets in Git history</h3><p>Credentials that a commit added and a later one deleted, which every clone still holds. Compared by digest, never printed.</p><span class="flag">--secret-history</span></li>
+   <li><h3>Severity gate</h3><p>Fail on any active critical finding, whatever the score; suppressed and baselined findings do not count.</p><span class="flag">--fail-on critical</span></li>
+   <li><h3>Per-package thresholds</h3><p>Every monorepo package must reach its own score, so one weak package cannot hide in the average.</p><span class="flag">--package-threshold 70</span></li>
+   <li><h3>Editor remediations</h3><p>VS Code offers the rule’s own fix where it is mechanical: TLS verification on, JWT expiry checked, <code>"none"</code> out of the algorithm list.</p></li>
+   <li><h3>Deeper taint</h3><p>Request data stored on <code>this</code>, passed to a constructor, or handed to <code>forEach</code>/<code>map</code> callbacks is followed to the sink.</p></li>
+   <li><h3>Earlier in 0.7</h3><p>Cross-file taint, <code>--workspaces</code> monorepos, Hono, score history, base-branch deltas in pull requests, and audit advisory details.</p></li>
   </ul>
  </div>
 </section>

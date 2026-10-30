@@ -2,7 +2,12 @@
 
 All notable changes to CodeDiag are documented in this file.
 
-## [0.8.0] - Unreleased
+## [0.8.0] - 2026-10-30
+
+The "Depth" release: tRPC procedures, request data followed through fields,
+constructors, callbacks, and injected providers, `fastify-cli` projects as
+`@fastify/autoload` loads them, secrets that Git history still holds, gates
+that a good average cannot hide, and fixes you apply from the editor.
 
 ### Added
 
@@ -24,6 +29,25 @@ All notable changes to CodeDiag are documented in this file.
 - tRPC procedure input (`({ input })`, `opts.input`) is request data for the
   security sink rules, even after `.input(schema)` validation, and is
   followed into helpers and services two calls deep.
+- Taint through object state: request data a class stores on `this` (in its
+  constructor, a method, or a field initializer, including TypeScript
+  parameter properties) reaches sinks that read the field in another member,
+  and a `new` expression that passes request data to a constructor taints
+  the fields set from that parameter, through imports and `require()`. A
+  write earlier in the reading method's own code overrides writes elsewhere.
+- Taint through callbacks: elements of request data flow into inline
+  `forEach`, `map`, `filter`, `some`, `every`, `find`, `findIndex`,
+  `findLast`, `findLastIndex`, `flatMap`, `reduce`, and `reduceRight`
+  callbacks, `for...of` variables, and `then()` callbacks; a project function
+  that invokes a callback written inline at its call site is followed for
+  that call only.
+- Methods reached through a project interface or abstract class, or through a
+  NestJS `@Inject()` token, resolve to their one implementation via
+  `implements`/`extends` clauses and `{ provide, useClass }` providers;
+  ambiguous cases are not followed. Findings traced through fields,
+  constructors, project callbacks, or injected providers keep their sink
+  line, message, and fingerprint, get `confidence: "medium"`, and name where
+  request data enters.
 - `secret-in-git-history` (critical, opt-in): credentials that commits on
   the checked-out branch added and the current tree no longer has, which
   every clone still contains. Turn it on with `secretHistory: true` (the last
@@ -70,9 +94,17 @@ All notable changes to CodeDiag are documented in this file.
   routers are not supported.
 - Git history secrets: only the checked-out branch is read, merge commits are
   skipped, and a history rewrite that keeps a secret changes its fingerprint.
+- Field taint is instance-insensitive: any `new X(requestData)` taints `X`'s
+  fields. Fields written by a base class or from outside the class,
+  `super()` calls, and `Object.assign(this, ...)` are not followed.
 
 ### Fixed
 
+- Shell command and SQL findings did not count NestJS `@Param()`,
+  `@Query()`, `@Body()`, or `@Headers()` parameters as request data unless
+  their text named the request, so they stayed warnings. Parameters behind a
+  parsing pipe (`ParseIntPipe`, `ParseUUIDPipe`, ...) are no longer request
+  data for any sink.
 - GitHub Action annotation messages escaped commas and colons as workflow
   command properties do, so GitHub showed them as `%2C` and `%3A`; only
   properties are escaped that way now.

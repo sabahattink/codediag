@@ -95,8 +95,10 @@ verification) are found in the AST, and request data is traced through
 variables, destructuring, reassignments, and up to two calls into your own
 helper functions and services, so `const cmd = req.query.cmd; exec(cmd)` is
 critical, and so is `run(req.query.cmd)` when `run` calls `exec` in another
-file. tRPC procedure `input` is request data too, even after
-`.input(schema)` validates it. Request data that reaches a file path, an outgoing
+file. Request data is also followed into fields a class stores it in, through
+constructors, into `map`/`forEach` callbacks and `for...of` loops, and to
+NestJS providers behind an interface or injection token. tRPC procedure
+`input` is request data too, even after `.input(schema)` validates it. Request data that reaches a file path, an outgoing
 request's host, a redirect, or an HTML response is reported as path
 traversal, SSRF, an open redirect, or reflected XSS; request data compiled as
 a template or used as an object path is template injection or prototype
@@ -479,7 +481,8 @@ results in GitHub Code Scanning.
   `--workspaces` for monorepos (CLI, Action, and VS Code); Hono analysis;
   `--history` score trends; base-branch deltas in pull request comments;
   audit advisory details and `audit: production`.
-- **0.8 "Depth":** tRPC procedures; `@fastify/autoload` projects; secrets
+- **0.8 "Depth":** tRPC procedures; taint through fields, constructors,
+  callbacks, and injected providers; `@fastify/autoload` projects; secrets
   removed from the tree but kept in Git history; per-package thresholds and
   `--fail-on` gates; remediation quick fixes in VS Code.
 - **Next:** see [docs/roadmap.md](docs/roadmap.md) for planned framework
