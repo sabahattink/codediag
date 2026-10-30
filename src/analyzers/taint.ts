@@ -301,6 +301,7 @@ function traceTaint(
     : node.getDescendantsOfKind(SyntaxKind.Identifier);
   for (const identifier of identifiers) {
     if (isPropertyName(identifier)) continue;
+    if (isProcedureInput(identifier)) return true;
     for (const source of valueSources(identifier)) {
       if (seen.has(source)) continue;
       seen.add(source);
@@ -395,6 +396,80 @@ export function requestDecorator(identifier: Node): Decorator | undefined {
   return undefined;
 }
 
+/** Builder methods that take a tRPC procedure's resolver. */
+const PROCEDURE_METHODS = new Set(["mutation", "query", "subscription"]);
+
+/** The first parameter of a resolver passed to `.query()` or `.mutation()`. */
+function isResolverOptions(parameter: Node): boolean {
+  const fn = parameter.getParent();
+  if (
+    !fn ||
+    !(Node.isArrowFunction(fn) || Node.isFunctionExpression(fn)) ||
+    fn.getParameters()[0] !== parameter
+  ) {
+    return false;
+  }
+  const call = fn.getParent();
+  if (!Node.isCallExpression(call) || !call.getArguments().includes(fn)) {
+    return false;
+  }
+  const callee = call.getExpression();
+  return (
+    Node.isPropertyAccessExpression(callee) &&
+    PROCEDURE_METHODS.has(callee.getName())
+  );
+}
+
+/**
+ * True when an identifier holds a tRPC procedure's input, which the client
+ * sends: `input` destructured from a resolver's options (or a field
+ * destructured from it), or the options parameter in `opts.input`. Input
+ * that passed `.input(schema)` is still chosen by the caller.
+ */
+export function isProcedureInput(identifier: Node): boolean {
+  const parent = identifier.getParent();
+  // `handler({ ctx, input })` passes the binding, not a property.
+  const symbol = Node.isShorthandPropertyAssignment(parent)
+    ? parent.getValueSymbol()
+    : identifier.getSymbol();
+  for (const declaration of symbol?.getDeclarations() ?? []) {
+    let field: Node | undefined;
+    let node: Node | undefined = declaration;
+    while (
+      node &&
+      (Node.isBindingElement(node) ||
+        Node.isObjectBindingPattern(node) ||
+        Node.isArrayBindingPattern(node))
+    ) {
+      if (Node.isBindingElement(node)) field = node;
+      node = node.getParent();
+    }
+    if (!node || !Node.isParameterDeclaration(node)) continue;
+    if (!isResolverOptions(node)) continue;
+    if (Node.isBindingElement(field)) {
+      const key = field.getPropertyNameNode()?.getText() ?? field.getName();
+      if (key === "input") return true;
+    } else if (node === declaration && readsInput(parent, identifier)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+/** `opts.input` or `opts["input"]`, where `opts` is the given identifier. */
+function readsInput(access: Node | undefined, object: Node): boolean {
+  if (Node.isPropertyAccessExpression(access)) {
+    return access.getExpression() === object && access.getName() === "input";
+  }
+  if (!Node.isElementAccessExpression(access)) return false;
+  const key = access.getArgumentExpression();
+  return (
+    access.getExpression() === object &&
+    (Node.isStringLiteral(key) || Node.isNoSubstitutionTemplateLiteral(key)) &&
+    key.getLiteralText() === "input"
+  );
+}
+
 export function unwrap(node: Node): Node {
   let current = node;
   while (
@@ -426,7 +501,7 @@ export function isRequestValue(
   const value = unwrap(node);
 
   if (Node.isIdentifier(value)) {
-    if (requestDecorator(value)) return true;
+    if (requestDecorator(value) || isProcedureInput(value)) return true;
     if (
       hops < MAX_TAINT_HOPS &&
       valueSources(value).some((source) =>

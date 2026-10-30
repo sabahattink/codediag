@@ -138,3 +138,43 @@ test("Next.js route handler input is request data", async () => {
     ],
   );
 });
+
+test("tRPC procedure input is request data, even after validation", async () => {
+  assert.deepEqual(
+    await sinks(
+      [
+        'import { exec } from "node:child_process";',
+        'import { readFile } from "node:fs/promises";',
+        'import { z } from "zod";',
+        'import { protectedProcedure, router } from "./trpc";',
+        "export const files = router({",
+        "  compress: protectedProcedure.input(z.string()).mutation(({ input }) => exec(`gzip ${input}`)),",
+        "  read: protectedProcedure.input(z.object({ path: z.string() })).query((opts) => readFile(opts.input.path)),",
+        "  peek: protectedProcedure.input(z.object({ url: z.string() })).query(({ input: { url } }) => fetch(url)),",
+        "  head: protectedProcedure.query(async function (opts) { return readFile(opts['input']); }),",
+        "});",
+      ].join("\n"),
+    ),
+    [
+      { rule: "dynamic-command-execution", severity: "critical", line: 6 },
+      { rule: "path-traversal", severity: "critical", line: 7 },
+      { rule: "server-side-request-forgery", severity: "warning", line: 8 },
+      { rule: "path-traversal", severity: "critical", line: 9 },
+    ],
+  );
+});
+
+test("tRPC context values and input outside a resolver are not request data", async () => {
+  assert.deepEqual(
+    await sinks(
+      [
+        'import { exec } from "node:child_process";',
+        'import { readFile } from "node:fs/promises";',
+        'import { protectedProcedure } from "./trpc";',
+        "export const report = protectedProcedure.mutation((opts) => readFile(opts.ctx.session.user.id));",
+        "export const replay = (jobs) => jobs.map(({ input }) => exec(input));",
+      ].join("\n"),
+    ),
+    [{ rule: "dynamic-command-execution", severity: "warning", line: 5 }],
+  );
+});

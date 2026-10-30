@@ -452,3 +452,59 @@ test("callers in test files and functions in node_modules are not followed", asy
 
   assert.deepEqual(located(issues), []);
 });
+
+test("tRPC procedure input reaches helpers and services two calls deep", async () => {
+  const issues = await scan({
+    "src/lib/convert.ts": [
+      'import { execSync } from "node:child_process";',
+      "export function convert(name: string) {",
+      "  return execSync(`convert ${name}.png ${name}.webp`);",
+      "}",
+    ],
+    "src/services/thumbnails.ts": [
+      'import { convert } from "../lib/convert.js";',
+      "export function thumbnail(file: string) {",
+      "  return convert(file);",
+      "}",
+    ],
+    "src/handlers/archive.ts": [
+      'import { exec } from "node:child_process";',
+      "export async function archiveHandler({ input }: { input: { name: string } }) {",
+      "  exec(`tar czf ${input.name}.tgz uploads`);",
+      "}",
+    ],
+    "src/router.ts": [
+      'import { z } from "zod";',
+      'import { archiveHandler } from "./handlers/archive.js";',
+      'import { thumbnail } from "./services/thumbnails.js";',
+      'import { protectedProcedure, router } from "./trpc.js";',
+      "export const appRouter = router({",
+      "  thumb: protectedProcedure",
+      "    .input(z.object({ file: z.string() }))",
+      "    .mutation(({ input }) => thumbnail(input.file)),",
+      "  archive: protectedProcedure",
+      "    .input(z.object({ name: z.string() }))",
+      "    .mutation(({ ctx, input }) => archiveHandler({ ctx, input })),",
+      "});",
+    ],
+  });
+
+  assert.deepEqual(located(issues), [
+    {
+      rule: "dynamic-command-execution",
+      severity: "critical",
+      at: "src/handlers/archive.ts:3",
+      confidence: "medium",
+    },
+    {
+      rule: "dynamic-command-execution",
+      severity: "critical",
+      at: "src/lib/convert.ts:3",
+      confidence: "medium",
+    },
+  ]);
+  assert.match(
+    issues[1]?.fix ?? "",
+    /^Request data reaches this call from src\/router\.ts:8; /,
+  );
+});
