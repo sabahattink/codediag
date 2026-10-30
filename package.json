@@ -1,7 +1,7 @@
 {
   "name": "@sabahattink/codediag",
   "version": "0.6.0",
-  "description": "Automated project health scanner for Node.js, NestJS, Express, Fastify, and Next.js projects.",
+  "description": "Automated project health scanner for Node.js, NestJS, Express, Fastify, Hono, and Next.js projects.",
   "author": "Sabahattin Kalkan <hello@sabahattinkalkan.com> (https://sabahattinkalkan.com)",
   "license": "MIT",
   "type": "module",
@@ -48,6 +48,8 @@
     "nextjs",
     "express",
     "fastify",
+    "hono",
+    "monorepo",
     "security",
     "audit",
     "cli",

@@ -51,7 +51,7 @@ codediag auto-detects your stack and runs 5 analyzers. Every finding has a
 stable rule ID ([rule reference](docs/rules.md)), a severity, a location when
 one exists, and a suggested fix.
 
-### API Health `NestJS · Express · Fastify · Next.js`
+### API Health `NestJS · Express · Fastify · Hono · Next.js`
 
 AST analysis (ts-morph, not regex) of the routes your app actually exposes.
 
@@ -68,6 +68,11 @@ AST analysis (ts-morph, not regex) of the routes your app actually exposes.
   through `register()`-ed plugins and `fastify-plugin` encapsulation;
   `onRequest`/`preHandler` auth hooks on the route or its context, body
   schemas on mutating routes, `setErrorHandler`, and health endpoints.
+- **Hono:** routes on `new Hono()` apps, `basePath()`, and sub-apps mounted
+  with `app.route()` across files, replayed in registration order; auth
+  middleware (`jwt()`, `bearerAuth()`, `basicAuth()`, or your own) on the
+  route or an earlier matching `app.use()`; `zValidator` and other body
+  validators; `onError`; and health endpoints.
 - **Next.js:** App Router and Pages Router API handlers, without penalizing
   frontend-only projects.
 
@@ -402,6 +407,7 @@ skipped and reported in the JSON `skipped` summary.
 | Next.js | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Express | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Fastify | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Hono | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Node.js | — | ✅ | ✅ | ✅ | ✅ |
 
 ## Where CodeDiag fits
