@@ -1,0 +1,75 @@
+name: Dependabot bundle
+
+# A dependency update can change the committed Action bundle, which CI
+# compares with a fresh build. This rebuilds it on Dependabot pull requests:
+# the dependency's code runs only in a read-only job, and the job that
+# pushes runs nothing from the repository or its dependencies.
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    if: github.event.pull_request.user.login == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    outputs:
+      changed: ${{ steps.diff.outputs.changed }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - run: npm ci
+      - run: npm run build
+      - id: diff
+        run: |
+          if git diff --quiet -- dist/action.cjs dist/action.cjs.LEGAL.txt; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+      - if: steps.diff.outputs.changed == 'true'
+        uses: actions/upload-artifact@v7
+        with:
+          name: action-bundle
+          path: |
+            dist/action.cjs
+            dist/action.cjs.LEGAL.txt
+          if-no-files-found: error
+
+  commit:
+    needs: build
+    if: needs.build.outputs.changed == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+      - uses: actions/download-artifact@v7
+        with:
+          name: action-bundle
+          path: rebuilt
+      - name: Commit the rebuilt bundle
+        run: |
+          cp rebuilt/action.cjs rebuilt/action.cjs.LEGAL.txt dist/
+          rm -rf rebuilt
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add dist/action.cjs dist/action.cjs.LEGAL.txt
+          git commit -m "chore(deps): rebuild the Action bundle"
+          git push
+      - name: Run CI for the new commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BRANCH: ${{ github.event.pull_request.head.ref }}
+        run: gh workflow run ci.yml --repo "$GITHUB_REPOSITORY" --ref "$BRANCH"

@@ -76,6 +76,12 @@ verification performed. Keep unrelated refactors in separate pull requests.
 4. Move the Action's major tag (for example `v0`) to the release commit so
    `uses: sabahattink/codediag@v0` picks it up.
 
+The GitHub Action runs the committed bundle in `dist/action.cjs`, and CI
+fails when it differs from a fresh build. Dependabot pull requests that
+change the bundle get it rebuilt by the Dependabot bundle workflow, which
+builds without write access, commits only the two bundle files, and starts CI
+for the new commit.
+
 ## Reporting security issues
 
 Do not open a public issue for a suspected vulnerability. Follow the private

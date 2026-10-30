@@ -8,6 +8,10 @@ updates:
       time: "06:00"
       timezone: Asia/Baku
     open-pull-requests-limit: 5
+    # One pull request for routine updates; majors stay separate for review.
+    groups:
+      npm-minor-and-patch:
+        update-types: [minor, patch]
     ignore:
       # chalk 6 requires Node 22; CodeDiag supports Node 20.19 and newer.
       - dependency-name: chalk
