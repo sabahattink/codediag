@@ -10,13 +10,12 @@ import { fromRule } from "../rules/registry.js";
 import type { DiagnosticIssue } from "../types.js";
 import { inspectAuthConfiguration } from "./security-auth.js";
 import { inspectInjection } from "./security-injection.js";
+import { CallTracer, type Trace, traceDetails } from "./taint-calls.js";
 import {
   calleeName,
   dynamicStringShape,
   enclosingScope,
-  isRequestValue,
   isStaticString,
-  isTainted,
   type ModuleBindings,
   moduleBindings,
   moduleCall,
@@ -26,6 +25,7 @@ import {
   requestDecorator,
   SOURCE_PATTERN,
   stringParts,
+  type Taint,
   unwrap,
 } from "./taint.js";
 
@@ -105,24 +105,30 @@ function sourceLocation(file: string, line: number) {
   return { file, line };
 }
 
-function isDynamicSqlCall(call: CallExpression): boolean {
+/** The non-literal query of a raw SQL method call such as `db.query(sql)`. */
+function sqlQuery(call: CallExpression): Node | null {
   const expression = call.getExpression();
-  if (!Node.isPropertyAccessExpression(expression)) return false;
-  if (!SQL_METHODS.has(expression.getName())) return false;
-
+  if (!Node.isPropertyAccessExpression(expression)) return null;
+  if (!SQL_METHODS.has(expression.getName())) return null;
   const query = call.getArguments()[0];
-  if (!query || isStaticString(query)) return false;
-  if (
-    expression.getName().endsWith("Unsafe") ||
-    SQL_RECEIVER.test(expression.getExpression().getText())
-  ) {
-    return true;
-  }
+  return query && !isStaticString(query) ? query : null;
+}
 
-  // Any receiver: a query string built from request data is SQL injection.
+/** True for a client or method known to run SQL, whatever the query is. */
+function isSqlClient(call: CallExpression): boolean {
+  const expression = call.getExpression();
+  return (
+    Node.isPropertyAccessExpression(expression) &&
+    (expression.getName().endsWith("Unsafe") ||
+      SQL_RECEIVER.test(expression.getExpression().getText()))
+  );
+}
+
+/** Any receiver: a query string built from request data is SQL injection. */
+function isTaintedSql(query: Node, taint: Taint): boolean {
   const shape = dynamicStringShape(query);
   return Boolean(
-    shape && SQL_KEYWORDS.test(shape.getText()) && isTainted(query),
+    shape && SQL_KEYWORDS.test(shape.getText()) && taint.isTainted(query),
   );
 }
 
@@ -137,13 +143,23 @@ const FIXED_ORIGIN =
 /**
  * True when request data decides where a URL points: it is used before the
  * literal text fixes the scheme and host. Other expressions count as fixed.
+ * A parameter continues with the URL text each caller passes for it.
  */
-function requestControlsTarget(node: Node): boolean {
-  let prefix = "";
+function requestControlsTarget(node: Node, taint: Taint, start = ""): boolean {
+  let prefix = start;
   for (const part of stringParts(node)) {
-    if (typeof part === "string") prefix += part;
-    else if (isRequestValue(part)) return !FIXED_ORIGIN.test(prefix);
-    else prefix += "X";
+    if (typeof part === "string") {
+      prefix += part;
+      continue;
+    }
+    const forwarded = taint.throughCallers(part, (argument) =>
+      requestControlsTarget(argument, taint, prefix),
+    );
+    if (forwarded) return true;
+    if (forwarded === undefined && taint.isRequestValue(part)) {
+      return !FIXED_ORIGIN.test(prefix);
+    }
+    prefix += "X";
   }
   return false;
 }
@@ -192,6 +208,7 @@ function isPrefixChecked(argument: Node): boolean {
 function traversalPath(
   call: CallExpression,
   files: ModuleBindings,
+  taint: Taint,
 ): Node | null {
   if (moduleCall(call, files, FS_MODULES, FILE_FUNCTIONS)) {
     const paths = call.getArguments().slice(0, 1);
@@ -199,8 +216,9 @@ function traversalPath(
       paths.push(...call.getArguments().slice(1, 2));
     }
     return (
-      paths.find((path) => isRequestValue(path) && !isPrefixChecked(path)) ??
-      null
+      paths.find(
+        (path) => taint.isRequestValue(path) && !isPrefixChecked(path),
+      ) ?? null
     );
   }
 
@@ -211,11 +229,13 @@ function traversalPath(
   const [path, ...options] = call.getArguments();
   // Express rejects `..` segments when a root directory is given.
   if (options.some((option) => objectProperty(option, ["root"]))) return null;
-  return path && isRequestValue(path) && !isPrefixChecked(path) ? path : null;
+  return path && taint.isRequestValue(path) && !isPrefixChecked(path)
+    ? path
+    : null;
 }
 
 /** The URL an outgoing HTTP request uses, when request data picks its host. */
-function forgedRequestUrl(call: CallExpression): Node | null {
+function forgedRequestUrl(call: CallExpression, taint: Taint): Node | null {
   const expression = call.getExpression();
   const isClient = Node.isIdentifier(expression)
     ? HTTP_CLIENT_FUNCTIONS.has(expression.getText())
@@ -227,13 +247,13 @@ function forgedRequestUrl(call: CallExpression): Node | null {
   const [first] = call.getArguments();
   const url =
     objectProperty(first, ["url", "baseURL", "host", "hostname"]) ?? first;
-  return url && requestControlsTarget(url) ? url : null;
+  return url && requestControlsTarget(url, taint) ? url : null;
 }
 
 const REDIRECT_RECEIVER = /^(?:NextResponse|Response)$/;
 
 /** The redirect target, when request data can send users to another site. */
-function openRedirectTarget(call: CallExpression): Node | null {
+function openRedirectTarget(call: CallExpression, taint: Taint): Node | null {
   const expression = call.getExpression();
   let target: Node | undefined;
   if (
@@ -246,7 +266,7 @@ function openRedirectTarget(call: CallExpression): Node | null {
     // Express also accepts redirect(status, url).
     target = call.getArguments().at(-1);
   }
-  return target && requestControlsTarget(target) ? target : null;
+  return target && requestControlsTarget(target, taint) ? target : null;
 }
 
 const NON_HTML_TYPE =
@@ -258,8 +278,11 @@ const DECLARED_NON_HTML_TYPE =
 const REQUEST_OBJECT_VALUE =
   /(?:^|\.)(?:body|cookies|headers|params|query)$|\.(?:formData|json)\(\)$/;
 
-/** True when request data is written into a response body served as HTML. */
-function reflectsRequestData(body: Node | undefined): boolean {
+/**
+ * True when request data is written into a response body served as HTML. A
+ * body that is a parameter is judged by what each caller passes for it.
+ */
+function reflectsRequestData(body: Node | undefined, taint: Taint): boolean {
   if (!body) return false;
   const value = unwrap(body);
   // `const { name } = req.query` binds one field, not the parsed object.
@@ -270,24 +293,35 @@ function reflectsRequestData(body: Node | undefined): boolean {
       ?.getDeclarations()
       .some((declaration) => Node.isBindingElement(declaration))
   ) {
-    return isRequestValue(value);
+    return taint.isRequestValue(value);
   }
   const parts = stringParts(value);
   if (parts.length === 1) {
     const [part] = parts;
     if (typeof part === "string") return false;
     const node = unwrap(part);
+    const forwarded = taint.throughCallers(node, (argument) =>
+      reflectsRequestData(argument, taint),
+    );
+    if (forwarded !== undefined) return forwarded;
     // `@Body() dto` without a field name injects the parsed object.
     const decorator = Node.isIdentifier(node)
       ? requestDecorator(node)
       : undefined;
     if (decorator && decorator.getArguments().length === 0) return false;
-    return !REQUEST_OBJECT_VALUE.test(node.getText()) && isRequestValue(node);
+    return (
+      !REQUEST_OBJECT_VALUE.test(node.getText()) && taint.isRequestValue(node)
+    );
   }
-  return parts.some((part) => typeof part !== "string" && isRequestValue(part));
+  return parts.some(
+    (part) => typeof part !== "string" && taint.isRequestValue(part),
+  );
 }
 
-function reflectedResponseBody(call: CallExpression): Node | null {
+function reflectedResponseBody(
+  call: CallExpression,
+  taint: Taint,
+): Node | null {
   const response = responseCall(call);
   // Fastify's reply.send() serves strings as text/plain.
   if (
@@ -304,7 +338,7 @@ function reflectedResponseBody(call: CallExpression): Node | null {
     return null;
   }
   const [body] = call.getArguments();
-  return body && reflectsRequestData(body) ? body : null;
+  return body && reflectsRequestData(body, taint) ? body : null;
 }
 
 /** True when a spawn options object turns on a shell: `{ shell: true }`. */
@@ -333,15 +367,23 @@ function shellCommandParts(call: CallExpression): Node[] {
   return parts.filter((part) => !isStaticString(part));
 }
 
-function severityForDynamicInput(
-  node: Node | undefined,
-): DiagnosticIssue["severity"] {
-  return node && isTainted(node) ? "critical" : "warning";
+/**
+ * Severity, confidence, and fix of a shell or SQL finding: critical when its
+ * input visibly carries request data, here or through project functions.
+ */
+function dynamicInputDetails(
+  trace: Trace | null,
+  fix: string,
+): Pick<DiagnosticIssue, "severity" | "confidence" | "fix"> {
+  return trace
+    ? { severity: "critical", ...traceDetails(trace, fix) }
+    : { severity: "warning", fix };
 }
 
 function inspectSourceFile(
   sourceFile: SourceFile,
   file: string,
+  tracer: CallTracer,
 ): DiagnosticIssue[] {
   const issues: DiagnosticIssue[] = [];
   const commands = moduleBindings(
@@ -381,10 +423,12 @@ function inspectSourceFile(
       if (command && !isStaticString(command)) {
         issues.push({
           ...fromRule("dynamic-command-execution"),
-          severity: severityForDynamicInput(command),
           message: "Shell execution receives a non-literal command",
           ...sourceLocation(file, call.getStartLineNumber()),
-          fix: "Avoid a shell; use execFile or spawn with a fixed executable and validated argument array",
+          ...dynamicInputDetails(
+            tracer.trace((taint) => taint.isTainted(command)),
+            "Avoid a shell; use execFile or spawn with a fixed executable and validated argument array",
+          ),
         });
       }
     }
@@ -394,61 +438,95 @@ function inspectSourceFile(
       if (parts.length > 0) {
         issues.push({
           ...fromRule("dynamic-command-execution"),
-          severity: parts.some((part) => isTainted(part))
-            ? "critical"
-            : "warning",
           message: "A shell runs a command built from non-literal arguments",
           ...sourceLocation(file, call.getStartLineNumber()),
-          fix: "Remove the shell option and pass a fixed executable with a validated argument array",
+          ...dynamicInputDetails(
+            tracer.trace((taint) =>
+              parts.some((part) => taint.isTainted(part)),
+            ),
+            "Remove the shell option and pass a fixed executable with a validated argument array",
+          ),
         });
       }
     }
 
-    if (isDynamicSqlCall(call)) {
-      const query = call.getArguments()[0];
-      issues.push({
-        ...fromRule("dynamic-sql-query"),
-        severity: severityForDynamicInput(query),
-        message: "SQL execution uses a dynamically constructed query",
-        ...sourceLocation(file, call.getStartLineNumber()),
-        fix: "Use parameterized queries or the ORM's safe tagged-template API",
-      });
+    const query = sqlQuery(call);
+    if (query) {
+      const sqlClient = isSqlClient(call);
+      const trace = tracer.trace((taint) =>
+        sqlClient ? taint.isTainted(query) : isTaintedSql(query, taint),
+      );
+      if (sqlClient || trace) {
+        issues.push({
+          ...fromRule("dynamic-sql-query"),
+          message: "SQL execution uses a dynamically constructed query",
+          ...sourceLocation(file, call.getStartLineNumber()),
+          ...dynamicInputDetails(
+            trace,
+            "Use parameterized queries or the ORM's safe tagged-template API",
+          ),
+        });
+      }
     }
 
-    if (traversalPath(call, files)) {
+    const traversal = tracer.trace(
+      (taint) => traversalPath(call, files, taint) !== null,
+    );
+    if (traversal) {
       issues.push({
         ...fromRule("path-traversal"),
         message: "A file path is built from request data",
         ...sourceLocation(file, call.getStartLineNumber()),
-        fix: "Resolve the path against a fixed base directory and reject it unless it stays inside, or use path.basename() for plain file names",
+        ...traceDetails(
+          traversal,
+          "Resolve the path against a fixed base directory and reject it unless it stays inside, or use path.basename() for plain file names",
+        ),
       });
     }
 
-    if (forgedRequestUrl(call)) {
+    const forgery = tracer.trace(
+      (taint) => forgedRequestUrl(call, taint) !== null,
+    );
+    if (forgery) {
       issues.push({
         ...fromRule("server-side-request-forgery"),
         message: "An outgoing HTTP request uses a URL chosen by request data",
         ...sourceLocation(file, call.getStartLineNumber()),
-        fix: "Fix the scheme and host in code, or check the parsed URL's host against an allowlist before sending the request",
+        ...traceDetails(
+          forgery,
+          "Fix the scheme and host in code, or check the parsed URL's host against an allowlist before sending the request",
+        ),
       });
     }
 
-    if (openRedirectTarget(call)) {
+    const redirect = tracer.trace(
+      (taint) => openRedirectTarget(call, taint) !== null,
+    );
+    if (redirect) {
       issues.push({
         ...fromRule("open-redirect"),
         message: "A redirect target comes from request data",
         ...sourceLocation(file, call.getStartLineNumber()),
-        fix: "Redirect only to same-site paths (one leading slash) or to hosts on an allowlist",
+        ...traceDetails(
+          redirect,
+          "Redirect only to same-site paths (one leading slash) or to hosts on an allowlist",
+        ),
       });
     }
 
-    if (reflectedResponseBody(call)) {
+    const reflected = tracer.trace(
+      (taint) => reflectedResponseBody(call, taint) !== null,
+    );
+    if (reflected) {
       issues.push({
         ...fromRule("reflected-xss"),
         message:
           "Request data is written into an HTML response without escaping",
         ...sourceLocation(file, call.getStartLineNumber()),
-        fix: "Render through an escaping template engine, escape the value for HTML, or send JSON with res.json()",
+        ...traceDetails(
+          reflected,
+          "Render through an escaping template engine, escape the value for HTML, or send JSON with res.json()",
+        ),
       });
     }
   }
@@ -458,18 +536,22 @@ function inspectSourceFile(
   )) {
     const constructorName = expression.getExpression().getText();
     const [body, init] = expression.getArguments();
-    if (
+    const reflected =
       REDIRECT_RECEIVER.test(constructorName) &&
       init &&
-      /text\/html/i.test(init.getText()) &&
-      reflectsRequestData(body)
-    ) {
+      /text\/html/i.test(init.getText())
+        ? tracer.trace((taint) => reflectsRequestData(body, taint))
+        : null;
+    if (reflected) {
       issues.push({
         ...fromRule("reflected-xss"),
         message:
           "Request data is written into an HTML response without escaping",
         ...sourceLocation(file, expression.getStartLineNumber()),
-        fix: "Render through an escaping template engine, escape the value for HTML, or return JSON",
+        ...traceDetails(
+          reflected,
+          "Render through an escaping template engine, escape the value for HTML, or return JSON",
+        ),
       });
       continue;
     }
@@ -538,16 +620,22 @@ export async function analyzeSecuritySinks(
   context: ScanContext,
 ): Promise<DiagnosticIssue[]> {
   const issues: DiagnosticIssue[] = [];
-
+  // Every runtime file is parsed before any is inspected, so calls resolve
+  // across files and the type checker's program is built once.
+  const sources = new Map<SourceFile, string>();
   for (const file of context.matchFiles(SOURCE_PATTERN, {
     exclude: RUNTIME_IGNORES,
   })) {
     const sourceFile = context.getSourceFile(file);
-    if (!sourceFile) continue;
+    if (sourceFile) sources.set(sourceFile, file);
+  }
+  const tracer = new CallTracer(sources);
+
+  for (const [sourceFile, file] of sources) {
     try {
       issues.push(
-        ...inspectSourceFile(sourceFile, file),
-        ...inspectInjection(sourceFile, file),
+        ...inspectSourceFile(sourceFile, file, tracer),
+        ...inspectInjection(sourceFile, file, tracer),
         ...inspectAuthConfiguration(sourceFile, file),
       );
     } catch {

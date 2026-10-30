@@ -184,7 +184,7 @@ A .env file tracked by Git contains a provider token or a long, high-entropy val
 
 **Dynamic shell command** · default severity: `warning`
 
-A shell is invoked through exec or execSync, or through spawn, spawnSync, execFile, or execFileSync with a `shell` option, with a non-literal command or argument. The finding is critical when the command comes from request data, directly or through up to three variable assignments.
+A shell is invoked through exec or execSync, or through spawn, spawnSync, execFile, or execFileSync with a `shell` option, with a non-literal command or argument. The finding is critical when the command comes from request data, directly, through up to three variable assignments, or through project helper functions up to two calls deep, such as a route passing `req.body.cmd` to `run(cmd)`; findings that depend on such a call have medium confidence.
 
 - CWE: [CWE-78](https://cwe.mitre.org/data/definitions/78.html)
 - OWASP Top 10: A03:2021
@@ -193,7 +193,7 @@ A shell is invoked through exec or execSync, or through spawn, spawnSync, execFi
 
 **Dynamically built SQL query** · default severity: `warning`
 
-A raw SQL execution method receives a non-literal query. The finding is critical when the query is built from request data, directly or through up to three variable assignments; queries built from request data are reported for any client variable name.
+A raw SQL execution method receives a non-literal query. The finding is critical when the query is built from request data, directly, through up to three variable assignments, or through project helper functions up to two calls deep (medium confidence); queries built from request data are reported for any client variable name.
 
 - CWE: [CWE-89](https://cwe.mitre.org/data/definitions/89.html)
 - OWASP Top 10: A03:2021
@@ -301,7 +301,7 @@ A file handles password data and persists records, but no recognizable password 
 
 **File path from request data** · default severity: `critical`
 
-A file system call (fs, fs/promises, fs-extra) or res.sendFile()/res.download() without a root option receives a path that comes from request data, so `../` segments can reach files outside the intended directory. Values passed through path.basename() or checked with startsWith() in the same function are not reported.
+A file system call (fs, fs/promises, fs-extra) or res.sendFile()/res.download() without a root option receives a path that comes from request data, so `../` segments can reach files outside the intended directory. Request data is also followed into project helper functions and services up to two calls deep (medium confidence). Values passed through path.basename() or checked with startsWith() in the same function are not reported.
 
 - CWE: [CWE-22](https://cwe.mitre.org/data/definitions/22.html)
 - OWASP Top 10: A01:2021
