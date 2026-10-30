@@ -38,9 +38,17 @@ Every CodeDiag problem offers code actions of kind Quick Fix:
 
 | Action | Effect |
 | --- | --- |
+| Enable TLS certificate verification | `tls-verification-disabled`: rewrites `rejectUnauthorized: false` to `true`. |
+| Verify the token's expiration time | `jwt-expiration-ignored`: rewrites `ignoreExpiration: true` to `false`. |
+| Stop accepting the "none" algorithm | `jwt-none-algorithm`: removes `"none"` from a literal `algorithms` list that keeps another algorithm. |
 | Suppress `<rule>` on this line | Inserts `// codediag-ignore-next-line <rule> -- ` above the finding with the same indentation. |
 | Suppress `<rule>` in this file | Inserts `// codediag-ignore-file <rule> -- ` after the shebang and leading comments. |
 | Explain `<rule>` | Opens the rule's section of the [rule reference](rules.md). |
+
+The first three are remediations: the fix the rule asks for, offered as the
+preferred quick fix only when the finding's line holds exactly the reported
+setting once. A line edited since the scan, a list of only `"none"`, or a
+computed list gets no remediation. The next scan confirms the fix.
 
 Directives are inserted with the cursor right after `--`, so you type the
 justification there. CodeDiag does not apply a directive without a reason

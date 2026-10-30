@@ -21,6 +21,11 @@ asks you to choose a folder.
 CodeDiag problems offer quick fixes from the light bulb, `Ctrl+.`, or the
 Problems panel:
 
+- **Remediations** for rules with one mechanical fix, offered as the
+  preferred fix: enable TLS certificate verification
+  (`rejectUnauthorized: true`), verify JWT expiration
+  (`ignoreExpiration: false`), and drop `"none"` from a JWT `algorithms`
+  list.
 - **Suppress `<rule>` on this line** inserts
   `// codediag-ignore-next-line <rule> -- ` above the finding, indented
   like the flagged line.

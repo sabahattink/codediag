@@ -124,9 +124,105 @@ export interface SuppressionEdit {
   snippet: string;
 }
 
+/** A replacement within one line that removes the cause of a finding. */
+export interface RemediationEdit {
+  /** 0-based line of the finding. */
+  line: number;
+  start: number;
+  end: number;
+  text: string;
+}
+
 export type QuickFix =
+  | { kind: "remediate"; title: string; edit: RemediationEdit }
   | { kind: "suppress"; title: string; request: SuppressionRequest }
   | { kind: "explain"; title: string; url: string };
+
+interface Remediation {
+  title: string;
+  /** The fix within the finding's line, or null when it is not mechanical there. */
+  rewrite(line: string): Omit<RemediationEdit, "line"> | null;
+}
+
+/** The single match of a global pattern on a line; two matches are ambiguous. */
+function onlyMatch(line: string, pattern: RegExp): RegExpExecArray | null {
+  const matches = [...line.matchAll(pattern)];
+  return matches.length === 1 ? (matches[0] as RegExpExecArray) : null;
+}
+
+function replaceFlag(
+  line: string,
+  pattern: RegExp,
+  value: string,
+): Omit<RemediationEdit, "line"> | null {
+  const match = onlyMatch(line, pattern);
+  if (!match) return null;
+  return {
+    start: match.index,
+    end: match.index + match[0].length,
+    text: `${match[1]}${value}`,
+  };
+}
+
+const NONE_ALGORITHM = /^(["'`])none\1$/i;
+
+/**
+ * Rules whose fix is the same everywhere and fits on the finding's line.
+ * Each rewrite matches the exact syntax the analyzer reports, so a line
+ * that changed since the scan or holds the setting twice gets no fix.
+ */
+const REMEDIATIONS: Readonly<Record<string, Remediation>> = {
+  "tls-verification-disabled": {
+    title: "Enable TLS certificate verification",
+    rewrite: (line) =>
+      replaceFlag(line, /\b(rejectUnauthorized["']?\s*:\s*)false\b/g, "true"),
+  },
+  "jwt-expiration-ignored": {
+    title: "Verify the token's expiration time",
+    rewrite: (line) =>
+      replaceFlag(line, /\b(ignoreExpiration["']?\s*:\s*)true\b/g, "false"),
+  },
+  "jwt-none-algorithm": {
+    title: 'Stop accepting the "none" algorithm',
+    rewrite(line) {
+      // Only literal lists that keep at least one real algorithm.
+      const match = onlyMatch(line, /\b(algorithms["']?\s*:\s*\[)([^\]]*)\]/g);
+      if (!match) return null;
+      const inner = match[2] ?? "";
+      const elements = inner.split(",").map((element) => element.trim());
+      const kept = elements.filter((element) => !NONE_ALGORITHM.test(element));
+      const literal = (element: string) => /^(["'`]).*\1$/.test(element);
+      if (
+        kept.length === elements.length ||
+        kept.length === 0 ||
+        !elements.every(literal)
+      ) {
+        return null;
+      }
+      const padding = /^\s*/.exec(inner)?.[0] ?? "";
+      const trailing = /\s*$/.exec(inner)?.[0] ?? "";
+      return {
+        start: match.index,
+        end: match.index + match[0].length,
+        text: `${match[1]}${padding}${kept.join(", ")}${trailing}]`,
+      };
+    },
+  },
+};
+
+function remediation(finding: EditorDiagnostic, text: string): QuickFix | null {
+  const rule = REMEDIATIONS[finding.rule];
+  if (!rule || finding.fileLevel) return null;
+  const line = text.split(/\r?\n/)[finding.line];
+  const rewrite = line === undefined ? null : rule.rewrite(line);
+  return rewrite
+    ? {
+        kind: "remediate",
+        title: rule.title,
+        edit: { line: finding.line, ...rewrite },
+      }
+    : null;
+}
 
 const SCOPES: readonly SuppressionScope[] = ["line", "file"];
 const DIRECTIVES: Record<SuppressionScope, string> = {
@@ -294,7 +390,10 @@ export function suppressionEdit(
   };
 }
 
-/** Quick fixes for a finding: suppressions the scanner applies, then docs. */
+/**
+ * Quick fixes for a finding: a mechanical remediation where one exists,
+ * suppressions the scanner applies, then docs.
+ */
 export function quickFixes(
   finding: EditorDiagnostic,
   text: string,
@@ -311,7 +410,9 @@ export function quickFixes(
     const title = `Suppress ${finding.rule} ${SCOPE_LABELS[scope]}`;
     return [{ kind: "suppress", title, request }];
   });
+  const remedy = remediation(finding, text);
   return [
+    ...(remedy ? [remedy] : []),
     ...suppressions,
     {
       kind: "explain",

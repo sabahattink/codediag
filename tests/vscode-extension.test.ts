@@ -15,6 +15,7 @@ import {
   countSeverities,
   type EditorDiagnostic,
   isSuppressionRequest,
+  type QuickFix,
   quickFixes,
   ruleDocumentationUrl,
   type SuppressionEdit,
@@ -485,6 +486,140 @@ test("quick-fix directives are applied by a real scan", async () => {
           ["src/run.ts", "unsafe-dynamic-code", false, "trusted plugin"],
         ],
       );
+    },
+  );
+});
+
+function remediate(text: string, fix: QuickFix | undefined): string {
+  assert.ok(fix?.kind === "remediate", "a remediation is offered");
+  const lines = text.split("\n");
+  const line = lines[fix.edit.line] ?? "";
+  lines[fix.edit.line] =
+    line.slice(0, fix.edit.start) + fix.edit.text + line.slice(fix.edit.end);
+  return lines.join("\n");
+}
+
+test("remediation quick fixes rewrite a mechanical fix on the finding's line", () => {
+  const cases: Array<[string, string, string, string]> = [
+    [
+      "tls-verification-disabled",
+      "const agent = new https.Agent({ rejectUnauthorized: false });",
+      "const agent = new https.Agent({ rejectUnauthorized: true });",
+      "Enable TLS certificate verification",
+    ],
+    [
+      "jwt-expiration-ignored",
+      "  jwt.verify(token, key, { 'ignoreExpiration': true });",
+      "  jwt.verify(token, key, { 'ignoreExpiration': false });",
+      "Verify the token's expiration time",
+    ],
+    [
+      "jwt-none-algorithm",
+      "    algorithms: ['HS256', 'none'],",
+      "    algorithms: ['HS256'],",
+      'Stop accepting the "none" algorithm',
+    ],
+    [
+      "jwt-none-algorithm",
+      '  { algorithms: [ "none", "RS256" ] }',
+      '  { algorithms: [ "RS256" ] }',
+      'Stop accepting the "none" algorithm',
+    ],
+  ];
+  for (const [rule, before, after, title] of cases) {
+    const fixes = quickFixes(finding({ rule, line: 0 }), before);
+    assert.equal(fixes[0]?.title, title, rule);
+    assert.equal(remediate(before, fixes[0]), after, rule);
+    assert.deepEqual(
+      fixes.slice(1).map((fix) => fix.kind),
+      ["suppress", "suppress", "explain"],
+    );
+  }
+});
+
+test("remediations are offered only when the fix is unambiguous", () => {
+  const cases: Array<[string, string]> = [
+    ["jwt-none-algorithm", "  algorithms: ['none'],"],
+    ["jwt-none-algorithm", "  algorithms: [ALGORITHM, 'none'],"],
+    ["jwt-none-algorithm", "  algorithms: ["],
+    [
+      "tls-verification-disabled",
+      "a({ rejectUnauthorized: false }); b({ rejectUnauthorized: false });",
+    ],
+    [
+      "tls-verification-disabled",
+      'process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";',
+    ],
+    // The document changed since the scan.
+    ["jwt-expiration-ignored", "  return jwt.verify(token, key);"],
+  ];
+  for (const [rule, line] of cases) {
+    assert.equal(
+      quickFixes(finding({ rule, line: 0 }), line).some(
+        (fix) => fix.kind === "remediate",
+      ),
+      false,
+      line,
+    );
+  }
+  assert.equal(
+    quickFixes(
+      finding({ rule: "tls-verification-disabled", line: 0, fileLevel: true }),
+      "rejectUnauthorized: false",
+    ).some((fix) => fix.kind === "remediate"),
+    false,
+  );
+});
+
+test("remediation quick fixes are confirmed by a real scan", async () => {
+  const files = {
+    "src/client.ts": [
+      'import https from "node:https";',
+      "export const agent = new https.Agent({ rejectUnauthorized: false });",
+    ].join("\n"),
+    "src/auth.ts": [
+      'import jwt from "jsonwebtoken";',
+      "export function verify(token: string, key: string) {",
+      "  return jwt.verify(token, key, {",
+      "    algorithms: ['HS256', 'none'],",
+      "    ignoreExpiration: true,",
+      "  });",
+      "}",
+    ].join("\n"),
+  };
+  const rules = [
+    "jwt-expiration-ignored",
+    "jwt-none-algorithm",
+    "tls-verification-disabled",
+  ];
+  await withProject(
+    { "package.json": "{}", "README.md": "x", ...files },
+    async (directory) => {
+      const config = securityOnly(directory);
+      const reported = async () =>
+        (await scan(directory, config, { interactive: false })).analyzers
+          .flatMap((analyzer) => analyzer.issues)
+          .filter((issue) => rules.includes(issue.rule))
+          .map((issue) => issue.rule)
+          .sort();
+      assert.deepEqual(await reported(), rules);
+
+      const before = await scan(directory, config, { interactive: false });
+      for (const [name, text] of Object.entries(files)) {
+        let fixed = text;
+        for (const target of collectEditorDiagnostics(
+          before,
+          directory,
+        ).diagnostics.filter(
+          (item) =>
+            item.filePath === join(directory, name) &&
+            rules.includes(item.rule),
+        )) {
+          fixed = remediate(fixed, quickFixes(target, text)[0]);
+        }
+        writeFileSync(join(directory, name), fixed);
+      }
+      assert.deepEqual(await reported(), []);
     },
   );
 });

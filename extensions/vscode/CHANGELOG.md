@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.6.0
+
+- Remediation quick fixes, offered as the preferred fix where a rule has one
+  mechanical fix on the flagged line: enable TLS certificate verification,
+  verify JWT expiration, and remove `"none"` from a JWT `algorithms` list.
+- Run the CodeDiag 0.8 engine: tRPC procedures, `@fastify/autoload`, and the
+  deeper cross-file taint tracking.
+
 ## 0.5.0
 
 - Scan monorepo roots package by package and combine the results
