@@ -84,6 +84,15 @@ export interface ScanScope {
   excludedFindings: number;
 }
 
+/** One scan's scores in a `--history` trend. */
+export interface HistoryPoint {
+  timestamp: string;
+  totalScore: number;
+  grade: string;
+  /** Analyzer scores by analyzer name. */
+  analyzers: Record<string, number>;
+}
+
 /** One package of a workspace scan, as listed in the combined report. */
 export interface WorkspacePackageSummary {
   /** POSIX path relative to the workspace root. */
@@ -149,6 +158,8 @@ export interface ScanResult {
   scope?: ScanScope;
   comparison?: ComparisonSummary;
   workspace?: WorkspaceSummary;
+  /** Present with `--history`: earlier scans, oldest first, then this one. */
+  history?: HistoryPoint[];
 }
 
 export interface PackageJson {

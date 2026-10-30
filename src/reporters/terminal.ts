@@ -2,8 +2,10 @@ import chalk from "chalk";
 import { formatDelta } from "../core/compare.js";
 import { activeIssues, inactiveCounts } from "../core/issues.js";
 import { formatPenalty } from "../core/scoring.js";
+import { sparkline } from "../core/history.js";
 import type {
   ComparisonSummary,
+  HistoryPoint,
   ScanResult,
   WorkspaceSummary,
 } from "../types.js";
@@ -76,6 +78,27 @@ function renderFixed(comparison: ComparisonSummary): void {
     );
   }
   console.log();
+}
+
+function trendLine(history: HistoryPoint[]): string {
+  const first = history[0];
+  const last = history.at(-1);
+  if (!first || !last || history.length < 2) {
+    return chalk.dim("first recorded scan");
+  }
+  const scores = history.map((point) => point.totalScore);
+  const color =
+    last.totalScore > first.totalScore
+      ? chalk.green
+      : last.totalScore < first.totalScore
+        ? chalk.red
+        : chalk.dim;
+  return (
+    color(sparkline(scores)) +
+    chalk.dim(
+      `  ${first.totalScore} → ${last.totalScore} over ${history.length} scans since ${first.timestamp.slice(0, 10)}`,
+    )
+  );
 }
 
 function renderPackages(workspace: WorkspaceSummary): void {
@@ -154,6 +177,9 @@ export function renderTerminal(
       chalk.dim("  Change:   ") +
         comparisonLine(result.comparison, result.totalScore),
     );
+  }
+  if (result.history) {
+    console.log(chalk.dim("  Trend:    ") + trendLine(result.history));
   }
   console.log();
   if (result.workspace) renderPackages(result.workspace);

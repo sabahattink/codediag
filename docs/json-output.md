@@ -50,6 +50,7 @@ https://raw.githubusercontent.com/sabahattink/codediag/main/schema/scan-result.s
 | `scope` | object | Optional. Present with `--changed-since`: `{ changedSince, files, excludedFindings }` |
 | `comparison` | object | Optional. Present with `--compare`: changes since an earlier report |
 | `workspace` | object | Optional. Present with `--workspaces`: `{ tool, packages }` |
+| `history` | array | Optional. Present with `--history`: `{ timestamp, totalScore, grade, analyzers }` per recorded scan, oldest first, ending with this scan |
 
 `workspace` describes a combined monorepo report. `tool` is `npm`, `pnpm`,
 `yarn`, `lerna`, `nx`, or `turbo`, and `packages` lists each scanned package

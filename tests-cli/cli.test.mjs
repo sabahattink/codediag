@@ -3,6 +3,7 @@ import { spawnSync } from "node:child_process";
 import {
   mkdirSync,
   mkdtempSync,
+  readdirSync,
   readFileSync,
   rmSync,
   writeFileSync,
@@ -557,6 +558,42 @@ test("--workspaces scans each package and combines the reports", () => {
     const single = runCli(["scan", "packages/web", "--workspaces"], directory);
     assert.equal(single.status, 1);
     assert.match(single.stderr, /No workspace packages found/);
+  } finally {
+    rmSync(directory, { recursive: true, force: true });
+  }
+});
+
+test("--history records each scan and reports the trend", () => {
+  const directory = mkdtempSync(join(tmpdir(), "codediag-cli-"));
+  try {
+    writeFileSync(join(directory, "package.json"), "{}");
+    writeFileSync(join(directory, ".gitignore"), ".env\n");
+    writeFileSync(join(directory, "run.js"), "eval(a);\n");
+
+    const first = runCli(
+      ["scan", ".", "--no-audit", "--history", "history"],
+      directory,
+    );
+    assert.equal(first.status, 0, first.stderr);
+    assert.match(first.stdout, /Trend: +first recorded scan/);
+
+    writeFileSync(join(directory, "run.js"), "export const ok = 1;\n");
+    const second = runCli(
+      ["scan", ".", "--no-audit", "--history", "history", "--format", "json"],
+      directory,
+    );
+    const report = JSON.parse(second.stdout);
+    assert.equal(validateScanResult(report), true);
+    assert.equal(report.history.length, 2);
+    assert.ok(report.history[1].totalScore > report.history[0].totalScore);
+    assert.equal(readdirSync(join(directory, "history")).length, 2);
+
+    const scoped = runCli(
+      ["scan", ".", "--history", "history", "--changed-since", "HEAD"],
+      directory,
+    );
+    assert.equal(scoped.status, 1);
+    assert.match(scoped.stderr, /cannot be combined with --changed-since/);
   } finally {
     rmSync(directory, { recursive: true, force: true });
   }

@@ -140,3 +140,44 @@ test("HTML reporter explains lost points and root-caused findings", () => {
   assert.match(html, /Security \/ review · caused by secret-leak/);
   assert.doesNotMatch(renderHtml(fixture()), /class="breakdown"/);
 });
+
+test("HTML reporter charts the score history with readable points and a table", () => {
+  const result = fixture();
+  result.history = [
+    {
+      timestamp: "2025-12-01T00:00:00.000Z",
+      totalScore: 52,
+      grade: "F",
+      analyzers: { Security: 40 },
+    },
+    {
+      timestamp: "2025-12-15T00:00:00.000Z",
+      totalScore: 61,
+      grade: "D",
+      analyzers: { Security: 55 },
+    },
+    {
+      timestamp: "2026-01-01T00:00:00.000Z",
+      totalScore: 70,
+      grade: "B",
+      analyzers: { Security: 70 },
+    },
+  ];
+
+  const html = renderHtml(result);
+
+  assert.match(html, /<h2 id="history-title">Score history<\/h2>/);
+  assert.match(html, /52 → 70 over 3 scans since/);
+  assert.match(
+    html,
+    /<polyline class="trend" points="44\.0,[\d.]+ 360\.0,[\d.]+ 676\.0,[\d.]+"\/>/,
+  );
+  assert.equal(html.match(/class="point" tabindex="0"/g)?.length, 3);
+  assert.match(html, /aria-label="2025-12-15: 61 \(D\)"/);
+  assert.match(html, /Show the 3 scans as a table/);
+  assert.match(html, /<th scope="col">Security<\/th>/);
+
+  result.history = result.history.slice(0, 1);
+  assert.match(renderHtml(result), /First recorded scan/);
+  assert.doesNotMatch(renderHtml(fixture()), /history-title/);
+});

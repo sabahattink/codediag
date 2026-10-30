@@ -1,4 +1,5 @@
 import { formatDelta } from "../core/compare.js";
+import { sparkline } from "../core/history.js";
 import { activeIssues, inactiveCounts } from "../core/issues.js";
 import { formatPenalty } from "../core/scoring.js";
 import type { ComparisonSummary, ScanResult } from "../types.js";
@@ -68,6 +69,13 @@ export function renderMarkdown(result: ScanResult): string {
   }
   if (result.comparison) {
     lines.push(...comparisonSection(result.comparison, result.totalScore));
+  }
+  const firstScan = result.history?.[0];
+  if (result.history && firstScan && result.history.length > 1) {
+    lines.push(
+      `**Trend:** \`${sparkline(result.history.map((point) => point.totalScore))}\` ${firstScan.totalScore} → ${result.totalScore} over ${result.history.length} scans since ${firstScan.timestamp.slice(0, 10)}`,
+      ``,
+    );
   }
   if (result.workspace) {
     lines.push(

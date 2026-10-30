@@ -6,6 +6,7 @@ import { isBelowThreshold, loadConfig, parseThreshold } from "./config.js";
 import { loadBaseline } from "./core/baseline.js";
 import { changedFilesSince } from "./core/changed-files.js";
 import { compareWithPrevious, loadReport } from "./core/compare.js";
+import { loadHistory, recordHistory, withHistory } from "./core/history.js";
 import { scanWorkspace } from "./core/workspace-scan.js";
 import { detectWorkspaces } from "./core/workspaces.js";
 import { renderHtml } from "./reporters/html.js";
@@ -81,6 +82,10 @@ program
     "Report and score only findings in files changed since a Git revision",
   )
   .option(
+    "--history <directory>",
+    "Record this scan in a directory and show the score trend of the scans recorded there",
+  )
+  .option(
     "--workspaces",
     "Scan every workspace package (npm, pnpm, Yarn, Lerna, Nx) and combine the reports",
   )
@@ -108,6 +113,11 @@ program
       if (options.changedSince && options.updateBaseline) {
         throw new Error(
           "--update-baseline records the whole project and cannot be combined with --changed-since",
+        );
+      }
+      if (options.changedSince && options.history) {
+        throw new Error(
+          "--history records whole-project scores and cannot be combined with --changed-since",
         );
       }
       const baseline = options.baseline
@@ -139,7 +149,7 @@ program
         options.workspaces && workspaces
           ? await scanWorkspace(targetPath, config, workspaces, scanOptions)
           : await scan(targetPath, config, scanOptions);
-      const result = previous
+      const compared = previous
         ? compareWithPrevious(scanned, previous, scope?.files)
         : scanned;
       if (options.updateBaseline) {
@@ -147,9 +157,16 @@ program
         mkdirSync(dirname(baselinePath), { recursive: true });
         writeFileSync(
           baselinePath,
-          `${JSON.stringify(result, null, 2)}\n`,
+          `${JSON.stringify(compared, null, 2)}\n`,
           "utf-8",
         );
+      }
+      let result = compared;
+      if (options.history) {
+        const historyDirectory = resolve(options.history);
+        const earlier = loadHistory(historyDirectory);
+        recordHistory(historyDirectory, compared);
+        result = withHistory(compared, earlier);
       }
 
       switch (format) {

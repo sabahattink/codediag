@@ -156,6 +156,7 @@ codediag scan . --ci --baseline .codediag-baseline.json    # Fail only on new fi
 codediag scan . --compare previous.json   # Score change, new and fixed findings
 codediag scan . --changed-since origin/main  # Only files this branch changes
 codediag scan . --workspaces              # Every monorepo package, combined
+codediag scan . --history .codediag/history  # Record scans, show the trend
 codediag rules                     # List every rule
 codediag explain open-cors         # Explain a rule and how to suppress it
 codediag init                      # Create .codediag.yml
@@ -188,6 +189,16 @@ how many findings elsewhere were left out.
 
 ```bash
 codediag scan . --changed-since origin/main --threshold 90
+```
+
+`--history <directory>` keeps a trend: each scan is saved in the directory
+(`codediag-<timestamp>.json`), and the report shows the score over the last
+50 recorded scans, as a sparkline in the terminal and Markdown and as a chart
+with a table view in the HTML report. Commit the directory, or cache it in CI,
+to keep the history.
+
+```bash
+codediag scan . --history .codediag/history
 ```
 
 ### Monorepos

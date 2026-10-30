@@ -10,6 +10,7 @@ import type {
   AnalyzerResult,
   ComparisonSummary,
   DiagnosticIssue,
+  HistoryPoint,
   ScanResult,
   ScanScope,
   WorkspaceSummary,
@@ -122,6 +123,103 @@ function renderIssue(issue: DiagnosticIssue, analyzerName: string): string {
     <div class="issue-meta">${location ? `<code>${escapeHtml(location)}</code>` : ""}<a href="${escapeHtml(ruleDocsUrl(issue.rule))}" target="_blank" rel="noreferrer">Rule docs</a></div>
     ${issue.fix ? `<p class="fix"><strong>Suggested fix</strong>${escapeHtml(issue.fix)}</p>` : ""}
   </article>`;
+}
+
+/** Plot area of the history chart, in viewBox units. */
+const CHART = {
+  width: 720,
+  height: 230,
+  left: 44,
+  right: 676,
+  top: 18,
+  bottom: 196,
+};
+const GRADE_LINES: Array<[number, string]> = [
+  [90, "A"],
+  [80, "B"],
+  [70, "C"],
+  [60, "D"],
+];
+
+function chartY(score: number): number {
+  const clamped = Math.max(0, Math.min(100, score));
+  return CHART.bottom - (clamped / 100) * (CHART.bottom - CHART.top);
+}
+
+function renderHistoryTable(history: HistoryPoint[]): string {
+  const names = [
+    ...new Set(history.flatMap((point) => Object.keys(point.analyzers))),
+  ];
+  const head = names
+    .map((name) => `<th scope="col">${escapeHtml(name)}</th>`)
+    .join("");
+  const rows = [...history]
+    .reverse()
+    .map(
+      (point) =>
+        `<tr><td><time datetime="${escapeHtml(point.timestamp)}">${escapeHtml(point.timestamp.slice(0, 16).replace("T", " "))}</time></td><td class="num"><strong>${point.totalScore}</strong> ${escapeHtml(point.grade)}</td>${names
+          .map((name) => `<td class="num">${point.analyzers[name] ?? "—"}</td>`)
+          .join("")}</tr>`,
+    )
+    .join("");
+  return `<details class="history-table"><summary>Show the ${history.length} scans as a table</summary><div class="table-scroll"><table><thead><tr><th scope="col">Scan</th><th scope="col">Total</th>${head}</tr></thead><tbody>${rows}</tbody></table></div></details>`;
+}
+
+/** The total score over recorded scans: one line, grade guides, hover readouts. */
+function renderHistory(history: HistoryPoint[]): string {
+  const first = history[0];
+  const last = history.at(-1);
+  if (!first || !last || history.length < 2) {
+    return `<section aria-labelledby="history-title">
+    <div class="section-head"><h2 id="history-title">Score history</h2><p>First recorded scan; the trend appears after the next one.</p></div>
+  </section>`;
+  }
+  const step = (CHART.right - CHART.left) / (history.length - 1);
+  const points = history.map((point, index) => ({
+    point,
+    x: CHART.left + index * step,
+    y: chartY(point.totalScore),
+  }));
+  const line = points
+    .map(({ x, y }) => `${x.toFixed(1)},${y.toFixed(1)}`)
+    .join(" ");
+  const guides = GRADE_LINES.map(
+    ([score, grade]) =>
+      `<line class="guide" x1="${CHART.left}" x2="${CHART.right}" y1="${chartY(score)}" y2="${chartY(score)}"/><text class="guide-label" x="${CHART.right + 8}" y="${chartY(score) + 4}">${grade} ${score}</text>`,
+  ).join("");
+  const columns = points
+    .map(({ point, x, y }, index) => {
+      const date = point.timestamp.slice(0, 10);
+      const label = `${date}: ${point.totalScore} (${point.grade})`;
+      const half = step / 2;
+      const left = index === 0 ? CHART.left - 12 : x - half;
+      const right = index === points.length - 1 ? CHART.right + 12 : x + half;
+      const tipX = Math.min(Math.max(x, CHART.left + 72), CHART.right - 72);
+      return `<g class="point" tabindex="0" role="img" aria-label="${escapeHtml(label)}">
+        <rect class="hit" x="${left.toFixed(1)}" y="${CHART.top}" width="${(right - left).toFixed(1)}" height="${CHART.bottom - CHART.top}"/>
+        <line class="crosshair" x1="${x.toFixed(1)}" x2="${x.toFixed(1)}" y1="${CHART.top}" y2="${CHART.bottom}"/>
+        <circle class="dot" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="4"/>
+        <g class="tip"><rect x="${(tipX - 72).toFixed(1)}" y="${Math.max(2, y - 34).toFixed(1)}" width="144" height="24" rx="4"/><text x="${tipX.toFixed(1)}" y="${(Math.max(2, y - 34) + 16).toFixed(1)}">${escapeHtml(label)}</text></g>
+      </g>`;
+    })
+    .join("");
+  const change = last.totalScore - first.totalScore;
+  return `<section aria-labelledby="history-title">
+    <div class="section-head"><h2 id="history-title">Score history</h2><p>${first.totalScore} → ${last.totalScore} over ${history.length} scans since <time datetime="${escapeHtml(first.timestamp)}">${escapeHtml(first.timestamp.slice(0, 10))}</time> <span class="delta ${deltaTone(change)}">${formatDelta(change)}</span></p></div>
+    <figure class="history">
+      <svg viewBox="0 0 ${CHART.width} ${CHART.height}" role="group" aria-label="Total score for each recorded scan">
+        <line class="axis" x1="${CHART.left}" x2="${CHART.right}" y1="${CHART.bottom}" y2="${CHART.bottom}"/>
+        ${guides}
+        <text class="axis-label" x="${CHART.left - 8}" y="${CHART.bottom + 4}" text-anchor="end">0</text>
+        <text class="axis-label" x="${CHART.left - 8}" y="${CHART.top + 4}" text-anchor="end">100</text>
+        <polyline class="trend" points="${line}"/>
+        ${columns}
+        <text class="axis-label" x="${CHART.left}" y="${CHART.height - 8}">${escapeHtml(first.timestamp.slice(0, 10))}</text>
+        <text class="axis-label" x="${CHART.right}" y="${CHART.height - 8}" text-anchor="end">${escapeHtml(last.timestamp.slice(0, 10))}</text>
+      </svg>
+    </figure>
+    ${renderHistoryTable(history)}
+  </section>`;
 }
 
 function renderPackages(workspace: WorkspaceSummary): string {
@@ -263,6 +361,27 @@ button:focus-visible,input:focus-visible,a:focus-visible,summary:focus-visible{o
 .fix strong{color:var(--text);font:700 .72rem var(--mono);letter-spacing:.08em;text-transform:uppercase}
 .empty{border:1px dashed var(--border);padding:28px;text-align:center;color:var(--muted);background:var(--surface)}
 footer{margin-top:42px;padding-top:18px;border-top:2px solid var(--text);display:flex;justify-content:space-between;gap:18px;color:var(--muted);font-size:.8rem}
+.history{margin:0;padding:12px 8px 4px;overflow-x:auto;border:1px solid var(--border);border-radius:6px;background:var(--surface);box-shadow:var(--shadow)}
+.history svg{display:block;width:100%;min-width:600px;height:auto;overflow:visible}
+.history .axis{stroke:var(--muted);stroke-width:1}
+.history .guide{stroke:var(--border);stroke-width:1;stroke-dasharray:3 4}
+.history .guide-label,.history .axis-label{fill:var(--muted);font:600 12px var(--mono)}
+.history .trend{fill:none;stroke:var(--accent);stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
+.history .dot{fill:var(--accent);stroke:var(--surface);stroke-width:2}
+.history .hit{fill:transparent}
+.history .crosshair{stroke:var(--muted);stroke-width:1;opacity:0}
+.history .tip{opacity:0;pointer-events:none}
+.history .tip rect{fill:var(--text)}
+.history .tip text{fill:var(--surface);font:700 12px var(--mono);text-anchor:middle}
+.history .point{outline:none}
+.history .point:hover .crosshair,.history .point:focus-visible .crosshair,.history .point:hover .tip,.history .point:focus-visible .tip{opacity:1}
+.history .point:focus-visible .dot{stroke:var(--accent);stroke-width:3;r:6}
+.history-table{margin-top:10px}
+.history-table summary{cursor:pointer;font-weight:700}
+.table-scroll{overflow-x:auto}
+.history-table table{width:100%;margin-top:10px;border-collapse:collapse;font-size:.85rem}
+.history-table th,.history-table td{padding:6px 10px;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap}
+.history-table .num{text-align:right;font-family:var(--mono)}
 @media(max-width:680px){main{width:calc(100% - 24px);padding-top:24px}header{grid-template-columns:1fr}.total{width:132px}.section-head{align-items:start;flex-direction:column}.summary,.changes{grid-template-columns:1fr}.issue-main{flex-direction:column}footer{flex-direction:column}}
 @media(prefers-color-scheme:dark){:root{--bg:#0e1214;--surface:#151b1e;--surface-2:#222a2e;--grid:rgba(240,243,246,.035);--text:#eef2f3;--muted:#9aa6ad;--border:#2c363b;--accent:#8c9cff;--good:#4cc493;--warn:#f0a44b;--bad:#ff6b81;--info:#66aef5;--new:#b48cff;--shadow:none}}
 @media print{body{background:#fff}.toolbar{display:none}.issue[hidden]{display:block}.analyzer,.issue,.changes>div{box-shadow:none;break-inside:avoid}}
@@ -345,6 +464,7 @@ export function renderHtml(result: ScanResult): string {
   </header>
   ${result.scope ? renderScope(result.scope) : ""}
   ${result.comparison ? renderComparison(result.comparison, result.totalScore) : ""}
+  ${result.history ? renderHistory(result.history) : ""}
   ${result.workspace ? renderPackages(result.workspace) : ""}
 
   <section aria-labelledby="scores-title">

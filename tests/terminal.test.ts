@@ -113,3 +113,36 @@ test("terminal output shows the change since a previous scan and the scope", () 
   assert.match(output, /✖ NEW No tests \[no-test-files\]/);
   assert.match(output, /✔ Low test ratio \[low-test-ratio\]/);
 });
+
+test("terminal output shows the score trend from recorded scans", () => {
+  const output = capture(() =>
+    renderTerminal({
+      ...result,
+      history: [
+        {
+          timestamp: "2025-12-01T00:00:00.000Z",
+          totalScore: 40,
+          grade: "F",
+          analyzers: {},
+        },
+        {
+          timestamp: "2025-12-02T00:00:00.000Z",
+          totalScore: 55,
+          grade: "F",
+          analyzers: {},
+        },
+        {
+          timestamp: "2026-01-01T00:00:00.000Z",
+          totalScore: 67,
+          grade: "D",
+          analyzers: {},
+        },
+      ],
+    }),
+  );
+
+  assert.match(
+    output,
+    /Trend: {4}▄▅▆ {2}40 → 67 over 3 scans since 2025-12-01/,
+  );
+});
