@@ -6,6 +6,8 @@ import { isBelowThreshold, loadConfig, parseThreshold } from "./config.js";
 import { loadBaseline } from "./core/baseline.js";
 import { changedFilesSince } from "./core/changed-files.js";
 import { compareWithPrevious, loadReport } from "./core/compare.js";
+import { scanWorkspace } from "./core/workspace-scan.js";
+import { detectWorkspaces } from "./core/workspaces.js";
 import { renderHtml } from "./reporters/html.js";
 import { renderAiPrompt, renderFixPlan } from "./reporters/fix-plan.js";
 import { renderJson } from "./reporters/json.js";
@@ -78,6 +80,10 @@ program
     "--changed-since <revision>",
     "Report and score only findings in files changed since a Git revision",
   )
+  .option(
+    "--workspaces",
+    "Scan every workspace package (npm, pnpm, Yarn, Lerna, Nx) and combine the reports",
+  )
   .action(async (path: string, options, command: Command) => {
     const targetPath = resolve(path);
     // --ci implies JSON only when no output format was chosen explicitly.
@@ -116,13 +122,23 @@ program
             files: changedFilesSince(targetPath, options.changedSince),
           }
         : undefined;
-      const scanned = await scan(targetPath, config, {
+      const workspaces = detectWorkspaces(targetPath);
+      if (options.workspaces && !workspaces) {
+        throw new Error(
+          `No workspace packages found in ${targetPath} (package.json workspaces, pnpm-workspace.yaml, lerna.json, or nx.json)`,
+        );
+      }
+      const scanOptions = {
         baseline,
         scope,
         // --no-audit overrides the config; otherwise the config decides.
         audit:
           command.getOptionValueSource("audit") === "cli" ? false : undefined,
-      });
+      };
+      const scanned =
+        options.workspaces && workspaces
+          ? await scanWorkspace(targetPath, config, workspaces, scanOptions)
+          : await scan(targetPath, config, scanOptions);
       const result = previous
         ? compareWithPrevious(scanned, previous, scope?.files)
         : scanned;
@@ -163,6 +179,14 @@ program
             quiet: options.quiet,
             verbose: options.verbose,
           });
+          if (workspaces && !options.workspaces && !options.quiet) {
+            const count = workspaces.packages.length;
+            console.log(
+              chalk.dim(
+                `  This is a ${workspaces.tool} workspace with ${count} package${count === 1 ? "" : "s"}; add --workspaces to scan each one.\n`,
+              ),
+            );
+          }
           break;
       }
 

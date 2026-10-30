@@ -12,6 +12,7 @@ import type {
   DiagnosticIssue,
   ScanResult,
   ScanScope,
+  WorkspaceSummary,
 } from "../types.js";
 
 type Tone = "good" | "warn" | "bad";
@@ -123,6 +124,25 @@ function renderIssue(issue: DiagnosticIssue, analyzerName: string): string {
   </article>`;
 }
 
+function renderPackages(workspace: WorkspaceSummary): string {
+  const cards = workspace.packages
+    .map((entry) => {
+      const tone = scoreTone(entry.totalScore);
+      return `<article class="package ${tone}" aria-label="${escapeHtml(entry.path)} score ${entry.totalScore} out of 100">
+      <div class="package-head"><code>${escapeHtml(entry.path)}</code><span class="weight">${escapeHtml(entry.framework)}</span></div>
+      ${entry.name ? `<p class="package-name">${escapeHtml(entry.name)}</p>` : ""}
+      <div class="analyzer-score"><strong class="score">${entry.totalScore}</strong><span class="delta flat">${escapeHtml(entry.grade)}</span></div>
+      <div class="bar" aria-hidden="true"><span style="width:${entry.totalScore}%"></span></div>
+      <p>${entry.findings} finding${entry.findings === 1 ? "" : "s"}</p>
+    </article>`;
+    })
+    .join("\n");
+  return `<section aria-labelledby="packages-title">
+    <div class="section-head"><h2 id="packages-title">Packages</h2><p>${workspace.packages.length} ${escapeHtml(workspace.tool)} workspace packages</p></div>
+    <div class="analyzers">${cards}</div>
+  </section>`;
+}
+
 function renderScope(scope: ScanScope): string {
   return `<p class="banner" role="note"><strong>Scoped scan.</strong> Only findings in the ${scope.files} file${scope.files === 1 ? "" : "s"} changed since <code>${escapeHtml(scope.changedSince)}</code> are reported and scored; ${scope.excludedFindings} finding${scope.excludedFindings === 1 ? "" : "s"} elsewhere were left out.</p>`;
 }
@@ -183,8 +203,11 @@ section{margin-top:40px}
 .section-head p{margin:0;color:var(--muted)}
 .banner{margin:24px 0 0;padding:12px 16px;border:1px solid var(--accent);background:var(--surface);border-radius:4px}
 .analyzers{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
-.analyzer,.issue,.changes>div,.fixed{border:1px solid var(--border);border-radius:6px;background:var(--surface);box-shadow:var(--shadow)}
-.analyzer{padding:16px 18px;border-top:4px solid var(--tone)}
+.analyzer,.package,.issue,.changes>div,.fixed{border:1px solid var(--border);border-radius:6px;background:var(--surface);box-shadow:var(--shadow)}
+.analyzer,.package{padding:16px 18px;border-top:4px solid var(--tone)}
+.package-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+.package-head code{font-weight:700;font-size:.85rem;overflow-wrap:anywhere}
+.package-name{margin:4px 0 0;color:var(--muted);font-size:.8rem}
 .analyzer-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
 .analyzer h3{margin:0;font-size:.95rem}
 .weight{color:var(--muted);font:600 .7rem var(--mono);white-space:nowrap}
@@ -194,7 +217,7 @@ section{margin-top:40px}
 .delta.up{color:var(--good)}.delta.down{color:var(--bad)}.delta.flat{color:var(--muted)}
 .bar{height:6px;margin:12px 0;background:var(--surface-2);border-radius:3px;overflow:hidden}
 .bar span{display:block;height:100%;background:var(--tone)}
-.analyzer p{margin:0;color:var(--muted);font-size:.85rem}
+.analyzer p,.package p{margin:0;color:var(--muted);font-size:.85rem}
 .breakdown{display:grid;gap:4px;margin:12px 0 0;padding:10px 0 0;border-top:1px dashed var(--border);list-style:none;font-size:.8rem}
 .breakdown li{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:8px;align-items:baseline}
 .breakdown code{font-size:.74rem;overflow-wrap:anywhere}
@@ -322,6 +345,7 @@ export function renderHtml(result: ScanResult): string {
   </header>
   ${result.scope ? renderScope(result.scope) : ""}
   ${result.comparison ? renderComparison(result.comparison, result.totalScore) : ""}
+  ${result.workspace ? renderPackages(result.workspace) : ""}
 
   <section aria-labelledby="scores-title">
     <div class="section-head"><h2 id="scores-title">Analyzer scores</h2><p>${result.analyzers.length} analyzers completed</p></div>

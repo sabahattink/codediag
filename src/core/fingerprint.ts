@@ -33,16 +33,22 @@ function anchor(issue: DiagnosticIssue, lineText: string | null): string {
     : message.replace(/\d+(?:\.\d+)?/g, "#");
 }
 
+/**
+ * `namespace` is a workspace package's path: it keeps findings of different
+ * packages apart when their reports are combined.
+ */
 export function computeFingerprint(
   issue: DiagnosticIssue,
   lineText: string | null,
   occurrence = 0,
+  namespace?: string,
 ): string {
+  const file = namespace
+    ? `${namespace}/${issue.file ?? ""}`
+    : (issue.file ?? "");
   return createHash("sha256")
     .update(
-      [issue.rule, issue.file ?? "", anchor(issue, lineText), occurrence].join(
-        "\u0000",
-      ),
+      [issue.rule, file, anchor(issue, lineText), occurrence].join("\u0000"),
     )
     .digest("hex");
 }
@@ -54,6 +60,7 @@ export function computeFingerprint(
 export function assignFingerprints(
   results: AnalyzerResult[],
   readText: (file: string) => string | null,
+  namespace?: string,
 ): AnalyzerResult[] {
   const lineCache = new Map<string, string[] | null>();
   const occurrences = new Map<string, number>();
@@ -70,13 +77,15 @@ export function assignFingerprints(
     ...result,
     issues: result.issues.map((issue) => {
       const text = lineText(issue);
-      const base = computeFingerprint(issue, text);
+      const base = computeFingerprint(issue, text, 0, namespace);
       const occurrence = occurrences.get(base) ?? 0;
       occurrences.set(base, occurrence + 1);
       return {
         ...issue,
         fingerprint:
-          occurrence === 0 ? base : computeFingerprint(issue, text, occurrence),
+          occurrence === 0
+            ? base
+            : computeFingerprint(issue, text, occurrence, namespace),
       };
     }),
   }));

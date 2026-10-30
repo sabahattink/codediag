@@ -84,6 +84,24 @@ export interface ScanScope {
   excludedFindings: number;
 }
 
+/** One package of a workspace scan, as listed in the combined report. */
+export interface WorkspacePackageSummary {
+  /** POSIX path relative to the workspace root. */
+  path: string;
+  name?: string;
+  framework: StackInfo["framework"];
+  totalScore: number;
+  grade: Grade;
+  /** Active findings in the package. */
+  findings: number;
+}
+
+/** Present on a combined report from a `--workspaces` scan. */
+export interface WorkspaceSummary {
+  tool: "npm" | "pnpm" | "yarn" | "lerna" | "nx" | "turbo";
+  packages: WorkspacePackageSummary[];
+}
+
 export type RuleSetting = "off" | DiagnosticIssue["severity"];
 
 export interface ScoreBreakdownEntry {
@@ -130,6 +148,7 @@ export interface ScanResult {
   skipped?: SkippedSummary;
   scope?: ScanScope;
   comparison?: ComparisonSummary;
+  workspace?: WorkspaceSummary;
 }
 
 export interface PackageJson {

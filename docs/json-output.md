@@ -49,6 +49,14 @@ https://raw.githubusercontent.com/sabahattink/codediag/main/schema/scan-result.s
 | `skipped` | object | Optional. Present only when source files were left out of analysis |
 | `scope` | object | Optional. Present with `--changed-since`: `{ changedSince, files, excludedFindings }` |
 | `comparison` | object | Optional. Present with `--compare`: changes since an earlier report |
+| `workspace` | object | Optional. Present with `--workspaces`: `{ tool, packages }` |
+
+`workspace` describes a combined monorepo report. `tool` is `npm`, `pnpm`,
+`yarn`, `lerna`, `nx`, or `turbo`, and `packages` lists each scanned package
+as `{ path, name?, framework, totalScore, grade, findings }` (`findings`
+counts active findings). In a combined report every finding's `file` is
+relative to the workspace root, findings without a file point at their
+package's `package.json`, and fingerprints include the package path.
 
 `scope` means the scan reported and scored only findings in the `files`
 changed since the `changedSince` Git revision; `excludedFindings` counts the

@@ -2,6 +2,8 @@ import { appendFileSync, mkdirSync, writeFileSync } from "node:fs";
 import { dirname, isAbsolute, relative, resolve, sep } from "node:path";
 import { isBelowThreshold, loadConfig, parseThreshold } from "./config.js";
 import { loadBaseline } from "./core/baseline.js";
+import { scanWorkspace } from "./core/workspace-scan.js";
+import { detectWorkspaces } from "./core/workspaces.js";
 import {
   changedFiles,
   GitHubRequestError,
@@ -214,9 +216,20 @@ export async function runAction(): Promise<void> {
       ? loadBaseline(resolveWorkspacePath(workspace, baselineInput))
       : undefined;
 
-    const result = await scan(projectPath, loadConfig(projectPath), {
-      baseline,
-    });
+    const config = loadConfig(projectPath);
+    const wantsWorkspaces = parseBooleanInput(
+      "workspaces",
+      getInput("workspaces", "false"),
+    );
+    const workspaces = wantsWorkspaces ? detectWorkspaces(projectPath) : null;
+    if (wantsWorkspaces && !workspaces) {
+      throw new Error(
+        "workspaces is true, but no workspace packages were found (package.json workspaces, pnpm-workspace.yaml, lerna.json, or nx.json).",
+      );
+    }
+    const result = workspaces
+      ? await scanWorkspace(projectPath, config, workspaces, { baseline })
+      : await scan(projectPath, config, { baseline });
 
     mkdirSync(dirname(reportPath), { recursive: true });
     writeFileSync(reportPath, `${JSON.stringify(result, null, 2)}\n`, "utf8");

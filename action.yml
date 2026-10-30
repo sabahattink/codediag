@@ -26,6 +26,13 @@ inputs:
       score, threshold, or annotations.
     required: false
     default: ""
+  workspaces:
+    description: >-
+      Scan every workspace package (npm, pnpm, Yarn, Lerna, or Nx) below
+      `path` and combine the reports. Findings are reported with paths
+      relative to `path`.
+    required: false
+    default: "false"
   comment:
     description: >-
       Post one pull request comment with the score, its change since the last

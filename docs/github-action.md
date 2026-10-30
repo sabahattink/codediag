@@ -45,6 +45,7 @@ third-party dependencies.
 | `report` | `codediag-report.json` | JSON report path relative to `GITHUB_WORKSPACE` |
 | `sarif` | `codediag-report.sarif` | SARIF 2.1.0 report path relative to `GITHUB_WORKSPACE` |
 | `baseline` | _(none)_ | Optional CodeDiag JSON report relative to `GITHUB_WORKSPACE`; its findings do not affect the score, threshold, or annotations. See [baselines](suppressions-and-baselines.md#baselines) |
+| `workspaces` | `false` | Scan every workspace package below `path` (npm, pnpm, Yarn, Lerna, Nx) and combine the reports; see [monorepos](../README.md#monorepos) |
 | `comment` | `false` | Post and update one pull request comment; see [pull request comments](#pull-request-comments) |
 | `github-token` | `${{ github.token }}` | Token for reading changed files and writing the comment |
 

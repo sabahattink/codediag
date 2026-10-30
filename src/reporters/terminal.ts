@@ -2,7 +2,11 @@ import chalk from "chalk";
 import { formatDelta } from "../core/compare.js";
 import { activeIssues, inactiveCounts } from "../core/issues.js";
 import { formatPenalty } from "../core/scoring.js";
-import type { ComparisonSummary, ScanResult } from "../types.js";
+import type {
+  ComparisonSummary,
+  ScanResult,
+  WorkspaceSummary,
+} from "../types.js";
 
 function scoreBar(score: number, width = 20): string {
   const filled = Math.round((score / 100) * width);
@@ -74,6 +78,24 @@ function renderFixed(comparison: ComparisonSummary): void {
   console.log();
 }
 
+function renderPackages(workspace: WorkspaceSummary): void {
+  const width = Math.max(
+    16,
+    ...workspace.packages.map((entry) => entry.path.length),
+  );
+  console.log(
+    chalk.bold(`  Packages`) +
+      chalk.dim(` (${workspace.tool} workspace, ${workspace.packages.length})`),
+  );
+  for (const entry of workspace.packages) {
+    const findings = `${entry.findings} finding${entry.findings === 1 ? "" : "s"}`;
+    console.log(
+      `  ${chalk.dim(entry.path.padEnd(width))} ${scoreBar(entry.totalScore)} ${chalk.bold(String(entry.totalScore).padStart(3))} ${gradeColor(entry.grade.padEnd(2))} ${chalk.dim(findings)}`,
+    );
+  }
+  console.log();
+}
+
 export function renderTerminal(
   result: ScanResult,
   options: { quiet?: boolean; verbose?: boolean } = {},
@@ -101,13 +123,15 @@ export function renderTerminal(
   console.log();
 
   // Project info
-  const stackLabel = [
-    result.stack.framework,
-    result.stack.language,
-    result.stack.orm,
-  ]
-    .filter(Boolean)
-    .join(chalk.dim(" + "));
+  // A workspace root has no stack of its own; name its packages' frameworks.
+  const stackLabel = result.workspace
+    ? `${result.workspace.tool} workspace` +
+      chalk.dim(
+        ` (${[...new Set(result.workspace.packages.map((entry) => entry.framework))].join(", ")})`,
+      )
+    : [result.stack.framework, result.stack.language, result.stack.orm]
+        .filter(Boolean)
+        .join(chalk.dim(" + "));
   console.log(chalk.dim("  Project:  ") + chalk.white(result.project));
   console.log(chalk.dim("  Stack:    ") + stackLabel);
   console.log(
@@ -132,6 +156,7 @@ export function renderTerminal(
     );
   }
   console.log();
+  if (result.workspace) renderPackages(result.workspace);
 
   // Scores
   for (const a of result.analyzers) {

@@ -18,6 +18,20 @@ export const ANALYZER_WEIGHTS: Readonly<Record<string, number>> = {
 };
 export const DEFAULT_ANALYZER_WEIGHT = 10;
 
+/** The total score: analyzer scores weighted by ANALYZER_WEIGHTS, rounded. */
+export function weightedTotal(
+  analyzers: ReadonlyArray<Pick<AnalyzerResult, "name" | "score">>,
+): number {
+  let totalWeight = 0;
+  let weightedSum = 0;
+  for (const analyzer of analyzers) {
+    const weight = ANALYZER_WEIGHTS[analyzer.name] ?? DEFAULT_ANALYZER_WEIGHT;
+    weightedSum += analyzer.score * weight;
+    totalWeight += weight;
+  }
+  return totalWeight > 0 ? Math.round(weightedSum / totalWeight) : 0;
+}
+
 export const SEVERITY_WEIGHTS: Record<DiagnosticIssue["severity"], number> = {
   critical: 25,
   warning: 8,

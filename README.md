@@ -155,6 +155,7 @@ codediag scan . --update-baseline .codediag-baseline.json  # Record accepted fin
 codediag scan . --ci --baseline .codediag-baseline.json    # Fail only on new findings
 codediag scan . --compare previous.json   # Score change, new and fixed findings
 codediag scan . --changed-since origin/main  # Only files this branch changes
+codediag scan . --workspaces              # Every monorepo package, combined
 codediag rules                     # List every rule
 codediag explain open-cors         # Explain a rule and how to suppress it
 codediag init                      # Create .codediag.yml
@@ -188,6 +189,27 @@ how many findings elsewhere were left out.
 ```bash
 codediag scan . --changed-since origin/main --threshold 90
 ```
+
+### Monorepos
+
+`--workspaces` scans every package of an npm, pnpm, or Yarn workspace, a
+Lerna repository, or an Nx workspace (Turborepo uses your package manager's
+workspaces). Each package gets its own stack detection and score, using its
+own `.codediag.yml` if it has one and otherwise the root configuration, with
+root `ignore` paths rebased into the package. The combined report lists every
+package and averages each analyzer over the packages it ran in; the total
+uses the usual analyzer weights. Findings are located relative to the root,
+and project-level findings point at the package's `package.json`, so
+baselines, `--compare`, `--changed-since`, SARIF, and the GitHub Action
+(`workspaces: true`) work across the whole repository.
+
+```bash
+codediag scan . --workspaces
+codediag scan . --workspaces --format html > monorepo-report.html
+```
+
+Scanning a workspace root without `--workspaces` scans it as one project and
+suggests the flag.
 
 ### Review-first fix proposals
 

@@ -322,3 +322,65 @@ test("the Action bundle does not embed package.json dependencies", async () => {
     );
   }
 });
+
+test("GitHub Action combines workspace packages with workspaces: true", async () => {
+  const workspace = await mkdtemp(join(tmpdir(), "codediag-action-mono-"));
+  const outputFile = join(workspace, "output.txt");
+
+  try {
+    await writeFile(
+      join(workspace, "package.json"),
+      JSON.stringify({ name: "root", workspaces: ["packages/*"] }),
+    );
+    await writeFile(join(workspace, ".gitignore"), ".env\n");
+    for (const name of ["api", "web"]) {
+      await mkdir(join(workspace, "packages", name, "src"), {
+        recursive: true,
+      });
+      await writeFile(
+        join(workspace, "packages", name, "package.json"),
+        JSON.stringify({ name }),
+      );
+      await writeFile(
+        join(workspace, "packages", name, "src", "index.js"),
+        "export const ok = 1;\n",
+      );
+    }
+
+    const run = (workspaces) =>
+      spawnSync(process.execPath, [actionEntry], {
+        cwd: workspace,
+        encoding: "utf8",
+        env: {
+          ...process.env,
+          GITHUB_WORKSPACE: workspace,
+          GITHUB_OUTPUT: outputFile,
+          GITHUB_STEP_SUMMARY: "",
+          INPUT_PATH: workspaces === "single" ? "packages/api" : ".",
+          INPUT_THRESHOLD: "0",
+          INPUT_WORKSPACES: workspaces === "single" ? "true" : workspaces,
+          INPUT_AUDIT: "false",
+        },
+      });
+
+    const combined = run("true");
+    assert.equal(combined.status, 0, combined.stderr || combined.stdout);
+    const report = JSON.parse(
+      await readFile(join(workspace, "codediag-report.json"), "utf8"),
+    );
+    assert.deepEqual(
+      report.workspace.packages.map((entry) => entry.path),
+      ["packages/api", "packages/web"],
+    );
+
+    const missing = run("single");
+    // An unusable input is an operational failure, not a failed gate.
+    assert.equal(missing.status, 2);
+    assert.match(
+      missing.stdout + missing.stderr,
+      /no workspace packages were found/,
+    );
+  } finally {
+    await rm(workspace, { recursive: true, force: true });
+  }
+});

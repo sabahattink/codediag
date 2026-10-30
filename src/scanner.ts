@@ -16,11 +16,7 @@ import { limitToFiles } from "./core/changed-files.js";
 import { assignFingerprints } from "./core/fingerprint.js";
 import { applyRuleOverrides } from "./core/rule-overrides.js";
 import { createScanContext, type ScanContext } from "./core/scan-context.js";
-import {
-  ANALYZER_WEIGHTS,
-  applyScoring,
-  DEFAULT_ANALYZER_WEIGHT,
-} from "./core/scoring.js";
+import { applyScoring, weightedTotal } from "./core/scoring.js";
 import { applySuppressions } from "./core/suppressions.js";
 import { detectStack } from "./detectors/stack-detector.js";
 import type {
@@ -59,6 +55,13 @@ export interface ScanOptions {
    * typically from changedFilesSince().
    */
   scope?: { changedSince: string; files: ReadonlySet<string> };
+  /**
+   * The project's path inside a workspace, mixed into fingerprints so that
+   * findings stay distinct when package reports are combined.
+   */
+  fingerprintNamespace?: string;
+  /** Shown before each progress message, such as a workspace package path. */
+  label?: string;
 }
 
 interface ProgressReporter {
@@ -68,15 +71,17 @@ interface ProgressReporter {
 
 function createProgressReporter(options: ScanOptions): ProgressReporter {
   const spinner = options.interactive === false ? null : ora({ color: "cyan" });
+  const label = (message: string) =>
+    options.label ? `${options.label}: ${message}` : message;
 
   return {
     start(message) {
-      options.onProgress?.(message);
-      spinner?.start(chalk.dim(message));
+      options.onProgress?.(label(message));
+      spinner?.start(chalk.dim(label(message)));
     },
     succeed(message) {
-      options.onProgress?.(message);
-      spinner?.succeed(chalk.dim(message));
+      options.onProgress?.(label(message));
+      spinner?.succeed(chalk.dim(label(message)));
     },
   };
 }
@@ -87,7 +92,7 @@ function findingCount(result: AnalyzerResult): string {
   return `${count} finding${count === 1 ? "" : "s"}`;
 }
 
-function calculateGrade(score: number): Grade {
+export function calculateGrade(score: number): Grade {
   if (score >= 95) return "A+";
   if (score >= 90) return "A";
   if (score >= 85) return "B+";
@@ -170,7 +175,11 @@ export async function scan(
     applySuppressions(results, context),
     config.rules,
   );
-  const fingerprinted = assignFingerprints(configured, context.readText);
+  const fingerprinted = assignFingerprints(
+    configured,
+    context.readText,
+    options.fingerprintNamespace,
+  );
   const scoped = options.scope
     ? limitToFiles(fingerprinted, options.scope.files)
     : undefined;
@@ -184,17 +193,7 @@ export async function scan(
     config.rules,
   );
 
-  // Calculate total
-  let totalWeight = 0;
-  let weightedSum = 0;
-  for (const r of analyzers) {
-    const w = ANALYZER_WEIGHTS[r.name] ?? DEFAULT_ANALYZER_WEIGHT;
-    weightedSum += r.score * w;
-    totalWeight += w;
-  }
-
-  const totalScore =
-    totalWeight > 0 ? Math.round(weightedSum / totalWeight) : 0;
+  const totalScore = weightedTotal(analyzers);
   const grade = calculateGrade(totalScore);
   const skipped = context.skipped();
 

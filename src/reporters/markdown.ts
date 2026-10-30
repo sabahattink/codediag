@@ -69,6 +69,19 @@ export function renderMarkdown(result: ScanResult): string {
   if (result.comparison) {
     lines.push(...comparisonSection(result.comparison, result.totalScore));
   }
+  if (result.workspace) {
+    lines.push(
+      `### Packages (${result.workspace.tool} workspace)`,
+      ``,
+      `| Package | Framework | Score | Findings |`,
+      `|---------|-----------|------:|---------:|`,
+      ...result.workspace.packages.map(
+        (entry) =>
+          `| \`${escapeCell(entry.path)}\`${entry.name ? ` ${escapeCell(entry.name)}` : ""} | ${entry.framework} | ${entry.totalScore} (${entry.grade}) | ${entry.findings} |`,
+      ),
+      ``,
+    );
+  }
 
   const counts = { critical: 0, warning: 0, info: 0 };
   for (const analyzer of result.analyzers) {

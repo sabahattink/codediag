@@ -81,6 +81,9 @@
     },
     "comparison": {
       "$ref": "#/$defs/comparison"
+    },
+    "workspace": {
+      "$ref": "#/$defs/workspace"
     }
   },
   "$defs": {
@@ -493,6 +496,84 @@
               "line": {
                 "type": "integer",
                 "minimum": 1
+              }
+            }
+          }
+        }
+      }
+    },
+    "workspace": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Present on a combined report from --workspaces: one entry per scanned package. Finding paths are relative to the workspace root.",
+      "required": [
+        "tool",
+        "packages"
+      ],
+      "properties": {
+        "tool": {
+          "type": "string",
+          "enum": [
+            "npm",
+            "pnpm",
+            "yarn",
+            "lerna",
+            "nx",
+            "turbo"
+          ]
+        },
+        "packages": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "path",
+              "framework",
+              "totalScore",
+              "grade",
+              "findings"
+            ],
+            "properties": {
+              "path": {
+                "type": "string",
+                "minLength": 1
+              },
+              "name": {
+                "type": "string",
+                "minLength": 1
+              },
+              "framework": {
+                "type": "string",
+                "enum": [
+                  "nestjs",
+                  "nextjs",
+                  "express",
+                  "fastify",
+                  "generic",
+                  "unknown"
+                ]
+              },
+              "totalScore": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 100
+              },
+              "grade": {
+                "type": "string",
+                "enum": [
+                  "A+",
+                  "A",
+                  "B+",
+                  "B",
+                  "C",
+                  "D",
+                  "F"
+                ]
+              },
+              "findings": {
+                "type": "integer",
+                "minimum": 0
               }
             }
           }
