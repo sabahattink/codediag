@@ -1,6 +1,8 @@
 import { basename } from "node:path";
 import * as vscode from "vscode";
 import { loadConfig } from "../../../src/config.js";
+import { scanWorkspace } from "../../../src/core/workspace-scan.js";
+import { detectWorkspaces } from "../../../src/core/workspaces.js";
 import {
   renderAiPrompt,
   renderFixPlan,
@@ -158,14 +160,25 @@ async function runScan(
           location: vscode.ProgressLocation.Notification,
           title: `CodeDiag: ${basename(root)}`,
         },
-        async (progress) =>
-          scan(root, loadConfig(root), {
+        async (progress) => {
+          const options = {
             interactive: false,
             // Saves trigger frequent scans: reuse the last audit of the same
             // lock file instead of blocking on the network.
             ...(trigger === "save" ? { audit: "cached" as const } : {}),
-            onProgress: (message) => progress.report({ message }),
-          }),
+            onProgress: (message: string) => progress.report({ message }),
+          };
+          // A monorepo root is scanned package by package; the combined
+          // report locates findings relative to the root, as before.
+          const workspaces = vscode.workspace
+            .getConfiguration("codediag", vscode.Uri.file(root))
+            .get<boolean>("scanWorkspacePackages", true)
+            ? detectWorkspaces(root)
+            : null;
+          return workspaces
+            ? scanWorkspace(root, loadConfig(root), workspaces, options)
+            : scan(root, loadConfig(root), options);
+        },
       );
 
       latestScan = { root, result };

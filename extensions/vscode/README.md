@@ -45,6 +45,11 @@ not apply it.
 after a file is saved. A scan may run the detected package manager's audit
 command and therefore may access the network.
 
+`codediag.scanWorkspacePackages` is enabled by default. When the workspace
+folder is a monorepo root (npm, pnpm, or Yarn workspaces, Lerna, or Nx), each
+package is scanned with its own stack and configuration and the results are
+combined, as `codediag scan --workspaces` does.
+
 CodeDiag does not run in untrusted or virtual workspaces. Fix plans and AI
 prompts never modify project files or upload source contents.
 

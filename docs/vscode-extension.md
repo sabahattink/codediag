@@ -73,6 +73,15 @@ same lock file, so scores stay consistent, and report `audit-skipped` until
 one has run. Commands run from the Command Palette follow the project's
 `audit` setting.
 
+## Monorepos
+
+`codediag.scanWorkspacePackages` is on by default. When the workspace folder
+is a monorepo root (npm, pnpm, or Yarn workspaces, Lerna, or Nx), each package
+is scanned with its own stack detection and configuration and the results are
+combined, as `codediag scan --workspaces` does. Problems keep their real file
+locations, and package-level findings appear on each package's
+`package.json`. Turn the setting off to scan the root as one project.
+
 ## Trust and data boundaries
 
 - The extension is disabled in untrusted and virtual workspaces.

@@ -86,6 +86,12 @@
           "default": false,
           "scope": "resource",
           "description": "Run CodeDiag after a file is saved. Scans triggered by saving never run the package manager; they reuse the dependency audit from the last command-triggered scan of the same lock file."
+        },
+        "codediag.scanWorkspacePackages": {
+          "type": "boolean",
+          "default": true,
+          "scope": "resource",
+          "description": "When the workspace folder is a monorepo root (npm, pnpm, or Yarn workspaces, Lerna, or Nx), scan each package with its own stack and configuration and combine the results, as `codediag scan --workspaces` does."
         }
       }
     }
