@@ -2,6 +2,7 @@ import { Node, type SourceFile } from "ts-morph";
 import type { ScanContext } from "../core/scan-context.js";
 import { fromRule } from "../rules/registry.js";
 import type { AnalyzerResult, DiagnosticIssue } from "../types.js";
+import { importsTrpcAdapter } from "./trpc-syntax.js";
 
 const HTTP_METHODS = new Set([
   "DELETE",
@@ -134,18 +135,24 @@ function hasMarker(source: string, marker: RegExp): boolean {
 export async function analyzeNextjsApi(
   context: ScanContext,
 ): Promise<AnalyzerResult | null> {
-  const routeFiles = context.matchFiles(
-    [
-      "{app,src/app}/**/route.{ts,tsx,js,mjs,cjs}",
-      "{pages,src/pages}/api/**/*.{ts,tsx,js,mjs,cjs}",
-    ],
-    {
-      exclude: [
-        "**/*.test.{ts,tsx,js,mjs,cjs}",
-        "**/*.spec.{ts,tsx,js,mjs,cjs}",
+  const routeFiles = context
+    .matchFiles(
+      [
+        "{app,src/app}/**/route.{ts,tsx,js,mjs,cjs}",
+        "{pages,src/pages}/api/**/*.{ts,tsx,js,mjs,cjs}",
       ],
-    },
-  );
+      {
+        exclude: [
+          "**/*.test.{ts,tsx,js,mjs,cjs}",
+          "**/*.spec.{ts,tsx,js,mjs,cjs}",
+        ],
+      },
+    )
+    // A tRPC handler's endpoints are its procedures, checked by trpc-api.ts.
+    .filter((file) => {
+      const sourceFile = context.getSourceFile(file);
+      return !sourceFile || !importsTrpcAdapter(sourceFile);
+    });
 
   if (routeFiles.length === 0) return null;
 

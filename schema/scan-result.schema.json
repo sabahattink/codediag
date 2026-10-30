@@ -116,6 +116,7 @@
             "express",
             "fastify",
             "hono",
+            "trpc",
             "generic",
             "unknown"
           ]
@@ -558,6 +559,8 @@
                   "nextjs",
                   "express",
                   "fastify",
+                  "hono",
+                  "trpc",
                   "generic",
                   "unknown"
                 ]

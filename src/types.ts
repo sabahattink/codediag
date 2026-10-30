@@ -5,6 +5,7 @@ export interface StackInfo {
     | "express"
     | "fastify"
     | "hono"
+    | "trpc"
     | "generic"
     | "unknown";
   language: "typescript" | "javascript";

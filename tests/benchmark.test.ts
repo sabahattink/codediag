@@ -39,6 +39,8 @@ for (const [name, framework] of [
   ["realistic/fastify", "fastify"],
   ["realistic/hono", "hono"],
   ["realistic/nextjs", "nextjs"],
+  // A T3 app: tRPC procedures served by a Next.js route handler.
+  ["realistic/trpc", "nextjs"],
 ] as const) {
   test(`${name} scores at least 85 with no critical findings`, async () => {
     const result = await scanFixture(name);
@@ -276,6 +278,103 @@ test("defects/hono keeps its middleware order, validator, and error handler find
         message: "No health, readiness, or liveness endpoint detected",
         confidence: undefined,
       },
+    ],
+  );
+});
+
+test("realistic/trpc checks every procedure without findings", async () => {
+  const result = await scanFixture("realistic/trpc");
+  const api = result.analyzers.find(
+    (analyzer) => analyzer.name === "API Health",
+  );
+
+  assert.equal(result.totalScore, 100, describe(result));
+  assert.deepEqual(findings(result), []);
+  assert.equal(
+    api?.summary,
+    "1 Next.js handlers across 2 API route files; 7 tRPC procedures in 3 routers",
+  );
+});
+
+test("defects/trpc keeps its procedure, input, stack trace, and injection findings", async () => {
+  const result = await scanFixture("defects/trpc");
+  const api = result.analyzers.find(
+    (analyzer) => analyzer.name === "API Health",
+  );
+  const security = result.analyzers.find(
+    (analyzer) => analyzer.name === "Security",
+  );
+
+  assert.equal(result.stack.framework, "trpc");
+  assert.deepEqual(
+    api?.issues.map(({ rule, file, line, message, confidence }) => ({
+      rule,
+      at: `${file}:${line}`,
+      message,
+      confidence,
+    })),
+    [
+      {
+        rule: "missing-trpc-auth-middleware",
+        at: "src/routers/admin.ts:10",
+        message:
+          "Mutation admin.users.delete has no recognizable auth middleware",
+        confidence: "high",
+      },
+      {
+        rule: "missing-trpc-auth-middleware",
+        at: "src/routers/files.ts:16",
+        message: "Mutation files.upload has no recognizable auth middleware",
+        confidence: "high",
+      },
+      {
+        rule: "missing-trpc-auth-middleware",
+        at: "src/routers/posts.ts:13",
+        message: "Mutation posts.create has no recognizable auth middleware",
+        confidence: "high",
+      },
+      {
+        rule: "unvalidated-trpc-input",
+        at: "src/routers/files.ts:16",
+        message:
+          "Input of mutation files.upload is not validated: z.any() accepts any value",
+        confidence: "high",
+      },
+      {
+        rule: "unvalidated-trpc-input",
+        at: "src/routers/files.ts:18",
+        message:
+          "Input of mutation files.rename is not validated: the parser returns its argument without checking it",
+        confidence: "high",
+      },
+      {
+        rule: "trpc-stack-trace-exposed",
+        at: "src/trpc.ts:6",
+        message:
+          "initTRPC.create() sets isDev: true, so error responses include stack traces in production",
+        confidence: undefined,
+      },
+      {
+        rule: "trpc-stack-trace-exposed",
+        at: "src/trpc.ts:8",
+        message:
+          "The tRPC errorFormatter returns error.stack in every environment",
+        confidence: undefined,
+      },
+    ],
+  );
+  assert.deepEqual(
+    (security?.issues ?? [])
+      .filter((issue) => issue.line !== undefined)
+      .map(
+        ({ rule, severity, file, line, confidence }) =>
+          `${severity} ${rule} ${file}:${line} ${confidence ?? "high"}`,
+      )
+      .sort(),
+    [
+      "critical dynamic-command-execution src/lib/convert.ts:4 medium",
+      "critical dynamic-command-execution src/routers/files.ts:9 high",
+      "critical path-traversal src/routers/files.ts:12 high",
     ],
   );
 });
