@@ -1,5 +1,6 @@
 import { existsSync } from "node:fs";
 import { basename, join } from "node:path";
+import { prefetchAudits } from "../analyzers/dependencies.js";
 import { loadConfig } from "../config.js";
 import { detectStack } from "../detectors/stack-detector.js";
 import { calculateGrade, type ScanOptions, scan } from "../scanner.js";
@@ -274,11 +275,31 @@ export async function scanWorkspace(
   options: WorkspaceScanOptions = {},
 ): Promise<ScanResult> {
   const { packageThreshold, ...scanOptions } = options;
+  const packages = info.packages.map((workspacePackage) => ({
+    ...workspacePackage,
+    config: packageConfig(root, workspacePackage.path, rootConfig),
+  }));
+  // Packages that would audit now run their audits concurrently up front,
+  // and their scans reuse the outcomes instead of waiting one at a time.
+  const audits = (config: CodediagConfig): boolean =>
+    config.analyzers.dependencies &&
+    (options.audit === undefined
+      ? config.audit !== false
+      : options.audit === true);
+  await prefetchAudits(
+    packages
+      .filter(({ config }) => audits(config))
+      .map(({ path, config }) => ({
+        projectPath: join(root, path),
+        production: config.audit === "production",
+      })),
+  );
+
   const scans: PackageScan[] = [];
-  for (const workspacePackage of info.packages) {
-    const config = packageConfig(root, workspacePackage.path, rootConfig);
+  for (const { config, ...workspacePackage } of packages) {
     const result = await scan(join(root, workspacePackage.path), config, {
       ...scanOptions,
+      ...(audits(config) ? { audit: "cached" as const } : {}),
       scope: packageScope(options.scope, workspacePackage.path),
       fingerprintNamespace: workspacePackage.path,
       label: workspacePackage.path,

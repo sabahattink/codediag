@@ -125164,7 +125164,7 @@ ${lanes.join("\n")}
           }
         }
         function createImportCallExpressionAMD(arg, containsLexicalThis) {
-          const resolve6 = factory2.createUniqueName("resolve");
+          const resolve7 = factory2.createUniqueName("resolve");
           const reject = factory2.createUniqueName("reject");
           const parameters = [
             factory2.createParameterDeclaration(
@@ -125173,7 +125173,7 @@ ${lanes.join("\n")}
               /*dotDotDotToken*/
               void 0,
               /*name*/
-              resolve6
+              resolve7
             ),
             factory2.createParameterDeclaration(
               /*modifiers*/
@@ -125190,7 +125190,7 @@ ${lanes.join("\n")}
                 factory2.createIdentifier("require"),
                 /*typeArguments*/
                 void 0,
-                [factory2.createArrayLiteralExpression([arg || factory2.createOmittedExpression()]), resolve6, reject]
+                [factory2.createArrayLiteralExpression([arg || factory2.createOmittedExpression()]), resolve7, reject]
               )
             )
           ]);
@@ -212101,8 +212101,8 @@ Additional information: BADCLIENT: Bad error code, ${badCode} not found in range
         installPackage(options) {
           this.packageInstallId++;
           const request2 = { kind: "installPackage", ...options, id: this.packageInstallId };
-          const promise = new Promise((resolve6, reject) => {
-            (this.packageInstalledPromise ?? (this.packageInstalledPromise = /* @__PURE__ */ new Map())).set(this.packageInstallId, { resolve: resolve6, reject });
+          const promise = new Promise((resolve7, reject) => {
+            (this.packageInstalledPromise ?? (this.packageInstalledPromise = /* @__PURE__ */ new Map())).set(this.packageInstallId, { resolve: resolve7, reject });
           });
           this.installer.send(request2);
           return promise;
@@ -214430,7 +214430,7 @@ var require_path_browserify = __commonJS({
     }
     var posix5 = {
       // path.resolve([from ...], to)
-      resolve: function resolve6() {
+      resolve: function resolve7() {
         var resolvedPath = "";
         var resolvedAbsolute = false;
         var cwd;
@@ -214477,7 +214477,7 @@ var require_path_browserify = __commonJS({
         assertPath(path2);
         return path2.length > 0 && path2.charCodeAt(0) === 47;
       },
-      join: function join11() {
+      join: function join12() {
         if (arguments.length === 0)
           return ".";
         var joined;
@@ -214564,7 +214564,7 @@ var require_path_browserify = __commonJS({
       _makeLong: function _makeLong(path2) {
         return path2;
       },
-      dirname: function dirname6(path2) {
+      dirname: function dirname7(path2) {
         assertPath(path2);
         if (path2.length === 0) return ".";
         var code = path2.charCodeAt(0);
@@ -218624,12 +218624,12 @@ ${nodeLocation}` : message;
     };
     var NodeRuntimeFileSystem = class {
       delete(path3) {
-        return new Promise((resolve6, reject) => {
+        return new Promise((resolve7, reject) => {
           fs__namespace.rm(path3, { recursive: true }, (err) => {
             if (err)
               reject(err);
             else
-              resolve6();
+              resolve7();
           });
         });
       }
@@ -218648,12 +218648,12 @@ ${nodeLocation}` : message;
         }));
       }
       readFile(filePath, encoding = "utf-8") {
-        return new Promise((resolve6, reject) => {
+        return new Promise((resolve7, reject) => {
           fs__namespace.readFile(filePath, encoding, (err, data) => {
             if (err)
               reject(err);
             else
-              resolve6(data);
+              resolve7(data);
           });
         });
       }
@@ -218661,12 +218661,12 @@ ${nodeLocation}` : message;
         return fs__namespace.readFileSync(filePath, encoding);
       }
       async writeFile(filePath, fileText) {
-        await new Promise((resolve6, reject) => {
+        await new Promise((resolve7, reject) => {
           fs__namespace.writeFile(filePath, fileText, (err) => {
             if (err)
               reject(err);
             else
-              resolve6();
+              resolve7();
           });
         });
       }
@@ -218680,12 +218680,12 @@ ${nodeLocation}` : message;
         fs__namespace.mkdirSync(dirPath, { recursive: true });
       }
       move(srcPath, destPath) {
-        return new Promise((resolve6, reject) => {
+        return new Promise((resolve7, reject) => {
           fs__namespace.rename(srcPath, destPath, (err) => {
             if (err)
               reject(err);
             else
-              resolve6();
+              resolve7();
           });
         });
       }
@@ -218693,12 +218693,12 @@ ${nodeLocation}` : message;
         fs__namespace.renameSync(srcPath, destPath);
       }
       copy(srcPath, destPath) {
-        return new Promise((resolve6, reject) => {
+        return new Promise((resolve7, reject) => {
           fs__namespace.copyFile(srcPath, destPath, (err) => {
             if (err)
               reject(err);
             else
-              resolve6();
+              resolve7();
           });
         });
       }
@@ -218706,15 +218706,15 @@ ${nodeLocation}` : message;
         fs__namespace.copyFileSync(srcPath, destPath);
       }
       stat(path3) {
-        return new Promise((resolve6, reject) => {
+        return new Promise((resolve7, reject) => {
           fs__namespace.stat(path3, (err, stat) => {
             if (err) {
               if (err.code === "ENOENT" || err.code === "ENOTDIR")
-                resolve6(void 0);
+                resolve7(void 0);
               else
                 reject(err);
             } else {
-              resolve6(stat);
+              resolve7(stat);
             }
           });
         });
@@ -251588,8 +251588,8 @@ __export(action_exports, {
   runAction: () => runAction
 });
 module.exports = __toCommonJS(action_exports);
-var import_node_fs17 = require("fs");
-var import_node_path19 = require("path");
+var import_node_fs18 = require("fs");
+var import_node_path20 = require("path");
 
 // src/analyzers/secret-history.ts
 var import_node_child_process2 = require("child_process");
@@ -255556,12 +255556,670 @@ function formatDelta(delta) {
 }
 
 // src/core/workspace-scan.ts
-var import_node_fs14 = require("fs");
-var import_node_path15 = require("path");
+var import_node_fs15 = require("fs");
+var import_node_path16 = require("path");
+
+// src/analyzers/dependencies.ts
+var import_node_child_process3 = require("child_process");
+var import_node_crypto3 = require("crypto");
+var import_node_fs9 = require("fs");
+var import_node_path7 = require("path");
+
+// src/analyzers/audit-advisories.ts
+var MAX_LISTED = 5;
+var SEVERITIES3 = /* @__PURE__ */ new Set(["critical", "high", "moderate", "low"]);
+function isRecord4(value) {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+function text(value) {
+  return typeof value === "string" && value.trim() !== "" ? value.trim() : void 0;
+}
+function advisory(name, severity, title, url) {
+  const packageName2 = text(name);
+  const level = typeof severity === "string" ? severity.toLowerCase() : "";
+  if (!packageName2 || !SEVERITIES3.has(level)) return null;
+  const titleText = text(title);
+  const urlText = text(url);
+  return {
+    name: packageName2,
+    severity: level,
+    ...titleText ? { title: titleText } : {},
+    ...urlText ? { url: urlText } : {}
+  };
+}
+function npmAdvisories(document) {
+  if (!isRecord4(document.vulnerabilities)) return [];
+  return Object.entries(document.vulnerabilities).flatMap(([name, entry]) => {
+    if (!isRecord4(entry)) return [];
+    const source = Array.isArray(entry.via) ? entry.via.find(isRecord4) : void 0;
+    const found = advisory(name, entry.severity, source?.title, source?.url);
+    return found ? [found] : [];
+  });
+}
+function advisoryMap(document) {
+  if (!isRecord4(document.advisories)) return [];
+  return Object.values(document.advisories).flatMap((entry) => {
+    if (!isRecord4(entry)) return [];
+    const found = advisory(
+      entry.module_name,
+      entry.severity,
+      entry.title,
+      entry.url
+    );
+    return found ? [found] : [];
+  });
+}
+function yarnAdvisory(line) {
+  if (line.type === "auditAdvisory" && isRecord4(line.data)) {
+    const data = isRecord4(line.data.advisory) ? line.data.advisory : void 0;
+    return data ? advisory(data.module_name, data.severity, data.title, data.url) : null;
+  }
+  if (isRecord4(line.children)) {
+    const { children } = line;
+    return advisory(
+      line.value,
+      children.Severity,
+      children.Issue,
+      children.URL
+    );
+  }
+  return null;
+}
+function parseAuditAdvisories(output) {
+  const found = [];
+  const trimmed = output.trim();
+  try {
+    const document = JSON.parse(trimmed);
+    if (isRecord4(document)) {
+      found.push(...npmAdvisories(document), ...advisoryMap(document));
+    }
+  } catch {
+    for (const line of trimmed.split(/\r?\n/)) {
+      try {
+        const entry = JSON.parse(line);
+        const parsed = isRecord4(entry) ? yarnAdvisory(entry) : null;
+        if (parsed) found.push(parsed);
+      } catch {
+      }
+    }
+  }
+  const order = ["critical", "high", "moderate", "low"];
+  const unique = /* @__PURE__ */ new Map();
+  for (const entry of found) {
+    const key = `${entry.severity}\0${entry.name}`;
+    if (!unique.has(key)) unique.set(key, entry);
+  }
+  return [...unique.values()].sort(
+    (left, right) => order.indexOf(left.severity) - order.indexOf(right.severity) || left.name.localeCompare(right.name)
+  );
+}
+function describeAdvisories(advisories, severity) {
+  const matching = advisories.filter((entry) => entry.severity === severity);
+  if (matching.length === 0) return "";
+  const listed = matching.slice(0, MAX_LISTED).map((entry) => {
+    const details = [entry.title, entry.url].filter(Boolean).join(", ");
+    return details ? `${entry.name} (${details})` : entry.name;
+  });
+  const more = matching.length - listed.length;
+  return ` Affected: ${listed.join("; ")}${more > 0 ? `; and ${more} more` : ""}.`;
+}
+
+// src/analyzers/audit-cache.ts
+var import_node_crypto2 = require("crypto");
+var import_node_fs8 = require("fs");
+var import_node_path6 = require("path");
+var AUDIT_CACHE_TTL_MS = 60 * 60 * 1e3;
+var CACHE_VERSION = 1;
+var SEVERITIES4 = /* @__PURE__ */ new Set(["critical", "high", "moderate", "low"]);
+function isRecord5(value) {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+function isCount(value) {
+  return Number.isInteger(value) && value >= 0;
+}
+function auditCacheFile(lockDirectory, key) {
+  const modules = (0, import_node_path6.join)(lockDirectory, "node_modules");
+  if (!(0, import_node_fs8.existsSync)(modules)) return null;
+  const name = (0, import_node_crypto2.createHash)("sha256").update(key).digest("hex");
+  return (0, import_node_path6.join)(modules, ".cache", "codediag", "audit", `${name}.json`);
+}
+function readSummary(value) {
+  if (!isRecord5(value)) return null;
+  const { critical, high, moderate, low } = value;
+  return isCount(critical) && isCount(high) && isCount(moderate) && isCount(low) ? { critical, high, moderate, low } : null;
+}
+function readAdvisories(value) {
+  if (!Array.isArray(value)) return null;
+  const advisories = [];
+  for (const entry of value) {
+    if (!isRecord5(entry) || typeof entry.name !== "string" || !SEVERITIES4.has(String(entry.severity)) || entry.title !== void 0 && typeof entry.title !== "string" || entry.url !== void 0 && typeof entry.url !== "string") {
+      return null;
+    }
+    advisories.push({
+      name: entry.name,
+      severity: entry.severity,
+      ...typeof entry.title === "string" ? { title: entry.title } : {},
+      ...typeof entry.url === "string" ? { url: entry.url } : {}
+    });
+  }
+  return advisories;
+}
+function readPersistedAudit(file, now = Date.now()) {
+  let value;
+  try {
+    value = JSON.parse((0, import_node_fs8.readFileSync)(file, "utf-8"));
+  } catch {
+    return null;
+  }
+  if (!isRecord5(value) || value.version !== CACHE_VERSION || typeof value.createdAt !== "string") {
+    return null;
+  }
+  const createdAt = Date.parse(value.createdAt);
+  if (!Number.isFinite(createdAt) || createdAt > now || now - createdAt >= AUDIT_CACHE_TTL_MS) {
+    return null;
+  }
+  const summary = readSummary(value.summary);
+  const advisories = readAdvisories(value.advisories);
+  return summary && advisories ? { summary, advisories, createdAt } : null;
+}
+function persistAudit(file, audit, now = Date.now()) {
+  try {
+    (0, import_node_fs8.mkdirSync)((0, import_node_path6.dirname)(file), { recursive: true });
+    (0, import_node_fs8.writeFileSync)(
+      file,
+      `${JSON.stringify({
+        version: CACHE_VERSION,
+        createdAt: new Date(now).toISOString(),
+        summary: audit.summary,
+        advisories: audit.advisories
+      })}
+`,
+      "utf-8"
+    );
+  } catch {
+  }
+}
+function auditAge(createdAt, now = Date.now()) {
+  const minutes = Math.floor((now - createdAt) / 6e4);
+  if (minutes < 1) return "less than a minute ago";
+  return `${minutes} minute${minutes === 1 ? "" : "s"} ago`;
+}
+
+// src/analyzers/dependencies.ts
+var lockFileNames = {
+  npm: ["package-lock.json", "npm-shrinkwrap.json"],
+  pnpm: ["pnpm-lock.yaml"],
+  yarn: ["yarn.lock"]
+};
+function findLockFile(projectPath, preferredManager) {
+  let directory = projectPath;
+  const managers = preferredManager ? [
+    preferredManager,
+    ...["pnpm", "yarn", "npm"].filter(
+      (manager) => manager !== preferredManager
+    )
+  ] : ["pnpm", "yarn", "npm"];
+  for (let depth = 0; depth <= 3; depth++) {
+    for (const manager of managers) {
+      if (lockFileNames[manager].some((name) => (0, import_node_fs9.existsSync)((0, import_node_path7.join)(directory, name)))) {
+        return { manager, directory };
+      }
+    }
+    const parent = (0, import_node_path7.dirname)(directory);
+    if (parent === directory) break;
+    directory = parent;
+  }
+  return null;
+}
+function declaredManager(value) {
+  const match2 = /^(npm|pnpm|yarn)@/i.exec(value ?? "");
+  return match2?.[1]?.toLowerCase() ?? null;
+}
+function isModernYarn(projectPath, packageManager, lockDirectory) {
+  const version2 = /^yarn@(\d+)/i.exec(packageManager ?? "")?.[1];
+  if (version2 && Number(version2) >= 2) return true;
+  let directory = projectPath;
+  for (let depth = 0; depth <= 3; depth++) {
+    if ((0, import_node_fs9.existsSync)((0, import_node_path7.join)(directory, ".yarnrc.yml"))) return true;
+    if (directory === lockDirectory) break;
+    const parent = (0, import_node_path7.dirname)(directory);
+    if (parent === directory) break;
+    directory = parent;
+  }
+  return false;
+}
+var PRODUCTION_FLAGS = {
+  npm: ["--omit=dev"],
+  pnpm: ["--prod"],
+  yarnClassic: ["--groups", "dependencies"],
+  yarnModern: ["--environment", "production"]
+};
+function resolveAuditCommand(projectPath, packageManager, production = false) {
+  const only = (flags) => production ? [...flags] : [];
+  const preferredManager = declaredManager(packageManager);
+  const lockFile = findLockFile(projectPath, preferredManager);
+  const manager = preferredManager ?? lockFile?.manager ?? "npm";
+  const executable = `${manager}${process.platform === "win32" ? ".cmd" : ""}`;
+  if (manager === "pnpm") {
+    return {
+      manager,
+      command: executable,
+      args: ["audit", "--json", ...only(PRODUCTION_FLAGS.pnpm)],
+      fixCommand: "pnpm audit --fix"
+    };
+  }
+  if (manager === "yarn") {
+    const modern = isModernYarn(
+      projectPath,
+      packageManager,
+      lockFile?.directory
+    );
+    return {
+      manager,
+      command: executable,
+      args: modern ? [
+        "npm",
+        "audit",
+        "--json",
+        "--recursive",
+        ...only(PRODUCTION_FLAGS.yarnModern)
+      ] : ["audit", "--json", ...only(PRODUCTION_FLAGS.yarnClassic)],
+      fixCommand: modern ? "yarn up <package>" : "yarn upgrade"
+    };
+  }
+  return {
+    manager,
+    command: executable,
+    args: ["audit", "--json", ...only(PRODUCTION_FLAGS.npm)],
+    fixCommand: "npm audit fix"
+  };
+}
+function readVulnerabilityCounts(value) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const record = value;
+  const names = [
+    "critical",
+    "high",
+    "moderate",
+    "low"
+  ];
+  if (!names.some((name) => name in record)) return null;
+  const summary = {};
+  for (const name of names) {
+    const count = record[name];
+    if (typeof count !== "number" || !Number.isFinite(count) || count < 0) {
+      throw new Error(`invalid ${name} vulnerability count`);
+    }
+    summary[name] = count;
+  }
+  return summary;
+}
+function findAuditSummary(value) {
+  if (!value || typeof value !== "object") return null;
+  if (Array.isArray(value)) {
+    for (const entry of value) {
+      const summary = findAuditSummary(entry);
+      if (summary) return summary;
+    }
+    return null;
+  }
+  const record = value;
+  const metadata = record.metadata;
+  const metadataSummary = readVulnerabilityCounts(metadata?.vulnerabilities);
+  if (metadataSummary) return metadataSummary;
+  if (record.type === "auditSummary") {
+    const data = record.data;
+    const yarnSummary = readVulnerabilityCounts(data?.vulnerabilities);
+    if (yarnSummary) return yarnSummary;
+  }
+  return null;
+}
+function parseAuditSummary(output) {
+  const trimmed = output.trim();
+  if (!trimmed) throw new Error("audit returned no JSON");
+  try {
+    const summary = findAuditSummary(JSON.parse(trimmed));
+    if (summary) return summary;
+  } catch (error) {
+    if (error instanceof SyntaxError) {
+    } else {
+      throw error;
+    }
+  }
+  for (const line of trimmed.split(/\r?\n/)) {
+    if (!line.trim()) continue;
+    let entry;
+    try {
+      entry = JSON.parse(line);
+    } catch {
+      throw new Error("audit returned invalid JSON");
+    }
+    const summary = findAuditSummary(entry);
+    if (summary) return summary;
+  }
+  throw new Error("audit JSON did not include a vulnerability summary");
+}
+var AUDIT_TIMEOUT_MS = 3e4;
+var DEFAULT_AUDIT_CONCURRENCY = 4;
+var runAuditProcess = (command, cwd) => {
+  const result = (0, import_node_child_process3.spawnSync)(command.command, command.args, {
+    cwd,
+    timeout: AUDIT_TIMEOUT_MS,
+    encoding: "utf-8",
+    stdio: ["ignore", "pipe", "pipe"],
+    shell: process.platform === "win32"
+  });
+  return {
+    stdout: result.stdout ?? "",
+    stderr: result.stderr ?? "",
+    ...result.error ? { error: result.error } : {}
+  };
+};
+var runAuditProcessAsync = (command, cwd) => new Promise((resolve7) => {
+  (0, import_node_child_process3.execFile)(
+    command.command,
+    command.args,
+    {
+      cwd,
+      timeout: AUDIT_TIMEOUT_MS,
+      encoding: "utf-8",
+      maxBuffer: 64 * 1024 * 1024,
+      shell: process.platform === "win32",
+      windowsHide: true
+    },
+    (error, stdout, stderr) => {
+      const failed = error !== null && (error.killed || typeof error.code !== "number");
+      resolve7({
+        stdout: stdout ?? "",
+        stderr: stderr ?? "",
+        ...failed ? { error } : {}
+      });
+    }
+  );
+});
+var auditCache = /* @__PURE__ */ new Map();
+function hashFile(path2) {
+  try {
+    return (0, import_node_crypto3.createHash)("sha256").update((0, import_node_fs9.readFileSync)(path2)).digest("hex");
+  } catch {
+    return "missing";
+  }
+}
+function auditCacheKey(projectPath, command, lockFile) {
+  const lockPath = lockFileNames[lockFile.manager].map((name) => (0, import_node_path7.join)(lockFile.directory, name)).find((candidate) => (0, import_node_fs9.existsSync)(candidate));
+  return [
+    command.command,
+    ...command.args,
+    projectPath,
+    lockPath ? hashFile(lockPath) : "no-lock",
+    hashFile((0, import_node_path7.join)(projectPath, "package.json"))
+  ].join("\0");
+}
+function persistedOutcome(file) {
+  const persisted = file ? readPersistedAudit(file) : null;
+  return persisted ? {
+    kind: "summary",
+    summary: persisted.summary,
+    advisories: persisted.advisories,
+    cachedAt: persisted.createdAt
+  } : void 0;
+}
+function persistOutcome(file, outcome) {
+  if (file && outcome.kind === "summary") {
+    persistAudit(file, {
+      summary: outcome.summary,
+      advisories: outcome.advisories ?? []
+    });
+  }
+}
+function auditOutcome(run, command) {
+  try {
+    if (run.error) throw run.error;
+    if (!run.stdout.trim()) {
+      throw new Error(
+        run.stderr.trim() || `${command.manager} audit returned no JSON`
+      );
+    }
+    return {
+      kind: "summary",
+      summary: parseAuditSummary(run.stdout),
+      advisories: parseAuditAdvisories(run.stdout)
+    };
+  } catch (error) {
+    return {
+      kind: "error",
+      message: error instanceof Error ? error.message : String(error)
+    };
+  }
+}
+function runAudit(projectPath, command, runner, cacheFile) {
+  const outcome = auditOutcome(runner(command, projectPath), command);
+  persistOutcome(cacheFile, outcome);
+  return outcome;
+}
+function auditJob(target) {
+  const projectPath = (0, import_node_path7.resolve)(target.projectPath);
+  let pkg;
+  try {
+    pkg = JSON.parse((0, import_node_fs9.readFileSync)((0, import_node_path7.join)(projectPath, "package.json"), "utf-8"));
+  } catch {
+    return null;
+  }
+  const lockFile = findLockFile(
+    projectPath,
+    declaredManager(pkg.packageManager)
+  );
+  if (!lockFile) return null;
+  const command = resolveAuditCommand(
+    projectPath,
+    pkg.packageManager,
+    target.production
+  );
+  const key = auditCacheKey(projectPath, command, lockFile);
+  return {
+    projectPath,
+    command,
+    key,
+    cacheFile: auditCacheFile(lockFile.directory, key)
+  };
+}
+async function prefetchAudits(targets, options = {}) {
+  const runner = options.runner ?? runAuditProcessAsync;
+  const jobs = [
+    ...new Map(
+      targets.flatMap((target) => {
+        const job = auditJob(target);
+        return job ? [[job.key, job]] : [];
+      })
+    ).values()
+  ];
+  let next = 0;
+  const work = async () => {
+    for (let job = jobs[next++]; job; job = jobs[next++]) {
+      let outcome = persistedOutcome(job.cacheFile);
+      if (!outcome) {
+        outcome = auditOutcome(
+          await runner(job.command, job.projectPath),
+          job.command
+        );
+        persistOutcome(job.cacheFile, outcome);
+      }
+      auditCache.set(job.key, outcome);
+    }
+  };
+  const workers = Math.min(
+    options.concurrency ?? DEFAULT_AUDIT_CONCURRENCY,
+    jobs.length
+  );
+  await Promise.all(Array.from({ length: workers }, work));
+}
+function recordAudit(outcome, auditCommand, issues) {
+  if (outcome.kind === "error") {
+    issues.push({
+      ...fromRule("audit-unavailable"),
+      message: `${auditCommand.manager} audit could not be evaluated: ${outcome.message}`,
+      fix: `Run ${[auditCommand.manager, ...auditCommand.args].join(" ")} and resolve the reported error`
+    });
+    return false;
+  }
+  const { critical, high, moderate, low } = outcome.summary;
+  const affected = (severity) => describeAdvisories(outcome.advisories ?? [], severity);
+  if (critical > 0)
+    issues.push({
+      ...fromRule("vuln-critical"),
+      message: `${critical} critical vulnerabilit${critical > 1 ? "ies" : "y"}`,
+      fix: `Run ${auditCommand.fixCommand}.${affected("critical")}`
+    });
+  if (high > 0)
+    issues.push({
+      ...fromRule("vuln-high"),
+      message: `${high} high severity vulnerabilit${high > 1 ? "ies" : "y"}`,
+      fix: `Run ${auditCommand.fixCommand}.${affected("high")}`
+    });
+  if (moderate > 0)
+    issues.push({
+      ...fromRule("vuln-moderate"),
+      message: `${moderate} moderate vulnerabilit${moderate > 1 ? "ies" : "y"}`,
+      fix: `Review ${auditCommand.manager} audit output.${affected("moderate")}`
+    });
+  if (low > 0) {
+    const lowAffected = affected("low");
+    issues.push({
+      ...fromRule("vuln-low"),
+      message: `${low} low severity vulnerabilit${low > 1 ? "ies" : "y"}`,
+      ...lowAffected ? { fix: lowAffected.trim() } : {}
+    });
+  }
+  return critical + high + moderate + low === 0;
+}
+async function analyzeDependencies(context, options = {}) {
+  const { projectPath } = context;
+  const issues = [];
+  let checksRun = 0;
+  let checksPassed = 0;
+  if (context.packageJsonStatus === "missing") {
+    return {
+      name: "Dependencies",
+      score: 0,
+      issues: [
+        {
+          ...fromRule("no-package-json"),
+          message: "No package.json found"
+        }
+      ],
+      summary: "No package.json"
+    };
+  }
+  const pkg = context.packageJson;
+  if (!pkg) {
+    return {
+      name: "Dependencies",
+      score: 0,
+      issues: [
+        {
+          ...fromRule("invalid-package-json"),
+          message: "Cannot parse package.json"
+        }
+      ],
+      summary: "Invalid package.json"
+    };
+  }
+  checksRun++;
+  const preferredManager = declaredManager(pkg.packageManager);
+  const lockFile = findLockFile(projectPath, preferredManager);
+  const auditCommand = resolveAuditCommand(
+    projectPath,
+    pkg.packageManager,
+    context.config.audit === "production"
+  );
+  const hasLock = lockFile !== null && (preferredManager === null || lockFile.manager === auditCommand.manager);
+  if (hasLock) {
+    checksPassed++;
+  } else if (lockFile) {
+    issues.push({
+      ...fromRule("lock-file-manager-mismatch"),
+      message: `packageManager selects ${auditCommand.manager}, but the detected lock file belongs to ${lockFile.manager}`,
+      fix: `Generate and commit the ${auditCommand.manager} lock file, then remove conflicting lock files`
+    });
+  } else {
+    issues.push({
+      ...fromRule("no-lock-file"),
+      message: "No lock file \u2014 builds are not reproducible and dependencies cannot be audited",
+      fix: `Run ${auditCommand.manager} install and commit the generated lock file`
+    });
+  }
+  const auditMode = options.audit ?? context.config.audit !== false;
+  const cacheKey = lockFile ? auditCacheKey(projectPath, auditCommand, lockFile) : null;
+  const cacheFile = lockFile && cacheKey && auditMode !== false ? auditCacheFile(lockFile.directory, cacheKey) : null;
+  const persisted = persistedOutcome(cacheFile);
+  const cached = (cacheKey ? auditCache.get(cacheKey) : void 0) ?? persisted;
+  let reusedFrom;
+  if (auditMode === true || auditMode === "cached" && (cached || !lockFile)) {
+    checksRun++;
+    if (lockFile && cacheKey) {
+      const outcome = (auditMode === "cached" ? cached : persisted) ?? runAudit(
+        projectPath,
+        auditCommand,
+        options.runAudit ?? runAuditProcess,
+        cacheFile
+      );
+      auditCache.set(cacheKey, outcome);
+      if (outcome.kind === "summary") reusedFrom = outcome.cachedAt;
+      if (recordAudit(outcome, auditCommand, issues)) checksPassed++;
+    }
+  } else {
+    issues.push({
+      ...fromRule("audit-skipped"),
+      message: auditMode === "cached" ? "Dependency audit has not run for this lock file yet; known vulnerabilities were not checked" : "Dependency audit skipped; known vulnerabilities were not checked",
+      fix: `Run ${[auditCommand.manager, ...auditCommand.args].join(" ")} or scan without --no-audit`
+    });
+  }
+  checksRun++;
+  if (pkg.engines?.node) {
+    checksPassed++;
+  } else {
+    issues.push({
+      ...fromRule("no-engines"),
+      message: "No engines.node in package.json",
+      fix: 'Add "engines": { "node": ">=18.0.0" }'
+    });
+  }
+  checksRun++;
+  if (pkg.scripts?.build && (pkg.scripts?.start || pkg.scripts?.dev)) {
+    checksPassed++;
+  } else {
+    issues.push({
+      ...fromRule("missing-scripts"),
+      message: "Missing essential scripts (build, start/dev)",
+      fix: "Add build and start scripts"
+    });
+  }
+  checksRun++;
+  const risky = ["request", "node-uuid", "nomnom", "coffee-script"];
+  const allDeps = { ...pkg.dependencies, ...pkg.devDependencies };
+  const found = risky.filter((d) => d in allDeps);
+  if (found.length === 0) {
+    checksPassed++;
+  } else {
+    for (const dependency of found) {
+      issues.push({
+        ...fromRule("deprecated-dep"),
+        message: `"${dependency}" is deprecated`
+      });
+    }
+  }
+  const score = checksRun > 0 ? Math.round(checksPassed / checksRun * 100) : 0;
+  return {
+    name: "Dependencies",
+    score,
+    issues,
+    summary: `${Math.round(checksPassed)}/${checksRun} checks passed${reusedFrom === void 0 ? "" : `; audit reused from ${auditAge(reusedFrom)}`}`
+  };
+}
 
 // src/scanner.ts
-var import_node_fs13 = require("fs");
-var import_node_path14 = require("path");
+var import_node_fs14 = require("fs");
+var import_node_path15 = require("path");
 
 // node_modules/chalk/source/vendor/ansi-styles/index.js
 var ANSI_BACKGROUND_OFFSET = 10;
@@ -256982,479 +257640,8 @@ function ora(options) {
   return new Ora(options);
 }
 
-// src/analyzers/dependencies.ts
-var import_node_child_process3 = require("child_process");
-var import_node_crypto2 = require("crypto");
-var import_node_fs8 = require("fs");
-var import_node_path6 = require("path");
-
-// src/analyzers/audit-advisories.ts
-var MAX_LISTED = 5;
-var SEVERITIES3 = /* @__PURE__ */ new Set(["critical", "high", "moderate", "low"]);
-function isRecord4(value) {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-function text(value) {
-  return typeof value === "string" && value.trim() !== "" ? value.trim() : void 0;
-}
-function advisory(name, severity, title, url) {
-  const packageName2 = text(name);
-  const level = typeof severity === "string" ? severity.toLowerCase() : "";
-  if (!packageName2 || !SEVERITIES3.has(level)) return null;
-  const titleText = text(title);
-  const urlText = text(url);
-  return {
-    name: packageName2,
-    severity: level,
-    ...titleText ? { title: titleText } : {},
-    ...urlText ? { url: urlText } : {}
-  };
-}
-function npmAdvisories(document) {
-  if (!isRecord4(document.vulnerabilities)) return [];
-  return Object.entries(document.vulnerabilities).flatMap(([name, entry]) => {
-    if (!isRecord4(entry)) return [];
-    const source = Array.isArray(entry.via) ? entry.via.find(isRecord4) : void 0;
-    const found = advisory(name, entry.severity, source?.title, source?.url);
-    return found ? [found] : [];
-  });
-}
-function advisoryMap(document) {
-  if (!isRecord4(document.advisories)) return [];
-  return Object.values(document.advisories).flatMap((entry) => {
-    if (!isRecord4(entry)) return [];
-    const found = advisory(
-      entry.module_name,
-      entry.severity,
-      entry.title,
-      entry.url
-    );
-    return found ? [found] : [];
-  });
-}
-function yarnAdvisory(line) {
-  if (line.type === "auditAdvisory" && isRecord4(line.data)) {
-    const data = isRecord4(line.data.advisory) ? line.data.advisory : void 0;
-    return data ? advisory(data.module_name, data.severity, data.title, data.url) : null;
-  }
-  if (isRecord4(line.children)) {
-    const { children } = line;
-    return advisory(
-      line.value,
-      children.Severity,
-      children.Issue,
-      children.URL
-    );
-  }
-  return null;
-}
-function parseAuditAdvisories(output) {
-  const found = [];
-  const trimmed = output.trim();
-  try {
-    const document = JSON.parse(trimmed);
-    if (isRecord4(document)) {
-      found.push(...npmAdvisories(document), ...advisoryMap(document));
-    }
-  } catch {
-    for (const line of trimmed.split(/\r?\n/)) {
-      try {
-        const entry = JSON.parse(line);
-        const parsed = isRecord4(entry) ? yarnAdvisory(entry) : null;
-        if (parsed) found.push(parsed);
-      } catch {
-      }
-    }
-  }
-  const order = ["critical", "high", "moderate", "low"];
-  const unique = /* @__PURE__ */ new Map();
-  for (const entry of found) {
-    const key = `${entry.severity}\0${entry.name}`;
-    if (!unique.has(key)) unique.set(key, entry);
-  }
-  return [...unique.values()].sort(
-    (left, right) => order.indexOf(left.severity) - order.indexOf(right.severity) || left.name.localeCompare(right.name)
-  );
-}
-function describeAdvisories(advisories, severity) {
-  const matching = advisories.filter((entry) => entry.severity === severity);
-  if (matching.length === 0) return "";
-  const listed = matching.slice(0, MAX_LISTED).map((entry) => {
-    const details = [entry.title, entry.url].filter(Boolean).join(", ");
-    return details ? `${entry.name} (${details})` : entry.name;
-  });
-  const more = matching.length - listed.length;
-  return ` Affected: ${listed.join("; ")}${more > 0 ? `; and ${more} more` : ""}.`;
-}
-
-// src/analyzers/dependencies.ts
-var lockFileNames = {
-  npm: ["package-lock.json", "npm-shrinkwrap.json"],
-  pnpm: ["pnpm-lock.yaml"],
-  yarn: ["yarn.lock"]
-};
-function findLockFile(projectPath, preferredManager) {
-  let directory = projectPath;
-  const managers = preferredManager ? [
-    preferredManager,
-    ...["pnpm", "yarn", "npm"].filter(
-      (manager) => manager !== preferredManager
-    )
-  ] : ["pnpm", "yarn", "npm"];
-  for (let depth = 0; depth <= 3; depth++) {
-    for (const manager of managers) {
-      if (lockFileNames[manager].some((name) => (0, import_node_fs8.existsSync)((0, import_node_path6.join)(directory, name)))) {
-        return { manager, directory };
-      }
-    }
-    const parent = (0, import_node_path6.dirname)(directory);
-    if (parent === directory) break;
-    directory = parent;
-  }
-  return null;
-}
-function declaredManager(value) {
-  const match2 = /^(npm|pnpm|yarn)@/i.exec(value ?? "");
-  return match2?.[1]?.toLowerCase() ?? null;
-}
-function isModernYarn(projectPath, packageManager, lockDirectory) {
-  const version2 = /^yarn@(\d+)/i.exec(packageManager ?? "")?.[1];
-  if (version2 && Number(version2) >= 2) return true;
-  let directory = projectPath;
-  for (let depth = 0; depth <= 3; depth++) {
-    if ((0, import_node_fs8.existsSync)((0, import_node_path6.join)(directory, ".yarnrc.yml"))) return true;
-    if (directory === lockDirectory) break;
-    const parent = (0, import_node_path6.dirname)(directory);
-    if (parent === directory) break;
-    directory = parent;
-  }
-  return false;
-}
-var PRODUCTION_FLAGS = {
-  npm: ["--omit=dev"],
-  pnpm: ["--prod"],
-  yarnClassic: ["--groups", "dependencies"],
-  yarnModern: ["--environment", "production"]
-};
-function resolveAuditCommand(projectPath, packageManager, production = false) {
-  const only = (flags) => production ? [...flags] : [];
-  const preferredManager = declaredManager(packageManager);
-  const lockFile = findLockFile(projectPath, preferredManager);
-  const manager = preferredManager ?? lockFile?.manager ?? "npm";
-  const executable = `${manager}${process.platform === "win32" ? ".cmd" : ""}`;
-  if (manager === "pnpm") {
-    return {
-      manager,
-      command: executable,
-      args: ["audit", "--json", ...only(PRODUCTION_FLAGS.pnpm)],
-      fixCommand: "pnpm audit --fix"
-    };
-  }
-  if (manager === "yarn") {
-    const modern = isModernYarn(
-      projectPath,
-      packageManager,
-      lockFile?.directory
-    );
-    return {
-      manager,
-      command: executable,
-      args: modern ? [
-        "npm",
-        "audit",
-        "--json",
-        "--recursive",
-        ...only(PRODUCTION_FLAGS.yarnModern)
-      ] : ["audit", "--json", ...only(PRODUCTION_FLAGS.yarnClassic)],
-      fixCommand: modern ? "yarn up <package>" : "yarn upgrade"
-    };
-  }
-  return {
-    manager,
-    command: executable,
-    args: ["audit", "--json", ...only(PRODUCTION_FLAGS.npm)],
-    fixCommand: "npm audit fix"
-  };
-}
-function readVulnerabilityCounts(value) {
-  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
-  const record = value;
-  const names = [
-    "critical",
-    "high",
-    "moderate",
-    "low"
-  ];
-  if (!names.some((name) => name in record)) return null;
-  const summary = {};
-  for (const name of names) {
-    const count = record[name];
-    if (typeof count !== "number" || !Number.isFinite(count) || count < 0) {
-      throw new Error(`invalid ${name} vulnerability count`);
-    }
-    summary[name] = count;
-  }
-  return summary;
-}
-function findAuditSummary(value) {
-  if (!value || typeof value !== "object") return null;
-  if (Array.isArray(value)) {
-    for (const entry of value) {
-      const summary = findAuditSummary(entry);
-      if (summary) return summary;
-    }
-    return null;
-  }
-  const record = value;
-  const metadata = record.metadata;
-  const metadataSummary = readVulnerabilityCounts(metadata?.vulnerabilities);
-  if (metadataSummary) return metadataSummary;
-  if (record.type === "auditSummary") {
-    const data = record.data;
-    const yarnSummary = readVulnerabilityCounts(data?.vulnerabilities);
-    if (yarnSummary) return yarnSummary;
-  }
-  return null;
-}
-function parseAuditSummary(output) {
-  const trimmed = output.trim();
-  if (!trimmed) throw new Error("audit returned no JSON");
-  try {
-    const summary = findAuditSummary(JSON.parse(trimmed));
-    if (summary) return summary;
-  } catch (error) {
-    if (error instanceof SyntaxError) {
-    } else {
-      throw error;
-    }
-  }
-  for (const line of trimmed.split(/\r?\n/)) {
-    if (!line.trim()) continue;
-    let entry;
-    try {
-      entry = JSON.parse(line);
-    } catch {
-      throw new Error("audit returned invalid JSON");
-    }
-    const summary = findAuditSummary(entry);
-    if (summary) return summary;
-  }
-  throw new Error("audit JSON did not include a vulnerability summary");
-}
-var runAuditProcess = (command, cwd) => {
-  const result = (0, import_node_child_process3.spawnSync)(command.command, command.args, {
-    cwd,
-    timeout: 3e4,
-    encoding: "utf-8",
-    stdio: ["ignore", "pipe", "pipe"],
-    shell: process.platform === "win32"
-  });
-  return {
-    stdout: result.stdout ?? "",
-    stderr: result.stderr ?? "",
-    ...result.error ? { error: result.error } : {}
-  };
-};
-var auditCache = /* @__PURE__ */ new Map();
-function hashFile(path2) {
-  try {
-    return (0, import_node_crypto2.createHash)("sha256").update((0, import_node_fs8.readFileSync)(path2)).digest("hex");
-  } catch {
-    return "missing";
-  }
-}
-function auditCacheKey(projectPath, command, lockFile) {
-  const lockPath = lockFileNames[lockFile.manager].map((name) => (0, import_node_path6.join)(lockFile.directory, name)).find((candidate) => (0, import_node_fs8.existsSync)(candidate));
-  return [
-    command.command,
-    ...command.args,
-    projectPath,
-    lockPath ? hashFile(lockPath) : "no-lock",
-    hashFile((0, import_node_path6.join)(projectPath, "package.json"))
-  ].join("\0");
-}
-function runAudit(projectPath, command, runner) {
-  const run = runner(command, projectPath);
-  try {
-    if (run.error) throw run.error;
-    if (!run.stdout.trim()) {
-      throw new Error(
-        run.stderr.trim() || `${command.manager} audit returned no JSON`
-      );
-    }
-    return {
-      kind: "summary",
-      summary: parseAuditSummary(run.stdout),
-      advisories: parseAuditAdvisories(run.stdout)
-    };
-  } catch (error) {
-    return {
-      kind: "error",
-      message: error instanceof Error ? error.message : String(error)
-    };
-  }
-}
-function recordAudit(outcome, auditCommand, issues) {
-  if (outcome.kind === "error") {
-    issues.push({
-      ...fromRule("audit-unavailable"),
-      message: `${auditCommand.manager} audit could not be evaluated: ${outcome.message}`,
-      fix: `Run ${[auditCommand.manager, ...auditCommand.args].join(" ")} and resolve the reported error`
-    });
-    return false;
-  }
-  const { critical, high, moderate, low } = outcome.summary;
-  const affected = (severity) => describeAdvisories(outcome.advisories ?? [], severity);
-  if (critical > 0)
-    issues.push({
-      ...fromRule("vuln-critical"),
-      message: `${critical} critical vulnerabilit${critical > 1 ? "ies" : "y"}`,
-      fix: `Run ${auditCommand.fixCommand}.${affected("critical")}`
-    });
-  if (high > 0)
-    issues.push({
-      ...fromRule("vuln-high"),
-      message: `${high} high severity vulnerabilit${high > 1 ? "ies" : "y"}`,
-      fix: `Run ${auditCommand.fixCommand}.${affected("high")}`
-    });
-  if (moderate > 0)
-    issues.push({
-      ...fromRule("vuln-moderate"),
-      message: `${moderate} moderate vulnerabilit${moderate > 1 ? "ies" : "y"}`,
-      fix: `Review ${auditCommand.manager} audit output.${affected("moderate")}`
-    });
-  if (low > 0) {
-    const lowAffected = affected("low");
-    issues.push({
-      ...fromRule("vuln-low"),
-      message: `${low} low severity vulnerabilit${low > 1 ? "ies" : "y"}`,
-      ...lowAffected ? { fix: lowAffected.trim() } : {}
-    });
-  }
-  return critical + high + moderate + low === 0;
-}
-async function analyzeDependencies(context, options = {}) {
-  const { projectPath } = context;
-  const issues = [];
-  let checksRun = 0;
-  let checksPassed = 0;
-  if (context.packageJsonStatus === "missing") {
-    return {
-      name: "Dependencies",
-      score: 0,
-      issues: [
-        {
-          ...fromRule("no-package-json"),
-          message: "No package.json found"
-        }
-      ],
-      summary: "No package.json"
-    };
-  }
-  const pkg = context.packageJson;
-  if (!pkg) {
-    return {
-      name: "Dependencies",
-      score: 0,
-      issues: [
-        {
-          ...fromRule("invalid-package-json"),
-          message: "Cannot parse package.json"
-        }
-      ],
-      summary: "Invalid package.json"
-    };
-  }
-  checksRun++;
-  const preferredManager = declaredManager(pkg.packageManager);
-  const lockFile = findLockFile(projectPath, preferredManager);
-  const auditCommand = resolveAuditCommand(
-    projectPath,
-    pkg.packageManager,
-    context.config.audit === "production"
-  );
-  const hasLock = lockFile !== null && (preferredManager === null || lockFile.manager === auditCommand.manager);
-  if (hasLock) {
-    checksPassed++;
-  } else if (lockFile) {
-    issues.push({
-      ...fromRule("lock-file-manager-mismatch"),
-      message: `packageManager selects ${auditCommand.manager}, but the detected lock file belongs to ${lockFile.manager}`,
-      fix: `Generate and commit the ${auditCommand.manager} lock file, then remove conflicting lock files`
-    });
-  } else {
-    issues.push({
-      ...fromRule("no-lock-file"),
-      message: "No lock file \u2014 builds are not reproducible and dependencies cannot be audited",
-      fix: `Run ${auditCommand.manager} install and commit the generated lock file`
-    });
-  }
-  const auditMode = options.audit ?? context.config.audit !== false;
-  const cacheKey = lockFile ? auditCacheKey(projectPath, auditCommand, lockFile) : null;
-  const cached = cacheKey ? auditCache.get(cacheKey) : void 0;
-  if (auditMode === true || auditMode === "cached" && (cached || !lockFile)) {
-    checksRun++;
-    if (lockFile && cacheKey) {
-      const outcome = auditMode === "cached" && cached ? cached : runAudit(
-        projectPath,
-        auditCommand,
-        options.runAudit ?? runAuditProcess
-      );
-      auditCache.set(cacheKey, outcome);
-      if (recordAudit(outcome, auditCommand, issues)) checksPassed++;
-    }
-  } else {
-    issues.push({
-      ...fromRule("audit-skipped"),
-      message: auditMode === "cached" ? "Dependency audit has not run for this lock file yet; known vulnerabilities were not checked" : "Dependency audit skipped; known vulnerabilities were not checked",
-      fix: `Run ${[auditCommand.manager, ...auditCommand.args].join(" ")} or scan without --no-audit`
-    });
-  }
-  checksRun++;
-  if (pkg.engines?.node) {
-    checksPassed++;
-  } else {
-    issues.push({
-      ...fromRule("no-engines"),
-      message: "No engines.node in package.json",
-      fix: 'Add "engines": { "node": ">=18.0.0" }'
-    });
-  }
-  checksRun++;
-  if (pkg.scripts?.build && (pkg.scripts?.start || pkg.scripts?.dev)) {
-    checksPassed++;
-  } else {
-    issues.push({
-      ...fromRule("missing-scripts"),
-      message: "Missing essential scripts (build, start/dev)",
-      fix: "Add build and start scripts"
-    });
-  }
-  checksRun++;
-  const risky = ["request", "node-uuid", "nomnom", "coffee-script"];
-  const allDeps = { ...pkg.dependencies, ...pkg.devDependencies };
-  const found = risky.filter((d) => d in allDeps);
-  if (found.length === 0) {
-    checksPassed++;
-  } else {
-    for (const dependency of found) {
-      issues.push({
-        ...fromRule("deprecated-dep"),
-        message: `"${dependency}" is deprecated`
-      });
-    }
-  }
-  const score = checksRun > 0 ? Math.round(checksPassed / checksRun * 100) : 0;
-  return {
-    name: "Dependencies",
-    score,
-    issues,
-    summary: `${Math.round(checksPassed)}/${checksRun} checks passed`
-  };
-}
-
 // src/analyzers/express-api.ts
-var import_node_path7 = require("path");
+var import_node_path8 = require("path");
 var import_ts_morph2 = __toESM(require_ts_morph(), 1);
 var HTTP_METHODS = /* @__PURE__ */ new Set([
   "all",
@@ -257585,7 +257772,7 @@ function collectRouters(sourceFile, file) {
 }
 function resolveModule(fromFile, specifier, files) {
   if (!specifier.startsWith(".")) return null;
-  const base = import_node_path7.posix.normalize(import_node_path7.posix.join(import_node_path7.posix.dirname(fromFile), specifier));
+  const base = import_node_path8.posix.normalize(import_node_path8.posix.join(import_node_path8.posix.dirname(fromFile), specifier));
   const stem = base.replace(/\.(?:[cm]?js|jsx)$/, "");
   const candidates = [
     base,
@@ -257915,11 +258102,11 @@ async function analyzeExpressApi(context) {
 var import_ts_morph5 = __toESM(require_ts_morph(), 1);
 
 // src/analyzers/fastify-autoload.ts
-var import_node_path9 = require("path");
+var import_node_path10 = require("path");
 var import_ts_morph4 = __toESM(require_ts_morph(), 1);
 
 // src/analyzers/fastify-plugins.ts
-var import_node_path8 = require("path");
+var import_node_path9 = require("path");
 var import_ts_morph3 = __toESM(require_ts_morph(), 1);
 var INSTANCE_NAMES = /(?:^|\.)(?:app|server|fastify|instance)$/i;
 var INSTANCE_TYPE = /^(?:[A-Za-z_$][\w$]*\.)?FastifyInstance\b/;
@@ -258012,7 +258199,7 @@ function pathAliases(options, projectPath) {
         prefix,
         suffix,
         targets: targets.map(
-          (target) => (0, import_node_path8.relative)(projectPath, (0, import_node_path8.resolve)(base, target)).replace(/\\/g, "/")
+          (target) => (0, import_node_path9.relative)(projectPath, (0, import_node_path9.resolve)(base, target)).replace(/\\/g, "/")
         )
       }
     ];
@@ -258020,7 +258207,7 @@ function pathAliases(options, projectPath) {
 }
 function importBases(index, fromFile, specifier) {
   if (specifier.startsWith(".")) {
-    return [import_node_path8.posix.normalize(import_node_path8.posix.join(import_node_path8.posix.dirname(fromFile), specifier))];
+    return [import_node_path9.posix.normalize(import_node_path9.posix.join(import_node_path9.posix.dirname(fromFile), specifier))];
   }
   return (index.aliases ?? []).flatMap(({ prefix, suffix, targets }) => {
     if (specifier.length < prefix.length + suffix.length || !specifier.startsWith(prefix) || !specifier.endsWith(suffix)) {
@@ -258031,7 +258218,7 @@ function importBases(index, fromFile, specifier) {
       specifier.length - suffix.length
     );
     return targets.map(
-      (target) => import_node_path8.posix.normalize(target.replace("*", matched))
+      (target) => import_node_path9.posix.normalize(target.replace("*", matched))
     );
   });
 }
@@ -258243,7 +258430,7 @@ function fileOf(index, node) {
   return index.paths.get(node.getSourceFile());
 }
 function within(base, segments) {
-  const joined = import_node_path9.posix.normalize(import_node_path9.posix.join(base || ".", ...segments));
+  const joined = import_node_path10.posix.normalize(import_node_path10.posix.join(base || ".", ...segments));
   if (joined === ".." || joined.startsWith("../")) return null;
   return joined === "." ? "" : joined.replace(/\/$/, "");
 }
@@ -258253,12 +258440,12 @@ function baseDirectory(index, node) {
   if (text2 === "process.cwd()") return "";
   const file = fileOf(index, value);
   if (file === void 0) return null;
-  if (FILE_DIRECTORY.test(text2)) return import_node_path9.posix.dirname(file);
+  if (FILE_DIRECTORY.test(text2)) return import_node_path10.posix.dirname(file);
   const resolved = definition(index, value);
   if (!import_ts_morph4.Node.isVariableDeclaration(resolved)) return null;
   const initializer = resolved.getInitializer()?.getText() ?? "";
   const declared = fileOf(index, resolved);
-  return /\bdirname\s*\(/.test(initializer) && initializer.includes("import.meta.url") && declared !== void 0 ? import_node_path9.posix.dirname(declared) : null;
+  return /\bdirname\s*\(/.test(initializer) && initializer.includes("import.meta.url") && declared !== void 0 ? import_node_path10.posix.dirname(declared) : null;
 }
 function calleeName(call) {
   const callee = call.getExpression();
@@ -258275,7 +258462,7 @@ function directoryOf(index, node, depth = 0) {
     const [path2, base] = value.getArguments();
     const relative8 = literalText2(path2);
     const file = fileOf(index, value);
-    return relative8 !== null && base?.getText() === "import.meta.url" && file !== void 0 ? within(import_node_path9.posix.dirname(file), [relative8]) : null;
+    return relative8 !== null && base?.getText() === "import.meta.url" && file !== void 0 ? within(import_node_path10.posix.dirname(file), [relative8]) : null;
   }
   if (import_ts_morph4.Node.isCallExpression(value)) {
     const name = calleeName(value);
@@ -258353,7 +258540,7 @@ function directories(index, options) {
   return found;
 }
 function hooksOf(path2, found, options) {
-  const parent = path2.includes("/") ? import_node_path9.posix.dirname(path2) : "";
+  const parent = path2.includes("/") ? import_node_path10.posix.dirname(path2) : "";
   const inherited3 = options.cascadeHooks && path2 !== "" ? hooksOf(parent, found, options) : [];
   const own = found.get(path2)?.hooks;
   if (!own) return inherited3;
@@ -260768,8 +260955,8 @@ async function analyzeNextjsApi(context) {
 }
 
 // src/analyzers/security.ts
-var import_node_fs9 = require("fs");
-var import_node_path10 = require("path");
+var import_node_fs10 = require("fs");
+var import_node_path11 = require("path");
 
 // src/analyzers/security-sinks.ts
 var import_ts_morph17 = __toESM(require_ts_morph(), 1);
@@ -262226,23 +262413,23 @@ async function analyzeSecurity(context, options = {}) {
     let foundGitignore = false;
     let directory = projectPath;
     for (let depth = 0; depth <= 3; depth++) {
-      const gitignorePath = (0, import_node_path10.join)(directory, ".gitignore");
-      if ((0, import_node_fs9.existsSync)(gitignorePath)) {
+      const gitignorePath = (0, import_node_path11.join)(directory, ".gitignore");
+      if ((0, import_node_fs10.existsSync)(gitignorePath)) {
         foundGitignore = true;
-        const content = (0, import_node_fs9.readFileSync)(gitignorePath, "utf-8");
+        const content = (0, import_node_fs10.readFileSync)(gitignorePath, "utf-8");
         if (gitignoreProtectsEnv(content)) {
           checksPassed++;
         } else {
           issues.push({
             ...fromRule("env-not-gitignored"),
             message: ".env is not ignored by .gitignore \u2014 secrets may be committed",
-            file: (0, import_node_path10.relative)(projectPath, gitignorePath).replace(/\\/g, "/"),
+            file: (0, import_node_path11.relative)(projectPath, gitignorePath).replace(/\\/g, "/"),
             fix: "Add .env or .env* to your .gitignore"
           });
         }
         break;
       }
-      const parent = (0, import_node_path10.dirname)(directory);
+      const parent = (0, import_node_path11.dirname)(directory);
       if (parent === directory) break;
       directory = parent;
     }
@@ -262345,8 +262532,8 @@ async function analyzeSecurity(context, options = {}) {
 }
 
 // src/analyzers/structure.ts
-var import_node_fs10 = require("fs");
-var import_node_path11 = require("path");
+var import_node_fs11 = require("fs");
+var import_node_path12 = require("path");
 var LINTER_CONFIGS = [
   "eslint.config.js",
   "eslint.config.cjs",
@@ -262385,10 +262572,10 @@ function findConfigUp(projectPath, fileNames, maxParentDepth = 3) {
   let directory = projectPath;
   for (let depth = 0; depth <= maxParentDepth; depth++) {
     for (const fileName of fileNames) {
-      const candidate = (0, import_node_path11.join)(directory, fileName);
-      if ((0, import_node_fs10.existsSync)(candidate)) return candidate;
+      const candidate = (0, import_node_path12.join)(directory, fileName);
+      if ((0, import_node_fs11.existsSync)(candidate)) return candidate;
     }
-    const parent = (0, import_node_path11.dirname)(directory);
+    const parent = (0, import_node_path12.dirname)(directory);
     if (parent === directory) break;
     directory = parent;
   }
@@ -262403,13 +262590,13 @@ function findReadme(projectPath) {
       "readme.txt",
       "readme"
     ];
-    const entries = (0, import_node_fs10.readdirSync)(projectPath);
+    const entries = (0, import_node_fs11.readdirSync)(projectPath);
     const byLowerName = new Map(
       entries.map((entry) => [entry.toLowerCase(), entry])
     );
     for (const name of preferredNames) {
       const actualName = byLowerName.get(name);
-      if (actualName) return (0, import_node_path11.join)(projectPath, actualName);
+      if (actualName) return (0, import_node_path12.join)(projectPath, actualName);
     }
   } catch {
     return void 0;
@@ -262420,11 +262607,11 @@ function meaningfulReadmeLength(content) {
   return content.replace(/<!--[\s\S]*?-->/g, " ").replace(/!\[[^\]]*\]\([^)]*\)/g, " ").replace(/\[([^\]]+)\]\([^)]*\)/g, "$1").replace(/<[^>]+>/g, " ").replace(/[`#>*_|~=-]/g, " ").replace(/\s+/g, " ").trim().length;
 }
 function displayPath(projectPath, filePath) {
-  return (0, import_node_path11.relative)(projectPath, filePath).replace(/\\/g, "/") || ".";
+  return (0, import_node_path12.relative)(projectPath, filePath).replace(/\\/g, "/") || ".";
 }
 function rootEnvFiles(projectPath) {
   try {
-    return (0, import_node_fs10.readdirSync)(projectPath).filter(
+    return (0, import_node_fs11.readdirSync)(projectPath).filter(
       (entry) => /^\.env(?:\..+)?$/.test(entry) && !ENV_TEMPLATES.includes(entry)
     );
   } catch {
@@ -262432,8 +262619,8 @@ function rootEnvFiles(projectPath) {
   }
 }
 function analyzeNestOrganization(context, issues) {
-  const srcPath = (0, import_node_path11.join)(context.projectPath, "src");
-  if (!(0, import_node_fs10.existsSync)(srcPath)) {
+  const srcPath = (0, import_node_path12.join)(context.projectPath, "src");
+  if (!(0, import_node_fs11.existsSync)(srcPath)) {
     issues.push({
       ...fromRule("no-src-dir"),
       message: "No src/ directory found",
@@ -262465,11 +262652,11 @@ function analyzeNestOrganization(context, issues) {
       return false;
     }
     const moduleDirectories = new Set(
-      moduleFiles.map((file) => (0, import_node_path11.dirname)(file).replace(/\\/g, "/"))
+      moduleFiles.map((file) => (0, import_node_path12.dirname)(file).replace(/\\/g, "/"))
     );
     const featureDirectories = new Set(
       [...controllerFiles, ...serviceFiles].map(
-        (file) => (0, import_node_path11.dirname)(file).replace(/\\/g, "/")
+        (file) => (0, import_node_path12.dirname)(file).replace(/\\/g, "/")
       )
     );
     if (featureDirectories.size === 0) return true;
@@ -262477,7 +262664,7 @@ function analyzeNestOrganization(context, issues) {
       let directory = featureDirectory;
       while (directory !== "src" && directory !== ".") {
         if (moduleDirectories.has(directory)) return true;
-        directory = (0, import_node_path11.dirname)(directory).replace(/\\/g, "/");
+        directory = (0, import_node_path12.dirname)(directory).replace(/\\/g, "/");
       }
       return featureDirectory === "src" && moduleDirectories.has("src");
     };
@@ -262510,12 +262697,12 @@ async function analyzeStructure(context) {
   const pkg = context.packageJson ?? {};
   const hasDependency = (name) => Boolean(pkg.dependencies?.[name] || pkg.devDependencies?.[name]);
   const isNestjs = hasDependency("@nestjs/core");
-  const tsconfigPath = (0, import_node_path11.join)(projectPath, "tsconfig.json");
-  const isTypescript = (0, import_node_fs10.existsSync)(tsconfigPath) || hasDependency("typescript");
+  const tsconfigPath = (0, import_node_path12.join)(projectPath, "tsconfig.json");
+  const isTypescript = (0, import_node_fs11.existsSync)(tsconfigPath) || hasDependency("typescript");
   checksRun++;
   const readmePath = findReadme(projectPath);
   if (readmePath) {
-    const content = (0, import_node_fs10.readFileSync)(readmePath, "utf-8");
+    const content = (0, import_node_fs11.readFileSync)(readmePath, "utf-8");
     if (meaningfulReadmeLength(content) >= 100) {
       checksPassed++;
     } else {
@@ -262599,7 +262786,7 @@ async function analyzeStructure(context) {
   checksRun++;
   const envFiles = rootEnvFiles(projectPath);
   const envTemplate = ENV_TEMPLATES.find(
-    (name) => (0, import_node_fs10.existsSync)((0, import_node_path11.join)(projectPath, name))
+    (name) => (0, import_node_fs11.existsSync)((0, import_node_path12.join)(projectPath, name))
   );
   if (envFiles.length === 0 || envTemplate) {
     checksPassed++;
@@ -262621,8 +262808,8 @@ async function analyzeStructure(context) {
 }
 
 // src/analyzers/testing.ts
-var import_node_fs11 = require("fs");
-var import_node_path12 = require("path");
+var import_node_fs12 = require("fs");
+var import_node_path13 = require("path");
 var import_ts_morph18 = __toESM(require_ts_morph(), 1);
 var TEST_CONFIG_FILES = ["jest", "vitest"].flatMap(
   (tool) => ["ts", "js", "mjs", "mts"].map((extension) => `${tool}.config.${extension}`)
@@ -262646,11 +262833,11 @@ var COVERAGE_THRESHOLDS = {
   functions: 70,
   branches: 70
 };
-function isRecord5(value) {
+function isRecord6(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 function parseCoverageMetric(value) {
-  if (!isRecord5(value)) return null;
+  if (!isRecord6(value)) return null;
   const total = value.total;
   const covered = value.covered;
   const pct = value.pct;
@@ -262661,13 +262848,13 @@ function parseCoverageMetric(value) {
 }
 function readCoverageReport(projectPath) {
   const candidates = [
-    (0, import_node_path12.join)(projectPath, "coverage", "coverage-summary.json"),
-    (0, import_node_path12.join)(projectPath, "coverage-summary.json")
+    (0, import_node_path13.join)(projectPath, "coverage", "coverage-summary.json"),
+    (0, import_node_path13.join)(projectPath, "coverage-summary.json")
   ];
-  const reportPath = candidates.find((candidate) => (0, import_node_fs11.existsSync)(candidate));
+  const reportPath = candidates.find((candidate) => (0, import_node_fs12.existsSync)(candidate));
   if (!reportPath) return null;
-  const document = JSON.parse((0, import_node_fs11.readFileSync)(reportPath, "utf-8"));
-  if (!isRecord5(document) || !isRecord5(document.total)) {
+  const document = JSON.parse((0, import_node_fs12.readFileSync)(reportPath, "utf-8"));
+  if (!isRecord6(document) || !isRecord6(document.total)) {
     throw new Error("missing total coverage summary");
   }
   const metrics = {};
@@ -262680,7 +262867,7 @@ function readCoverageReport(projectPath) {
     Object.values(metrics).reduce((sum, metric) => sum + metric.pct, 0) / Object.keys(metrics).length
   );
   return {
-    file: (0, import_node_path12.relative)(projectPath, reportPath).replace(/\\/g, "/"),
+    file: (0, import_node_path13.relative)(projectPath, reportPath).replace(/\\/g, "/"),
     metrics,
     score
   };
@@ -262706,10 +262893,10 @@ function configDeclaresThreshold(context, file) {
 }
 function coverageRcDeclaresThreshold(projectPath) {
   return COVERAGE_RC_FILES.some((name) => {
-    const path2 = (0, import_node_path12.join)(projectPath, name);
-    if (!(0, import_node_fs11.existsSync)(path2)) return false;
+    const path2 = (0, import_node_path13.join)(projectPath, name);
+    if (!(0, import_node_fs12.existsSync)(path2)) return false;
     try {
-      const options = JSON.parse((0, import_node_fs11.readFileSync)(path2, "utf-8"));
+      const options = JSON.parse((0, import_node_fs12.readFileSync)(path2, "utf-8"));
       return options?.["check-coverage"] === true || Object.keys(options ?? {}).some((key) => METRIC_KEYS.has(key));
     } catch {
       return false;
@@ -262728,7 +262915,7 @@ function hasCoverageThreshold(context) {
   return Boolean(jest?.coverageThreshold) || packageTool("c8") || packageTool("nyc") || Object.values(pkg?.scripts ?? {}).some(
     (script) => COVERAGE_SCRIPT.test(script)
   ) || coverageRcDeclaresThreshold(context.projectPath) || COVERAGE_CONFIG_FILES.some(
-    (file) => (0, import_node_fs11.existsSync)((0, import_node_path12.join)(context.projectPath, file)) && configDeclaresThreshold(context, file)
+    (file) => (0, import_node_fs12.existsSync)((0, import_node_path13.join)(context.projectPath, file)) && configDeclaresThreshold(context, file)
   );
 }
 async function analyzeTesting(context) {
@@ -262789,7 +262976,7 @@ async function analyzeTesting(context) {
   }
   checksRun++;
   const hasE2e = ["test", "tests", "e2e", "__tests__"].some(
-    (dir) => (0, import_node_fs11.existsSync)((0, import_node_path12.join)(projectPath, dir))
+    (dir) => (0, import_node_fs12.existsSync)((0, import_node_path13.join)(projectPath, dir))
   );
   if (hasE2e) {
     checksPassed++;
@@ -262801,7 +262988,7 @@ async function analyzeTesting(context) {
     });
   }
   checksRun++;
-  const hasConfig = (0, import_node_fs11.existsSync)((0, import_node_path12.join)(projectPath, "jest.config.js")) || (0, import_node_fs11.existsSync)((0, import_node_path12.join)(projectPath, "jest.config.ts")) || (0, import_node_fs11.existsSync)((0, import_node_path12.join)(projectPath, "jest.config.mjs")) || (0, import_node_fs11.existsSync)((0, import_node_path12.join)(projectPath, "vitest.config.ts")) || (0, import_node_fs11.existsSync)((0, import_node_path12.join)(projectPath, "vitest.config.js")) || (0, import_node_fs11.existsSync)((0, import_node_path12.join)(projectPath, "vitest.config.mts"));
+  const hasConfig = (0, import_node_fs12.existsSync)((0, import_node_path13.join)(projectPath, "jest.config.js")) || (0, import_node_fs12.existsSync)((0, import_node_path13.join)(projectPath, "jest.config.ts")) || (0, import_node_fs12.existsSync)((0, import_node_path13.join)(projectPath, "jest.config.mjs")) || (0, import_node_fs12.existsSync)((0, import_node_path13.join)(projectPath, "vitest.config.ts")) || (0, import_node_fs12.existsSync)((0, import_node_path13.join)(projectPath, "vitest.config.js")) || (0, import_node_fs12.existsSync)((0, import_node_path13.join)(projectPath, "vitest.config.mts"));
   if (hasConfig || framework === "node:test") {
     checksPassed++;
   } else {
@@ -262824,7 +263011,7 @@ async function analyzeTesting(context) {
     issues.push({
       ...fromRule("invalid-coverage-report"),
       message: `Coverage summary could not be read: ${error instanceof Error ? error.message : String(error)}`,
-      file: (0, import_node_fs11.existsSync)((0, import_node_path12.join)(projectPath, "coverage", "coverage-summary.json")) ? "coverage/coverage-summary.json" : "coverage-summary.json",
+      file: (0, import_node_fs12.existsSync)((0, import_node_path13.join)(projectPath, "coverage", "coverage-summary.json")) ? "coverage/coverage-summary.json" : "coverage-summary.json",
       fix: "Regenerate coverage-summary.json with Jest, Vitest, or Istanbul"
     });
   }
@@ -263481,10 +263668,10 @@ var TrpcResolver = class {
       ])
     );
     const paths = /* @__PURE__ */ new Map();
-    const join11 = (prefix, key) => [prefix, key].filter(Boolean).join(".");
+    const join12 = (prefix, key) => [prefix, key].filter(Boolean).join(".");
     const visit = (members, prefix, visiting) => {
       for (const { key, value } of members) {
-        const path2 = join11(prefix, key);
+        const path2 = join12(prefix, key);
         if (value.kind === "procedure") {
           if (!paths.has(value.call)) paths.set(value.call, path2);
         } else if (value.kind === "record") {
@@ -263680,8 +263867,8 @@ var analyzeTrpcApi = withTrpcProcedures(
 
 // src/core/changed-files.ts
 var import_node_child_process4 = require("child_process");
-var import_node_fs12 = require("fs");
-var import_node_path13 = require("path");
+var import_node_fs13 = require("fs");
+var import_node_path14 = require("path");
 var GIT_MAX_BUFFER = 64 * 1024 * 1024;
 function limitToFiles(results, files) {
   let excluded = 0;
@@ -263697,7 +263884,7 @@ function limitToFiles(results, files) {
 }
 
 // src/core/fingerprint.ts
-var import_node_crypto3 = require("crypto");
+var import_node_crypto4 = require("crypto");
 var FINGERPRINT_KEY = "codediagFinding/v2";
 function normalize(text2) {
   return text2.replace(/\s+/g, " ").trim();
@@ -263714,7 +263901,7 @@ function anchor(issue, lineText) {
 }
 function computeFingerprint(issue, lineText, occurrence = 0, namespace) {
   const file = namespace ? `${namespace}/${issue.file ?? ""}` : issue.file ?? "";
-  return (0, import_node_crypto3.createHash)("sha256").update(
+  return (0, import_node_crypto4.createHash)("sha256").update(
     [issue.rule, file, anchor(issue, lineText), occurrence].join("\0")
   ).digest("hex");
 }
@@ -263982,7 +264169,7 @@ function calculateGrade(score) {
   return "F";
 }
 async function scan(projectPath, config = loadConfig(projectPath), options = {}) {
-  if (!(0, import_node_fs13.existsSync)(projectPath)) {
+  if (!(0, import_node_fs14.existsSync)(projectPath)) {
     throw new Error(`Directory not found: ${projectPath}`);
   }
   const progress = createProgressReporter(options);
@@ -264050,7 +264237,7 @@ async function scan(projectPath, config = loadConfig(projectPath), options = {})
   const grade = calculateGrade(totalScore);
   const skipped = context.skipped();
   return {
-    project: (0, import_node_path14.basename)(projectPath),
+    project: (0, import_node_path15.basename)(projectPath),
     stack,
     analyzers,
     totalScore,
@@ -264083,13 +264270,13 @@ function packageIgnores(entries, path2) {
   });
 }
 function packageConfig(root, path2, rootConfig) {
-  const directory = (0, import_node_path15.join)(root, path2);
-  const config = (0, import_node_fs14.existsSync)((0, import_node_path15.join)(directory, ".codediag.yml")) ? loadConfig(directory) : {
+  const directory = (0, import_node_path16.join)(root, path2);
+  const config = (0, import_node_fs15.existsSync)((0, import_node_path16.join)(directory, ".codediag.yml")) ? loadConfig(directory) : {
     ...rootConfig,
     ignore: packageIgnores(rootConfig.ignore, path2),
     analyzers: { ...rootConfig.analyzers }
   };
-  if (!(0, import_node_fs14.existsSync)((0, import_node_path15.join)(directory, "package.json"))) {
+  if (!(0, import_node_fs15.existsSync)((0, import_node_path16.join)(directory, "package.json"))) {
     return {
       ...config,
       analyzers: { ...config.analyzers, dependencies: false }
@@ -264110,7 +264297,7 @@ function packageScope(scope, path2) {
 function relocate(issue, root, path2) {
   if (issue.file) return { ...issue, file: `${path2}/${issue.file}` };
   const manifest = ["package.json", "project.json"].find(
-    (file) => (0, import_node_fs14.existsSync)((0, import_node_path15.join)(root, path2, file))
+    (file) => (0, import_node_fs15.existsSync)((0, import_node_path16.join)(root, path2, file))
   );
   return { ...issue, file: manifest ? `${path2}/${manifest}` : path2 };
 }
@@ -264193,7 +264380,7 @@ function combineWorkspace(root, info, scans, options) {
     0
   );
   return {
-    project: (0, import_node_path15.basename)(root),
+    project: (0, import_node_path16.basename)(root),
     stack: detectStack(root),
     analyzers,
     totalScore,
@@ -264234,11 +264421,22 @@ function combineWorkspace(root, info, scans, options) {
 }
 async function scanWorkspace(root, rootConfig, info, options = {}) {
   const { packageThreshold, ...scanOptions } = options;
+  const packages = info.packages.map((workspacePackage) => ({
+    ...workspacePackage,
+    config: packageConfig(root, workspacePackage.path, rootConfig)
+  }));
+  const audits = (config) => config.analyzers.dependencies && (options.audit === void 0 ? config.audit !== false : options.audit === true);
+  await prefetchAudits(
+    packages.filter(({ config }) => audits(config)).map(({ path: path2, config }) => ({
+      projectPath: (0, import_node_path16.join)(root, path2),
+      production: config.audit === "production"
+    }))
+  );
   const scans = [];
-  for (const workspacePackage of info.packages) {
-    const config = packageConfig(root, workspacePackage.path, rootConfig);
-    const result = await scan((0, import_node_path15.join)(root, workspacePackage.path), config, {
+  for (const { config, ...workspacePackage } of packages) {
+    const result = await scan((0, import_node_path16.join)(root, workspacePackage.path), config, {
       ...scanOptions,
+      ...audits(config) ? { audit: "cached" } : {},
       scope: packageScope(options.scope, workspacePackage.path),
       fingerprintNamespace: workspacePackage.path,
       label: workspacePackage.path
@@ -264258,8 +264456,8 @@ async function scanWorkspace(root, rootConfig, info, options = {}) {
 }
 
 // src/core/workspaces.ts
-var import_node_fs15 = require("fs");
-var import_node_path16 = require("path");
+var import_node_fs16 = require("fs");
+var import_node_path17 = require("path");
 var import_yaml2 = __toESM(require_dist3(), 1);
 var SKIPPED_DIRECTORIES = /* @__PURE__ */ new Set([
   "node_modules",
@@ -264270,12 +264468,12 @@ var SKIPPED_DIRECTORIES = /* @__PURE__ */ new Set([
 ]);
 var MAX_DEPTH = 5;
 var DEFAULT_LERNA_PACKAGES = ["packages/*"];
-function isRecord6(value) {
+function isRecord7(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 function readJson(path2) {
   try {
-    return JSON.parse((0, import_node_fs15.readFileSync)(path2, "utf-8"));
+    return JSON.parse((0, import_node_fs16.readFileSync)(path2, "utf-8"));
   } catch {
     return void 0;
   }
@@ -264284,25 +264482,25 @@ function strings(value) {
   return Array.isArray(value) ? value.filter((item) => typeof item === "string") : [];
 }
 function packageJsonPatterns(manifest) {
-  if (!isRecord6(manifest)) return [];
+  if (!isRecord7(manifest)) return [];
   const { workspaces } = manifest;
-  return isRecord6(workspaces) ? strings(workspaces.packages) : strings(workspaces);
+  return isRecord7(workspaces) ? strings(workspaces.packages) : strings(workspaces);
 }
 function pnpmPatterns(root) {
-  const path2 = (0, import_node_path16.join)(root, "pnpm-workspace.yaml");
-  if (!(0, import_node_fs15.existsSync)(path2)) return [];
+  const path2 = (0, import_node_path17.join)(root, "pnpm-workspace.yaml");
+  if (!(0, import_node_fs16.existsSync)(path2)) return [];
   try {
-    const document = (0, import_yaml2.parse)((0, import_node_fs15.readFileSync)(path2, "utf-8"));
-    return isRecord6(document) ? strings(document.packages) : [];
+    const document = (0, import_yaml2.parse)((0, import_node_fs16.readFileSync)(path2, "utf-8"));
+    return isRecord7(document) ? strings(document.packages) : [];
   } catch {
     return [];
   }
 }
 function lernaPatterns(root) {
-  const path2 = (0, import_node_path16.join)(root, "lerna.json");
-  if (!(0, import_node_fs15.existsSync)(path2)) return null;
+  const path2 = (0, import_node_path17.join)(root, "lerna.json");
+  if (!(0, import_node_fs16.existsSync)(path2)) return null;
   const document = readJson(path2);
-  const patterns = isRecord6(document) ? strings(document.packages) : [];
+  const patterns = isRecord7(document) ? strings(document.packages) : [];
   return patterns.length > 0 ? patterns : DEFAULT_LERNA_PACKAGES;
 }
 function candidateDirectories(root, markers) {
@@ -264311,7 +264509,7 @@ function candidateDirectories(root, markers) {
     if (depth > MAX_DEPTH) return;
     let entries;
     try {
-      entries = (0, import_node_fs15.readdirSync)(directory, { withFileTypes: true });
+      entries = (0, import_node_fs16.readdirSync)(directory, { withFileTypes: true });
     } catch {
       return;
     }
@@ -264324,7 +264522,7 @@ function candidateDirectories(root, markers) {
         continue;
       }
       walk(
-        (0, import_node_path16.join)(directory, entry.name),
+        (0, import_node_path17.join)(directory, entry.name),
         relative8 ? `${relative8}/${entry.name}` : entry.name,
         depth + 1
       );
@@ -264343,23 +264541,23 @@ function matchPatterns(directories2, patterns) {
 }
 function packageName(root, path2) {
   for (const file of ["package.json", "project.json"]) {
-    const document = readJson((0, import_node_path16.join)(root, path2, file));
-    if (isRecord6(document) && typeof document.name === "string") {
+    const document = readJson((0, import_node_path17.join)(root, path2, file));
+    if (isRecord7(document) && typeof document.name === "string") {
       return document.name;
     }
   }
   return void 0;
 }
 function packageManagerTool(root, manifest) {
-  const declared = isRecord6(manifest) && typeof manifest.packageManager === "string" ? manifest.packageManager.split("@")[0] : void 0;
+  const declared = isRecord7(manifest) && typeof manifest.packageManager === "string" ? manifest.packageManager.split("@")[0] : void 0;
   if (declared === "pnpm" || declared === "yarn") return declared;
-  if ((0, import_node_fs15.existsSync)((0, import_node_path16.join)(root, "pnpm-lock.yaml"))) return "pnpm";
-  if ((0, import_node_fs15.existsSync)((0, import_node_path16.join)(root, "yarn.lock"))) return "yarn";
+  if ((0, import_node_fs16.existsSync)((0, import_node_path17.join)(root, "pnpm-lock.yaml"))) return "pnpm";
+  if ((0, import_node_fs16.existsSync)((0, import_node_path17.join)(root, "yarn.lock"))) return "yarn";
   return "npm";
 }
 function detectWorkspaces(root) {
-  const manifest = readJson((0, import_node_path16.join)(root, "package.json"));
-  const isNx = (0, import_node_fs15.existsSync)((0, import_node_path16.join)(root, "nx.json"));
+  const manifest = readJson((0, import_node_path17.join)(root, "package.json"));
+  const isNx = (0, import_node_fs16.existsSync)((0, import_node_path17.join)(root, "nx.json"));
   const pnpm = pnpmPatterns(root);
   const lerna = lernaPatterns(root);
   const patterns = [
@@ -264379,7 +264577,7 @@ function detectWorkspaces(root) {
     return null;
   }
   if (paths.length === 0) return null;
-  const tool = isNx ? "nx" : (0, import_node_fs15.existsSync)((0, import_node_path16.join)(root, "turbo.json")) ? "turbo" : lerna ? "lerna" : pnpm.length > 0 ? "pnpm" : packageManagerTool(root, manifest);
+  const tool = isNx ? "nx" : (0, import_node_fs16.existsSync)((0, import_node_path17.join)(root, "turbo.json")) ? "turbo" : lerna ? "lerna" : pnpm.length > 0 ? "pnpm" : packageManagerTool(root, manifest);
   return {
     tool,
     packages: paths.map((path2) => {
@@ -264390,10 +264588,10 @@ function detectWorkspaces(root) {
 }
 
 // src/core/github-pr.ts
-var import_node_fs16 = require("fs");
+var import_node_fs17 = require("fs");
 
 // src/reporters/pr-comment.ts
-var import_node_path17 = require("path");
+var import_node_path18 = require("path");
 var PR_COMMENT_MARKER = "<!-- codediag:pr-comment -->";
 var SCORE_MARKER = /<!-- codediag:score=(\d+(?:\.\d+)?) -->/;
 var MAX_LISTED_FINDINGS = 25;
@@ -264453,7 +264651,7 @@ function renderPrComment(input) {
   const inChangedFiles = [];
   let elsewhere = 0;
   for (const issue of actionable) {
-    const path2 = issue.file ? import_node_path17.posix.join(projectDirectory, issue.file) : void 0;
+    const path2 = issue.file ? import_node_path18.posix.join(projectDirectory, issue.file) : void 0;
     if (path2 && changedFiles2.has(path2)) inChangedFiles.push({ issue, path: path2 });
     else elsewhere += 1;
   }
@@ -264500,7 +264698,7 @@ var MAX_PAGES = 30;
 function pullRequestContext(env2, token) {
   if (!PULL_REQUEST_EVENTS.has(env2.GITHUB_EVENT_NAME ?? "")) return null;
   if (!env2.GITHUB_EVENT_PATH || !env2.GITHUB_REPOSITORY) return null;
-  const event = JSON.parse((0, import_node_fs16.readFileSync)(env2.GITHUB_EVENT_PATH, "utf8"));
+  const event = JSON.parse((0, import_node_fs17.readFileSync)(env2.GITHUB_EVENT_PATH, "utf8"));
   const number = event.pull_request?.number;
   if (typeof number !== "number") return null;
   return {
@@ -264584,7 +264782,7 @@ async function upsertComment(context, render, fetchImpl = fetch) {
 }
 
 // src/reporters/sarif.ts
-var import_node_path18 = require("path");
+var import_node_path19 = require("path");
 var import_node_url = require("url");
 
 // package.json
@@ -264618,7 +264816,7 @@ function sarifLevel(severity) {
   }
 }
 function artifactUri(file) {
-  if ((0, import_node_path18.isAbsolute)(file)) {
+  if ((0, import_node_path19.isAbsolute)(file)) {
     return (0, import_node_url.pathToFileURL)(file).href;
   }
   return file.replaceAll("\\", "/").split("/").map((segment) => encodeURIComponent(segment)).join("/");
@@ -264768,7 +264966,7 @@ function markdownEscape(value) {
 function writeOutput(name, value) {
   const outputFile = process.env.GITHUB_OUTPUT;
   if (outputFile) {
-    (0, import_node_fs17.appendFileSync)(outputFile, `${name}=${value}
+    (0, import_node_fs18.appendFileSync)(outputFile, `${name}=${value}
 `, "utf8");
   }
 }
@@ -264886,7 +265084,7 @@ async function commentOnPullRequest(result, threshold, failOn, workspace, projec
       return;
     }
     const files = await changedFiles(context);
-    const projectDirectory = (0, import_node_path19.relative)(workspace, projectPath).split(import_node_path19.sep).join("/");
+    const projectDirectory = (0, import_node_path20.relative)(workspace, projectPath).split(import_node_path20.sep).join("/");
     const outcome = await upsertComment(
       context,
       (previousBody) => renderPrComment({
@@ -264908,7 +265106,7 @@ async function commentOnPullRequest(result, threshold, failOn, workspace, projec
   }
 }
 function resolveWorkspacePath(workspace, value) {
-  return (0, import_node_path19.isAbsolute)(value) ? (0, import_node_path19.resolve)(value) : (0, import_node_path19.resolve)(workspace, value);
+  return (0, import_node_path20.isAbsolute)(value) ? (0, import_node_path20.resolve)(value) : (0, import_node_path20.resolve)(workspace, value);
 }
 function validatePathInput(name, value) {
   if (/[\r\n]/.test(value)) {
@@ -264918,7 +265116,7 @@ function validatePathInput(name, value) {
 }
 async function runAction() {
   try {
-    const workspace = (0, import_node_path19.resolve)(process.env.GITHUB_WORKSPACE || process.cwd());
+    const workspace = (0, import_node_path20.resolve)(process.env.GITHUB_WORKSPACE || process.cwd());
     const projectPath = resolveWorkspacePath(
       workspace,
       validatePathInput("path", getInput("path", "."))
@@ -264974,18 +265172,18 @@ async function runAction() {
       );
     }
     const result = previous ? compareWithPrevious(scanned, previous) : scanned;
-    (0, import_node_fs17.mkdirSync)((0, import_node_path19.dirname)(reportPath), { recursive: true });
-    (0, import_node_fs17.writeFileSync)(reportPath, `${JSON.stringify(result, null, 2)}
+    (0, import_node_fs18.mkdirSync)((0, import_node_path20.dirname)(reportPath), { recursive: true });
+    (0, import_node_fs18.writeFileSync)(reportPath, `${JSON.stringify(result, null, 2)}
 `, "utf8");
-    (0, import_node_fs17.mkdirSync)((0, import_node_path19.dirname)(sarifPath), { recursive: true });
-    (0, import_node_fs17.writeFileSync)(sarifPath, renderSarif(result), "utf8");
+    (0, import_node_fs18.mkdirSync)((0, import_node_path20.dirname)(sarifPath), { recursive: true });
+    (0, import_node_fs18.writeFileSync)(sarifPath, renderSarif(result), "utf8");
     writeOutput("score", String(result.totalScore));
     writeOutput("grade", result.grade);
     writeOutput("report", reportPath);
     writeOutput("sarif", sarifPath);
     emitAnnotations(result);
     if (process.env.GITHUB_STEP_SUMMARY) {
-      (0, import_node_fs17.appendFileSync)(
+      (0, import_node_fs18.appendFileSync)(
         process.env.GITHUB_STEP_SUMMARY,
         renderSummary(result, threshold, failOn),
         "utf8"
