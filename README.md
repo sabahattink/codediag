@@ -65,7 +65,9 @@ AST analysis (ts-morph, not regex) of the routes your app actually exposes.
   `router.use()` calls, and `app.use(path, mw, router)` mounts across files;
   centralized error handling and health endpoints.
 - **Fastify:** routes from `fastify.get()` and `fastify.route()`, followed
-  through `register()`-ed plugins and `fastify-plugin` encapsulation;
+  through `register()`-ed plugins, `fastify-plugin` encapsulation, and
+  `@fastify/autoload` directories (directory prefixes, `autoPrefix`, and
+  autohooks, as `fastify-cli` projects use them);
   `onRequest`/`preHandler` auth hooks on the route or its context, body
   schemas on mutating routes, `setErrorHandler`, and health endpoints.
 - **Hono:** routes on `new Hono()` apps, `basePath()`, and sub-apps mounted

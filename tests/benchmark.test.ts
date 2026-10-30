@@ -37,6 +37,7 @@ for (const [name, framework] of [
   ["realistic/nestjs", "nestjs"],
   ["realistic/express", "express"],
   ["realistic/fastify", "fastify"],
+  ["realistic/fastify-autoload", "fastify"],
   ["realistic/hono", "hono"],
   ["realistic/nextjs", "nextjs"],
 ] as const) {
@@ -161,6 +162,17 @@ test("defects/express-helpers follows request data into and out of helper module
     traversal?.fix ?? "",
     /^Request data reaches this call from src\/app\.js:12; /,
   );
+});
+
+test("realistic/fastify-autoload gets prefixes and autohooks from @fastify/autoload", async () => {
+  const result = await scanFixture("realistic/fastify-autoload");
+  const api = result.analyzers.find(
+    (analyzer) => analyzer.name === "API Health",
+  );
+
+  assert.deepEqual(api?.issues, []);
+  assert.equal(api?.score, 100);
+  assert.match(api?.summary ?? "", /^6 Fastify endpoints/);
 });
 
 test("defects/fastify keeps its auth hook, schema, and error handler findings", async () => {

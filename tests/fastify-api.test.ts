@@ -381,6 +381,222 @@ test("inline and dynamically imported plugins contribute prefixed routes", async
   assert.match(result.summary, /^1 Fastify endpoints/);
 });
 
+test("@fastify/autoload plugins get directory, auto, and option prefixes", async () => {
+  const result = await analyze({
+    "src/app.ts": [
+      'import AutoLoad, { type AutoloadPluginOptions } from "@fastify/autoload";',
+      'import type { FastifyPluginAsync } from "fastify";',
+      'import { join } from "node:path";',
+      "const app: FastifyPluginAsync<AutoloadPluginOptions> = async (fastify, opts) => {",
+      "  fastify.setErrorHandler(handleError);",
+      "  void fastify.register(AutoLoad, {",
+      '    dir: join(__dirname, "plugins"),',
+      "    options: opts,",
+      "  });",
+      "  void fastify.register(AutoLoad, {",
+      '    dir: join(__dirname, "routes"),',
+      '    options: { ...opts, prefix: "/api/" },',
+      "  });",
+      "};",
+      "export default app;",
+    ].join("\n"),
+    "src/plugins/sensible.ts": [
+      'import sensible from "@fastify/sensible";',
+      'import fp from "fastify-plugin";',
+      "export default fp(async (fastify) => {",
+      "  await fastify.register(sensible);",
+      "});",
+    ].join("\n"),
+    "src/routes/root.ts": [
+      "export default async function (fastify) {",
+      '  fastify.get("/", async () => ({ root: true }));',
+      "}",
+    ].join("\n"),
+    "src/routes/health/index.ts": [
+      "export default async (fastify) => {",
+      '  fastify.get("/", async () => ({ status: "ok" }));',
+      "};",
+    ].join("\n"),
+    "src/routes/users/index.ts": [
+      "export default async (fastify) => {",
+      '  fastify.delete("/:id", removeUser);',
+      "};",
+    ].join("\n"),
+    // An index file replaces the other files of its directory, so this
+    // shared hook is never loaded.
+    "src/routes/users/handlers.ts": [
+      'import fp from "fastify-plugin";',
+      "export default fp(async (fastify) => {",
+      '  fastify.addHook("onRequest", fastify.authenticate);',
+      "});",
+    ].join("\n"),
+    "src/routes/admin/cache.ts": [
+      'export const autoPrefix = "/internal";',
+      "export default async function (fastify) {",
+      '  fastify.delete("/cache", clearCache);',
+      "}",
+    ].join("\n"),
+    "src/routes/legacy.js": [
+      "module.exports = async function (fastify) {",
+      '  fastify.post("/import", { schema: { body: ImportBody } }, runImport);',
+      "};",
+      'module.exports.prefixOverride = "/v1";',
+    ].join("\n"),
+  });
+
+  assert.deepEqual(authFindings(result), [
+    {
+      message: "DELETE /api/internal/cache has no recognizable auth hook",
+      file: "src/routes/admin/cache.ts",
+      confidence: "high",
+    },
+    {
+      message: "POST /v1/import has no recognizable auth hook",
+      file: "src/routes/legacy.js",
+      confidence: "high",
+    },
+    {
+      message: "DELETE /api/users/:id has no recognizable auth hook",
+      file: "src/routes/users/index.ts",
+      confidence: "high",
+    },
+  ]);
+  assert.equal(
+    result.issues.some((issue) => issue.rule === "missing-health-endpoint"),
+    false,
+  );
+});
+
+test("autoloaded fastify-plugin hooks protect routes from another autoload directory", async () => {
+  const result = await analyze({
+    "app.js": [
+      "'use strict';",
+      "const path = require('node:path');",
+      "const AutoLoad = require('@fastify/autoload');",
+      "module.exports = async function (fastify, opts) {",
+      "  fastify.register(AutoLoad, {",
+      "    dir: path.join(__dirname, 'plugins'),",
+      "    options: Object.assign({}, opts),",
+      "  });",
+      "  fastify.register(AutoLoad, {",
+      "    dir: path.join(__dirname, 'routes'),",
+      "    options: Object.assign({}, opts),",
+      "  });",
+      "};",
+    ].join("\n"),
+    "plugins/auth.js": [
+      "'use strict';",
+      "const fp = require('fastify-plugin');",
+      "module.exports = fp(async function (fastify) {",
+      "  fastify.addHook('onRequest', async (request) => {",
+      "    await request.jwtVerify();",
+      "  });",
+      "});",
+    ].join("\n"),
+    "routes/example/index.js": [
+      "'use strict';",
+      "module.exports = async function (fastify) {",
+      "  fastify.delete('/', async () => ({ deleted: true }));",
+      "};",
+    ].join("\n"),
+  });
+
+  assert.deepEqual(authFindings(result), []);
+  assert.match(result.summary, /^1 Fastify endpoints/);
+});
+
+test("autohooks protect their directory, and subdirectories only when cascaded", async () => {
+  const project = (cascade: boolean) => ({
+    "src/app.ts": [
+      'import autoload from "@fastify/autoload";',
+      'import Fastify from "fastify";',
+      'import { dirname, join } from "node:path";',
+      'import { fileURLToPath } from "node:url";',
+      "const __dirname = dirname(fileURLToPath(import.meta.url));",
+      "const app = Fastify();",
+      "app.register(autoload, {",
+      '  dir: join(__dirname, "routes"),',
+      "  autoHooks: true,",
+      `  cascadeHooks: ${cascade},`,
+      "});",
+    ].join("\n"),
+    "src/routes/admin/autohooks.ts": [
+      "export default async function (fastify) {",
+      '  fastify.addHook("onRequest", fastify.authenticate);',
+      "}",
+    ].join("\n"),
+    "src/routes/admin/users.ts": [
+      "export default async function (fastify) {",
+      '  fastify.delete("/users/:id", removeUser);',
+      "}",
+    ].join("\n"),
+    "src/routes/admin/reports/index.ts": [
+      "export default async (fastify) => {",
+      '  fastify.delete("/", clearReports);',
+      "};",
+    ].join("\n"),
+    "src/routes/public.ts": [
+      "export default async (fastify) => {",
+      '  fastify.delete("/sessions", endSession);',
+      "};",
+    ].join("\n"),
+  });
+
+  const messages = (result: Result) =>
+    authFindings(result).map((finding) => finding.message);
+  assert.deepEqual(messages(await analyze(project(false))), [
+    "DELETE /admin/reports has no recognizable auth hook",
+    "DELETE /sessions has no recognizable auth hook",
+  ]);
+  assert.deepEqual(messages(await analyze(project(true))), [
+    "DELETE /sessions has no recognizable auth hook",
+  ]);
+});
+
+test("autoload directories resolve from import.meta and file URLs", async () => {
+  const result = await analyze({
+    "src/server.mjs": [
+      'import autoload from "@fastify/autoload";',
+      'import fastify from "fastify";',
+      'import { join } from "node:path";',
+      'import { fileURLToPath } from "node:url";',
+      "const server = fastify();",
+      "server.register(autoload, {",
+      '  dir: fileURLToPath(new URL("./routes", import.meta.url)),',
+      '  options: { prefix: "/a" },',
+      "});",
+      "server.register(autoload, {",
+      '  dir: join(import.meta.dirname, "..", "extra"),',
+      '  options: { prefix: "/b" },',
+      "  dirNameRoutePrefix: false,",
+      "});",
+    ].join("\n"),
+    "src/routes/x.mjs": [
+      "export default async (app) => {",
+      '  app.delete("/x", removeX);',
+      "};",
+    ].join("\n"),
+    "extra/nested/y.mjs": [
+      "export default async (app) => {",
+      '  app.delete("/y", removeY);',
+      "};",
+    ].join("\n"),
+  });
+
+  assert.deepEqual(authFindings(result), [
+    {
+      message: "DELETE /b/y has no recognizable auth hook",
+      file: "extra/nested/y.mjs",
+      confidence: "high",
+    },
+    {
+      message: "DELETE /a/x has no recognizable auth hook",
+      file: "src/routes/x.mjs",
+      confidence: "high",
+    },
+  ]);
+});
+
 test("Fastify analyzer excludes routes declared only in test files", async () => {
   const result = await analyze({
     "src/app.js": [

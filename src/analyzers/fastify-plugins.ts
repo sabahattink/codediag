@@ -198,7 +198,10 @@ function resolveImport(
 }
 
 /** The node a module exports under a name ("default" for module.exports). */
-function exportedValue(sourceFile: SourceFile, name: string): Node | undefined {
+export function exportedValue(
+  sourceFile: SourceFile,
+  name: string,
+): Node | undefined {
   const isDefault = name === "default";
   const fn = sourceFile
     .getFunctions()
@@ -424,6 +427,16 @@ function declaredPlugins(
 }
 
 /**
+ * The plugins a register() call loads when its first argument is not a
+ * plugin function, such as @fastify/autoload loading a directory; null
+ * falls back to the argument itself.
+ */
+export type RegisteredPlugins = (
+  index: ProjectIndex,
+  call: CallExpression,
+) => ReadonlyArray<PluginTarget> | null;
+
+/**
  * Indexes instances and plugins: typed `(fastify: FastifyInstance)` and
  * FastifyPlugin* functions, fastify-plugin arguments, and anything an
  * instance registers. Registration repeats until no new plugin is found,
@@ -431,6 +444,7 @@ function declaredPlugins(
  */
 export function createProjectIndex(
   sources: ReadonlyArray<{ file: string; sourceFile: SourceFile }>,
+  registeredPlugins: RegisteredPlugins = () => null,
 ): ProjectIndex {
   const roots = new Map<Node, string>();
   const plugins = new Map<Node, string>();
@@ -463,11 +477,12 @@ export function createProjectIndex(
   while (changed) {
     changed = false;
     for (const call of registers) {
-      if (
-        instanceOf(index, receiverOf(call)) &&
-        add(pluginTarget(index, call.getArguments()[0]))
-      ) {
-        changed = true;
+      if (!instanceOf(index, receiverOf(call))) continue;
+      const targets = registeredPlugins(index, call) ?? [
+        pluginTarget(index, call.getArguments()[0]),
+      ];
+      for (const target of targets) {
+        if (add(target)) changed = true;
       }
     }
   }

@@ -8,6 +8,7 @@ import {
 import type { ScanContext } from "../core/scan-context.js";
 import { fromRule } from "../rules/registry.js";
 import type { AnalyzerResult, DiagnosticIssue } from "../types.js";
+import { autoloadedPlugins, autoloadOf } from "./fastify-autoload.js";
 import {
   type Confidence,
   createProjectIndex,
@@ -205,12 +206,59 @@ function fullRoute(index: ProjectIndex, args: Node[]): RouteDeclaration | null {
     : { methods, path, options };
 }
 
+/**
+ * Plugins loaded by @fastify/autoload: registered on the context that
+ * registers autoload, or on a directory scope that carries the directory's
+ * autohooks.
+ */
+function collectAutoload(
+  index: ProjectIndex,
+  parent: string,
+  call: CallExpression,
+  collected: Collected,
+): boolean {
+  const autoload = autoloadOf(index, call);
+  if (!autoload) return false;
+  const scopeContext = (scope: string) => `${parent}>${scope}`;
+  for (const scope of autoload.scopes) {
+    collected.registrations.push({
+      parent,
+      child: scopeContext(scope.id),
+      encapsulated: true,
+      prefix: scope.prefix,
+    });
+    for (const hook of scope.hooks) {
+      const child = index.plugins.get(hook.fn);
+      if (!child) continue;
+      collected.registrations.push({
+        parent: scopeContext(scope.id),
+        child,
+        encapsulated: false,
+        prefix: "",
+      });
+    }
+  }
+  for (const entry of autoload.plugins) {
+    const child = index.plugins.get(entry.target.fn);
+    if (!child) continue;
+    collected.registrations.push({
+      parent: entry.scope ? scopeContext(entry.scope) : parent,
+      child,
+      encapsulated: entry.target.encapsulated,
+      prefix: entry.target.encapsulated ? entry.prefix : "",
+    });
+  }
+  return true;
+}
+
 function collectRegistration(
   index: ProjectIndex,
   parent: string,
-  args: Node[],
+  call: CallExpression,
   collected: Collected,
 ): void {
+  if (collectAutoload(index, parent, call, collected)) return;
+  const args = call.getArguments();
   const target = pluginTarget(index, args[0]);
   const child = target ? index.plugins.get(target.fn) : undefined;
   if (target && child) {
@@ -254,7 +302,7 @@ function collectCalls(
     const args = call.getArguments();
 
     if (name === "register") {
-      collectRegistration(index, instance.context, args, collected);
+      collectRegistration(index, instance.context, call, collected);
       continue;
     }
     if (name === "addHook") {
@@ -381,7 +429,7 @@ export async function analyzeFastifyApi(
     if (sourceFile) sources.push({ file, sourceFile });
   }
 
-  const index = createProjectIndex(sources);
+  const index = createProjectIndex(sources, autoloadedPlugins);
   const collected: Collected = {
     routes: [],
     registrations: [],
