@@ -2,6 +2,40 @@
 
 All notable changes to CodeDiag are documented in this file.
 
+## [0.8.0] - Unreleased
+
+### Added
+
+- Fastify projects that load plugins with `@fastify/autoload` (the layout
+  `fastify-cli` generates) are analyzed as they run: autoloaded plugins share
+  the context that registers autoload, directory names become route
+  prefixes, `autoPrefix` and `prefixOverride` exports and `options.prefix`
+  apply, an index file replaces the other files of its directory, and with
+  `autoHooks` a directory's autohooks protect its routes (and its
+  subdirectories' with `cascadeHooks`). Directories may be given with
+  `__dirname`, `import.meta.dirname`, `dirname(fileURLToPath(import.meta.url))`,
+  or `new URL(..., import.meta.url)`. Such projects previously got
+  unprefixed, low-confidence routes and missing-auth findings for routes
+  their autohooks protect.
+- `packageThreshold` in `.codediag.yml`, `--package-threshold`, and the
+  Action's `package-threshold` input gate every package of a `--workspaces`
+  scan on its own score, so one weak package cannot hide behind the combined
+  average. A package's own `.codediag.yml` can set its own value. Failing
+  packages are named on stderr, in error annotations and the job summary,
+  and marked in the terminal, Markdown, HTML, and pull request comment
+  reports; the JSON report records each package's `threshold`.
+- `failOn` in `.codediag.yml`, `--fail-on`, and the Action's `fail-on` input
+  fail the scan on any active finding at or above `critical`, `warning`, or
+  `info`, whatever the score. Suppressed and baseline findings do not count,
+  and with `--changed-since` only the changed files do.
+
+### Fixed
+
+- GitHub Action annotation messages escaped commas and colons as workflow
+  command properties do, so GitHub showed them as `%2C` and `%3A`; only
+  properties are escaped that way now.
+- The JSON schema rejected combined workspace reports with a Hono package.
+
 ## [0.7.0] - 2026-10-30
 
 The "Across" release: request data is followed through helper functions and
