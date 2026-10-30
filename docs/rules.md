@@ -92,6 +92,30 @@ A POST, PUT, PATCH, or DELETE endpoint has no guard on the method or its control
 
 No health, readiness, or liveness route was detected for runtime monitoring and orchestration probes.
 
+### missing-hono-auth-middleware
+
+**Mutating Hono route without auth middleware** · default severity: `warning`
+
+A POST, PUT, PATCH, or DELETE route has no recognizable authentication middleware (such as jwt(), bearerAuth(), basicAuth(), or a createRoute() middleware) in its own handlers or in an app.use() whose path matches the route and that is registered before it on the same app or on every app that mounts it with app.route(). Hono runs middleware in registration order, so app.use() after the route does not protect it.
+
+- CWE: [CWE-306](https://cwe.mitre.org/data/definitions/306.html)
+- OWASP Top 10: A07:2021
+
+### missing-hono-error-handler
+
+**No Hono error handler** · default severity: `info`
+
+No app.onError() handler was found. Hono's default handler logs the error and replies with a plain-text 500, so clients get a response that does not match the API's error format and errors reach no logger or error tracker beyond the console.
+
+### missing-hono-validator
+
+**Hono route without body validator** · default severity: `warning`
+
+A POST, PUT, or PATCH route has no validator for the json or form target (zValidator, vValidator, tbValidator, sValidator, arktypeValidator, or validator() from hono/validator) and no @hono/zod-openapi request body, so the handler reads an unvalidated request body. Validators for param, query, header, or cookie do not count.
+
+- CWE: [CWE-20](https://cwe.mitre.org/data/definitions/20.html)
+- OWASP Top 10: A03:2021
+
 ### missing-request-validation
 
 **Handler without request validation** · default severity: `warning`
@@ -158,6 +182,14 @@ The project depends on Express but no app or router route registrations with a l
 **No Fastify routes** · default severity: `critical`
 
 The project depends on Fastify but no route registrations with a literal path were detected.
+
+- Scoring: sets the analyzer score to 0 (nothing to evaluate)
+
+### no-hono-routes
+
+**No Hono routes** · default severity: `critical`
+
+The project depends on Hono but no route registrations with a literal path were detected.
 
 - Scoring: sets the analyzer score to 0 (nothing to evaluate)
 

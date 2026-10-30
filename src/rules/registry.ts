@@ -179,6 +179,40 @@ export const RULES = {
     defaultSeverity: "warning",
     cwe: ["CWE-209"],
   },
+  // API Health: Hono
+  "no-hono-routes": {
+    analyzer: "API Health",
+    title: "No Hono routes",
+    description:
+      "The project depends on Hono but no route registrations with a literal path were detected.",
+    defaultSeverity: "critical",
+    failsAnalyzer: true,
+  },
+  "missing-hono-auth-middleware": {
+    analyzer: "API Health",
+    title: "Mutating Hono route without auth middleware",
+    description:
+      "A POST, PUT, PATCH, or DELETE route has no recognizable authentication middleware (such as jwt(), bearerAuth(), basicAuth(), or a createRoute() middleware) in its own handlers or in an app.use() whose path matches the route and that is registered before it on the same app or on every app that mounts it with app.route(). Hono runs middleware in registration order, so app.use() after the route does not protect it.",
+    defaultSeverity: "warning",
+    cwe: ["CWE-306"],
+    owasp: [OWASP.authentication],
+  },
+  "missing-hono-validator": {
+    analyzer: "API Health",
+    title: "Hono route without body validator",
+    description:
+      "A POST, PUT, or PATCH route has no validator for the json or form target (zValidator, vValidator, tbValidator, sValidator, arktypeValidator, or validator() from hono/validator) and no @hono/zod-openapi request body, so the handler reads an unvalidated request body. Validators for param, query, header, or cookie do not count.",
+    defaultSeverity: "warning",
+    cwe: ["CWE-20"],
+    owasp: [OWASP.injection],
+  },
+  "missing-hono-error-handler": {
+    analyzer: "API Health",
+    title: "No Hono error handler",
+    description:
+      "No app.onError() handler was found. Hono's default handler logs the error and replies with a plain-text 500, so clients get a response that does not match the API's error format and errors reach no logger or error tracker beyond the console.",
+    defaultSeverity: "info",
+  },
   // API Health: Next.js
   "no-nextjs-handlers": {
     analyzer: "API Health",

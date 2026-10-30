@@ -37,6 +37,7 @@ for (const [name, framework] of [
   ["realistic/nestjs", "nestjs"],
   ["realistic/express", "express"],
   ["realistic/fastify", "fastify"],
+  ["realistic/hono", "hono"],
   ["realistic/nextjs", "nextjs"],
 ] as const) {
   test(`${name} scores at least 85 with no critical findings`, async () => {
@@ -176,6 +177,68 @@ test("defects/fastify keeps its auth hook, schema, and error handler findings", 
         line: undefined,
         message:
           "No Fastify error handler is registered with setErrorHandler()",
+        confidence: undefined,
+      },
+      {
+        rule: "missing-health-endpoint",
+        severity: "info",
+        line: undefined,
+        message: "No health, readiness, or liveness endpoint detected",
+        confidence: undefined,
+      },
+    ],
+  );
+});
+
+test("defects/hono keeps its middleware order, validator, and error handler findings", async () => {
+  const result = await scanFixture("defects/hono");
+  const api = result.analyzers.find(
+    (analyzer) => analyzer.name === "API Health",
+  );
+
+  assert.equal(result.stack.framework, "hono");
+  assert.deepEqual(
+    api?.issues.map(({ rule, severity, line, message, confidence }) => ({
+      rule,
+      severity,
+      line,
+      message,
+      confidence,
+    })),
+    [
+      {
+        rule: "missing-hono-auth-middleware",
+        severity: "warning",
+        line: 10,
+        message: "DELETE /admin/users/:id has no recognizable auth middleware",
+        confidence: "high",
+      },
+      {
+        rule: "missing-hono-auth-middleware",
+        severity: "warning",
+        line: 21,
+        message: "POST /webhooks has no recognizable auth middleware",
+        confidence: "high",
+      },
+      {
+        rule: "missing-hono-validator",
+        severity: "warning",
+        line: 17,
+        message: "PATCH /account/:id has no json or form validator",
+        confidence: "high",
+      },
+      {
+        rule: "missing-hono-validator",
+        severity: "warning",
+        line: 21,
+        message: "POST /webhooks has no json or form validator",
+        confidence: "high",
+      },
+      {
+        rule: "missing-hono-error-handler",
+        severity: "info",
+        line: undefined,
+        message: "No Hono error handler is registered with onError()",
         confidence: undefined,
       },
       {

@@ -4,6 +4,7 @@ export interface StackInfo {
     | "nextjs"
     | "express"
     | "fastify"
+    | "hono"
     | "generic"
     | "unknown";
   language: "typescript" | "javascript";

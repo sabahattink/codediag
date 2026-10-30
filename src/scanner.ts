@@ -5,6 +5,7 @@ import ora from "ora";
 import { analyzeDependencies } from "./analyzers/dependencies.js";
 import { analyzeExpressApi } from "./analyzers/express-api.js";
 import { analyzeFastifyApi } from "./analyzers/fastify-api.js";
+import { analyzeHonoApi } from "./analyzers/hono-api.js";
 import { analyzeNestjsApi } from "./analyzers/nestjs-api.js";
 import { analyzeNextjsApi } from "./analyzers/nextjs-api.js";
 import { analyzeSecurity } from "./analyzers/security.js";
@@ -41,6 +42,7 @@ const API_ANALYZERS: Partial<
   nestjs: analyzeNestjsApi,
   express: analyzeExpressApi,
   fastify: analyzeFastifyApi,
+  hono: analyzeHonoApi,
   nextjs: analyzeNextjsApi,
 };
 
