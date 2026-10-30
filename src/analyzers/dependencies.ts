@@ -1,14 +1,16 @@
 import { execFile, spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
-import { dirname, join, resolve } from "node:path";
+import { dirname, join, relative, resolve } from "node:path";
 import type { ScanContext } from "../core/scan-context.js";
 import { fromRule } from "../rules/registry.js";
 import type { AnalyzerResult, DiagnosticIssue, PackageJson } from "../types.js";
 import {
   type AuditAdvisory,
   describeAdvisories,
+  type ImporterAudit,
   parseAuditAdvisories,
+  pnpmImporters,
 } from "./audit-advisories.js";
 import {
   auditAge,
@@ -298,10 +300,52 @@ type AuditOutcome =
       kind: "summary";
       summary: AuditSummary;
       advisories?: AuditAdvisory[];
+      /** A pnpm workspace audit split by package; see auditScope(). */
+      importers?: Record<string, ImporterAudit>;
       /** Set when the result comes from the on-disk cache: when it ran. */
       cachedAt?: number;
     }
   | { kind: "error"; message: string };
+
+/** Where an audit runs, and which package's share of it a project reports. */
+interface AuditScope {
+  cwd: string;
+  /** pnpm's importer id for the project, or null to report the whole audit. */
+  importer: string | null;
+}
+
+/**
+ * pnpm audits the whole workspace lock file from any package, so a package
+ * under a shared pnpm lock file runs the audit once, at the lock file, and
+ * reports only the advisories its own dependencies reach. npm and Yarn audit
+ * the workspace they are run in, from the project's directory.
+ */
+function auditScope(
+  projectPath: string,
+  command: AuditCommand,
+  lockFile: LockFile,
+): AuditScope {
+  const path = relative(lockFile.directory, projectPath);
+  if (command.manager !== "pnpm" || path === "") {
+    return { cwd: projectPath, importer: null };
+  }
+  // pnpm names importers by their path with "/" as "__": packages__api.
+  return { cwd: lockFile.directory, importer: path.split(/[\\/]/).join("__") };
+}
+
+/** A project's share of an audit: the importer's advisories, or all of them. */
+function shareOf(outcome: AuditOutcome, importer: string | null): AuditOutcome {
+  if (importer === null || outcome.kind !== "summary" || !outcome.importers) {
+    return outcome;
+  }
+  const own = outcome.importers[importer];
+  return {
+    kind: "summary",
+    summary: own?.summary ?? { critical: 0, high: 0, moderate: 0, low: 0 },
+    advisories: own?.advisories ?? [],
+    ...(outcome.cachedAt === undefined ? {} : { cachedAt: outcome.cachedAt }),
+  };
+}
 
 /**
  * Audit outcomes for this process, keyed by the command and the exact lock
@@ -347,6 +391,7 @@ function persistedOutcome(file: string | null): AuditOutcome | undefined {
         kind: "summary",
         summary: persisted.summary,
         advisories: persisted.advisories,
+        ...(persisted.importers ? { importers: persisted.importers } : {}),
         cachedAt: persisted.createdAt,
       }
     : undefined;
@@ -358,6 +403,7 @@ function persistOutcome(file: string | null, outcome: AuditOutcome): void {
     persistAudit(file, {
       summary: outcome.summary,
       advisories: outcome.advisories ?? [],
+      ...(outcome.importers ? { importers: outcome.importers } : {}),
     });
   }
 }
@@ -370,10 +416,13 @@ function auditOutcome(run: AuditRun, command: AuditCommand): AuditOutcome {
         run.stderr.trim() || `${command.manager} audit returned no JSON`,
       );
     }
+    const importers =
+      command.manager === "pnpm" ? pnpmImporters(run.stdout) : null;
     return {
       kind: "summary",
       summary: parseAuditSummary(run.stdout),
       advisories: parseAuditAdvisories(run.stdout),
+      ...(importers ? { importers } : {}),
     };
   } catch (error) {
     return {
@@ -426,9 +475,11 @@ function auditJob(target: AuditTarget): AuditJob | null {
     pkg.packageManager,
     target.production,
   );
-  const key = auditCacheKey(projectPath, command, lockFile);
+  // Packages sharing a pnpm lock file share one job, run at the lock file.
+  const { cwd } = auditScope(projectPath, command, lockFile);
+  const key = auditCacheKey(cwd, command, lockFile);
   return {
-    projectPath,
+    projectPath: cwd,
     command,
     key,
     cacheFile: auditCacheFile(lockFile.directory, key),
@@ -607,9 +658,11 @@ export async function analyzeDependencies(
   // deliberately skipped audit is reported but not counted as a check.
   // `audit: production` runs the audit, limited to production dependencies.
   const auditMode = options.audit ?? context.config.audit !== false;
-  const cacheKey = lockFile
-    ? auditCacheKey(projectPath, auditCommand, lockFile)
+  const scope = lockFile
+    ? auditScope(projectPath, auditCommand, lockFile)
     : null;
+  const cacheKey =
+    lockFile && scope ? auditCacheKey(scope.cwd, auditCommand, lockFile) : null;
   const cacheFile =
     lockFile && cacheKey && auditMode !== false
       ? auditCacheFile(lockFile.directory, cacheKey)
@@ -620,20 +673,21 @@ export async function analyzeDependencies(
   // Without a lock file no audit can run in any mode; that is a failed check.
   if (auditMode === true || (auditMode === "cached" && (cached || !lockFile))) {
     checksRun++;
-    if (lockFile && cacheKey) {
+    if (lockFile && scope && cacheKey) {
       // A full scan audits again unless an audit of the same lock file ran
       // within the hour; editor saves reuse any earlier result.
       const outcome =
         (auditMode === "cached" ? cached : persisted) ??
         runAudit(
-          projectPath,
+          scope.cwd,
           auditCommand,
           options.runAudit ?? runAuditProcess,
           cacheFile,
         );
       auditCache.set(cacheKey, outcome);
-      if (outcome.kind === "summary") reusedFrom = outcome.cachedAt;
-      if (recordAudit(outcome, auditCommand, issues)) checksPassed++;
+      const own = shareOf(outcome, scope.importer);
+      if (own.kind === "summary") reusedFrom = own.cachedAt;
+      if (recordAudit(own, auditCommand, issues)) checksPassed++;
     }
   } else {
     issues.push({

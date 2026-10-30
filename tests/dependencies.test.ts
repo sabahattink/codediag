@@ -482,3 +482,102 @@ test("workspace audits are prefetched concurrently and reused by cached scans", 
     rmSync(root, { recursive: true, force: true });
   }
 });
+
+test("pnpm workspace packages share one audit and keep their own advisories", async () => {
+  const root = mkdtempSync(join(tmpdir(), "codediag-dependencies-"));
+  const advisory = (name: string, severity: string, paths: string[]) => ({
+    module_name: name,
+    severity,
+    title: `${name} advisory`,
+    url: `https://example.com/${name}`,
+    findings: [{ version: "1.0.0", paths }],
+  });
+  // pnpm prefixes each path with the importer: packages/api is packages__api.
+  const output = JSON.stringify({
+    advisories: {
+      "1": advisory("lodash", "high", ["packages__api>lodash"]),
+      "2": advisory("lodash", "moderate", ["packages__api>lodash"]),
+      "3": advisory("semver", "high", [
+        "packages__api>make-dir>semver",
+        "packages__web>semver",
+      ]),
+      "4": advisory("esbuild", "moderate", [".>esbuild"]),
+    },
+    metadata: {
+      vulnerabilities: { info: 0, low: 0, moderate: 2, high: 2, critical: 0 },
+    },
+  });
+  const cwds: string[] = [];
+  const runner: AsyncAuditRunner = async (_command, cwd) => {
+    cwds.push(cwd);
+    return { stdout: output, stderr: "" };
+  };
+  const unreachable: AuditRunner = () => {
+    throw new Error("the shared audit must be reused");
+  };
+  const packages = ["api", "web", "docs"].map((name) =>
+    join(root, "packages", name),
+  );
+  const findings = async (directory: string, audit: true | "cached") => {
+    const result = await analyzeDependencies(createScanContext(directory), {
+      audit,
+      runAudit: unreachable,
+    });
+    return result.issues.map((issue) => `${issue.rule}: ${issue.message}`);
+  };
+
+  try {
+    clearAuditCache();
+    writeFileSync(join(root, "package.json"), '{"private":true}');
+    writeFileSync(
+      join(root, "pnpm-workspace.yaml"),
+      'packages:\n  - "packages/*"\n',
+    );
+    writeFileSync(join(root, "pnpm-lock.yaml"), "lockfileVersion: '9.0'\n");
+    mkdirSync(join(root, "node_modules"));
+    for (const directory of packages) {
+      mkdirSync(directory, { recursive: true });
+      writeFileSync(
+        join(directory, "package.json"),
+        JSON.stringify({
+          engines: { node: ">=20" },
+          scripts: { build: "x", start: "y" },
+        }),
+      );
+    }
+
+    await prefetchAudits(
+      packages.map((projectPath) => ({ projectPath, production: false })),
+      { runner },
+    );
+    assert.deepEqual(cwds, [root]);
+
+    const expected = [
+      [
+        "vuln-high: 2 high severity vulnerabilities",
+        "vuln-moderate: 1 moderate vulnerability",
+      ],
+      ["vuln-high: 1 high severity vulnerability"],
+      [],
+    ];
+    for (const [position, directory] of packages.entries()) {
+      assert.deepEqual(
+        await findings(directory, "cached"),
+        expected[position],
+        directory,
+      );
+    }
+    // The audit persisted at the lock file keeps the split for later scans.
+    clearAuditCache();
+    for (const [position, directory] of packages.entries()) {
+      assert.deepEqual(
+        await findings(directory, true),
+        expected[position],
+        directory,
+      );
+    }
+  } finally {
+    clearAuditCache();
+    rmSync(root, { recursive: true, force: true });
+  }
+});

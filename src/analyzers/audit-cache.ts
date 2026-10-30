@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
-import type { AuditAdvisory } from "./audit-advisories.js";
+import type { AuditAdvisory, ImporterAudit } from "./audit-advisories.js";
 
 /**
  * Successful dependency audits kept on disk for an hour, so repeated scans
@@ -25,6 +25,8 @@ export interface AuditCounts {
 export interface PersistedAudit {
   summary: AuditCounts;
   advisories: AuditAdvisory[];
+  /** A pnpm workspace audit split by package. */
+  importers?: Record<string, ImporterAudit>;
   /** When the audit ran, in milliseconds since the epoch. */
   createdAt: number;
 }
@@ -79,6 +81,20 @@ function readAdvisories(value: unknown): AuditAdvisory[] | null {
   return advisories;
 }
 
+/** Each package's share of a pnpm audit; null when any entry is malformed. */
+function readImporters(value: unknown): Record<string, ImporterAudit> | null {
+  if (!isRecord(value)) return null;
+  const importers: Record<string, ImporterAudit> = {};
+  for (const [importer, share] of Object.entries(value)) {
+    if (!isRecord(share)) return null;
+    const summary = readSummary(share.summary);
+    const advisories = readAdvisories(share.advisories);
+    if (!summary || !advisories) return null;
+    importers[importer] = { summary, advisories };
+  }
+  return importers;
+}
+
 /** A cached audit younger than an hour, or null when absent, stale, or malformed. */
 export function readPersistedAudit(
   file: string,
@@ -107,7 +123,15 @@ export function readPersistedAudit(
   }
   const summary = readSummary(value.summary);
   const advisories = readAdvisories(value.advisories);
-  return summary && advisories ? { summary, advisories, createdAt } : null;
+  const importers =
+    value.importers === undefined ? undefined : readImporters(value.importers);
+  if (!summary || !advisories || importers === null) return null;
+  return {
+    summary,
+    advisories,
+    createdAt,
+    ...(importers ? { importers } : {}),
+  };
 }
 
 /**
@@ -128,6 +152,7 @@ export function persistAudit(
         createdAt: new Date(now).toISOString(),
         summary: audit.summary,
         advisories: audit.advisories,
+        ...(audit.importers ? { importers: audit.importers } : {}),
       })}\n`,
       "utf-8",
     );
