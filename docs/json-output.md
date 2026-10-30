@@ -79,7 +79,11 @@ average line length above 500 characters), and `unreadable`. `files` lists up
 to 50 of them as `{ "file", "reason" }`, sorted by path.
 
 Each diagnostic issue always includes `severity`, `rule`, and `message`.
-Each analyzer result includes `name`, `score`, `issues`, and `summary`. With
+Each analyzer result includes `name`, `score`, `issues`, and `summary`. When
+the Git history scan runs (`secretHistory` or `--secret-history`), the
+Security summary ends with what it covered, for example
+`; Git history: 1000 commits scanned; shallow clone, so history is partial`.
+With
 scoring version 2 it also includes `scoreBreakdown`: one `{ "rule", "count",
 "penalty" }` entry per rule that cost points, sorted by penalty. The penalties
 add up to `100 - score` before rounding and the floor at 0.
@@ -100,7 +104,9 @@ of its line number. It is derived from the rule ID, the file, and:
 - for findings on a source line, the line's whitespace-normalized text and the
   message (for rules that flag credentials, such as `hardcoded-secret`, only
   the message, so a secret is never hashed);
-- for findings on a file without a line, nothing else;
+- for findings on a file without a line, nothing else, except
+  `secret-in-git-history`, whose message (the kind of secret, the file, and
+  the commit that added it) tells findings in one file apart;
 - for project-level findings, the message with numbers masked, except for
   vulnerability totals (`vuln-*`), where a changed count is a new finding.
 

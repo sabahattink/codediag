@@ -195,6 +195,11 @@ export interface CodediagConfig {
    * audits only the dependencies that ship, not devDependencies.
    */
   audit: boolean | "production";
+  /**
+   * The number of recent commits whose added lines are searched for secrets
+   * that are no longer in the current tree, or false to skip Git history.
+   */
+  secretHistory: false | number;
   analyzers: {
     api: boolean;
     security: boolean;
@@ -203,6 +208,10 @@ export interface CodediagConfig {
     structure: boolean;
   };
 }
+
+/** Commits searched when `secretHistory: true` or `--secret-history` has no count. */
+export const DEFAULT_SECRET_HISTORY_COMMITS = 1000;
+export const MAX_SECRET_HISTORY_COMMITS = 100_000;
 
 export type AnalyzerKey = keyof CodediagConfig["analyzers"];
 
@@ -215,6 +224,7 @@ export const DEFAULT_CONFIG: CodediagConfig = {
   scoring: { version: 2 },
   rules: {},
   audit: true,
+  secretHistory: false,
   analyzers: {
     api: true,
     security: true,

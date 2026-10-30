@@ -695,3 +695,70 @@ test("--fail-on fails on active findings at or above a severity", () => {
     rmSync(directory, { recursive: true, force: true });
   }
 });
+
+/** A repository whose first commit adds an AWS key and second removes it. */
+function commitRemovedSecret(directory) {
+  const git = (...args) =>
+    spawnSync("git", args, { cwd: directory, encoding: "utf-8" });
+  git("init", "-q");
+  git("config", "user.name", "CodeDiag");
+  git("config", "user.email", "codediag@example.com");
+  git("config", "commit.gpgsign", "false");
+  writeFileSync(join(directory, "package.json"), "{}");
+  writeFileSync(join(directory, ".gitignore"), ".env\n");
+  // Assembled at runtime so this file does not contain a token pattern.
+  const key = ["AKIA", "IOSFODNN7", "EXAMPLF"].join("");
+  writeFileSync(join(directory, "settings.yml"), `key: ${key}\n`);
+  git("add", "-A");
+  git("commit", "-q", "-m", "add settings");
+  rmSync(join(directory, "settings.yml"));
+  git("add", "-A");
+  git("commit", "-q", "-m", "remove settings");
+  return key;
+}
+
+test("--secret-history reports secrets removed from the current tree", () => {
+  const directory = mkdtempSync(join(tmpdir(), "codediag-cli-"));
+  try {
+    const key = commitRemovedSecret(directory);
+    const historyFindings = (args) => {
+      const result = runCli(
+        ["scan", ".", "--format", "json", "--no-audit", ...args],
+        directory,
+      );
+      assert.equal(result.status, 0, result.stderr);
+      const report = JSON.parse(result.stdout);
+      assert.equal(validateScanResult(report), true);
+      assert.ok(!result.stdout.includes(key));
+      const security = report.analyzers.find(
+        (analyzer) => analyzer.name === "Security",
+      );
+      return {
+        summary: security.summary,
+        files: security.issues
+          .filter((issue) => issue.rule === "secret-in-git-history")
+          .map((issue) => issue.file),
+      };
+    };
+
+    assert.deepEqual(historyFindings([]).files, []);
+    const enabled = historyFindings(["--secret-history"]);
+    assert.deepEqual(enabled.files, ["settings.yml"]);
+    assert.match(enabled.summary, /Git history: 2 commits scanned$/);
+    const limited = historyFindings(["--secret-history", "1"]);
+    assert.deepEqual(limited.files, []);
+    assert.match(
+      limited.summary,
+      /Git history: the most recent 1 commit scanned$/,
+    );
+
+    const invalid = runCli(["scan", ".", "--secret-history", "0"], directory);
+    assert.equal(invalid.status, 1);
+    assert.match(
+      invalid.stderr,
+      /--secret-history must be a number of commits from 1 to 100000/,
+    );
+  } finally {
+    rmSync(directory, { recursive: true, force: true });
+  }
+});

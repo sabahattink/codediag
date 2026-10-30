@@ -54,6 +54,15 @@ inputs:
       Overrides `packageThreshold` in .codediag.yml.
     required: false
     default: ""
+  secret-history:
+    description: >-
+      Also report secrets that recent commits added and the current tree no
+      longer has: `true` reads the last 1000 commits, a number sets the
+      limit, and `false` turns off `secretHistory` from .codediag.yml. Empty
+      uses the configuration. Needs actions/checkout with `fetch-depth: 0`;
+      a shallow checkout only has its most recent commits.
+    required: false
+    default: ""
   comment:
     description: >-
       Post one pull request comment with the score, its change since the last

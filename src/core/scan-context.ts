@@ -25,7 +25,7 @@ import type {
  * `build` and `out` are deliberately absent: they are often real source
  * folders, and build output there is normally covered by .gitignore.
  */
-const BUILTIN_IGNORED_DIRECTORIES = new Set([
+export const BUILTIN_IGNORED_DIRECTORIES: ReadonlySet<string> = new Set([
   "node_modules",
   "dist",
   "coverage",
@@ -34,7 +34,7 @@ const BUILTIN_IGNORED_DIRECTORIES = new Set([
   ".git",
 ]);
 
-const BUILTIN_IGNORED_FILE = /\.(?:min\.(?:js|mjs|cjs)|map)$/i;
+export const BUILTIN_IGNORED_FILE = /\.(?:min\.(?:js|mjs|cjs)|map)$/i;
 const CODE_FILE = /\.(?:[cm]?[jt]s|[jt]sx)$/i;
 
 /** Files at least this large are probed for bundler or minifier output. */
@@ -172,6 +172,15 @@ function isMinified(content: string): boolean {
     if (content.charCodeAt(index) === 10) lines++;
   }
   return content.length / lines > MINIFIED_AVERAGE_LINE_LENGTH;
+}
+
+/** Code that discovery would skip as bundler or minifier output. */
+export function isMinifiedCode(file: string, content: string): boolean {
+  return (
+    CODE_FILE.test(file) &&
+    content.length >= MINIFIED_PROBE_BYTES &&
+    isMinified(content)
+  );
 }
 
 function readPackageJson(projectPath: string): {

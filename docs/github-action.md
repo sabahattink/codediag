@@ -49,6 +49,7 @@ third-party dependencies.
 | `compare` | _(none)_ | Optional JSON report of the base branch relative to `GITHUB_WORKSPACE`; the comment and job summary show the score change against it and which findings are new or fixed. See [comparing with the base branch](#comparing-with-the-base-branch) |
 | `workspaces` | `false` | Scan every workspace package below `path` (npm, pnpm, Yarn, Lerna, Nx) and combine the reports; see [monorepos](../README.md#monorepos) |
 | `package-threshold` | _(config)_ | With `workspaces: true`, the minimum score of every package; overrides `packageThreshold` in `.codediag.yml` |
+| `secret-history` | _(config)_ | Also report secrets that recent commits added and the current tree no longer has: `true` reads the last 1000 commits, a number sets the limit, `false` turns off `secretHistory` from `.codediag.yml`. Needs `fetch-depth: 0`; see [secrets in Git history](#secrets-in-git-history) |
 | `comment` | `false` | Post and update one pull request comment; see [pull request comments](#pull-request-comments) |
 | `github-token` | `${{ github.token }}` | Token for reading changed files and writing the comment |
 
@@ -182,6 +183,32 @@ Or scan one package with its own threshold and reports:
     report: artifacts/api-codediag.json
     sarif: artifacts/api-codediag.sarif
 ```
+
+## Secrets in Git history
+
+A credential that was committed and later deleted is still in every clone.
+With `secret-history`, the Action also reads the added lines of recent
+commits and reports such secrets as `secret-in-git-history`. It needs the
+history, so check out the full repository; the default `fetch-depth: 1`
+checkout contains only the newest commit, and the Action warns that the
+history it read is partial:
+
+```yaml
+steps:
+  - uses: actions/checkout@v7
+    with:
+      fetch-depth: 0
+  - uses: sabahattink/codediag@v0
+    with:
+      threshold: 80
+      secret-history: true   # or a number of commits, such as 5000
+```
+
+Only the checked-out branch is read (`HEAD`, not every ref), and secrets
+that are still in the current tree are left to `hardcoded-secret` and
+`committed-env-secret`. Findings name the kind of secret, the file, and the
+commit; never the value. See
+[security analysis](security-analysis.md#secrets-in-git-history).
 
 ## GitHub Code Scanning
 

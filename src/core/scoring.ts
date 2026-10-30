@@ -49,8 +49,11 @@ export function formatPenalty(penalty: number): string {
   return `-${penalty}`;
 }
 
-/** Version 1 summaries describe checks, which version 2 scores do not use. */
-const CHECKS_SUMMARY = /^[\d.]+\/\d+ checks passed$/;
+/**
+ * Version 1 summaries describe checks, which version 2 scores do not use. A
+ * note after "; " (such as how much Git history was read) is kept.
+ */
+const CHECKS_SUMMARY = /^[\d.]+\/\d+ checks passed(?=$|; )/;
 
 function findingSummary(issues: DiagnosticIssue[]): string {
   const counted = issues.filter((issue) => isActive(issue) && !issue.causedBy);
@@ -149,9 +152,9 @@ export function applyScoring(
 
   return linkRootCauses(results).map((result) => ({
     ...result,
-    summary: CHECKS_SUMMARY.test(result.summary)
-      ? findingSummary(result.issues)
-      : result.summary,
+    summary: result.summary.replace(CHECKS_SUMMARY, () =>
+      findingSummary(result.issues),
+    ),
     ...scoreIssues(result.issues, rules),
   }));
 }

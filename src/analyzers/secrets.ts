@@ -1,6 +1,7 @@
 import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
+import { Minimatch } from "minimatch";
 import type { ScanContext } from "../core/scan-context.js";
 import { fromRule } from "../rules/registry.js";
 import type { DiagnosticIssue } from "../types.js";
@@ -12,11 +13,17 @@ const CONFIG_FILES = [
   "**/Dockerfile.*",
   "**/*.dockerfile",
 ];
+/** Integrity hashes and registry URLs, not credentials. */
+export const LOCK_FILES = [
+  "package-lock.json",
+  "npm-shrinkwrap.json",
+  "pnpm-lock.yaml",
+  "yarn.lock",
+  "bun.lock",
+  "composer.lock",
+];
 const CONFIG_EXCLUDES = [
-  "**/package-lock.json",
-  "**/npm-shrinkwrap.json",
-  "**/pnpm-lock.yaml",
-  "**/composer.lock",
+  ...LOCK_FILES.map((name) => `**/${name}`),
   "**/{tsconfig,jsconfig}*.json",
 ];
 /** Dot files are not indexed; these are read when Git tracks them. */
@@ -29,18 +36,26 @@ const TRACKED_PATHSPECS = [
   ":(glob)**/.yarnrc",
   ":(glob)**/.yarnrc.yml",
 ];
-const MAX_SCANNED_BYTES = 1024 * 1024;
+export const MAX_SCANNED_BYTES = 1024 * 1024;
 const GIT_TIMEOUT_MS = 5000;
 
 interface ProviderPattern {
   label: string;
+  /** The first capture group, when present, is the secret value. */
   pattern: RegExp;
 }
+
+const PRIVATE_KEY_LABEL = "private key";
+const PRIVATE_KEY_END = /-----END [A-Z ]*PRIVATE KEY(?: BLOCK)?-----/;
+/** Key material is read up to the END line, at most this many lines on. */
+const MAX_PRIVATE_KEY_LINES = 200;
+/** Less base64 than this after a BEGIN line is not an identifiable key. */
+const MIN_PRIVATE_KEY_MATERIAL = 64;
 
 /** High-precision credential formats, checked before key-value heuristics. */
 const PROVIDER_PATTERNS: ProviderPattern[] = [
   {
-    label: "private key",
+    label: PRIVATE_KEY_LABEL,
     pattern: /-----BEGIN [A-Z ]*PRIVATE KEY(?: BLOCK)?-----/,
   },
   { label: "AWS access key", pattern: /\b(?:AKIA|ASIA)[0-9A-Z]{16}\b/ },
@@ -56,7 +71,10 @@ const PROVIDER_PATTERNS: ProviderPattern[] = [
       /hooks\.slack\.com\/services\/T[A-Z0-9]+\/B[A-Z0-9]+\/[A-Za-z0-9]{20,}/,
   },
   { label: "npm token", pattern: /\bnpm_[A-Za-z0-9]{36}\b/ },
-  { label: "npm token", pattern: /_auth(?:Token)?\s*=\s*(?!\$\{)[^\s$]{8,}/ },
+  {
+    label: "npm token",
+    pattern: /_auth(?:Token)?\s*=\s*(?!\$\{)([^\s$]{8,})/,
+  },
   { label: "Google API key", pattern: /\bAIza[0-9A-Za-z_-]{35}\b/ },
   { label: "Anthropic API key", pattern: /\bsk-ant-[A-Za-z0-9_-]{20,}/ },
   {
@@ -73,6 +91,12 @@ const PROVIDER_PATTERNS: ProviderPattern[] = [
 /** `scheme://user:password@host` with a literal password. */
 const CONNECTION_STRING =
   /\b(?:postgres(?:ql)?|mysql|mariadb|mongodb(?:\+srv)?|rediss?|amqps?):\/\/[^\s:@/]+:([^\s@/]+)@/;
+/** Matches wherever any provider format or connection string could. */
+const ANY_PROVIDER = new RegExp(
+  [...PROVIDER_PATTERNS.map(({ pattern }) => pattern), CONNECTION_STRING]
+    .map((pattern) => `(?:${pattern.source})`)
+    .join("|"),
+);
 /** `key: value`, `"key": "value"`, or `KEY=value` on one line. */
 const ASSIGNMENT =
   /(?<![\w$])["']?([A-Za-z_][\w.-]*)["']?\s*[:=]\s*["']?([^\s"'#,;}\]]+)/g;
@@ -95,6 +119,32 @@ interface SecretMatch {
   label?: string;
   /** The configuration key holding a generic secret. */
   key?: string;
+}
+
+/** The kind of secret on a line and the secret itself. */
+interface LineSecret {
+  /** A provider format such as "GitHub token". */
+  label?: string;
+  /** The configuration key holding a generic secret. */
+  key?: string;
+  /**
+   * The credential, so that callers can tell secrets apart by digest. It must
+   * never be reported. Undefined for a private key header without key material.
+   */
+  value?: string;
+}
+
+export interface DetectedSecret extends LineSecret {
+  /** 0-based index of the line in the scanned lines. */
+  index: number;
+}
+
+export interface DetectionOptions {
+  /**
+   * Also report long, random values of keys such as `password`, as in
+   * configuration files. Provider formats are always reported.
+   */
+  keyValues: boolean;
 }
 
 function entropy(value: string): number {
@@ -126,50 +176,132 @@ function isSecretKey(key: string): boolean {
   return SECRET_KEY.test(key.replace(/[^a-z0-9]/gi, "").toLowerCase());
 }
 
-function providerMatch(line: string): string | undefined {
+/**
+ * The base64 body of a private key whose BEGIN line ends at `offset` of
+ * `lines[index]`, in PEM lines or one string with `\n` escapes alike, so the
+ * same key has the same value in a .pem file and in JSON. Undefined unless an
+ * END line follows and the text between is almost only base64, which code
+ * that merely mentions the BEGIN line is not.
+ */
+function privateKeyMaterial(
+  lines: readonly string[],
+  index: number,
+  offset: number,
+): string | undefined {
+  let text = (lines[index] ?? "").slice(offset);
+  const last = Math.min(lines.length - 1, index + MAX_PRIVATE_KEY_LINES);
+  for (
+    let next = index + 1;
+    next <= last && !PRIVATE_KEY_END.test(text);
+    next++
+  ) {
+    text += `\n${lines[next]}`;
+  }
+  const end = PRIVATE_KEY_END.exec(text);
+  if (!end) return undefined;
+  const body = text.slice(0, end.index).replace(/\\[nr]|\s/g, "");
+  const material = body.replace(/[^A-Za-z0-9+/=]/g, "");
+  // PEM header fields, quotes, and string concatenation stay below a tenth.
+  return material.length >= MIN_PRIVATE_KEY_MATERIAL &&
+    material.length >= body.length * 0.9
+    ? material
+    : undefined;
+}
+
+function providerSecret(
+  lines: readonly string[],
+  index: number,
+): LineSecret | undefined {
+  const line = lines[index] ?? "";
   for (const { label, pattern } of PROVIDER_PATTERNS) {
     const match = pattern.exec(line);
     // AWS documentation keys end in EXAMPLE.
-    if (match && !/EXAMPLE/.test(match[0])) return label;
+    if (!match || /EXAMPLE/.test(match[0])) continue;
+    return {
+      label,
+      value:
+        label === PRIVATE_KEY_LABEL
+          ? privateKeyMaterial(lines, index, match.index + match[0].length)
+          : (match[1] ?? match[0]),
+    };
   }
   const connection = CONNECTION_STRING.exec(line);
   if (connection?.[1] && isLikelySecretValue(connection[1])) {
-    return "database password in a connection string";
+    return {
+      label: "database password in a connection string",
+      value: connection[1],
+    };
   }
   return undefined;
 }
 
-function secretKey(line: string): string | undefined {
+function keySecret(line: string): LineSecret | undefined {
   const docker = DOCKER_ENV.exec(line);
   if (docker?.[1] && docker[2] && !docker[2].includes("=")) {
     return isSecretKey(docker[1]) && isLikelySecretValue(docker[2])
-      ? docker[1]
+      ? { key: docker[1], value: docker[2] }
       : undefined;
   }
   for (const [, key, value] of line.matchAll(ASSIGNMENT)) {
     if (key && value && isSecretKey(key) && isLikelySecretValue(value)) {
-      return key;
+      return { key, value };
     }
   }
   return undefined;
 }
 
-/** At most one match per line: a provider format first, then a secret key. */
-export function findSecretsInText(content: string): SecretMatch[] {
-  const matches: SecretMatch[] = [];
-  content.split(/\r?\n/).forEach((text, index) => {
-    const label = providerMatch(text);
-    if (label) {
-      matches.push({ line: index + 1, label });
-      return;
-    }
-    const key = secretKey(text);
-    if (key) matches.push({ line: index + 1, key });
+/**
+ * At most one secret per line: a provider format first, then (with
+ * `keyValues`) a secret key. Shared by the current-tree and history scans.
+ */
+export function detectSecrets(
+  lines: readonly string[],
+  options: DetectionOptions,
+): DetectedSecret[] {
+  // One pass of a combined pattern rules out most text, such as source
+  // files in Git history, before each line is tried against every format.
+  if (!options.keyValues && !lines.some((line) => ANY_PROVIDER.test(line))) {
+    return [];
+  }
+  const found: DetectedSecret[] = [];
+  lines.forEach((line, index) => {
+    const secret =
+      providerSecret(lines, index) ??
+      (options.keyValues ? keySecret(line) : undefined);
+    if (secret) found.push({ index, ...secret });
   });
-  return matches;
+  return found;
 }
 
-function withArticle(label: string): string {
+/** At most one match per line: a provider format first, then a secret key. */
+export function findSecretsInText(content: string): SecretMatch[] {
+  return detectSecrets(content.split(/\r?\n/), { keyValues: true }).map(
+    ({ index, label, key }) =>
+      label ? { line: index + 1, label } : { line: index + 1, key },
+  );
+}
+
+const CONFIG_FILE_MATCHERS = CONFIG_FILES.map(
+  (pattern) => new Minimatch(pattern, { dot: true }),
+);
+const CONFIG_EXCLUDE_MATCHERS = CONFIG_EXCLUDES.map(
+  (pattern) => new Minimatch(pattern, { dot: true }),
+);
+
+/**
+ * Files whose secret-like keys are checked, as in the current-tree scan:
+ * configuration files, .npmrc and .yarnrc, and .env files. Elsewhere only
+ * provider formats are reported.
+ */
+export function usesKeyValueHeuristics(file: string): boolean {
+  if (ENV_FILE.test(file) || DOT_CONFIG_FILES.test(file)) return true;
+  return (
+    CONFIG_FILE_MATCHERS.some((pattern) => pattern.match(file)) &&
+    !CONFIG_EXCLUDE_MATCHERS.some((pattern) => pattern.match(file))
+  );
+}
+
+export function withArticle(label: string): string {
   return `${/^[aeiou]/i.test(label) ? "an" : "a"} ${label}`;
 }
 
@@ -198,29 +330,34 @@ function envFinding(file: string, match: SecretMatch): DiagnosticIssue {
 }
 
 /**
- * Dot files tracked by Git below the project, or null when Git is unavailable
- * or the project is not in a repository.
+ * Project-relative files tracked by Git below the project, all of them or
+ * those matching `pathspecs`, or null when Git is unavailable or the project
+ * is not in a repository.
  */
-function trackedDotFiles(projectPath: string): string[] | null {
+export function trackedFiles(
+  projectPath: string,
+  pathspecs: readonly string[] = [],
+): string[] | null {
   try {
-    const output = execFileSync(
-      "git",
-      ["ls-files", "-z", "--", ...TRACKED_PATHSPECS],
-      {
-        cwd: projectPath,
-        encoding: "utf-8",
-        stdio: ["ignore", "pipe", "ignore"],
-        timeout: GIT_TIMEOUT_MS,
-        windowsHide: true,
-      },
-    );
+    const output = execFileSync("git", ["ls-files", "-z", "--", ...pathspecs], {
+      cwd: projectPath,
+      encoding: "utf-8",
+      maxBuffer: 64 * 1024 * 1024,
+      stdio: ["ignore", "pipe", "ignore"],
+      timeout: GIT_TIMEOUT_MS,
+      windowsHide: true,
+    });
     return output.split("\0").filter(Boolean);
   } catch {
     return null;
   }
 }
 
-function readDotFile(projectPath: string, file: string): string | null {
+/** A file's text when it exists and is small enough to scan, else null. */
+export function readScannableFile(
+  projectPath: string,
+  file: string,
+): string | null {
   const path = join(projectPath, file);
   try {
     if (!existsSync(path) || statSync(path).size > MAX_SCANNED_BYTES) {
@@ -250,7 +387,7 @@ export function findConfigSecrets(context: ScanContext): DiagnosticIssue[] {
     }
   }
 
-  const tracked = trackedDotFiles(context.projectPath);
+  const tracked = trackedFiles(context.projectPath, TRACKED_PATHSPECS);
   // Without Git, only the project's own npm and Yarn settings are read; an
   // untracked .env is the developer's local configuration.
   const dotFiles =
@@ -262,7 +399,7 @@ export function findConfigSecrets(context: ScanContext): DiagnosticIssue[] {
     if (context.isExcluded(file)) continue;
     const isEnv = ENV_FILE.test(file);
     if (!isEnv && !DOT_CONFIG_FILES.test(file)) continue;
-    const content = readDotFile(context.projectPath, file);
+    const content = readScannableFile(context.projectPath, file);
     if (content === null) continue;
     for (const match of findSecretsInText(content)) {
       issues.push(isEnv ? envFinding(file, match) : configFinding(file, match));

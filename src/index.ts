@@ -10,6 +10,7 @@ import {
   packagesBelowThreshold,
   packageThresholdMessage,
   parseFailOn,
+  parseSecretHistory,
   parseThreshold,
 } from "./config.js";
 import { loadBaseline } from "./core/baseline.js";
@@ -106,6 +107,10 @@ program
     "--package-threshold <number>",
     "With --workspaces, the minimum score of every package",
   )
+  .option(
+    "--secret-history [commits]",
+    "Also report secrets that recent commits added and the current tree no longer has (default: 1000 commits)",
+  )
   .action(async (path: string, options, command: Command) => {
     const targetPath = resolve(path);
     // --ci implies JSON only when no output format was chosen explicitly.
@@ -172,6 +177,11 @@ program
         // --no-audit overrides the config; otherwise the config decides.
         audit:
           command.getOptionValueSource("audit") === "cli" ? false : undefined,
+        // --secret-history overrides the config; otherwise the config decides.
+        secretHistory:
+          options.secretHistory === undefined
+            ? undefined
+            : parseSecretHistory(options.secretHistory),
       };
       const scanned =
         options.workspaces && workspaces
@@ -315,6 +325,10 @@ analyzers:
 
 # Code files larger than this are skipped (KiB).
 # maxFileSizeKb: 512
+
+# Also report secrets that were committed and later removed: true reads the
+# last 1000 commits, or give a number. Needs full Git history in CI.
+# secretHistory: false
 `;
 
     writeFileSync(configPath, template, "utf-8");

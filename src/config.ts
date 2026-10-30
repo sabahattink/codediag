@@ -8,6 +8,8 @@ import {
   type AnalyzerResult,
   type CodediagConfig,
   DEFAULT_CONFIG,
+  DEFAULT_SECRET_HISTORY_COMMITS,
+  MAX_SECRET_HISTORY_COMMITS,
   type DiagnosticIssue,
   type RuleSetting,
   type ScoringVersion,
@@ -131,6 +133,37 @@ function readAudit(value: unknown): CodediagConfig["audit"] {
   return value;
 }
 
+function isCommitCount(value: unknown): value is number {
+  return (
+    Number.isInteger(value) &&
+    Number(value) >= 1 &&
+    Number(value) <= MAX_SECRET_HISTORY_COMMITS
+  );
+}
+
+function readSecretHistory(value: unknown): CodediagConfig["secretHistory"] {
+  if (value === undefined || value === false) return false;
+  if (value === true) return DEFAULT_SECRET_HISTORY_COMMITS;
+  if (!isCommitCount(value)) {
+    throw new Error(
+      `secretHistory must be true, false, or a number of commits from 1 to ${MAX_SECRET_HISTORY_COMMITS}`,
+    );
+  }
+  return value;
+}
+
+/** `--secret-history` without a value is true; with one, a commit count. */
+export function parseSecretHistory(value: string | true): number {
+  if (value === true) return DEFAULT_SECRET_HISTORY_COMMITS;
+  const count = /^\d+$/.test(value) ? Number(value) : Number.NaN;
+  if (!isCommitCount(count)) {
+    throw new Error(
+      `--secret-history must be a number of commits from 1 to ${MAX_SECRET_HISTORY_COMMITS}`,
+    );
+  }
+  return count;
+}
+
 function readAnalyzers(
   value: unknown,
   fallback: CodediagConfig["analyzers"],
@@ -171,6 +204,7 @@ export function loadConfig(projectPath: string): CodediagConfig {
       scoring: { ...DEFAULT_CONFIG.scoring },
       rules: {},
       audit: DEFAULT_CONFIG.audit,
+      secretHistory: DEFAULT_CONFIG.secretHistory,
       analyzers: { ...DEFAULT_CONFIG.analyzers },
     };
   }
@@ -198,6 +232,7 @@ export function loadConfig(projectPath: string): CodediagConfig {
     "scoring",
     "rules",
     "audit",
+    "secretHistory",
     "analyzers",
   ]);
   const unknownKeys = Object.keys(document).filter(
@@ -226,6 +261,7 @@ export function loadConfig(projectPath: string): CodediagConfig {
       scoring: readScoring(document.scoring, DEFAULT_CONFIG.scoring),
       rules: readRules(document.rules),
       audit: readAudit(document.audit),
+      secretHistory: readSecretHistory(document.secretHistory),
       analyzers: readAnalyzers(document.analyzers, DEFAULT_CONFIG.analyzers),
     };
   } catch (error) {

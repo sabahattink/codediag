@@ -20,6 +20,9 @@ The analyzer currently reports:
   files are skipped;
 - secrets in `.env` files that Git tracks (`committed-env-secret`); ignored
   `.env` files are your local configuration and are never read;
+- optionally, secrets that recent commits added and the current tree no
+  longer has (`secret-in-git-history`); see
+  [below](#secrets-in-git-history);
 - JWT options that accept the `none` algorithm or `ignoreExpiration: true`,
   and jose's `UnsecuredJWT`;
 - session or token cookies (names containing session, sid, token, jwt, or
@@ -146,6 +149,77 @@ or tests), calls from test files do not count, and a trace crosses at most
 two function boundaries, such as a route calling a helper that calls another
 helper. A helper that only ever receives constants is not upgraded.
 
+### Secrets in Git history
+
+Deleting a committed key does not remove it from the repository: every clone
+and fork still has it. The history scan reports such keys. It is off by
+default, because its result depends on how much history the checkout has
+(CI checkouts are usually shallow), and a baseline or `--compare` report
+made on a full clone would not match one made in CI. Turn it on in
+`.codediag.yml`, on the command line, or with the Action's `secret-history`
+input:
+
+```yaml
+secretHistory: true   # the last 1000 commits; or a number, such as 5000
+```
+
+```bash
+codediag scan . --secret-history        # 1000 commits
+codediag scan . --secret-history 5000
+```
+
+CodeDiag runs `git log --patch` on the checked-out branch (`HEAD`, not other
+branches or tags), limited to the project directory and to the most recent
+commits that touch it, without merge commits, and reads only the lines each
+commit adds:
+
+- provider formats (private keys, AWS, GitHub, Stripe live, Slack, npm,
+  Google, Anthropic, OpenAI, and SendGrid keys, and database URLs with a
+  password) in any text file;
+- in configuration files, `.npmrc`, `.yarnrc`, and `.env` files, also
+  long, random values of keys such as `password` or `token`, with the same
+  rules as the current-tree scan.
+
+`ignore` patterns, `node_modules`, `dist`, and other output directories,
+minified files, source maps, lock files, and binary files are skipped. A
+private key counts only with its key material (a BEGIN line, base64, and an
+END line), so code that merely mentions `-----BEGIN PRIVATE KEY-----` is not
+reported, and the same key is recognized as a PEM file and as a JSON string.
+
+A secret is reported only when the files Git tracks no longer contain it;
+otherwise `hardcoded-secret` or `committed-env-secret` already covers it.
+Secrets are compared by digest in memory and never stored or printed. A
+`.env` file removed with `git rm --cached` counts as removed, even though
+your local copy still has the value. Each secret is reported once per file,
+at the oldest commit that added it:
+
+```text
+An AWS access key was committed to config/production.json in 1a2b3c4 (2024-03-05) and remains in Git history after its removal
+```
+
+The fix is to revoke or rotate the credential. Rewriting history with
+`git filter-repo` keeps it out of future clones, but every existing clone,
+fork, and cache still has it.
+
+The fingerprint of a history finding is based on its message: the kind of
+secret, the file, and the commit. Baselines and `--compare` therefore keep
+matching across scans, but a history rewrite that keeps the secret (a rebase
+or `git filter-repo` for other reasons) gives the commit a new SHA, and the
+finding a new fingerprint. A fingerprint never contains a digest of the
+secret, which could be used to confirm a guessed password offline.
+
+The Security summary says how much history was read, for example
+`Git history: 1000 commits scanned` or, when the limit cut history off,
+`Git history: the most recent 1000 commits scanned`. In a shallow clone it
+adds that history is partial; the oldest commit there shows the whole tree
+as added, so a finding from it says "was in ... at <commit>, the oldest
+commit of this shallow clone" instead of naming the commit that introduced
+the secret. Outside a Git repository, or before the first commit, nothing is
+read or reported. `git log` output is limited to 64 MiB and 60 seconds; if
+either limit stops it, the findings cover the commits that were read and an
+`info` finding, `secret-history-incomplete`, says so. The VS Code extension
+never reads history.
+
 ## Scope
 
 Runtime checks inspect JavaScript and TypeScript files found by CodeDiag's
@@ -177,8 +251,9 @@ Run `codediag explain <rule>` for any rule's details.
 ## Limits
 
 The analysis is intentionally conservative. It does not perform whole-program
-taint tracking, inspect Git history for removed secrets, prove authorization
-correctness, or replace dependency advisories and a full SAST review. Dynamic
+taint tracking, read Git history unless asked to (and then only the
+checked-out branch), prove authorization correctness, or replace dependency
+advisories and a full SAST review. Dynamic
 imports, custom database APIs, and values assembled in other ways may not be
 recognized. Across functions in particular, CodeDiag does not follow:
 
