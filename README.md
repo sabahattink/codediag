@@ -96,7 +96,9 @@ and no report ever contains the value. See
 ### Dependencies
 
 Runs the matching npm, pnpm, Yarn Classic, or Yarn Berry audit (skipped with
-`--no-audit`), checks the lock file and `packageManager` consistency, flags
+`--no-audit`; `audit: production` checks only the dependencies you ship),
+names the affected packages and their advisories in each vulnerability
+finding, checks the lock file and `packageManager` consistency, flags
 deprecated packages, and validates engine specs and essential scripts.
 Monorepo lock files are found up to three parent directories.
 
@@ -369,7 +371,7 @@ scoring:
   version: 2
 rules:
   missing-swagger: off   # or info, warning, critical
-audit: true              # false skips the network-based dependency audit
+audit: true              # false skips the network audit; production skips devDependencies
 analyzers:
   api: true
   security: true

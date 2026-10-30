@@ -181,8 +181,11 @@ export interface CodediagConfig {
   maxFileSizeKb: number;
   scoring: { version: ScoringVersion };
   rules: Record<string, RuleSetting>;
-  /** Run the package manager audit; it needs network access. */
-  audit: boolean;
+  /**
+   * Run the package manager audit; it needs network access. "production"
+   * audits only the dependencies that ship, not devDependencies.
+   */
+  audit: boolean | "production";
   analyzers: {
     api: boolean;
     security: boolean;

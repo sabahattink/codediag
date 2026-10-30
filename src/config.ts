@@ -100,10 +100,10 @@ function readRules(value: unknown): Record<string, RuleSetting> {
   return rules;
 }
 
-function readAudit(value: unknown): boolean {
+function readAudit(value: unknown): CodediagConfig["audit"] {
   if (value === undefined) return DEFAULT_CONFIG.audit;
-  if (typeof value !== "boolean")
-    throw new Error("audit must be true or false");
+  if (typeof value !== "boolean" && value !== "production")
+    throw new Error("audit must be true, false, or production");
   return value;
 }
 

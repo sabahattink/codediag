@@ -134,7 +134,12 @@ test("loads and validates the audit switch", () => {
     assert.equal(loadConfig(directory).audit, true);
     writeFileSync(join(directory, ".codediag.yml"), "audit: false\n");
     assert.equal(loadConfig(directory).audit, false);
+    writeFileSync(join(directory, ".codediag.yml"), "audit: production\n");
+    assert.equal(loadConfig(directory).audit, "production");
     writeFileSync(join(directory, ".codediag.yml"), "audit: sometimes\n");
-    assert.throws(() => loadConfig(directory), /audit must be true or false/);
+    assert.throws(
+      () => loadConfig(directory),
+      /audit must be true, false, or production/,
+    );
   });
 });

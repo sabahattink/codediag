@@ -5,6 +5,11 @@ import { dirname, join } from "node:path";
 import type { ScanContext } from "../core/scan-context.js";
 import { fromRule } from "../rules/registry.js";
 import type { AnalyzerResult, DiagnosticIssue, PackageJson } from "../types.js";
+import {
+  type AuditAdvisory,
+  describeAdvisories,
+  parseAuditAdvisories,
+} from "./audit-advisories.js";
 
 interface AuditSummary {
   critical: number;
@@ -89,10 +94,20 @@ function isModernYarn(
   return false;
 }
 
+/** Each manager's flag for auditing production dependencies only. */
+const PRODUCTION_FLAGS = {
+  npm: ["--omit=dev"],
+  pnpm: ["--prod"],
+  yarnClassic: ["--groups", "dependencies"],
+  yarnModern: ["--environment", "production"],
+} as const;
+
 export function resolveAuditCommand(
   projectPath: string,
   packageManager?: string,
+  production = false,
 ): AuditCommand {
+  const only = (flags: readonly string[]) => (production ? [...flags] : []);
   const preferredManager = declaredManager(packageManager);
   const lockFile = findLockFile(projectPath, preferredManager);
   const manager = preferredManager ?? lockFile?.manager ?? "npm";
@@ -102,7 +117,7 @@ export function resolveAuditCommand(
     return {
       manager,
       command: executable,
-      args: ["audit", "--json"],
+      args: ["audit", "--json", ...only(PRODUCTION_FLAGS.pnpm)],
       fixCommand: "pnpm audit --fix",
     };
   }
@@ -117,8 +132,14 @@ export function resolveAuditCommand(
       manager,
       command: executable,
       args: modern
-        ? ["npm", "audit", "--json", "--recursive"]
-        : ["audit", "--json"],
+        ? [
+            "npm",
+            "audit",
+            "--json",
+            "--recursive",
+            ...only(PRODUCTION_FLAGS.yarnModern),
+          ]
+        : ["audit", "--json", ...only(PRODUCTION_FLAGS.yarnClassic)],
       fixCommand: modern ? "yarn up <package>" : "yarn upgrade",
     };
   }
@@ -126,7 +147,7 @@ export function resolveAuditCommand(
   return {
     manager,
     command: executable,
-    args: ["audit", "--json"],
+    args: ["audit", "--json", ...only(PRODUCTION_FLAGS.npm)],
     fixCommand: "npm audit fix",
   };
 }
@@ -231,7 +252,7 @@ const runAuditProcess: AuditRunner = (command, cwd) => {
 };
 
 type AuditOutcome =
-  | { kind: "summary"; summary: AuditSummary }
+  | { kind: "summary"; summary: AuditSummary; advisories?: AuditAdvisory[] }
   | { kind: "error"; message: string };
 
 /**
@@ -283,7 +304,11 @@ function runAudit(
         run.stderr.trim() || `${command.manager} audit returned no JSON`,
       );
     }
-    return { kind: "summary", summary: parseAuditSummary(run.stdout) };
+    return {
+      kind: "summary",
+      summary: parseAuditSummary(run.stdout),
+      advisories: parseAuditAdvisories(run.stdout),
+    };
   } catch (error) {
     return {
       kind: "error",
@@ -308,29 +333,36 @@ function recordAudit(
   }
 
   const { critical, high, moderate, low } = outcome.summary;
+  // Affected packages go in the fix text: messages carry the finding's
+  // identity for baselines and stay unchanged.
+  const affected = (severity: AuditAdvisory["severity"]) =>
+    describeAdvisories(outcome.advisories ?? [], severity);
   if (critical > 0)
     issues.push({
       ...fromRule("vuln-critical"),
       message: `${critical} critical vulnerabilit${critical > 1 ? "ies" : "y"}`,
-      fix: `Run ${auditCommand.fixCommand}`,
+      fix: `Run ${auditCommand.fixCommand}.${affected("critical")}`,
     });
   if (high > 0)
     issues.push({
       ...fromRule("vuln-high"),
       message: `${high} high severity vulnerabilit${high > 1 ? "ies" : "y"}`,
-      fix: `Run ${auditCommand.fixCommand}`,
+      fix: `Run ${auditCommand.fixCommand}.${affected("high")}`,
     });
   if (moderate > 0)
     issues.push({
       ...fromRule("vuln-moderate"),
       message: `${moderate} moderate vulnerabilit${moderate > 1 ? "ies" : "y"}`,
-      fix: `Review ${auditCommand.manager} audit output`,
+      fix: `Review ${auditCommand.manager} audit output.${affected("moderate")}`,
     });
-  if (low > 0)
+  if (low > 0) {
+    const lowAffected = affected("low");
     issues.push({
       ...fromRule("vuln-low"),
       message: `${low} low severity vulnerabilit${low > 1 ? "ies" : "y"}`,
+      ...(lowAffected ? { fix: lowAffected.trim() } : {}),
     });
+  }
   return critical + high + moderate + low === 0;
 }
 
@@ -387,7 +419,11 @@ export async function analyzeDependencies(
   checksRun++;
   const preferredManager = declaredManager(pkg.packageManager);
   const lockFile = findLockFile(projectPath, preferredManager);
-  const auditCommand = resolveAuditCommand(projectPath, pkg.packageManager);
+  const auditCommand = resolveAuditCommand(
+    projectPath,
+    pkg.packageManager,
+    context.config.audit === "production",
+  );
   const hasLock =
     lockFile !== null &&
     (preferredManager === null || lockFile.manager === auditCommand.manager);
@@ -411,7 +447,8 @@ export async function analyzeDependencies(
   // 2. Package manager audit. Audits need a lock file; without one the
   // missing lock file is the finding and the check counts as failed. A
   // deliberately skipped audit is reported but not counted as a check.
-  const auditMode = options.audit ?? context.config.audit;
+  // `audit: production` runs the audit, limited to production dependencies.
+  const auditMode = options.audit ?? context.config.audit !== false;
   const cacheKey = lockFile
     ? auditCacheKey(projectPath, auditCommand, lockFile)
     : null;
