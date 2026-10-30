@@ -77,8 +77,8 @@ not apply them. Each problem's rule ID also links to the rule reference.
 `codediag.scanOnSave` is off by default. Enabling it starts a debounced scan
 after saves. Scans started by saving a file never run the package manager:
 they reuse the dependency audit from the last command-triggered scan of the
-same lock file, so scores stay consistent, and report `audit-skipped` until
-one has run. Commands run from the Command Palette follow the project's
+same lock file, or an audit of it cached on disk within the hour, so scores
+stay consistent, and report `audit-skipped` until one has run. Commands run from the Command Palette follow the project's
 `audit` setting.
 
 ## Monorepos

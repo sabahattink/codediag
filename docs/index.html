@@ -371,7 +371,7 @@ footer .links{font-size:.76rem}
     <li><a href="#analyzers">Analyzers</a></li>
     <li><a href="#scoring">Scoring</a></li>
     <li><a href="#ci">CI</a></li>
-    <li><a href="#new">New in 0.8</a></li>
+    <li><a href="#new">New in 0.9</a></li>
    </ul>
   </nav>
   <div class="top-act">
@@ -722,18 +722,14 @@ codediag scan . --ci --threshold 80 --baseline .codediag-baseline.json</code></p
 <section class="sec add" id="new" aria-labelledby="h-new">
  <div class="wrap">
   <div class="sec-head">
-   <h2 id="h-new">New in 0.8</h2>
-   <p>tRPC, <code>fastify-cli</code> projects, secrets that history still holds, gates that a good average cannot hide, and fixes you apply from the editor.</p>
+   <h2 id="h-new">New in 0.9</h2>
+   <p>tRPC apps that authenticate in front of their procedures, and audits that stop making you wait twice.</p>
   </div>
   <ul class="items">
-   <li><h3>tRPC procedures</h3><p>Builders followed from <code>initTRPC</code> through <code>.use()</code> chains and merged routers across files: mutations whose middleware never rejects anonymous callers, <code>.input()</code> parsers that accept anything, and leaked stack traces. Procedure <code>input</code> is request data for the security rules.</p></li>
-   <li><h3>Fastify autoload</h3><p><code>@fastify/autoload</code> directories as they load: directory prefixes, <code>autoPrefix</code>, and autohooks that protect a directory’s routes.</p></li>
-   <li><h3>Secrets in Git history</h3><p>Credentials that a commit added and a later one deleted, which every clone still holds. Compared by digest, never printed.</p><span class="flag">--secret-history</span></li>
-   <li><h3>Severity gate</h3><p>Fail on any active critical finding, whatever the score; suppressed and baselined findings do not count.</p><span class="flag">--fail-on critical</span></li>
-   <li><h3>Per-package thresholds</h3><p>Every monorepo package must reach its own score, so one weak package cannot hide in the average.</p><span class="flag">--package-threshold 70</span></li>
-   <li><h3>Editor remediations</h3><p>VS Code offers the rule’s own fix where it is mechanical: TLS verification on, JWT expiry checked, <code>"none"</code> out of the algorithm list.</p></li>
-   <li><h3>Deeper taint</h3><p>Request data stored on <code>this</code>, passed to a constructor, or handed to <code>forEach</code>/<code>map</code> callbacks is followed to the sink.</p></li>
-   <li><h3>Earlier in 0.7</h3><p>Cross-file taint, <code>--workspaces</code> monorepos, Hono, score history, base-branch deltas in pull requests, and audit advisory details.</p></li>
+   <li><h3>tRPC perimeters</h3><p>Auth in <code>createContext</code>, ahead of the Express mount, or in a Next.js <code>middleware.ts</code> whose matcher covers the tRPC route protects every procedure. A matcher that skips <code>/api</code> does not.</p></li>
+   <li><h3>Cached audits</h3><p>A successful audit is kept for an hour in <code>node_modules/.cache</code>, keyed by the lock file, so a second scan skips the network and says so in its summary.</p></li>
+   <li><h3>Concurrent monorepo audits</h3><p>Every package’s audit starts up front, four at a time, so the waits overlap instead of adding up.</p><span class="flag">--workspaces</span></li>
+   <li><h3>Earlier in 0.8</h3><p>tRPC procedures, taint through fields and callbacks, Fastify autoload, secrets in Git history, <code>--fail-on</code> and per-package gates, and editor remediations.</p></li>
   </ul>
  </div>
 </section>

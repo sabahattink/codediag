@@ -82,9 +82,13 @@ AST analysis (ts-morph, not regex) of the routes your app actually exposes.
   routers across files (including `~/` path aliases); mutations without auth
   middleware (judged by what the middleware checks, not its name), `.input()`
   parsers that accept anything, and error formatters or `isDev: true` that
-  expose stack traces. The checks run inside whichever server hosts tRPC
-  (T3/Next.js, Express, Fastify), and a standalone tRPC server is its own
-  stack.
+  expose stack traces. Auth in front of every procedure counts too: a
+  `createContext` that rejects anonymous callers, auth middleware ahead of
+  the Express mount, or a Next.js `middleware.ts` (`proxy.ts` in Next.js 16)
+  whose matcher covers the tRPC route. The checks run inside whichever server
+  hosts tRPC (T3/Next.js, Express, Fastify), and a standalone tRPC server is
+  its own stack. An intentionally public mutation, such as sign-up, is
+  accepted with a reasoned `codediag-ignore-next-line` directive.
 
 ### Security
 
@@ -119,7 +123,10 @@ Runs the matching npm, pnpm, Yarn Classic, or Yarn Berry audit (skipped with
 names the affected packages and their advisories in each vulnerability
 finding, checks the lock file and `packageManager` consistency, flags
 deprecated packages, and validates engine specs and essential scripts.
-Monorepo lock files are found up to three parent directories.
+Monorepo lock files are found up to three parent directories. A successful
+audit is kept for an hour in `node_modules/.cache/codediag`, keyed by the lock
+file and `package.json`, so repeated scans reuse it (the Dependencies summary
+says when); delete that directory to force a fresh audit.
 
 ### Testing
 
@@ -237,7 +244,8 @@ workspaces). Each package gets its own stack detection and score, using its
 own `.codediag.yml` if it has one and otherwise the root configuration, with
 root `ignore` paths rebased into the package. The combined report lists every
 package and averages each analyzer over the packages it ran in; the total
-uses the usual analyzer weights. Findings are located relative to the root,
+uses the usual analyzer weights. Package audits run four at a time before
+the packages are analyzed. Findings are located relative to the root,
 and project-level findings point at the package's `package.json`, so
 baselines, `--compare`, `--changed-since`, SARIF, and the GitHub Action
 (`workspaces: true`) work across the whole repository.
@@ -485,8 +493,11 @@ results in GitHub Code Scanning.
   callbacks, and injected providers; `@fastify/autoload` projects; secrets
   removed from the tree but kept in Git history; per-package thresholds and
   `--fail-on` gates; remediation quick fixes in VS Code.
+- **0.9 "Perimeter":** tRPC auth in `createContext`, Express mounts, and
+  Next.js middleware; audits cached for an hour and run concurrently across
+  workspace packages; Dependabot updates that rebuild the Action bundle.
 - **Next:** see [docs/roadmap.md](docs/roadmap.md) for planned framework
-  support, editor improvements, and faster monorepo scans.
+  support, editor improvements, and deeper taint tracking.
 
 ## Contributing
 

@@ -2,6 +2,45 @@
 
 All notable changes to CodeDiag are documented in this file.
 
+## [0.9.0] - 2026-10-30
+
+The "Perimeter" release: tRPC apps that authenticate in front of their
+procedures stop getting missing-auth warnings, dependency audits are cached
+and run concurrently across monorepo packages, and Dependabot updates keep
+the Action bundle in step.
+
+### Added
+
+- tRPC mutations are no longer reported as missing auth middleware when the
+  whole router is authenticated before procedures run: a `createContext` (or
+  a project function it calls) that throws `TRPCError` `UNAUTHORIZED` or
+  `FORBIDDEN`, or throws when the session is missing; auth middleware ahead
+  of the Express mount that serves the adapter; or a Next.js `middleware.ts`
+  (`proxy.ts` in Next.js 16) that rejects anonymous requests
+  (`next-auth/middleware`, Clerk's `auth.protect()` under a route matcher, or
+  a redirect or 401/403 when the session is missing) and whose `matcher`
+  covers the tRPC route. A `createContext` that only reads the session, as
+  T3's does, and the common `/((?!api|...).*)` matcher that skips the API do
+  not count. The API Health summary names where the perimeter was found.
+- Successful dependency audits are kept for an hour in
+  `node_modules/.cache/codediag`, keyed by the audit command and the exact
+  lock file and `package.json` contents, and reused by later scans and
+  editor saves. Entries are validated on read, failed audits are never kept,
+  nothing is written without a `node_modules` directory, and the Dependencies
+  summary says when a result was reused.
+- Dependabot pull requests that change the Action bundle get it rebuilt: a
+  read-only job builds it, and a job that runs no repository or dependency
+  code commits the two bundle files and starts CI for the new commit.
+  Dependabot groups minor and patch npm updates into one pull request.
+
+### Changed
+
+- `--workspaces` scans run every package's audit up front, four at a time,
+  and the package scans reuse those outcomes, so audit waits overlap instead
+  of adding up.
+- VS Code extension 0.7.0: scans on save also reuse an audit cached on disk
+  within the hour.
+
 ## [0.8.0] - 2026-10-30
 
 The "Depth" release: tRPC procedures, request data followed through fields,

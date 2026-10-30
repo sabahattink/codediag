@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.7.0
+
+- Run the CodeDiag 0.9 engine: tRPC auth in `createContext`, Express mounts,
+  and Next.js middleware no longer produces missing-auth problems.
+- Scans on save also reuse a dependency audit of the same lock file cached on
+  disk within the last hour, so they keep their audit after VS Code restarts.
+
 ## 0.6.0
 
 - Remediation quick fixes, offered as the preferred fix where a rule has one
