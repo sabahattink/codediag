@@ -48,6 +48,7 @@ var require_ignore = __commonJS({
     var REGEX_LITERAL_SPECIAL = /[.*+?()[\]{}^$|\\/]/;
     var BOM = "\uFEFF";
     var REGEX_INVALID_TRAILING_BACKSLASH = /(?:[^\\]|^)\\$/;
+    var REGEX_ANCHORED_GLOBSTAR = /^\/\*{2,}$/;
     var REGEX_REPLACE_LEADING_EXCAPED_EXCLAMATION = /^\\!/;
     var REGEX_REPLACE_LEADING_EXCAPED_HASH = /^\\#/;
     var REGEX_SPLITALL_CRLF = /\r?\n/g;
@@ -228,6 +229,20 @@ var require_ignore = __commonJS({
         /(\\+)( ?)/g,
         (_, run, space) => space ? run.slice(0, run.length - run.length % 2) + SPACE : run,
         ESCAPE + SPACE
+      ],
+      // git's wildmatch() reads a run of two or more asterisks as one globstar
+      //   whenever the run fills a path segment: it starts the pattern or follows
+      //   a `/`, and it ends the pattern or comes before a `/`. A run of two is
+      //   already `**`; a longer one is folded into `**` here, so the steps
+      //   below only ever have to know `**`.
+      // `***/foo` -> `**/foo`, `a/***/b` -> `a/**/b`, `a/***` -> `a/**`
+      // git also takes a run beside a literal prefix (`a***/b`) or beside an
+      //   escaped slash (`***\/b`) as a globstar, and this does not; the README
+      //   lists both, under "A run of asterisks".
+      [
+        /(^|\/)\*{3,}(?=\/|$)/g,
+        (_, start) => `${start}**`,
+        "*"
       ],
       // Escape metacharacters
       // which is written down by users but means special for regular expressions.
@@ -490,6 +505,9 @@ var require_ignore = __commonJS({
       return out;
     };
     var makeRegexPrefix = (pattern) => {
+      if (REGEX_ANCHORED_GLOBSTAR.test(pattern)) {
+        pattern = "**";
+      }
       const { source, sources } = extractBrackets(pattern);
       const replaced = REPLACERS.reduce(
         // A pass whose matcher finds nothing hands back the very string it was
@@ -705,39 +723,33 @@ var require_ignore = __commonJS({
       }
       // Test one single path without recursively checking parent directories
       //
-      // - checkUnignored `boolean` whether should check if the path is unignored,
-      //   setting `checkUnignored` to `false` could reduce additional
-      //   path matching.
-      // - check `string` either `MODE_IGNORE` or `MODE_CHECK_IGNORE`
-      // @returns {TestResult} true if a file is ignored
-      test(path2, checkUnignored, mode) {
-        let ignored = false;
-        let unignored = false;
-        let matchedRule;
+      // - mode `string` either `MODE_IGNORE` or `MODE_CHECK_IGNORE`
+      // @returns {TestResult}
+      test(path2, mode) {
         const rules = this._rules;
         const { length } = rules;
         const shortcut = this._basenameCount * 2 >= length;
         const basename3 = shortcut ? basenameOf(path2) : path2;
-        for (let index = 0; index < length; index++) {
+        for (let index = length - 1; index >= 0; index--) {
           const rule = rules[index];
-          const { negative } = rule;
-          const skip = unignored === negative && ignored !== unignored || negative && !ignored && !unignored && !checkUnignored;
-          if (!skip && rule[mode].test(
+          if (rule[mode].test(
             shortcut && rule._basenameOnly ? basename3 : path2
           )) {
-            ignored = !negative;
-            unignored = negative;
-            matchedRule = negative ? UNDEFINED : rule;
+            const { negative } = rule;
+            const ret = {
+              ignored: !negative,
+              unignored: negative
+            };
+            if (!negative) {
+              ret.rule = rule;
+            }
+            return ret;
           }
         }
-        const ret = {
-          ignored,
-          unignored
+        return {
+          ignored: false,
+          unignored: false
         };
-        if (matchedRule) {
-          ret.rule = matchedRule;
-        }
-        return ret;
       }
     };
     var throwError = (message, Ctor) => {
@@ -810,36 +822,36 @@ var require_ignore = __commonJS({
         return this.add(pattern);
       }
       // @returns {TestResult}
-      _test(originalPath, cache2, checkUnignored) {
+      _test(originalPath, cache2) {
         const path2 = originalPath && checkPath.convert(originalPath);
         checkPath(
           path2,
           originalPath,
           this._strictPathCheck ? throwError : RETURN_FALSE
         );
-        return this._t(path2, cache2, checkUnignored);
+        return this._t(path2, cache2);
       }
       checkIgnore(path2) {
         if (path2.charCodeAt(path2.length - 1) !== SLASH_CODE) {
           return this.test(path2);
         }
-        const dir = this._t(path2, this._testCache, true);
+        const dir = this._t(path2, this._testCache);
         if (dir.ignored) {
           return dir;
         }
         const literal = this._rules.testLiteral(path2);
         return literal.ignored || literal.unignored ? literal : dir;
       }
-      _t(path2, cache2, checkUnignored) {
+      _t(path2, cache2) {
         if (path2 in cache2) {
           return cache2[path2];
         }
         const parentPath = parentOf(path2);
-        const parent = parentPath ? this._t(parentPath, cache2, checkUnignored) : UNDEFINED;
-        return cache2[path2] = parent && parent.ignored ? parent : this._rules.test(path2, checkUnignored, MODE_IGNORE);
+        const parent = parentPath ? this._t(parentPath, cache2) : UNDEFINED;
+        return cache2[path2] = parent && parent.ignored ? parent : this._rules.test(path2, MODE_IGNORE);
       }
       ignores(path2) {
-        return this._test(path2, this._ignoreCache, false).ignored;
+        return this._test(path2, this._ignoreCache).ignored;
       }
       createFilter() {
         return (path2) => !this.ignores(path2);
@@ -849,7 +861,7 @@ var require_ignore = __commonJS({
       }
       // @returns {TestResult}
       test(path2) {
-        return this._test(path2, this._testCache, true);
+        return this._test(path2, this._testCache);
       }
     };
     var factory = (options) => new Ignore(options);
