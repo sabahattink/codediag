@@ -2,6 +2,7 @@ export interface StackInfo {
   framework:
     | "nestjs"
     | "nextjs"
+    | "sveltekit"
     | "express"
     | "fastify"
     | "hono"

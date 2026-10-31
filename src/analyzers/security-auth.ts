@@ -20,6 +20,10 @@ const SESSION_MODULES = new Set([
   "@fastify/secure-session",
 ]);
 const COOKIE_FLAGS = ["httpOnly", "secure"] as const;
+/** Modules whose import marks SvelteKit server code. */
+const SVELTEKIT_MODULE = /^@sveltejs\/kit$|(?:^|\/)\$types$/;
+const SVELTEKIT_SERVER_FILE =
+  /(?:^|\/)(?:\+(?:page|layout)\.server|\+server|hooks\.server)\.[cm]?[jt]s$/;
 
 type CookieFlag = (typeof COOKIE_FLAGS)[number];
 /** A flag's literal value, or "dynamic" when code decides at runtime. */
@@ -99,12 +103,32 @@ function cookieCall(
   return { name: name.getLiteralText(), options };
 }
 
+/**
+ * SvelteKit's `cookies.set()`, whose httpOnly and secure options default to
+ * true: a call on the request event's cookies in a SvelteKit module.
+ */
+function hasSecureDefaults(call: CallExpression, file: string): boolean {
+  const expression = call.getExpression();
+  return (
+    Node.isPropertyAccessExpression(expression) &&
+    /(?:^|\.)cookies$/.test(expression.getExpression().getText()) &&
+    (SVELTEKIT_SERVER_FILE.test(file) ||
+      call
+        .getSourceFile()
+        .getImportDeclarations()
+        .some((declaration) =>
+          SVELTEKIT_MODULE.test(declaration.getModuleSpecifierValue()),
+        ))
+  );
+}
+
 function insecureCookie(call: CallExpression, file: string) {
   const cookie = cookieCall(call);
   if (!cookie || !SENSITIVE_COOKIE.test(cookie.name)) return null;
+  const defaults = hasSecureDefaults(call, file);
   const missing = COOKIE_FLAGS.filter((flag) => {
     const value = flagValue(cookie.options, flag);
-    return value === false || value === "missing";
+    return value === false || (value === "missing" && !defaults);
   });
   if (missing.length === 0) return null;
   return {

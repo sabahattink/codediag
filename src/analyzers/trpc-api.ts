@@ -7,6 +7,7 @@ import {
   moduleIndex,
   runtimeSources,
 } from "./fastify-plugins.js";
+import { svelteKitAliases } from "./sveltekit-routes.js";
 import { perimeterAuth } from "./trpc-perimeter.js";
 import {
   type Procedure,
@@ -137,7 +138,11 @@ function plural(count: number, noun: string): string {
 
 function analyzeProcedures(context: ScanContext): TrpcAnalysis {
   const sources = runtimeSources(context);
-  const index = moduleIndex(context, sources);
+  // SvelteKit apps import their builders through `$lib/trpc`.
+  const index: ModuleIndex =
+    context.stack.framework === "sveltekit"
+      ? { ...moduleIndex(context, sources), aliases: svelteKitAliases(context) }
+      : moduleIndex(context, sources);
   const resolver = new TrpcResolver(index);
   const project = resolver.collect(sources);
   const { procedures } = project;

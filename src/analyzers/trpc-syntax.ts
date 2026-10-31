@@ -180,16 +180,35 @@ export function leakedStack(fn: FunctionLike): Node | undefined {
   return undefined;
 }
 
+/**
+ * trpc-sveltekit's handle hook serves a router; its client comes from the
+ * same package, so only this export makes a file an adapter.
+ */
+export const SVELTEKIT_ADAPTER = {
+  specifier: "trpc-sveltekit",
+  name: "createTRPCHandle",
+} as const;
+
 /** A file that imports a tRPC adapter (`@trpc/server/adapters/fetch`). */
 export function importsTrpcAdapter(sourceFile: SourceFile): boolean {
   if (
-    !/@trpc\/server\/adapters\/|@hono\/trpc-server/.test(
+    !/@trpc\/server\/adapters\/|@hono\/trpc-server|trpc-sveltekit/.test(
       sourceFile.getFullText(),
     )
   ) {
     return false;
   }
   return (
+    sourceFile
+      .getImportDeclarations()
+      .some(
+        (declaration) =>
+          declaration.getModuleSpecifierValue() ===
+            SVELTEKIT_ADAPTER.specifier &&
+          declaration
+            .getNamedImports()
+            .some((named) => named.getName() === SVELTEKIT_ADAPTER.name),
+      ) ||
     sourceFile
       .getImportDeclarations()
       .some((declaration) =>

@@ -42,6 +42,26 @@ function isReactRouterFramework(
   });
 }
 
+/**
+ * A svelte.config file that configures SvelteKit, for workspace members whose
+ * @sveltejs/kit dependency is hoisted. Plain Svelte with Vite has one too.
+ */
+function hasSvelteKitConfig(projectPath: string): boolean {
+  return ["js", "mjs", "cjs", "ts"].some((extension) => {
+    const path = join(projectPath, `svelte.config.${extension}`);
+    try {
+      return (
+        existsSync(path) &&
+        /@sveltejs\/(?:kit|adapter-)|\bkit\s*:/.test(
+          readFileSync(path, "utf-8"),
+        )
+      );
+    } catch {
+      return false;
+    }
+  });
+}
+
 export function detectStack(projectPath: string): StackInfo {
   const info: StackInfo = {
     framework: "unknown",
@@ -80,6 +100,12 @@ export function detectStack(projectPath: string): StackInfo {
     existsSync(join(projectPath, "nest-cli.json"))
   ) {
     info.framework = "nestjs";
+  } else if (allDeps["@sveltejs/kit"] || hasSvelteKitConfig(projectPath)) {
+    // Checked before the servers below: a SvelteKit app may run behind an
+    // Express or Polka server (adapter-node's handler), or call Hono and serve
+    // tRPC (trpc-sveltekit) from its endpoints and hooks, while those servers
+    // have no reason to install @sveltejs/kit.
+    info.framework = "sveltekit";
   } else if (
     allDeps.next ||
     existsSync(join(projectPath, "next.config.js")) ||

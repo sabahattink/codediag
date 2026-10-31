@@ -11,6 +11,7 @@ import { analyzeNextjsApi } from "./analyzers/nextjs-api.js";
 import { analyzeReactRouterApi } from "./analyzers/react-router-api.js";
 import { analyzeSecurity } from "./analyzers/security.js";
 import { analyzeStructure } from "./analyzers/structure.js";
+import { analyzeSvelteKitApi } from "./analyzers/sveltekit-api.js";
 import { analyzeTesting } from "./analyzers/testing.js";
 import {
   type ApiAnalyzer,
@@ -46,6 +47,7 @@ const API_ANALYZERS: Partial<Record<StackInfo["framework"], ApiAnalyzer>> = {
   hono: withTrpcProcedures(analyzeHonoApi),
   "react-router": withTrpcProcedures(analyzeReactRouterApi),
   nextjs: withTrpcProcedures(analyzeNextjsApi),
+  sveltekit: withTrpcProcedures(analyzeSvelteKitApi),
   trpc: analyzeTrpcApi,
 };
 
