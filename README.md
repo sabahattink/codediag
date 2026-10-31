@@ -51,7 +51,7 @@ codediag auto-detects your stack and runs 5 analyzers. Every finding has a
 stable rule ID ([rule reference](docs/rules.md)), a severity, a location when
 one exists, and a suggested fix.
 
-### API Health `NestJS · Express · Fastify · Hono · Next.js · tRPC`
+### API Health `NestJS · Express · Fastify · Hono · Next.js · SvelteKit · React Router · tRPC`
 
 AST analysis (ts-morph, not regex) of the routes your app actually exposes.
 
@@ -76,7 +76,22 @@ AST analysis (ts-morph, not regex) of the routes your app actually exposes.
   route or an earlier matching `app.use()`; `zValidator` and other body
   validators; `onError`; and health endpoints.
 - **Next.js:** App Router and Pages Router API handlers, without penalizing
-  frontend-only projects.
+  frontend-only projects. Middleware (`proxy.ts` in Next.js 16) protects a
+  route only if it turns an anonymous request to that path away: its
+  `matcher`, pathname checks, next-auth, Clerk's `protect()`, Auth.js
+  `authorized` callbacks, and helpers it returns, such as Supabase's
+  `updateSession()`, are evaluated for each route.
+- **SvelteKit:** `+server` endpoints and form actions, with route ids from
+  `src/routes`; auth in the `handle` hook (through `sequence()` and path or
+  route id guards) or in the handler and the helpers it calls; a note when the
+  only auth check sits in a layout `load`, which never runs for actions and
+  endpoints; body validation; and CSRF origin checks turned off in
+  `svelte.config.js`.
+- **React Router and Remix:** actions and loaders from `app/routes.ts` or
+  Remix v2 flat-route files; auth in the action, its helpers, or route
+  `middleware`; a separate rule when a parent's or the route's own loader holds
+  the only auth check, since neither runs before an action; and schema
+  validation of form and JSON bodies.
 - **tRPC:** procedures resolved from `initTRPC` through builder chains,
   exported builders such as `protectedProcedure`, and nested or merged
   routers across files (including `~/` path aliases); mutations without auth
@@ -84,10 +99,11 @@ AST analysis (ts-morph, not regex) of the routes your app actually exposes.
   parsers that accept anything, and error formatters or `isDev: true` that
   expose stack traces. Auth in front of every procedure counts too: a
   `createContext` that rejects anonymous callers, auth middleware ahead of
-  the Express mount, or a Next.js `middleware.ts` (`proxy.ts` in Next.js 16)
-  whose matcher covers the tRPC route. The checks run inside whichever server
-  hosts tRPC (T3/Next.js, Express, Fastify), and a standalone tRPC server is
-  its own stack. An intentionally public mutation, such as sign-up, is
+  the Express or Hono mount, an auth hook over the Fastify plugin, or a
+  Next.js `middleware.ts` (`proxy.ts` in Next.js 16), Auth.js included, that
+  rejects anonymous requests to the tRPC route. The checks run inside
+  whichever server hosts tRPC (T3/Next.js, Express, Fastify, Hono,
+  SvelteKit), and a standalone tRPC server is its own stack. An intentionally public mutation, such as sign-up, is
   accepted with a reasoned `codediag-ignore-next-line` directive.
 
 ### Security
@@ -126,7 +142,9 @@ deprecated packages, and validates engine specs and essential scripts.
 Monorepo lock files are found up to three parent directories. A successful
 audit is kept for an hour in `node_modules/.cache/codediag`, keyed by the lock
 file and `package.json`, so repeated scans reuse it (the Dependencies summary
-says when); delete that directory to force a fresh audit.
+says when); delete that directory to force a fresh audit. pnpm audits a whole
+workspace lock file from any package, so packages that share one run a single
+audit and each reports only the advisories its own dependencies reach.
 
 ### Testing
 
@@ -446,6 +464,8 @@ skipped and reported in the JSON `skipped` summary.
 |-------|:---------:|:--------:|:----:|:-------:|:---------:|
 | NestJS | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Next.js | ✅ | ✅ | ✅ | ✅ | ✅ |
+| SvelteKit | ✅ | ✅ | ✅ | ✅ | ✅ |
+| React Router / Remix | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Express | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Fastify | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Hono | ✅ | ✅ | ✅ | ✅ | ✅ |
@@ -496,6 +516,10 @@ results in GitHub Code Scanning.
 - **0.9 "Perimeter":** tRPC auth in `createContext`, Express mounts, and
   Next.js middleware; audits cached for an hour and run concurrently across
   workspace packages; Dependabot updates that rebuild the Action bundle.
+- **0.10 "Reach":** SvelteKit and React Router/Remix analysis; tRPC auth
+  in front of Hono and Fastify mounts and in Auth.js middleware; Next.js
+  middleware judged per route; one pnpm audit per workspace lock file, split
+  by package; fewer password and secret false positives on real apps.
 - **Next:** see [docs/roadmap.md](docs/roadmap.md) for planned framework
   support, editor improvements, and deeper taint tracking.
 

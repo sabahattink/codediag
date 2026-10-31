@@ -2,6 +2,70 @@
 
 All notable changes to CodeDiag are documented in this file.
 
+## [0.10.0] - 2026-10-31
+
+The "Reach" release: SvelteKit and React Router/Remix get API Health
+analysis, Next.js middleware is judged for each route the way it runs, tRPC
+perimeters cover Hono, Fastify, and Auth.js, pnpm workspaces stop reporting
+each other's vulnerabilities, and password and secret checks stop flagging
+ordinary sign-up code.
+
+### Added
+
+- SvelteKit API Health: `+server` endpoints and form actions, with route ids
+  from `src/routes` (or `kit.files.routes`), `$lib` and `#lib` imports, and
+  auth from the `handle` hook (through `sequence()`, path and route id
+  guards, and helpers) or from the handler and the helpers it calls. New
+  warnings: `missing-sveltekit-auth`, which says when the only auth check sits
+  in a layout `load` that never runs for actions and endpoints;
+  `missing-sveltekit-validation`; and `sveltekit-csrf-disabled` for
+  `csrf.checkOrigin: false` or `'*'` in `csrf.trustedOrigins`. `trpc-sveltekit`
+  handles are recognized as tRPC adapters.
+- React Router (framework mode) and Remix v2 API Health: actions and loaders
+  from `app/routes.ts` (`route`, `index`, `layout`, `prefix`, `flatRoutes()`)
+  or flat-route file names, resource routes, re-exported handlers, and route
+  `middleware` as an auth perimeter. New warnings:
+  `missing-react-router-auth`, `react-router-loader-auth-only` (the only auth
+  check is in a parent's loader, which runs in parallel, or in the route's own
+  loader, which does not run before its action), and
+  `missing-react-router-validation`. Library-mode `react-router` alone is not
+  detected as a server.
+- tRPC perimeters: auth middleware registered before `trpcServer()` for a
+  matching path on a Hono app (also through `app.route()`), an auth hook on
+  the Fastify context that registers `fastifyTRPCPlugin` or an ancestor, and
+  Auth.js v5 middleware, judged by its `authorized` callback or the function
+  passed to `auth()`. Every adapter that serves the router must be covered.
+
+### Changed
+
+- Next.js middleware (`proxy` in Next.js 16) protects an API route only if
+  it turns an anonymous request to that route's path away. The matcher,
+  pathname conditions, identity checks, next-auth, Clerk's `protect()`,
+  Auth.js `authorized` callbacks, and helpers the middleware returns (such as
+  Supabase's `updateSession()`) are evaluated per route. Previously any
+  middleware that mentioned auth or a session protected every route, and
+  `clerkMiddleware()` alone, which leaves routes public, counted as auth.
+- pnpm audits the whole workspace lock file from any package, so every
+  package of a pnpm workspace reported every other package's vulnerabilities.
+  Packages that share a pnpm lock file now run one audit at the lock file and
+  report only the advisories their own dependencies reach; the split is kept
+  in the audit cache. npm and Yarn already audit the workspace they run in.
+- VS Code extension 0.8.0 runs the 0.10 engine.
+
+### Fixed
+
+- `plaintext-password-comparison` no longer fires on `typeof` and length
+  checks, comparisons with constants, or `password !== confirmPassword`.
+- `password-hashing-not-detected` needs a write whose data holds the password
+  as it came in, rather than any create or update call in a file that
+  mentions passwords; helpers such as `getPasswordHash()` count as hashing.
+- `hardcoded-secret` skips messages such as `password: "Password is
+  required"`, placeholders, and password fixtures in test files.
+- SHA-1 for the Pwned Passwords range API is not reported as a weak password
+  hash, and `MOCK_` values in committed `.env` examples are placeholders.
+- `insecure-cookie` honors SvelteKit's `cookies.set()` defaults, which are
+  `httpOnly` and `secure`.
+
 ## [0.9.0] - 2026-10-30
 
 The "Perimeter" release: tRPC apps that authenticate in front of their

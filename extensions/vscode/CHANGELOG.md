@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.8.0
+
+- Run the CodeDiag 0.10 engine: SvelteKit and React Router/Remix API Health,
+  Next.js middleware judged per route, pnpm workspace audits split by
+  package, and fewer password and secret false positives.
+
 ## 0.7.0
 
 - Run the CodeDiag 0.9 engine: tRPC auth in `createContext`, Express mounts,
