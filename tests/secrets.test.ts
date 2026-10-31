@@ -114,7 +114,6 @@ test("placeholders, references, lock files, and low-entropy values are ignored",
       ".gitignore": ".env\n",
       "config/default.json": JSON.stringify(
         {
-          // codediag-ignore-next-line hardcoded-secret -- placeholder the config scanner must ignore
           password: "changeme",
           token: "${TOKEN}",
           secret: "<your-secret-here>",
