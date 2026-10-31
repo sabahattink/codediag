@@ -106,7 +106,7 @@ const DOCKER_ENV = /^\s*(?:ENV|ARG)\s+([A-Za-z_][\w.-]*)\s+["']?([^\s"']+)/;
 const SECRET_KEY =
   /(?:password|passwd|passphrase|pwd|secret|token|apikey|privatekey|accesskey|authkey|credentials?)$/;
 const PLACEHOLDER =
-  /change.?me|example|your|placeholder|dummy|sample|replace|redacted|xxx|\*{3}|todo|insert|here|fake|test/i;
+  /change.?me|example|your|placeholder|dummy|sample|replace|redacted|xxx|\*{3}|todo|insert|here|fake|test|mock/i;
 const REFERENCE = /\$\{|\{\{|[<>]|%\(|\$\(|^\$|process\.env/;
 const FILE_REFERENCE = /^[./~]|\.(?:pem|key|crt|cer|json|txt|p12|pfx)$/i;
 /** Generic values must be at least this long and this random (bits per character). */
@@ -158,6 +158,11 @@ function entropy(value: string): number {
     bits -= share * Math.log2(share);
   }
   return bits;
+}
+
+/** A placeholder such as `your-api-key` or `MOCK_TOKEN`, or a reference such as `${SECRET}`. */
+export function isPlaceholderValue(value: string): boolean {
+  return PLACEHOLDER.test(value) || REFERENCE.test(value);
 }
 
 /** A long, random literal rather than a placeholder, reference, or path. */

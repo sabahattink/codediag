@@ -7,6 +7,7 @@ import {
   analyzeSecurity,
   gitignoreProtectsEnv,
 } from "../src/analyzers/security.js";
+import { isLikelySecretValue } from "../src/analyzers/secrets.js";
 import { createScanContext } from "../src/core/scan-context.js";
 
 function withProject(
@@ -302,4 +303,127 @@ test("Hono servers need secure headers and a rate limiter, and cors() is open", 
       );
     },
   );
+});
+
+test("password checks ignore validation, messages, and hashed nested writes", async () => {
+  await withProject(
+    {
+      ".gitignore": ".env\n",
+      "package.json": JSON.stringify({ name: "remix-app" }),
+      "app/routes/join.tsx": [
+        "export async function action({ request }) {",
+        "  const formData = await request.formData();",
+        '  const password = formData.get("password");',
+        '  const confirmPassword = formData.get("confirmPassword");',
+        '  if (typeof password !== "string" || password.length === 0) {',
+        '    return json({ errors: { password: "Password is required" } }, { status: 400 });',
+        "  }",
+        "  if (password.length < 8) {",
+        '    return json({ errors: { password: "Password is too short" } }, { status: 400 });',
+        "  }",
+        "  if (password !== confirmPassword) {",
+        '    return json({ errors: { password: "Passwords do not match" } }, { status: 400 });',
+        "  }",
+        "  return createUser(password);",
+        "}",
+      ].join("\n"),
+      "app/routes/settings.password.tsx": [
+        'import { getPasswordHash } from "../utils/auth.server";',
+        "export async function action({ request }) {",
+        "  const { newPassword } = await parse(request);",
+        "  await prisma.user.update({",
+        "    where: { id: 1 },",
+        "    data: { password: { update: { hash: await getPasswordHash(newPassword) } } },",
+        "  });",
+        "}",
+      ].join("\n"),
+      "app/routes/settings.profile.tsx": [
+        "export async function loader() {",
+        "  const password = await prisma.password.findUnique({ where: { userId: 1 } });",
+        "  return { hasPassword: Boolean(password) };",
+        "}",
+        "export async function action() {",
+        '  await prisma.user.update({ where: { id: 1 }, data: { name: "Ada" } });',
+        "}",
+      ].join("\n"),
+      // The Pwned Passwords range API takes the first characters of a SHA-1.
+      "app/utils/breach.server.ts": [
+        'import crypto from "node:crypto";',
+        "export async function isCommonPassword(password: string) {",
+        '  const hash = crypto.createHash("sha1").update(password).digest("hex");',
+        "  const response = await fetch(`https://api.pwnedpasswords.com/range/${hash.slice(0, 5)}`);",
+        "  return (await response.text()).includes(hash.slice(5).toUpperCase());",
+        "}",
+      ].join("\n"),
+      "app/utils/breach.server.test.ts": [
+        "test('rejects breached passwords', async () => {",
+        "  const password = 'sup3r-dup3r-s3cret';",
+        "  expect(await isCommonPassword(password)).toBe(true);",
+        "});",
+      ].join("\n"),
+      // Seeded users get their password from a helper that hashes it.
+      "prisma/seed.ts": [
+        'import { createPassword } from "../tests/db-utils";',
+        "await prisma.user.create({",
+        '  data: { username: "kody", password: { create: createPassword("kody") } },',
+        "});",
+      ].join("\n"),
+    },
+    async (directory) => {
+      const result = await analyzeSecurity(createScanContext(directory));
+      assert.deepEqual(
+        result.issues.filter((issue) =>
+          [
+            "hardcoded-secret",
+            "plaintext-password-comparison",
+            "password-hashing-not-detected",
+            "weak-password-hash",
+          ].includes(issue.rule),
+        ),
+        [],
+      );
+    },
+  );
+
+  await withProject(
+    {
+      ".gitignore": ".env\n",
+      "package.json": JSON.stringify({ name: "unsafe-app" }),
+      "src/auth.ts": [
+        "export async function login(email: string, password: string) {",
+        "  const user = await db.user.findUnique({ where: { email } });",
+        "  return user.password === password;",
+        "}",
+        "export function register(email: string, password: string) {",
+        "  return db.user.create({ data: { email, password } });",
+        "}",
+        'const adminPassword = "Tr0ub4dor&3xyz";',
+      ].join("\n"),
+    },
+    async (directory) => {
+      const result = await analyzeSecurity(createScanContext(directory));
+      assert.deepEqual(
+        result.issues
+          .filter((issue) =>
+            [
+              "hardcoded-secret",
+              "plaintext-password-comparison",
+              "password-hashing-not-detected",
+            ].includes(issue.rule),
+          )
+          .map(({ rule, line }) => ({ rule, line })),
+        [
+          { rule: "hardcoded-secret", line: 8 },
+          { rule: "plaintext-password-comparison", line: 3 },
+          { rule: "password-hashing-not-detected", line: 6 },
+        ],
+      );
+    },
+  );
+});
+
+test("mock values in committed env examples are placeholders", () => {
+  assert.equal(isLikelySecretValue("MOCK_GITHUB_CLIENT_SECRET"), false);
+  assert.equal(isLikelySecretValue("mock-stripe-webhook-secret"), false);
+  assert.equal(isLikelySecretValue("u8Fq2LmZp9XrT4vKw7Ys"), true);
 });

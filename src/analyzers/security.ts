@@ -1,10 +1,16 @@
 import { existsSync, readFileSync } from "node:fs";
 import { dirname, join, relative } from "node:path";
+import {
+  type CallExpression,
+  Node,
+  type SourceFile,
+  SyntaxKind,
+} from "ts-morph";
 import type { ScanContext } from "../core/scan-context.js";
 import { fromRule } from "../rules/registry.js";
 import type { AnalyzerResult, DiagnosticIssue } from "../types.js";
 import { scanSecretHistory } from "./secret-history.js";
-import { findConfigSecrets } from "./secrets.js";
+import { findConfigSecrets, isPlaceholderValue } from "./secrets.js";
 import { analyzeSecuritySinks } from "./security-sinks.js";
 
 interface SourceRecord {
@@ -12,14 +18,27 @@ interface SourceRecord {
   content: string;
 }
 
-const SECRET_PATTERNS = [
+interface SecretPattern {
+  pattern: RegExp;
+  name: string;
+  /** Whether the captured value is a secret rather than a message or placeholder. */
+  accepts?: (value: string) => boolean;
+  /** Skipped in test files. */
+  runtimeOnly?: boolean;
+}
+
+const SECRET_PATTERNS: SecretPattern[] = [
   {
     pattern: /(?:api[_-]?key|apikey)\s*[:=]\s*['"][a-zA-Z0-9_-]{20,}['"]/gi,
     name: "API Key",
   },
   {
-    pattern: /(?:secret|password|passwd|pwd)\s*[:=]\s*['"][^'"]{8,}['"]/gi,
+    pattern: /(?:secret|password|passwd|pwd)\s*[:=]\s*['"]([^'"]{8,})['"]/gi,
     name: "Secret/Password",
+    // Passwords in tests are fixtures; provider tokens still count there.
+    runtimeOnly: true,
+    // "Password is required" is a message, "testpassword" a placeholder.
+    accepts: (value: string) => !/\s/.test(value) && !isPlaceholderValue(value),
   },
   { pattern: /sk[_-](?:live|test)[_-][a-zA-Z0-9]{20,}/g, name: "Stripe Key" },
   {
@@ -51,6 +70,32 @@ const RATE_LIMIT_MODULES = [
 ];
 
 const PASSWORD_TERM = /\b(?:password|passwd)(?:Hash|Digest)?\b/i;
+/** A value holding a password or its stored hash. */
+const PASSWORD_VALUE = /^(?:password|passwd)(?:Hash)?$/i;
+/** The second entry of a sign-up or change-password form. */
+const PASSWORD_CHECK = /confirm|repeat|retype|again/i;
+const EQUALITY_OPERATORS = new Set([
+  SyntaxKind.EqualsEqualsEqualsToken,
+  SyntaxKind.EqualsEqualsToken,
+  SyntaxKind.ExclamationEqualsEqualsToken,
+  SyntaxKind.ExclamationEqualsToken,
+]);
+const PERSIST_METHODS = new Set([
+  "create",
+  "createMany",
+  "insert",
+  "insertOne",
+  "insertMany",
+  "save",
+  "update",
+  "updateOne",
+  "updateMany",
+  "upsert",
+]);
+/** A key in written data that holds the password itself. */
+const PASSWORD_KEY = /^["']?(?:password|passwd)["']?$/i;
+/** The Pwned Passwords range API, which takes a SHA-1 prefix by design. */
+const PWNED_RANGE_API = /api\.pwnedpasswords\.com\/range/;
 
 function escapeRegExp(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -319,19 +364,100 @@ function findOpenCors(
   return null;
 }
 
-function passwordIssues(sources: SourceRecord[]): DiagnosticIssue[] {
+/** The name a compared or persisted value goes by: `password`, `user.password`. */
+function valueName(node: Node): string | null {
+  if (Node.isIdentifier(node)) return node.getText();
+  if (Node.isPropertyAccessExpression(node)) return node.getName();
+  return null;
+}
+
+/** A value that is a constant or a type test, not another credential. */
+function isConstantOperand(node: Node): boolean {
+  return (
+    Node.isLiteralExpression(node) ||
+    Node.isNoSubstitutionTemplateLiteral(node) ||
+    Node.isTrueLiteral(node) ||
+    Node.isFalseLiteral(node) ||
+    Node.isNullLiteral(node) ||
+    Node.isTypeOfExpression(node) ||
+    node.getText() === "undefined"
+  );
+}
+
+/**
+ * `user.password === password`: a stored and a supplied password compared
+ * as values. Type and length checks, comparisons with constants, and the
+ * sign-up form's `password !== confirmPassword` are validation.
+ */
+function passwordComparison(sourceFile: SourceFile): Node | undefined {
+  return sourceFile
+    .getDescendantsOfKind(SyntaxKind.BinaryExpression)
+    .find((binary) => {
+      if (
+        !EQUALITY_OPERATORS.has(binary.getOperatorToken().getKind()) ||
+        [binary.getLeft(), binary.getRight()].some(isConstantOperand)
+      ) {
+        return false;
+      }
+      const names = [binary.getLeft(), binary.getRight()].map(valueName);
+      return (
+        names.some((name) => name !== null && PASSWORD_VALUE.test(name)) &&
+        !names.some((name) => name !== null && PASSWORD_CHECK.test(name))
+      );
+    });
+}
+
+/** A write whose data carries a password: `create({ data: { email, password } })`. */
+function passwordWrite(sourceFile: SourceFile): CallExpression | undefined {
+  return sourceFile
+    .getDescendantsOfKind(SyntaxKind.CallExpression)
+    .find((call) => {
+      const name = valueName(call.getExpression());
+      return (
+        name !== null &&
+        PERSIST_METHODS.has(name) &&
+        call.getDescendants().some(isRawPassword)
+      );
+    });
+}
+
+/**
+ * A `password` key holding the value as it came in: shorthand, a variable,
+ * or a property. A call (`createPassword(input)`) or a nested relation write
+ * gets the benefit of the doubt, since hashing goes through a function.
+ */
+function isRawPassword(node: Node): boolean {
+  if (Node.isShorthandPropertyAssignment(node)) {
+    return PASSWORD_KEY.test(node.getName());
+  }
+  if (!Node.isPropertyAssignment(node) || !PASSWORD_KEY.test(node.getName())) {
+    return false;
+  }
+  const value = node.getInitializer();
+  return (
+    value !== undefined &&
+    (Node.isIdentifier(value) ||
+      Node.isPropertyAccessExpression(value) ||
+      Node.isElementAccessExpression(value))
+  );
+}
+
+function passwordIssues(
+  context: ScanContext,
+  sources: SourceRecord[],
+): DiagnosticIssue[] {
   const issues: DiagnosticIssue[] = [];
-  const persistence = /\b(?:create|insert|save|update|upsert)\s*\(/;
-  const directComparison =
-    /\b(?:password|passwd)(?:Hash)?\b\s*(?:===|==|!==|!=)|(?:===|==|!==|!=)\s*[^\n;]{0,80}\b(?:password|passwd)(?:Hash)?\b/i;
   const weakHash = /\bcreateHash\s*\(\s*['"](?:md5|sha1)['"]\s*\)/i;
   const secureHash =
-    /\b(?:bcrypt|bcryptjs|argon2)\s*\.\s*(?:hash|compare|verify)\s*\(|\b(?:scrypt|pbkdf2)(?:Sync)?\s*\(|\b(?:hash|verify|compare)Password\s*\(/i;
+    /\b(?:bcrypt|bcryptjs|argon2)\s*\.\s*(?:hash|compare|verify)\s*\(|\b(?:scrypt|pbkdf2)(?:Sync)?\s*\(|\b(?:hash|verify|compare)Password\s*\(|\b(?:get|create|make|generate|compute)Password(?:Hash|Digest)\s*\(/i;
 
   for (const source of sources) {
     if (!PASSWORD_TERM.test(source.content)) continue;
+    const sourceFile = context.getSourceFile(source.file);
 
-    const weakMatch = weakHash.exec(source.content);
+    const weakMatch = PWNED_RANGE_API.test(source.content)
+      ? null
+      : weakHash.exec(source.content);
     if (weakMatch) {
       issues.push({
         ...fromRule("weak-password-hash"),
@@ -342,25 +468,28 @@ function passwordIssues(sources: SourceRecord[]): DiagnosticIssue[] {
       });
     }
 
-    const comparisonMatch = directComparison.exec(source.content);
-    if (comparisonMatch) {
+    // A file that does not parse cannot be judged by its syntax.
+    if (!sourceFile) continue;
+
+    const comparison = passwordComparison(sourceFile);
+    if (comparison) {
       issues.push({
         ...fromRule("plaintext-password-comparison"),
         message: "Password values appear to be compared directly",
         file: source.file,
-        line: lineNumberAt(source.content, comparisonMatch.index),
+        line: comparison.getStartLineNumber(),
         fix: "Verify passwords with a timing-safe password hashing function",
       });
     }
 
-    const persistenceMatch = persistence.exec(source.content);
-    if (persistenceMatch && !secureHash.test(source.content) && !weakMatch) {
+    const write = passwordWrite(sourceFile);
+    if (write && !secureHash.test(source.content) && !weakMatch) {
       issues.push({
         ...fromRule("password-hashing-not-detected"),
         message:
           "Password data may be persisted without recognizable password hashing",
         file: source.file,
-        line: lineNumberAt(source.content, persistenceMatch.index),
+        line: write.getStartLineNumber(),
         fix: "Hash passwords before persistence with Argon2id, scrypt, or bcrypt",
       });
     }
@@ -459,12 +588,16 @@ export async function analyzeSecurity(
 
   checksRun++;
   let secretsFound = false;
+  const runtimeFiles = new Set(runtimeSources.map(({ file }) => file));
   for (const source of allSources) {
-    for (const { pattern, name } of SECRET_PATTERNS) {
+    for (const { pattern, name, accepts, runtimeOnly } of SECRET_PATTERNS) {
+      if (runtimeOnly && !runtimeFiles.has(source.file)) continue;
       pattern.lastIndex = 0;
       // A value built with ${...} interpolation is not a hardcoded secret.
       const match = [...source.content.matchAll(pattern)].find(
-        (candidate) => !candidate[0].includes("${"),
+        (candidate) =>
+          !candidate[0].includes("${") &&
+          (accepts?.(candidate[1] ?? "") ?? true),
       );
       if (!match || match.index === undefined) continue;
       secretsFound = true;
@@ -497,7 +630,7 @@ export async function analyzeSecurity(
     historyNote = history.note;
   }
 
-  const detectedPasswordIssues = passwordIssues(runtimeSources);
+  const detectedPasswordIssues = passwordIssues(context, runtimeSources);
   if (
     detectedPasswordIssues.length > 0 ||
     runtimeSources.some(({ content }) => PASSWORD_TERM.test(content))
