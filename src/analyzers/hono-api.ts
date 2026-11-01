@@ -34,6 +34,10 @@ import {
   ROUTE_METHODS,
   walkChain,
 } from "./hono-apps.js";
+import {
+  handlerSource,
+  verifiesWebhookSignature,
+} from "./webhook-signature.js";
 
 const MUTATING_METHODS = new Set(["delete", "patch", "post", "put"]);
 const BODY_METHODS = new Set(["patch", "post", "put"]);
@@ -211,12 +215,17 @@ function collectAppCall(
   if (methods.length === 0 || !isHandler(handlers.at(-1))) return;
   // The last handler answers the request; the ones before it run first.
   const protection = protects(index, handlers.slice(0, -1));
+  // A handler that verifies a webhook signature authenticates the sender.
+  const final = handlers.at(-1);
+  const signed =
+    final !== undefined && verifiesWebhookSignature(handlerSource(final));
   for (const path of paths) {
     add(collected, app, {
       ...base,
       methods,
       path: joinPath(app.basePath, path),
       ...protection,
+      auth: protection.auth || signed,
     });
   }
 }

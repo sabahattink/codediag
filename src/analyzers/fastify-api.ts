@@ -23,6 +23,7 @@ import {
   propertyValue,
   receiverOf,
 } from "./fastify-plugins.js";
+import { verifiesWebhookSignature } from "./webhook-signature.js";
 
 const HTTP_METHODS = new Set([
   "all",
@@ -82,6 +83,7 @@ interface RouteDeclaration {
   methods: string[];
   path: string;
   options?: ObjectLiteralExpression;
+  handler?: Node;
 }
 
 interface Collected {
@@ -99,7 +101,9 @@ const NONE: Protection = { auth: false, validation: false };
 
 function protects(texts: string[]): Protection {
   return {
-    auth: texts.some((text) => AUTH_NAMES.test(text)),
+    auth: texts.some(
+      (text) => AUTH_NAMES.test(text) || verifiesWebhookSignature(text),
+    ),
     validation: texts.some((text) => VALIDATION_NAMES.test(text)),
   };
 }
@@ -182,14 +186,20 @@ function shorthandRoute(
   const methods = [method];
   if (args.length > 2) {
     return isHandler(args[2])
-      ? { methods, path, options: objectLiteral(index, args[1]) }
+      ? {
+          methods,
+          path,
+          options: objectLiteral(index, args[1]),
+          handler: args[2],
+        }
       : null;
   }
   const options = objectLiteral(index, args[1]);
   if (options) {
-    return options.getProperty("handler") ? { methods, path, options } : null;
+    const handler = propertyValue(options.getProperty("handler"));
+    return handler ? { methods, path, options, handler } : null;
   }
-  return isHandler(args[1]) ? { methods, path } : null;
+  return isHandler(args[1]) ? { methods, path, handler: args[1] } : null;
 }
 
 /** `fastify.route({ method: ["POST", "PUT"], url, handler })`. */
@@ -208,7 +218,12 @@ function fullRoute(index: ProjectIndex, args: Node[]): RouteDeclaration | null {
   });
   return path === null || methods.length === 0
     ? null
-    : { methods, path, options };
+    : {
+        methods,
+        path,
+        options,
+        handler: propertyValue(options.getProperty("handler")),
+      };
 }
 
 /**
@@ -329,6 +344,10 @@ function collectCalls(
         : shorthandRoute(index, name, args);
     if (!route) continue;
     const protection = routeProtection(index, route.options);
+    // A handler that verifies a webhook signature authenticates the sender.
+    const signed =
+      route.handler !== undefined &&
+      verifiesWebhookSignature(hookText(index, route.handler));
     for (const method of route.methods) {
       collected.routes.push({
         context: instance.context,
@@ -338,6 +357,7 @@ function collectCalls(
         file,
         line: call.getStartLineNumber(),
         ...protection,
+        auth: protection.auth || signed,
       });
     }
   }
