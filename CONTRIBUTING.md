@@ -65,6 +65,8 @@ verification performed. Keep unrelated refactors in separate pull requests.
 1. Move the `[Unreleased]` changelog entries under a new version heading and
    set `version` in `package.json` (and `extensions/vscode/package.json` when
    the extension changes) with `npm version <x.y.z> --no-git-tag-version`.
+   Set the same version in `.claude-plugin/plugin.json` and in both places in
+   `server.json`; `tests/agent-manifests.test.ts` fails until they match.
 2. Run `npm run check` and merge to `main`.
 3. Publish a GitHub release tagged `v<x.y.z>`. The Release workflow checks
    that the tag matches `package.json`, runs `npm run check`, publishes to npm
@@ -72,7 +74,8 @@ verification performed. Keep unrelated refactors in separate pull requests.
    `.vsix` to the release. No npm token is stored in the repository: the
    package's trusted publisher on npmjs.com (GitHub Actions,
    `sabahattink/codediag`, workflow `release.yml`, "Allow npm publish") lets
-   this workflow publish with a short-lived OIDC credential.
+   this workflow publish with a short-lived OIDC credential. It then publishes
+   `server.json` to the MCP Registry, also through GitHub OIDC.
 4. Move the Action's major tag (for example `v0`) to the release commit so
    `uses: sabahattink/codediag@v0` picks it up.
 

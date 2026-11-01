@@ -35,3 +35,21 @@ jobs:
         run: |
           npm run extension:package
           gh release upload "$TAG" artifacts/*.vsix --clobber
+      # The registry checks server.json against mcpName in the published npm
+      # package, so wait until npm serves this version. GitHub OIDC
+      # authenticates the io.github.sabahattink namespace; no secret needed.
+      - name: Publish to the MCP Registry
+        env:
+          TAG: ${{ github.event.release.tag_name }}
+          PUBLISHER_URL: https://github.com/modelcontextprotocol/registry/releases/download/v1.8.7/mcp-publisher_linux_amd64.tar.gz
+          PUBLISHER_SHA256: 00b21004149a4ce66f0782508ae4a2bce67d1bea395a8da0bd8028159fb59579
+        run: |
+          curl -sSfL "$PUBLISHER_URL" -o mcp-publisher.tar.gz
+          echo "$PUBLISHER_SHA256  mcp-publisher.tar.gz" | sha256sum --check
+          tar xzf mcp-publisher.tar.gz mcp-publisher
+          for attempt in $(seq 1 30); do
+            npm view "@sabahattink/codediag@${TAG#v}" version >/dev/null 2>&1 && break
+            sleep 20
+          done
+          ./mcp-publisher login github-oidc
+          ./mcp-publisher publish
