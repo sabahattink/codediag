@@ -67,6 +67,8 @@ verification performed. Keep unrelated refactors in separate pull requests.
    the extension changes) with `npm version <x.y.z> --no-git-tag-version`.
    Set the same version in `.claude-plugin/plugin.json` and in both places in
    `server.json`; `tests/agent-manifests.test.ts` fails until they match.
+   Claude Code caches installed plugins by version, so any change to the
+   plugin (its manifest or `skills/`) reaches users only with a new release.
 2. Run `npm run check` and merge to `main`.
 3. Publish a GitHub release tagged `v<x.y.z>`. The Release workflow checks
    that the tag matches `package.json`, runs `npm run check`, publishes to npm
