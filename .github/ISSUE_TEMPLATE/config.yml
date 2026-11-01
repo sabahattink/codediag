@@ -3,3 +3,6 @@ contact_links:
   - name: Security vulnerability
     url: https://github.com/sabahattink/codediag/security/advisories/new
     about: Report suspected vulnerabilities privately.
+  - name: Question or idea
+    url: https://github.com/sabahattink/codediag/discussions
+    about: Ask how CodeDiag works or discuss a direction before opening an issue.

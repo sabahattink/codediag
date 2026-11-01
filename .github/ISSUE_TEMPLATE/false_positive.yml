@@ -1,0 +1,73 @@
+name: False positive or missed finding
+description: CodeDiag reported something that is not a problem, or missed one that is.
+title: "[False positive]: "
+labels:
+  - false-positive
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time. A small snippet that reproduces the finding is the most useful thing you can send. Remove credentials and private code first.
+  - type: dropdown
+    id: kind
+    attributes:
+      label: What went wrong
+      options:
+        - CodeDiag reported a finding that is not a problem (false positive)
+        - CodeDiag missed a problem (false negative)
+    validations:
+      required: true
+  - type: input
+    id: rule
+    attributes:
+      label: Rule ID
+      description: The ID in square brackets after the finding, such as `missing-auth-check`. Leave empty for a missed finding.
+      placeholder: missing-auth-check
+  - type: input
+    id: version
+    attributes:
+      label: CodeDiag version
+      description: Run `codediag --version`.
+      placeholder: 0.10.0
+    validations:
+      required: true
+  - type: dropdown
+    id: stack
+    attributes:
+      label: Framework
+      multiple: true
+      options:
+        - Next.js
+        - SvelteKit
+        - React Router or Remix
+        - Express
+        - Fastify
+        - Hono
+        - NestJS
+        - tRPC
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: finding
+    attributes:
+      label: Finding
+      description: Paste the finding as CodeDiag printed it, or describe the problem it missed.
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: code
+    attributes:
+      label: Code
+      description: The smallest code that reproduces it, with file paths. Include the file where the auth check, validation, or sanitizer actually lives.
+      render: ts
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: Why it is wrong
+      description: For example, "the handle hook in src/hooks.server.ts rejects anonymous requests to /api".
+    validations:
+      required: true
