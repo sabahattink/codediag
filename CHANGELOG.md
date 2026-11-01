@@ -2,6 +2,14 @@
 
 All notable changes to CodeDiag are documented in this file.
 
+## [Unreleased]
+
+### Fixed
+
+- The Claude Code plugin starts `@sabahattink/codediag@latest`. With a bare
+  package name, `npx` ran a copy installed in the project instead, which
+  failed in this repository and could predate the `mcp` command elsewhere.
+
 ## [0.11.0] - 2026-11-01
 
 The "Agents" release: coding agents can ask CodeDiag which routes anyone can

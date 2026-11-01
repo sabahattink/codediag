@@ -43,6 +43,11 @@ path resolves against the server's working directory. Each result names the
 structured content that matches each tool's output schema, with the same data
 as JSON text.
 
+In a project that lists `@sabahattink/codediag` as a dependency, `npx` runs
+that installed copy, which needs to be 0.11.0 or later for `mcp`. Use
+`@sabahattink/codediag@latest` in the commands below to always run the newest
+release instead; the plugin does.
+
 ### Claude Code
 
 ```bash
