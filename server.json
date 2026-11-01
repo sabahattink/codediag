@@ -1,0 +1,30 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.sabahattink/codediag",
+  "title": "CodeDiag",
+  "description": "Find Node.js API routes with no auth check or input validation, and scan project health.",
+  "websiteUrl": "https://sabahattink.github.io/codediag/",
+  "repository": {
+    "url": "https://github.com/sabahattink/codediag",
+    "source": "github"
+  },
+  "version": "0.11.0",
+  "packages": [
+    {
+      "registryType": "npm",
+      "registryBaseUrl": "https://registry.npmjs.org",
+      "identifier": "@sabahattink/codediag",
+      "version": "0.11.0",
+      "runtimeHint": "npx",
+      "transport": {
+        "type": "stdio"
+      },
+      "packageArguments": [
+        {
+          "type": "positional",
+          "value": "mcp"
+        }
+      ]
+    }
+  ]
+}

@@ -267572,7 +267572,7 @@ var import_node_path21 = require("path");
 var import_node_url = require("url");
 
 // package.json
-var version = "0.10.0";
+var version = "0.11.0";
 
 // src/version.ts
 function getPackageVersion() {

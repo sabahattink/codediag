@@ -51,6 +51,11 @@ const API_ANALYZERS: Partial<Record<StackInfo["framework"], ApiAnalyzer>> = {
   trpc: analyzeTrpcApi,
 };
 
+/** Whether CodeDiag has an API Health analyzer for this framework. */
+export function analyzesApi(framework: StackInfo["framework"]): boolean {
+  return API_ANALYZERS[framework] !== undefined;
+}
+
 export interface ScanOptions {
   interactive?: boolean;
   onProgress?: (message: string) => void;

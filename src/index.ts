@@ -17,6 +17,7 @@ import { loadBaseline } from "./core/baseline.js";
 import { changedFilesSince } from "./core/changed-files.js";
 import { compareWithPrevious, loadReport } from "./core/compare.js";
 import { loadHistory, recordHistory, withHistory } from "./core/history.js";
+import { runMcpServer } from "./mcp/server.js";
 import { scanWorkspace } from "./core/workspace-scan.js";
 import { detectWorkspaces } from "./core/workspaces.js";
 import { renderHtml } from "./reporters/html.js";
@@ -362,5 +363,21 @@ program
     );
     process.exitCode = 1;
   });
+
+program
+  .command("mcp")
+  .description(
+    "Run a Model Context Protocol server on stdio for AI agents and editors",
+  )
+  .action(() =>
+    runMcpServer().catch((error: unknown) => {
+      // stdout carries the protocol; errors go to stderr.
+      console.error(
+        chalk.red("codediag mcp:"),
+        error instanceof Error ? error.message : String(error),
+      );
+      process.exitCode = 1;
+    }),
+  );
 
 program.parse();

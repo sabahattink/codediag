@@ -1,7 +1,8 @@
 {
   "name": "@sabahattink/codediag",
-  "version": "0.10.0",
-  "description": "Automated project health scanner for Node.js, NestJS, Express, Fastify, Hono, tRPC, Next.js, SvelteKit, and React Router projects.",
+  "version": "0.11.0",
+  "description": "Find API routes with no auth check or input validation in Next.js, SvelteKit, React Router, Express, Fastify, Hono, NestJS, and tRPC apps, plus a 0-100 project health score. CLI, GitHub Action, and MCP server.",
+  "mcpName": "io.github.sabahattink/codediag",
   "author": "Sabahattin Kalkan <hello@sabahattinkalkan.com> (https://sabahattinkalkan.com)",
   "license": "MIT",
   "type": "module",
@@ -60,7 +61,11 @@
     "health-check",
     "static-analysis",
     "devtools",
-    "testing"
+    "testing",
+    "mcp",
+    "model-context-protocol",
+    "claude-code",
+    "agent-skills"
   ],
   "publishConfig": {
     "access": "public"
@@ -85,6 +90,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^2.6.3",
+    "@modelcontextprotocol/sdk": "^1.32.2",
     "@types/node": "^22.0.0",
     "@types/vscode": "^1.95.0",
     "@vscode/vsce": "^4.0.0",

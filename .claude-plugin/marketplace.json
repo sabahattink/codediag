@@ -1,0 +1,15 @@
+{
+  "name": "codediag",
+  "owner": {
+    "name": "Sabahattin Kalkan",
+    "url": "https://github.com/sabahattink"
+  },
+  "description": "CodeDiag for Claude Code: find API routes with no auth check or input validation.",
+  "plugins": [
+    {
+      "name": "codediag",
+      "source": "./",
+      "description": "Find API routes anyone can call, with no auth check or input validation, in Next.js, SvelteKit, React Router/Remix, Express, Fastify, Hono, NestJS, and tRPC projects. Adds the CodeDiag skill and MCP server."
+    }
+  ]
+}

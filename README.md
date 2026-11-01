@@ -215,6 +215,7 @@ codediag scan . --secret-history         # Also secrets removed but still in Git
 codediag rules                     # List every rule
 codediag explain open-cors         # Explain a rule and how to suppress it
 codediag init                      # Create .codediag.yml
+codediag mcp                       # Serve MCP on stdio for AI agents
 ```
 
 Generate a repository badge:
@@ -340,6 +341,22 @@ codediag scan . --format sarif > codediag-report.sarif
 See the [SARIF output documentation](docs/sarif-output.md) for the field
 mapping and GitHub Code Scanning workflow. Every rule is described in the
 [rule reference](docs/rules.md).
+
+## AI agents
+
+Let your coding agent answer "which of my routes can anyone call?" with
+CodeDiag's analysis. In Claude Code, install the plugin, which adds a skill
+and the MCP server:
+
+```text
+/plugin install codediag --marketplace sabahattink/codediag
+```
+
+Any other MCP client can start the server with `npx -y @sabahattink/codediag mcp`.
+It offers `find_unprotected_routes`, `scan_project`, and `explain_rule`, and
+stays offline. The [AI agents guide](docs/ai-agents.md) has setup for Claude
+Code, Cursor, VS Code, and Claude Desktop, and the
+[Agent Skill](skills/codediag/SKILL.md) for agents without MCP.
 
 ## CI/CD
 
@@ -522,6 +539,9 @@ results in GitHub Code Scanning.
   in front of Hono and Fastify mounts and in Auth.js middleware; Next.js
   middleware judged per route; one pnpm audit per workspace lock file, split
   by package; fewer password and secret false positives on real apps.
+- **0.11 "Agents":** an MCP server (`codediag mcp`), an Agent Skill, and a
+  Claude Code plugin, so coding agents can find unprotected routes with
+  CodeDiag.
 - **Next:** see [docs/roadmap.md](docs/roadmap.md) for planned framework
   support, editor improvements, and deeper taint tracking.
 

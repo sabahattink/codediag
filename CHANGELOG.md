@@ -2,6 +2,39 @@
 
 All notable changes to CodeDiag are documented in this file.
 
+## [0.11.0] - 2026-11-01
+
+The "Agents" release: coding agents can ask CodeDiag which routes anyone can
+call, through an MCP server, an Agent Skill, or a Claude Code plugin.
+
+### Added
+
+- `codediag mcp` serves the Model Context Protocol over stdio with three
+  read-only tools: `find_unprotected_routes` (routes, actions, and procedures
+  without a recognizable auth check or input validation, always offline),
+  `scan_project` (score, analyzer scores, and findings by severity, with an
+  optional audit), and `explain_rule`. Results are structured content with
+  output schemas. The server implements the tools part of MCP for protocol
+  versions 2025-11-25 back to 2024-11-05 without adding a runtime
+  dependency, and a CLI test checks it against the official SDK client.
+- An Agent Skill, `skills/codediag/SKILL.md`, that tells agents when to use
+  CodeDiag, how to run it with or without MCP, where each framework runs
+  auth, and to verify a finding before reporting it. Install it with
+  `npx skills add sabahattink/codediag`.
+- A Claude Code plugin and marketplace in this repository, which add the
+  skill and the MCP server:
+  `/plugin install codediag --marketplace sabahattink/codediag`.
+- MCP Registry metadata: `server.json` and `mcpName`
+  (`io.github.sabahattink/codediag`) in `package.json`.
+- A false-positive issue form, linked from the README, and GitHub
+  Discussions for questions.
+
+### Changed
+
+- The npm description, README, and landing page lead with finding API routes
+  that have no auth check or input validation. The landing page has a large
+  link preview image.
+
 ## [0.10.0] - 2026-10-31
 
 The "Reach" release: SvelteKit and React Router/Remix get API Health
