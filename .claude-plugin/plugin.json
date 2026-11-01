@@ -24,7 +24,11 @@
   "mcpServers": {
     "codediag": {
       "command": "npx",
-      "args": ["-y", "@sabahattink/codediag", "mcp"]
+      "args": [
+        "-y",
+        "@sabahattink/codediag@latest",
+        "mcp"
+      ]
     }
   }
 }

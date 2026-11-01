@@ -37,7 +37,9 @@ test("the plugin, marketplace, and MCP registry entry match the npm package", ()
   assert.equal(plugin.version, pkg.version);
   assert.deepEqual(plugin.mcpServers.codediag, {
     command: "npx",
-    args: ["-y", pkg.name, "mcp"],
+    // @latest: inside a project that has (or is) the package, a bare name runs
+    // that local copy, which may predate the mcp command.
+    args: ["-y", `${pkg.name}@latest`, "mcp"],
   });
 
   assert.deepEqual(
