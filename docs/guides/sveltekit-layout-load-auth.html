@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Does +layout.server.ts protect SvelteKit form actions? No. | CodeDiag</title>
+<meta name="description" content="No. SvelteKit runs a form action before any load function, and +layout files have no effect on +server endpoints. Put the auth check in the handle hook or in each action. Example, fix, and a one-command check.">
+<link rel="canonical" href="https://sabahattink.github.io/codediag/guides/sveltekit-layout-load-auth.html">
+<meta name="color-scheme" content="light dark">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="CodeDiag">
+<meta property="og:title" content="Does +layout.server.ts protect SvelteKit form actions? No.">
+<meta property="og:description" content="SvelteKit runs form actions before load functions, so a layout auth redirect comes too late. Here is why, and where the check belongs.">
+<meta property="og:url" content="https://sabahattink.github.io/codediag/guides/sveltekit-layout-load-auth.html">
+<meta property="og:image" content="https://sabahattink.github.io/codediag/social-preview.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23101c16'/%3E%3Cpath d='M7 36h13l5-22 6 36 5-20 3 6h11' fill='none' stroke='%23f5f8f2' stroke-width='4.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='55' cy='36' r='4.5' fill='%2374d6a0'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=Martian+Mono:wdth,wght@75..112.5,400..700&display=swap">
+<link rel="stylesheet" href="guide.css">
+<script>try{var t=localStorage.getItem("codediag-theme");if(t==="light"||t==="dark")document.documentElement.setAttribute("data-theme",t)}catch(e){}</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "TechArticle",
+      "headline": "Does an auth check in +layout.server.ts protect SvelteKit form actions?",
+      "description": "No. SvelteKit runs a form action before any load function, and +layout files have no effect on +server endpoints. Put the auth check in the handle hook or in each action.",
+      "datePublished": "2026-11-02",
+      "dateModified": "2026-11-02",
+      "author": {"@type": "Person", "name": "Sabahattin Kalkan", "url": "https://sabahattinkalkan.com"},
+      "publisher": {"@type": "Organization", "name": "CodeDiag", "url": "https://sabahattink.github.io/codediag/"},
+      "image": "https://sabahattink.github.io/codediag/social-preview.png",
+      "mainEntityOfPage": "https://sabahattink.github.io/codediag/guides/sveltekit-layout-load-auth.html",
+      "about": ["SvelteKit", "Authentication", "Form actions"]
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        {"@type": "Question", "name": "Does a +page.server.ts load function protect the same page's form actions?",
+         "acceptedAnswer": {"@type": "Answer", "text": "No. The action runs first and the page's load functions run after it completes, so a redirect in the page load also comes too late."}},
+        {"@type": "Question", "name": "Does the SvelteKit handle hook run for form actions and +server endpoints?",
+         "acceptedAnswer": {"@type": "Answer", "text": "Yes. handle runs for every request the server receives, before the action is invoked, which is why it is the place to reject anonymous requests for a group of routes."}},
+        {"@type": "Question", "name": "Is SvelteKit's CSRF protection enough to protect a form action?",
+         "acceptedAnswer": {"@type": "Answer", "text": "No. The origin check stops other sites from submitting forms in a victim's browser. A script that sends the request directly can set any Origin header, so the action still needs an auth check."}},
+        {"@type": "Question", "name": "Can an auth check in +layout.ts protect anything?",
+         "acceptedAnswer": {"@type": "Answer", "text": "No. Universal load functions also run in the browser, so they are never a security boundary."}}
+      ]
+    }
+  ]
+}
+</script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top">
+ <div class="wrap top-in">
+  <a class="brand" href="../" aria-label="CodeDiag home">
+   <svg viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="12" style="fill:var(--ink)"/><path d="M7 36h13l5-22 6 36 5-20 3 6h11" fill="none" style="stroke:var(--paper)" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="55" cy="36" r="4.5" style="fill:var(--ok)"/></svg>
+   <span>codediag</span>
+  </a>
+  <nav aria-label="Site">
+   <ul>
+    <li><a href="./">Guides</a></li>
+    <li><a href="../">CodeDiag</a></li>
+   </ul>
+  </nav>
+  <div class="top-act">
+   <a class="gh" href="https://github.com/sabahattink/codediag"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg><span>GitHub</span></a>
+   <button class="theme" id="theme" type="button" aria-label="Switch to dark theme">
+    <svg class="ic i-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg>
+    <svg class="ic i-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg>
+   </button>
+  </div>
+ </div>
+</header>
+
+<main id="main" class="doc">
+ <p class="crumbs"><a href="../">CodeDiag</a> / <a href="./">Guides</a> / SvelteKit</p>
+ <h1>Does an auth check in <code>+layout.server.ts</code> protect SvelteKit form actions?</h1>
+ <p class="meta">Updated November 2, 2026 · SvelteKit 2</p>
+
+ <div class="answer">
+  <p><strong>No.</strong> A redirect in a layout's <code>load</code> doesn't stop a form action or a <code>+server</code> endpoint under that layout. SvelteKit runs the action first and the <code>load</code> functions after it, and <code>+layout</code> files have no effect on <code>+server.js</code>.</p>
+  <p>Check auth in the <code>handle</code> hook in <code>src/hooks.server.ts</code>, or at the top of every action and endpoint.</p>
+ </div>
+
+ <h2>Why the layout check comes too late</h2>
+ <p>When a form posts to <code>?/delete</code>, SvelteKit handles the request in this order:</p>
+ <ol>
+  <li>The <code>handle</code> hook runs.</li>
+  <li>The action runs and does its work: here, it deletes a user.</li>
+  <li>The page's <code>load</code> functions run to render the result. The layout's redirect fires now, after the delete.</li>
+ </ol>
+ <p>The SvelteKit docs describe both halves: load functions <a href="https://svelte.dev/docs/kit/form-actions#Loading-data">run after the action completes</a>, and <code>handle</code> runs before the action is invoked.</p>
+ <p>Endpoints are worse off. The routing docs say <a href="https://svelte.dev/docs/kit/routing#server"><code>+layout</code> files have no effect on <code>+server.js</code> files</a>; per-request logic belongs in <code>handle</code>. Even for page loads, SvelteKit runs <code>load</code> functions concurrently, and its <a href="https://svelte.dev/docs/kit/load#Implications-for-authentication">notes on authentication</a> recommend hooks for protecting a group of routes.</p>
+
+ <h2>What it looks like</h2>
+ <p>A common setup: <code>handle</code> loads the user, the admin layout redirects anonymous visitors, and the page has an action.</p>
+ <figure class="code">
+  <figcaption>src/hooks.server.ts</figcaption>
+<pre><code>export const handle: Handle = async ({ event, resolve }) =&gt; {
+  event.locals.user = await getUser(event.cookies.get("session"));
+  return resolve(event);
+};</code></pre>
+ </figure>
+ <figure class="code">
+  <figcaption>src/routes/admin/+layout.server.ts</figcaption>
+<pre><code>export const load = async ({ locals }) =&gt; {
+  if (!locals.user) redirect(303, "/login");
+  return { user: locals.user };
+};</code></pre>
+ </figure>
+ <figure class="code">
+  <figcaption>src/routes/admin/users/+page.server.ts</figcaption>
+<pre><code>export const actions = {
+  delete: async ({ request }) =&gt; {
+    const data = await request.formData();
+    await db.user.delete({ where: { id: String(data.get("id")) } });
+  },
+};</code></pre>
+ </figure>
+ <p>A signed-out visitor who opens <code>/admin/users</code> is redirected to the login page. The action is not protected. Anyone can post to it:</p>
+ <figure class="code">
+  <figcaption>terminal</figcaption>
+<pre><code>curl -X POST "https://app.example.com/admin/users?/delete" \
+  -H "Origin: https://app.example.com" \
+  -d "id=42"</code></pre>
+ </figure>
+ <p>The user is deleted, and the response is the layout's redirect. SvelteKit's CSRF check compares the <code>Origin</code> header to stop other sites' forms in a browser. A script can send any <code>Origin</code> it likes.</p>
+
+ <h2>Fix it</h2>
+ <h3>Reject anonymous requests in <code>handle</code></h3>
+ <p>Best when a whole section of the app needs a signed-in user. It covers pages, actions, and endpoints under the path in one place.</p>
+ <figure class="code">
+  <figcaption>src/hooks.server.ts</figcaption>
+<pre><code>export const handle: Handle = async ({ event, resolve }) =&gt; {
+  event.locals.user = await getUser(event.cookies.get("session"));
+
+  if (event.url.pathname.startsWith("/admin") &amp;&amp; !event.locals.user) {
+    return new Response("Unauthorized", { status: 401 });
+  }
+
+  return resolve(event);
+};</code></pre>
+ </figure>
+ <p>If you protect a route group such as <code>(app)</code> rather than a path prefix, test <code>event.route.id</code> instead. Keep the layout redirect if you like the user experience; it just isn't the security boundary.</p>
+
+ <h3>Or check inside each action and endpoint</h3>
+ <figure class="code">
+  <figcaption>src/routes/admin/users/+page.server.ts</figcaption>
+<pre><code>export const actions = {
+  delete: async ({ request, locals }) =&gt; {
+    if (!locals.user) error(401, "Unauthorized");
+    const data = await request.formData();
+    await db.user.delete({ where: { id: String(data.get("id")) } });
+  },
+};</code></pre>
+ </figure>
+
+ <h2>Check every route at once</h2>
+ <p><a href="../">CodeDiag</a> lists the SvelteKit actions and endpoints that nothing protects. It reads <code>hooks.server.ts</code> (including <code>sequence()</code>), every action and <code>+server</code> handler, and the helpers they call. For the example above it says:</p>
+ <figure class="out">
+<pre><span class="ps">$</span> npx @sabahattink/codediag scan .
+
+  <span class="w">⚠ Form action ?/delete on /admin/users has no recognizable auth check; the auth check in src/routes/admin/+layout.server.ts load does not run for form actions [missing-sveltekit-auth]</span>
+    <span class="d">src/routes/admin/users/+page.server.ts:4</span>
+    <span class="d">→ Check locals.user in the action and return fail(401) or redirect(), or reject anonymous requests to this route in the handle hook; load functions do not run before form actions</span></pre>
+ </figure>
+ <p>Either fix above clears the finding. CodeDiag runs locally, needs no account, and stays offline with <code>--no-audit</code>. It is static analysis: "no recognizable auth check" means it could not see one, so read the cited file before calling a route vulnerable.</p>
+
+ <h2>Questions</h2>
+ <div class="faq">
+  <details>
+   <summary>Does a <code>+page.server.ts</code> load protect the same page's actions?</summary>
+   <p>No. The action runs first and the page's load functions run after it completes, so a redirect in the page load also comes too late.</p>
+  </details>
+  <details>
+   <summary>Does <code>handle</code> run for form actions and <code>+server</code> endpoints?</summary>
+   <p>Yes. It runs for every request the server receives, before the action is invoked. That is why it is the place to reject anonymous requests for a group of routes.</p>
+  </details>
+  <details>
+   <summary>Isn't SvelteKit's CSRF protection enough?</summary>
+   <p>No. The origin check stops other sites from submitting forms in a victim's browser. A script that sends the request directly can set any <code>Origin</code> header, so the action still needs an auth check.</p>
+  </details>
+  <details>
+   <summary>Can an auth check in <code>+layout.ts</code> protect anything?</summary>
+   <p>No. Universal load functions also run in the browser, so they are never a security boundary.</p>
+  </details>
+ </div>
+
+ <h2>Sources</h2>
+ <ul class="sources">
+  <li><a href="https://svelte.dev/docs/kit/form-actions#Loading-data">SvelteKit docs: Form actions, Loading data</a></li>
+  <li><a href="https://svelte.dev/docs/kit/routing#server">SvelteKit docs: Routing, +server</a></li>
+  <li><a href="https://svelte.dev/docs/kit/load#Implications-for-authentication">SvelteKit docs: Loading data, Implications for authentication</a></li>
+  <li><a href="https://svelte.dev/docs/kit/hooks">SvelteKit docs: Hooks</a></li>
+ </ul>
+
+ <div class="cta">
+  <h2>Find every route anyone can call</h2>
+  <p>One command for SvelteKit, Next.js, React Router, Express, Fastify, Hono, NestJS, and tRPC. Your coding agent can run it too, through the <a href="https://github.com/sabahattink/codediag/blob/main/docs/ai-agents.md">MCP server or the Claude Code plugin</a>.</p>
+<pre><span class="ps">$</span> npx @sabahattink/codediag scan .</pre>
+ </div>
+
+ <h2>Related guides</h2>
+ <ul class="related">
+  <li><a href="react-router-parent-loader-auth.html">Does a parent loader's auth check protect child routes in React Router?</a><span>Loaders run in parallel; actions run first.</span></li>
+  <li><a href="nextjs-middleware-api-routes.html">Is your Next.js middleware protecting your API routes?</a><span>Matchers, path branches, and middleware that never blocks.</span></li>
+ </ul>
+</main>
+
+<footer>
+ <div class="wrap foot-in">
+  <p>CodeDiag is <a href="https://github.com/sabahattink/codediag/blob/main/LICENSE">MIT licensed</a>, by <a href="https://sabahattinkalkan.com">Sabahattin Kalkan</a>.</p>
+  <ul>
+   <li><a href="https://github.com/sabahattink/codediag">GitHub</a></li>
+   <li><a href="https://www.npmjs.com/package/@sabahattink/codediag">npm</a></li>
+   <li><a href="./">All guides</a></li>
+  </ul>
+ </div>
+</footer>
+<script>
+(function(){
+ var root=document.documentElement,btn=document.getElementById("theme"),dark=window.matchMedia("(prefers-color-scheme: dark)");
+ function current(){return root.getAttribute("data-theme")||(dark.matches?"dark":"light")}
+ function sync(){btn.setAttribute("aria-label",current()==="dark"?"Switch to light theme":"Switch to dark theme")}
+ btn.addEventListener("click",function(){var next=current()==="dark"?"light":"dark";root.setAttribute("data-theme",next);try{localStorage.setItem("codediag-theme",next)}catch(e){}sync()});
+ if(dark.addEventListener)dark.addEventListener("change",sync);
+ sync();
+})();
+</script>
+</body>
+</html>

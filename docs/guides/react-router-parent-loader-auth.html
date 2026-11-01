@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Does a parent loader protect child routes in React Router? No. | CodeDiag</title>
+<meta name="description" content="No. React Router runs matched loaders in parallel and a form submission runs the route's action first, so a parent loader can't protect child loaders or actions. Check auth in each, or use route middleware.">
+<link rel="canonical" href="https://sabahattink.github.io/codediag/guides/react-router-parent-loader-auth.html">
+<meta name="color-scheme" content="light dark">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="CodeDiag">
+<meta property="og:title" content="Does a parent loader protect child routes in React Router? No.">
+<meta property="og:description" content="Loaders run in parallel and actions run first. React Router's own docs say a parent loader can't protect child loaders or actions.">
+<meta property="og:url" content="https://sabahattink.github.io/codediag/guides/react-router-parent-loader-auth.html">
+<meta property="og:image" content="https://sabahattink.github.io/codediag/social-preview.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23101c16'/%3E%3Cpath d='M7 36h13l5-22 6 36 5-20 3 6h11' fill='none' stroke='%23f5f8f2' stroke-width='4.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='55' cy='36' r='4.5' fill='%2374d6a0'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=Martian+Mono:wdth,wght@75..112.5,400..700&display=swap">
+<link rel="stylesheet" href="guide.css">
+<script>try{var t=localStorage.getItem("codediag-theme");if(t==="light"||t==="dark")document.documentElement.setAttribute("data-theme",t)}catch(e){}</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "TechArticle",
+      "headline": "Does a parent loader's auth check protect child routes in React Router?",
+      "description": "No. React Router runs matched loaders in parallel and a form submission runs the route's action first, so a parent loader can't protect child loaders or actions.",
+      "datePublished": "2026-11-02",
+      "dateModified": "2026-11-02",
+      "author": {"@type": "Person", "name": "Sabahattin Kalkan", "url": "https://sabahattinkalkan.com"},
+      "publisher": {"@type": "Organization", "name": "CodeDiag", "url": "https://sabahattink.github.io/codediag/"},
+      "image": "https://sabahattink.github.io/codediag/social-preview.png",
+      "mainEntityOfPage": "https://sabahattink.github.io/codediag/guides/react-router-parent-loader-auth.html",
+      "about": ["React Router", "Remix", "Authentication"]
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        {"@type": "Question", "name": "Doesn't a redirect thrown by the parent loader stop the request?",
+         "acceptedAnswer": {"@type": "Answer", "text": "It stops the page from rendering. By then the action has already run, and the other loaders ran alongside the parent's."}},
+        {"@type": "Question", "name": "Does this apply to Remix v2?",
+         "acceptedAnswer": {"@type": "Answer", "text": "Yes. Remix v2 loads data the same way: matched loaders in parallel, and the action before loaders revalidate."}},
+        {"@type": "Question", "name": "Can clientLoader or clientAction enforce auth?",
+         "acceptedAnswer": {"@type": "Answer", "text": "No. They run in the browser, so they are never a security boundary."}},
+        {"@type": "Question", "name": "Where should the check live if many routes need it?",
+         "acceptedAnswer": {"@type": "Answer", "text": "In route middleware on a common ancestor, which runs before the matched loaders and actions, or in a requireUser helper called at the top of every loader and action."}}
+      ]
+    }
+  ]
+}
+</script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top">
+ <div class="wrap top-in">
+  <a class="brand" href="../" aria-label="CodeDiag home">
+   <svg viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="12" style="fill:var(--ink)"/><path d="M7 36h13l5-22 6 36 5-20 3 6h11" fill="none" style="stroke:var(--paper)" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="55" cy="36" r="4.5" style="fill:var(--ok)"/></svg>
+   <span>codediag</span>
+  </a>
+  <nav aria-label="Site">
+   <ul>
+    <li><a href="./">Guides</a></li>
+    <li><a href="../">CodeDiag</a></li>
+   </ul>
+  </nav>
+  <div class="top-act">
+   <a class="gh" href="https://github.com/sabahattink/codediag"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg><span>GitHub</span></a>
+   <button class="theme" id="theme" type="button" aria-label="Switch to dark theme">
+    <svg class="ic i-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg>
+    <svg class="ic i-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg>
+   </button>
+  </div>
+ </div>
+</header>
+
+<main id="main" class="doc">
+ <p class="crumbs"><a href="../">CodeDiag</a> / <a href="./">Guides</a> / React Router</p>
+ <h1>Does a parent loader's auth check protect child routes in React Router?</h1>
+ <p class="meta">Updated November 2, 2026 · React Router 7 framework mode, Remix 2</p>
+
+ <div class="answer">
+  <p><strong>No.</strong> React Router runs the loaders of matched routes in parallel, and a form submission runs the route's action first; loaders revalidate after it. A redirect in the parent's loader can't stop either one.</p>
+  <p>Check auth in every loader and action that needs it, or use route middleware, which runs before the matched loaders and actions. Remix v2 works the same way.</p>
+ </div>
+
+ <h2>Why the parent's check doesn't cover its children</h2>
+ <p>React Router's own docs say it directly: matched route loaders <a href="https://reactrouter.com/start/framework/data-loading#authentication-and-authorization">run in parallel</a>, so a parent loader can't "protect" child route loaders or actions through an auth check.</p>
+ <p>Actions make it worse. A submission runs the action, and only <a href="https://reactrouter.com/start/framework/actions">when the action completes</a> does React Router revalidate the loader data on the page. If the parent's loader redirects at that point, the action has already done its work.</p>
+
+ <h2>What it looks like</h2>
+ <figure class="code">
+  <figcaption>app/routes.ts</figcaption>
+<pre><code>export default [
+  route("dashboard", "routes/dashboard.tsx", [
+    route("projects/:id", "routes/project.tsx"),
+  ]),
+] satisfies RouteConfig;</code></pre>
+ </figure>
+ <figure class="code">
+  <figcaption>app/routes/dashboard.tsx</figcaption>
+<pre><code>export async function loader({ request }) {
+  const userId = await requireUserId(request); // redirects to /login
+  return { userId };
+}</code></pre>
+ </figure>
+ <figure class="code">
+  <figcaption>app/routes/project.tsx</figcaption>
+<pre><code>export async function action({ params }) {
+  await db.project.delete({ where: { id: params.id } });
+  return redirect("/dashboard");
+}</code></pre>
+ </figure>
+ <p>Signed out, opening <code>/dashboard/projects/42</code> sends you to the login page. Submitting to it deletes the project first: the action runs, and the redirect from the dashboard loader arrives afterwards.</p>
+
+ <h2>Fix it</h2>
+ <h3>Check auth in the action itself</h3>
+ <figure class="code">
+  <figcaption>app/routes/project.tsx</figcaption>
+<pre><code>export async function action({ request, params }) {
+  const userId = await requireUserId(request);
+  await db.project.delete({ where: { id: params.id, ownerId: userId } });
+  return redirect("/dashboard");
+}</code></pre>
+ </figure>
+ <p>Scoping the query to <code>ownerId</code> also answers the next question: not just "is someone signed in" but "may this user delete this project".</p>
+
+ <h3>Or use route middleware on the parent</h3>
+ <p><a href="https://reactrouter.com/how-to/middleware#authentication">Route middleware</a> on a protected route or a common ancestor runs before the matched loaders and actions. Set it up as React Router's middleware guide describes for your version, then:</p>
+ <figure class="code">
+  <figcaption>app/routes/dashboard.tsx</figcaption>
+<pre><code>export const middleware = [
+  async ({ request }) =&gt; {
+    await requireUserId(request);
+  },
+];</code></pre>
+ </figure>
+
+ <h2>Check every route at once</h2>
+ <p><a href="../">CodeDiag</a> reads <code>app/routes.ts</code> or flat-route files, every action and loader, and route middleware. It calls out auth that only lives in a parent's loader. For the example above:</p>
+ <figure class="out">
+<pre><span class="ps">$</span> npx @sabahattink/codediag scan .
+
+  <span class="w">⚠ The action of /dashboard/projects/:id has no auth check of its own; the auth check in the loader of app/routes/dashboard.tsx does not run before the action [react-router-loader-auth-only]</span>
+    <span class="d">app/routes/project.tsx:4</span>
+    <span class="d">→ Check auth in this handler too, for example with await requireUserId(request), or move the check into middleware on the parent route</span></pre>
+ </figure>
+ <p>Either fix clears the finding. CodeDiag runs locally, needs no account, and stays offline with <code>--no-audit</code>. It is static analysis, so read the cited file before calling a route vulnerable.</p>
+
+ <h2>Questions</h2>
+ <div class="faq">
+  <details>
+   <summary>Doesn't a redirect thrown by the parent loader stop the request?</summary>
+   <p>It stops the page from rendering. By then the action has already run, and the other loaders ran alongside the parent's.</p>
+  </details>
+  <details>
+   <summary>Does this apply to Remix v2?</summary>
+   <p>Yes. Remix v2 loads data the same way: matched loaders in parallel, and the action before loaders revalidate.</p>
+  </details>
+  <details>
+   <summary>Can <code>clientLoader</code> or <code>clientAction</code> enforce auth?</summary>
+   <p>No. They run in the browser, so they are never a security boundary.</p>
+  </details>
+  <details>
+   <summary>Where should the check live if many routes need it?</summary>
+   <p>In route middleware on a common ancestor, or in a <code>requireUser</code> helper called at the top of every loader and action.</p>
+  </details>
+ </div>
+
+ <h2>Sources</h2>
+ <ul class="sources">
+  <li><a href="https://reactrouter.com/start/framework/data-loading#authentication-and-authorization">React Router docs: Data loading, Authentication and authorization</a></li>
+  <li><a href="https://reactrouter.com/start/framework/actions">React Router docs: Actions</a></li>
+  <li><a href="https://reactrouter.com/how-to/middleware#authentication">React Router docs: Middleware, Authentication</a></li>
+ </ul>
+
+ <div class="cta">
+  <h2>Find every route anyone can call</h2>
+  <p>One command for React Router, Next.js, SvelteKit, Express, Fastify, Hono, NestJS, and tRPC. Your coding agent can run it too, through the <a href="https://github.com/sabahattink/codediag/blob/main/docs/ai-agents.md">MCP server or the Claude Code plugin</a>.</p>
+<pre><span class="ps">$</span> npx @sabahattink/codediag scan .</pre>
+ </div>
+
+ <h2>Related guides</h2>
+ <ul class="related">
+  <li><a href="sveltekit-layout-load-auth.html">Does an auth check in +layout.server.ts protect SvelteKit form actions?</a><span>Actions run before load functions.</span></li>
+  <li><a href="nextjs-middleware-api-routes.html">Is your Next.js middleware protecting your API routes?</a><span>Matchers, path branches, and middleware that never blocks.</span></li>
+ </ul>
+</main>
+
+<footer>
+ <div class="wrap foot-in">
+  <p>CodeDiag is <a href="https://github.com/sabahattink/codediag/blob/main/LICENSE">MIT licensed</a>, by <a href="https://sabahattinkalkan.com">Sabahattin Kalkan</a>.</p>
+  <ul>
+   <li><a href="https://github.com/sabahattink/codediag">GitHub</a></li>
+   <li><a href="https://www.npmjs.com/package/@sabahattink/codediag">npm</a></li>
+   <li><a href="./">All guides</a></li>
+  </ul>
+ </div>
+</footer>
+<script>
+(function(){
+ var root=document.documentElement,btn=document.getElementById("theme"),dark=window.matchMedia("(prefers-color-scheme: dark)");
+ function current(){return root.getAttribute("data-theme")||(dark.matches?"dark":"light")}
+ function sync(){btn.setAttribute("aria-label",current()==="dark"?"Switch to light theme":"Switch to dark theme")}
+ btn.addEventListener("click",function(){var next=current()==="dark"?"light":"dark";root.setAttribute("data-theme",next);try{localStorage.setItem("codediag-theme",next)}catch(e){}sync()});
+ if(dark.addEventListener)dark.addEventListener("change",sync);
+ sync();
+})();
+</script>
+</body>
+</html>

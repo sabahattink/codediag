@@ -342,6 +342,15 @@ See the [SARIF output documentation](docs/sarif-output.md) for the field
 mapping and GitHub Code Scanning workflow. Every rule is described in the
 [rule reference](docs/rules.md).
 
+## Guides
+
+Short, sourced answers to auth checks that look like they protect a route
+but don't:
+
+- [Does an auth check in `+layout.server.ts` protect SvelteKit form actions?](https://sabahattink.github.io/codediag/guides/sveltekit-layout-load-auth.html)
+- [Does a parent loader's auth check protect child routes in React Router?](https://sabahattink.github.io/codediag/guides/react-router-parent-loader-auth.html)
+- [Is your Next.js middleware protecting your API routes?](https://sabahattink.github.io/codediag/guides/nextjs-middleware-api-routes.html)
+
 ## AI agents
 
 Let your coding agent answer "which of my routes can anyone call?" with
