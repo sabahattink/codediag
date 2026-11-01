@@ -2,13 +2,15 @@
 
 All notable changes to CodeDiag are documented in this file.
 
-## [Unreleased]
+## [0.11.1] - 2026-11-02
 
 ### Fixed
 
 - The Claude Code plugin starts `@sabahattink/codediag@latest`. With a bare
   package name, `npx` ran a copy installed in the project instead, which
   failed in this repository and could predate the `mcp` command elsewhere.
+  The new plugin version lets Claude Code update installed copies, which it
+  caches by version.
 
 ## [0.11.0] - 2026-11-01
 

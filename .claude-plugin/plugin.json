@@ -1,6 +1,6 @@
 {
   "name": "codediag",
-  "version": "0.11.0",
+  "version": "0.11.1",
   "description": "Find API routes anyone can call, with no auth check or input validation, in Next.js, SvelteKit, React Router/Remix, Express, Fastify, Hono, NestJS, and tRPC projects. Adds the CodeDiag skill and MCP server.",
   "author": {
     "name": "Sabahattin Kalkan",
