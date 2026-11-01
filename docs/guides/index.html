@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Where auth actually runs: guides for Next.js, SvelteKit, and React Router | CodeDiag</title>
+<meta name="description" content="Short, sourced guides to the auth checks that look like they protect a route but don't: SvelteKit layout loads, React Router parent loaders, and Next.js middleware matchers.">
+<link rel="canonical" href="https://sabahattink.github.io/codediag/guides/">
+<meta name="color-scheme" content="light dark">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="CodeDiag">
+<meta property="og:title" content="Where auth actually runs">
+<meta property="og:description" content="Guides to the auth checks that look like they protect a route but don't.">
+<meta property="og:url" content="https://sabahattink.github.io/codediag/guides/">
+<meta property="og:image" content="https://sabahattink.github.io/codediag/social-preview.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23101c16'/%3E%3Cpath d='M7 36h13l5-22 6 36 5-20 3 6h11' fill='none' stroke='%23f5f8f2' stroke-width='4.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='55' cy='36' r='4.5' fill='%2374d6a0'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=Martian+Mono:wdth,wght@75..112.5,400..700&display=swap">
+<link rel="stylesheet" href="guide.css">
+<script>try{var t=localStorage.getItem("codediag-theme");if(t==="light"||t==="dark")document.documentElement.setAttribute("data-theme",t)}catch(e){}</script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top">
+ <div class="wrap top-in">
+  <a class="brand" href="../" aria-label="CodeDiag home">
+   <svg viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="12" style="fill:var(--ink)"/><path d="M7 36h13l5-22 6 36 5-20 3 6h11" fill="none" style="stroke:var(--paper)" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="55" cy="36" r="4.5" style="fill:var(--ok)"/></svg>
+   <span>codediag</span>
+  </a>
+  <nav aria-label="Site">
+   <ul>
+    <li><a href="./" aria-current="page">Guides</a></li>
+    <li><a href="../">CodeDiag</a></li>
+   </ul>
+  </nav>
+  <div class="top-act">
+   <a class="gh" href="https://github.com/sabahattink/codediag"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg><span>GitHub</span></a>
+   <button class="theme" id="theme" type="button" aria-label="Switch to dark theme">
+    <svg class="ic i-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg>
+    <svg class="ic i-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg>
+   </button>
+  </div>
+ </div>
+</header>
+
+<main id="main" class="doc">
+ <p class="crumbs"><a href="../">CodeDiag</a> / Guides</p>
+ <h1>Where auth actually runs</h1>
+ <p class="meta">Short guides, each checked against the framework's own docs</p>
+ <p>Some auth checks look like they protect a route and don't, because the framework runs the route before, or without, the code that checks. Each guide answers one question, shows the failing setup and the fix, and cites the docs that explain why.</p>
+
+ <ul class="cards">
+  <li>
+   <a href="sveltekit-layout-load-auth.html">Does an auth check in +layout.server.ts protect SvelteKit form actions?</a>
+   <p>No. Actions run before load functions, and layouts have no effect on <code>+server</code> endpoints. Use the <code>handle</code> hook or check in each action.</p>
+   <span class="tag">SvelteKit 2</span>
+  </li>
+  <li>
+   <a href="react-router-parent-loader-auth.html">Does a parent loader's auth check protect child routes in React Router?</a>
+   <p>No. Loaders run in parallel and a submission runs the action first. Check in each loader and action, or use route middleware.</p>
+   <span class="tag">React Router 7 · Remix 2</span>
+  </li>
+  <li>
+   <a href="nextjs-middleware-api-routes.html">Is your Next.js middleware protecting your API routes?</a>
+   <p>Only where its matcher and branches reach, and only if it blocks. Verify the session in each route handler.</p>
+   <span class="tag">Next.js 13–16</span>
+  </li>
+ </ul>
+
+ <div class="cta">
+  <h2>Check your own routes</h2>
+  <p>CodeDiag finds the routes in a Next.js, SvelteKit, React Router, Express, Fastify, Hono, NestJS, or tRPC app that have no recognizable auth check or input validation. It runs locally and needs no account.</p>
+<pre><span class="ps">$</span> npx @sabahattink/codediag scan .</pre>
+ </div>
+</main>
+
+<footer>
+ <div class="wrap foot-in">
+  <p>CodeDiag is <a href="https://github.com/sabahattink/codediag/blob/main/LICENSE">MIT licensed</a>, by <a href="https://sabahattinkalkan.com">Sabahattin Kalkan</a>.</p>
+  <ul>
+   <li><a href="https://github.com/sabahattink/codediag">GitHub</a></li>
+   <li><a href="https://www.npmjs.com/package/@sabahattink/codediag">npm</a></li>
+   <li><a href="../">CodeDiag</a></li>
+  </ul>
+ </div>
+</footer>
+<script>
+(function(){
+ var root=document.documentElement,btn=document.getElementById("theme"),dark=window.matchMedia("(prefers-color-scheme: dark)");
+ function current(){return root.getAttribute("data-theme")||(dark.matches?"dark":"light")}
+ function sync(){btn.setAttribute("aria-label",current()==="dark"?"Switch to light theme":"Switch to dark theme")}
+ btn.addEventListener("click",function(){var next=current()==="dark"?"light":"dark";root.setAttribute("data-theme",next);try{localStorage.setItem("codediag-theme",next)}catch(e){}sync()});
+ if(dark.addEventListener)dark.addEventListener("change",sync);
+ sync();
+})();
+</script>
+</body>
+</html>
