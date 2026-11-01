@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>CodeDiag — Diagnose your code before you ship</title>
+<title>CodeDiag — Which of your API routes can anyone call?</title>
 <meta name="description" content="CodeDiag scans Node.js, NestJS, Express, Fastify, Hono, tRPC, Next.js, SvelteKit, and React Router projects on your machine and returns a 0–100 health score that explains every lost point, with stable rule IDs, SARIF output, a GitHub Action, and a VS Code extension.">
 <link rel="canonical" href="https://sabahattink.github.io/codediag/">
 <meta name="color-scheme" content="light dark">
@@ -11,12 +11,17 @@
 <meta name="theme-color" content="#0b1310" media="(prefers-color-scheme: dark)">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="CodeDiag">
-<meta property="og:title" content="CodeDiag — Diagnose your code before you ship">
-<meta property="og:description" content="One command. Five analyzers. One score that explains every lost point. Local health checks for Node.js, NestJS, Express, and Next.js.">
+<meta property="og:title" content="CodeDiag — Which of your API routes can anyone call?">
+<meta property="og:description" content="One command finds the API routes with no auth check or input validation in Next.js, SvelteKit, React Router, Express, Fastify, Hono, NestJS, and tRPC apps. No account; your code never leaves your machine.">
 <meta property="og:url" content="https://sabahattink.github.io/codediag/">
-<meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="CodeDiag — Diagnose your code before you ship">
-<meta name="twitter:description" content="One command. Five analyzers. One score that explains every lost point. Your code never leaves your machine.">
+<meta property="og:image" content="https://sabahattink.github.io/codediag/social-preview.png">
+<meta property="og:image:width" content="1280">
+<meta property="og:image:height" content="640">
+<meta property="og:image:alt" content="CodeDiag: Which of your API routes can anyone call? npx @sabahattink/codediag scan . reports POST /api/items has no recognizable auth check.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="CodeDiag — Which of your API routes can anyone call?">
+<meta name="twitter:description" content="One command finds the API routes with no auth check or input validation. No account; your code never leaves your machine.">
+<meta name="twitter:image" content="https://sabahattink.github.io/codediag/social-preview.png">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23101c16'/%3E%3Cpath d='M7 36h13l5-22 6 36 5-20 3 6h11' fill='none' stroke='%23f5f8f2' stroke-width='4.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='55' cy='36' r='4.5' fill='%2374d6a0'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -388,8 +393,8 @@ footer .links{font-size:.76rem}
 <section class="hero chart" aria-labelledby="h-hero">
  <div class="wrap hero-in">
   <div>
-   <h1 id="h-hero">Diagnose your code before you ship.</h1>
-   <p class="lede">One command. Five analyzers. One score.</p>
+   <h1 id="h-hero">Which of your API routes can anyone call?</h1>
+   <p class="lede">One command finds the routes with no auth check or input validation.</p>
    <p class="intro">CodeDiag reads a Node.js, NestJS, Express, Fastify, Hono, tRPC, Next.js, SvelteKit, or React Router project on your machine and returns a 0–100 health score that accounts for every point it takes. Each finding carries a stable rule ID, a file and line when there is one, and a suggested fix.</p>
    <div class="tape">
     <code><span class="ps" aria-hidden="true">$</span><span id="cmd-1">npx @sabahattink/codediag scan .</span></code>

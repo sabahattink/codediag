@@ -5,8 +5,10 @@
 <h1 align="center">codediag</h1>
 
 <p align="center">
-  <strong>Diagnose your code before you ship.</strong><br>
-  <sub>One command. Five analyzers. One score.</sub>
+  <strong>Which of your API routes can anyone call?</strong><br>
+  <sub>Auth and validation coverage for Next.js, SvelteKit, React Router, Express,
+  Fastify, Hono, NestJS, and tRPC, plus security, dependency, test, and
+  structure checks. One command, no account, runs offline.</sub>
 </p>
 
 <p align="center">
@@ -527,6 +529,11 @@ results in GitHub Code Scanning.
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for the development workflow, testing
 expectations, and pull request guidance.
+
+CodeDiag wrong about your code? [Report a false positive or a missed
+finding](https://github.com/sabahattink/codediag/issues/new?template=false_positive.yml)
+with the smallest snippet that shows it. Questions and ideas go to
+[Discussions](https://github.com/sabahattink/codediag/discussions).
 
 ```bash
 git clone https://github.com/sabahattink/codediag.git
