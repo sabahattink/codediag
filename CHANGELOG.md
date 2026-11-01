@@ -2,6 +2,18 @@
 
 All notable changes to CodeDiag are documented in this file.
 
+## [0.11.2] - 2026-11-02
+
+### Fixed
+
+- A route that verifies a webhook signature counts as authenticated in
+  Next.js, Express, Fastify, Hono, and NestJS, as it already did in SvelteKit
+  and React Router. Recognized: Stripe `constructEvent()`, Svix `verify()`,
+  an HMAC compared with `timingSafeEqual()`, and helpers or middleware such
+  as `verifyGithubSignature` or `verifySlackSignature`, in the handler or a
+  named handler function. A webhook has no session by design, so these routes
+  were reported as missing auth. Reported on Indie Hackers.
+
 ## [0.11.1] - 2026-11-02
 
 ### Fixed

@@ -3,6 +3,10 @@ import { type Expression, Node, type SourceFile, SyntaxKind } from "ts-morph";
 import type { ScanContext } from "../core/scan-context.js";
 import { fromRule } from "../rules/registry.js";
 import type { AnalyzerResult, DiagnosticIssue } from "../types.js";
+import {
+  handlerSource,
+  verifiesWebhookSignature,
+} from "./webhook-signature.js";
 
 const HTTP_METHODS = new Set([
   "all",
@@ -62,6 +66,8 @@ interface Route {
   line: number;
   position: number;
   middleware: string[];
+  /** The final handler verifies a webhook signature, which authenticates the sender. */
+  signed: boolean;
 }
 
 interface FileRouters {
@@ -442,6 +448,7 @@ function collectCalls(
       position: call.getStart(),
       // The last handler answers the request; the ones before it run first.
       middleware: handlers.slice(0, -1).map((handler) => handler.getText()),
+      signed: verifiesWebhookSignature(handlerSource(handlers.at(-1) ?? call)),
     });
   }
 
@@ -450,7 +457,9 @@ function collectCalls(
 
 function protects(middleware: string[]): Protection {
   return {
-    auth: middleware.some((text) => AUTH_NAMES.test(text)),
+    auth: middleware.some(
+      (text) => AUTH_NAMES.test(text) || verifiesWebhookSignature(text),
+    ),
     validation: middleware.some((text) => VALIDATION_NAMES.test(text)),
   };
 }
@@ -590,6 +599,7 @@ export async function analyzeExpressApi(
     return {
       ...route,
       ...protection,
+      auth: protection.auth || route.signed,
       path: joinPath(parent.prefix, route.path),
     };
   });

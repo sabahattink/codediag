@@ -5,6 +5,7 @@ import type { AnalyzerResult, DiagnosticIssue } from "../types.js";
 import { moduleIndex, runtimeSources } from "./fastify-plugins.js";
 import { middlewareFile, middlewareRejects } from "./next-middleware.js";
 import { importsTrpcAdapter } from "./trpc-syntax.js";
+import { verifiesWebhookSignature } from "./webhook-signature.js";
 
 const HTTP_METHODS = new Set([
   "DELETE",
@@ -213,7 +214,9 @@ export async function analyzeNextjsApi(
 
   const guarded = middlewareGuard(context);
   const authenticated = (endpoint: NextEndpoint) =>
-    guarded(endpoint.path) || hasMarker(endpoint.source, AUTH_MARKERS);
+    guarded(endpoint.path) ||
+    hasMarker(endpoint.source, AUTH_MARKERS) ||
+    verifiesWebhookSignature(endpoint.source);
 
   const issues: DiagnosticIssue[] = [];
   const mutatingEndpoints = endpoints.filter((endpoint) =>

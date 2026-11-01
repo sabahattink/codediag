@@ -10,6 +10,7 @@ import {
 import type { ScanContext } from "../core/scan-context.js";
 import { fromRule } from "../rules/registry.js";
 import type { AnalyzerResult, DiagnosticIssue } from "../types.js";
+import { verifiesWebhookSignature } from "./webhook-signature.js";
 
 const HTTP_DECORATORS = [
   "Get",
@@ -349,10 +350,12 @@ export async function analyzeNestjsApi(
         const fullPath = joinPath(basePath, decoratorPath(httpDec));
         const line = method.getStartLineNumber();
 
+        // A handler that verifies a webhook signature authenticates the sender.
         const hasGuard =
           facts.globalGuard ||
           classHasGuard ||
-          hasDecorator(method, facts.guardDecorators);
+          hasDecorator(method, facts.guardDecorators) ||
+          verifiesWebhookSignature(method.getText());
         const isPublic =
           classIsPublic || hasDecorator(method, facts.publicDecorators);
         const body = bodyCheck(method, cls, facts);
