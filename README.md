@@ -517,6 +517,28 @@ replacement for a linter or a full SAST platform. Use it alongside them:
 Everything runs locally from one command, with SARIF output when you want
 results in GitHub Code Scanning.
 
+### What a clean scan does not mean
+
+CodeDiag checks that each route has an auth check and input validation it can
+recognize. A clean result is not a statement that the app is secure:
+
+- **Object-level authorization.** A route can require a session and still let
+  user A read or change user B's record by sending a different ID. CodeDiag
+  does not check that a handler scopes data to the caller; one cross-user test
+  per resource catches what it misses.
+- **Direct database access.** When the browser talks to the database, as with
+  Supabase's anon key or Firebase, row-level security policies or security
+  rules are the boundary, however well the API routes are guarded. CodeDiag
+  does not read them.
+- **Next.js Server Actions** are not analyzed yet. Check auth inside each one.
+- **Checks it trusts by name.** A helper such as `requireUser()` counts as an
+  auth check; CodeDiag follows project helpers a few calls deep but does not
+  prove that every path through them rejects.
+- **Webhook replay.** A verified signature authenticates the sender; CodeDiag
+  does not check timestamp tolerance or idempotency.
+- **Other runtimes.** Only Node.js backends are analyzed, not Python, Go, Ruby,
+  or Java services.
+
 ## Roadmap
 
 - **0.2:** analyzers for NestJS, Express, and Next.js; validated config; JSON
