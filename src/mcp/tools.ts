@@ -40,7 +40,7 @@ const ROUTE_CHECKS: ReadonlyMap<string, Check> = new Map(
 );
 
 const SUPPORTED_FRAMEWORKS =
-  "Next.js, SvelteKit, React Router/Remix, Express, Fastify, Hono, NestJS, and tRPC";
+  "Next.js, SvelteKit, React Router/Remix, Express, Fastify, Hono, Elysia, NestJS, and tRPC";
 
 /** A bad argument; reported to the model as a tool error it can correct. */
 class ArgumentError extends Error {}
@@ -287,11 +287,15 @@ function routeSummary(
   routes: readonly { check?: Check }[],
   suppressed: number,
 ): string {
-  const { framework } = result.stack;
+  const { framework, unsupportedServer } = result.stack;
   if (!supported) {
-    return analyzesApi(framework)
-      ? `No API routes were found in this ${framework} project.`
-      : `CodeDiag found no supported API framework in this project (detected: ${framework}). It analyzes ${SUPPORTED_FRAMEWORKS}.`;
+    if (analyzesApi(framework)) {
+      return `No API routes were found in this ${framework} project.`;
+    }
+    const detected = unsupportedServer
+      ? `${framework}, with ${unsupportedServer}, which CodeDiag does not analyze`
+      : framework;
+    return `CodeDiag found no supported API framework in this project (detected: ${detected}). It analyzes ${SUPPORTED_FRAMEWORKS}.`;
   }
   const auth = routes.filter(({ check }) => check === "auth").length;
   const validation = routes.length - auth;

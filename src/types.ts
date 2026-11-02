@@ -6,6 +6,7 @@ export interface StackInfo {
     | "express"
     | "fastify"
     | "hono"
+    | "elysia"
     | "react-router"
     | "trpc"
     | "generic"
@@ -17,6 +18,11 @@ export interface StackInfo {
   hasPrisma: boolean;
   hasTests: boolean;
   packageManager: "npm" | "pnpm" | "yarn" | "unknown";
+  /**
+   * An HTTP server or framework package that CodeDiag has no API analyzer
+   * for, such as "koa". Its routes are not checked.
+   */
+  unsupportedServer?: string;
 }
 
 export interface DiagnosticIssue {

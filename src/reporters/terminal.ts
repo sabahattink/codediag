@@ -163,6 +163,14 @@ export function renderTerminal(
         .join(chalk.dim(" + "));
   console.log(chalk.dim("  Project:  ") + chalk.white(result.project));
   console.log(chalk.dim("  Stack:    ") + stackLabel);
+  if (!result.workspace && result.stack.unsupportedServer) {
+    console.log(
+      chalk.dim("  API:      ") +
+        chalk.yellow(
+          `routes not analyzed: CodeDiag has no analyzer for ${result.stack.unsupportedServer}`,
+        ),
+    );
+  }
   console.log(
     chalk.dim("  Score:    ") +
       gradeColor(result.grade) +

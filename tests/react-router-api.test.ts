@@ -632,9 +632,23 @@ test("recognizes session, remix-auth, Response, data, and context auth checks", 
       "if (!note) throw new Response('Not found', { status: 404 });",
       "if (note.status !== 'draft') throw new Response('Gone', { status: 410 });",
     ]),
+    "app/routes/inactive-only.tsx": action([
+      "const user = await getOptionalUser(request);",
+      "if (user && !user.active) throw redirect('/inactive');",
+    ]),
+    "app/routes/admins-only.tsx": action([
+      "const user = await getOptionalUser(request);",
+      "if (user && user.role !== 'admin') throw redirect('/');",
+    ]),
+    "app/routes/except-options.tsx": action([
+      "const user = await getOptionalUser(request);",
+      "if (request.method !== 'OPTIONS' && !user) throw redirect('/login');",
+    ]),
   });
 
   assert.deepEqual(messages(result, "missing-react-router-auth"), [
+    `The action of /admins-only ${UNPROTECTED}`,
+    `The action of /inactive-only ${UNPROTECTED}`,
     `The action of /not-found ${UNPROTECTED}`,
     `The action of /optional-user ${UNPROTECTED}`,
   ]);

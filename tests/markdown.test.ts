@@ -68,6 +68,21 @@ test("markdown notes a scan scoped to changed files", () => {
   );
 });
 
+test("markdown says when the project's server has no API analyzer", () => {
+  assert.match(
+    renderMarkdown({
+      ...result,
+      stack: {
+        ...result.stack,
+        framework: "generic",
+        unsupportedServer: "koa",
+      },
+    }),
+    /> API routes not analyzed: CodeDiag has no analyzer for `koa`\./,
+  );
+  assert.doesNotMatch(renderMarkdown(result), /not analyzed/);
+});
+
 test("markdown marks workspace packages below their package threshold", () => {
   const markdown = renderMarkdown({
     ...result,

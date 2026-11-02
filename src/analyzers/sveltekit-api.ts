@@ -35,8 +35,8 @@ const SOURCE_PATTERN = "**/*.{ts,tsx,js,mjs,cjs,mts,cts}";
 const HEALTH_PATH =
   /(?:^|\/)(?:health|healthz|live|ready|readiness|liveness)(?:\/|$)/i;
 /** Route segments of sign-in flows, which are public by design. */
-const AUTH_FLOW_SEGMENT =
-  /^(?:log-?in|log-?out|sign-?in|sign-?out|sign-?up|register|registration|forgot-?password|reset-?password|password-?reset|verify-?email|magic-?link|auth|oauth|sso|otp|2fa|mfa|webauthn|passkeys?)$/i;
+export const AUTH_FLOW_SEGMENT =
+  /^(?:log-?in|log-?out|log-?off|sign-?in|sign-?out|sign-?up|register|registration|forgot-?password|reset-?password|password-?reset|verify-?email|magic-?link|auth|oauth|sso|otp|2fa|mfa|webauthn|passkeys?)$/i;
 const AUTH_FLOW_ACTION =
   /^(?:log-?in|log-?out|sign-?in|sign-?out|sign-?up|register|forgot-?password|reset-?password|(?:request-?)?password-?reset|verify-?email|(?:send-?)?magic-?link|(?:verify|send|resend)-?otp)$/i;
 /** Version 1 score shares, as in the other API analyzers. */

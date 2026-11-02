@@ -3,6 +3,7 @@ import { basename } from "node:path";
 import chalk from "chalk";
 import ora from "ora";
 import { analyzeDependencies } from "./analyzers/dependencies.js";
+import { analyzeElysiaApi } from "./analyzers/elysia-api.js";
 import { analyzeExpressApi } from "./analyzers/express-api.js";
 import { analyzeFastifyApi } from "./analyzers/fastify-api.js";
 import { analyzeHonoApi } from "./analyzers/hono-api.js";
@@ -45,6 +46,7 @@ const API_ANALYZERS: Partial<Record<StackInfo["framework"], ApiAnalyzer>> = {
   express: withTrpcProcedures(analyzeExpressApi),
   fastify: withTrpcProcedures(analyzeFastifyApi),
   hono: withTrpcProcedures(analyzeHonoApi),
+  elysia: withTrpcProcedures(analyzeElysiaApi),
   "react-router": withTrpcProcedures(analyzeReactRouterApi),
   nextjs: withTrpcProcedures(analyzeNextjsApi),
   sveltekit: withTrpcProcedures(analyzeSvelteKitApi),

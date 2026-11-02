@@ -2,6 +2,41 @@
 
 All notable changes to CodeDiag are documented in this file.
 
+## [0.13.0] - 2026-11-03
+
+The "Scope" release: Elysia analysis. Elysia hooks are local to the plugin
+that registers them unless it says otherwise, and apply only to routes
+registered after them; CodeDiag models both.
+
+### Added
+
+- Elysia analysis (`elysia` stack). Routes on `new Elysia()` instances are
+  followed through `prefix`, `group()`, `guard()` callbacks, and plugins
+  mounted with `use()` across files, functional plugins and tsconfig path
+  aliases included, and replayed in registration order. A plugin's hooks
+  reach the instance that uses it only when scoped or global
+  (`{ as: 'scoped' }`, `{ as: 'global' }`, `.as('scoped')`).
+  `missing-elysia-auth` reports a POST, PUT, PATCH, or DELETE route with no
+  auth check from `onBeforeHandle()`, a `derive()` or `resolve()` that
+  rejects with 401 or 403, `guard()`, an auth macro (`{ auth: true }`, as
+  better-auth's Elysia plugin defines it), `onRequest()`, or the handler
+  itself; when an auth hook exists but stays local to its plugin or comes
+  after the route, the finding names it. Sign-in, sign-up, sign-out, and
+  recovery routes are not reported. `missing-elysia-validation` reports a
+  handler that reads the body without a schema in its options, a `guard()`,
+  or the handler. Checked on db-studio, ConvertX, and three other open-source
+  Elysia apps. Suggested on Indie Hackers.
+- Reports say "routes not analyzed" when the project's server is one CodeDiag
+  has no API analyzer for, such as Koa, Hapi, Nuxt, or Astro, instead of
+  showing no route findings. The JSON report names it in
+  `stack.unsupportedServer`.
+
+### Changed
+
+- React Router auth checks recognize `&&` conditions
+  (`if (method !== "OPTIONS" && !user)`) and a missing `bearer` token.
+- `log-off` routes count as sign-out routes in SvelteKit.
+
 ## [0.12.0] - 2026-11-02
 
 The "Rows" release: in Supabase apps, where the browser reaches the

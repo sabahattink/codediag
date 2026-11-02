@@ -61,6 +61,30 @@ A POST, PUT, or PATCH endpoint's @Body() type is not a class (for example any, R
 - CWE: [CWE-20](https://cwe.mitre.org/data/definitions/20.html)
 - OWASP Top 10: A03:2021
 
+### missing-elysia-auth
+
+**Mutating Elysia route without auth check** · default severity: `warning`
+
+A POST, PUT, PATCH, or DELETE route has no recognizable auth check. Recognized: an onBeforeHandle() hook, a derive() or resolve() that returns or throws a 401 or 403 when the caller is missing, or a guard() with beforeHandle, registered before the route on its instance or on an instance that uses the route's plugin after the hook; a scoped or global hook ({ as: 'scoped' }, { as: 'global' }, .as('scoped')) of a plugin used before the route; onRequest() anywhere in the application; beforeHandle, resolve, or an auth macro such as { auth: true } in the route options or a guard(); and a handler that rejects anonymous requests itself, also in project functions it calls, or verifies a webhook signature (Stripe constructEvent(), Svix verify(), an HMAC compared with timingSafeEqual()). Elysia hooks are local to their plugin by default and apply only to routes registered after them, so when an auth hook exists but stays local to its plugin or comes after the route, the finding names it. Sign-in, sign-up, sign-out, and password recovery routes are not reported.
+
+- CWE: [CWE-306](https://cwe.mitre.org/data/definitions/306.html)
+- OWASP Top 10: A07:2021
+
+### missing-elysia-error-handler
+
+**No Elysia error handler** · default severity: `info`
+
+No onError() hook was found, so unexpected errors are answered by Elysia's default error response instead of the API's error format, and reach no error tracker.
+
+### missing-elysia-validation
+
+**Elysia route reads an unvalidated body** · default severity: `warning`
+
+A POST, PUT, or PATCH handler reads the request body (a body binding of its context or request.json()) without a body schema in the route options, a guard() with a body schema before it, or a scoped or global guard() from a plugin, and without parsing the body with a schema in the handler. Elysia accepts TypeBox (t.Object) and Standard Schema libraries such as Zod and Valibot, and model names registered with .model().
+
+- CWE: [CWE-20](https://cwe.mitre.org/data/definitions/20.html)
+- OWASP Top 10: A03:2021
+
 ### missing-error-handler
 
 **No custom error handler** · default severity: `warning`
@@ -205,6 +229,14 @@ A POST, PUT, or PATCH route has no recognizable request validation middleware.
 **No NestJS controllers** · default severity: `critical`
 
 The project depends on NestJS but no *.controller.ts files were found, so no HTTP endpoints can be analyzed.
+
+- Scoring: sets the analyzer score to 0 (nothing to evaluate)
+
+### no-elysia-routes
+
+**No Elysia routes** · default severity: `critical`
+
+The project depends on Elysia but no route registrations on an instance created with new Elysia() were detected.
 
 - Scoring: sets the analyzer score to 0 (nothing to evaluate)
 
