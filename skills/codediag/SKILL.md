@@ -1,6 +1,6 @@
 ---
 name: codediag
-description: Find the API routes, form actions, and tRPC procedures in a Node.js project that anyone can call, because they have no auth check or no input validation, and run a CodeDiag health scan (security, dependencies, tests, structure). Covers Next.js, SvelteKit, React Router/Remix, Express, Fastify, Hono, NestJS, and tRPC. Use when the user asks which routes are unprotected or public, whether an API is missing auth or validation, for a security review of a Node.js backend, or for a check before shipping.
+description: Find the API routes, form actions, and tRPC procedures in a Node.js project that anyone can call, because they have no auth check or no input validation, find Supabase tables without row level security, and run a CodeDiag health scan (security, dependencies, tests, structure). Covers Next.js, SvelteKit, React Router/Remix, Express, Fastify, Hono, NestJS, and tRPC. Use when the user asks which routes are unprotected or public, whether an API is missing auth or validation, whether Supabase RLS is set up, for a security review of a Node.js backend, or for a check before shipping.
 license: MIT
 compatibility: Needs Node.js 20.19 or newer and npx. Runs offline unless a dependency audit is requested.
 ---
@@ -29,6 +29,8 @@ Findings are in `analyzers[].issues[]`, each with `rule`, `severity`, `message`,
 
 - **No auth check:** `missing-auth-check`, `missing-auth-middleware`, `missing-auth-hook`, `missing-guard`, `missing-hono-auth-middleware`, `missing-sveltekit-auth`, `missing-react-router-auth`, `react-router-loader-auth-only`, `missing-trpc-auth-middleware`
 - **No input validation:** `missing-request-validation`, `missing-validation-middleware`, `missing-route-schema`, `missing-dto`, `dto-not-validated`, `missing-hono-validator`, `missing-sveltekit-validation`, `missing-react-router-validation`, `unvalidated-trpc-input`
+
+In Supabase projects, the "Security" analyzer also reads `supabase/migrations`: `supabase-table-without-rls` is a table the API exposes with row level security never enabled, and `supabase-permissive-policy` is a write policy whose `using` or `with check` is `true`. Fix the first with `alter table … enable row level security;` plus policies for the access the app needs.
 
 `npx -y @sabahattink/codediag explain <rule-id>` explains any rule. Drop `--no-audit` only if the user agrees to a network call to the package registry.
 

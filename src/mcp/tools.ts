@@ -359,7 +359,7 @@ function scanProject(baseDirectory: string): McpTool {
       name: "scan_project",
       title: "Scan project health",
       description:
-        "Run a full CodeDiag scan of a Node.js project: a 0-100 health score with API health, security, dependency, test, and structure findings, each with a rule ID, file, line, and suggested fix. Most severe findings first. Offline unless audit is true.",
+        "Run a full CodeDiag scan of a Node.js project: a 0-100 health score with API health, security, dependency, test, and structure findings, each with a rule ID, file, line, and suggested fix. Security includes Supabase tables without row level security, from supabase/migrations. Most severe findings first. Offline unless audit is true.",
       inputSchema: {
         type: "object",
         properties: {

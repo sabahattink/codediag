@@ -2,15 +2,21 @@ import { fromRule, getRule } from "../rules/registry.js";
 import type { AnalyzerResult, DiagnosticIssue } from "../types.js";
 import type { ScanContext } from "./scan-context.js";
 
-const SOURCE_PATTERN = "**/*.{ts,tsx,js,jsx,mjs,cjs,mts,cts}";
+const SOURCE_PATTERNS = [
+  "**/*.{ts,tsx,js,jsx,mjs,cjs,mts,cts}",
+  "**/supabase/migrations/*.sql",
+];
 const MARKER = "codediag-ignore";
 
 /**
  * A directive must be the only content of its line, so text inside string
- * literals or after code is never treated as a suppression.
+ * literals or after code is never treated as a suppression. SQL files use
+ * `--` comments.
  */
 const DIRECTIVE =
   /^\s*(?:\/\/|\/\*+)\s*codediag-ignore-(next-line|file)\b(.*?)(?:\*\/)?\s*$/;
+const SQL_DIRECTIVE =
+  /^\s*(?:--|\/\*+)\s*codediag-ignore-(next-line|file)\b(.*?)(?:\*\/)?\s*$/;
 
 interface Directive {
   file: string;
@@ -28,9 +34,10 @@ function parseDirectives(file: string, content: string): Directive[] {
   const lines = content.split(/\r?\n/);
   const directives: Directive[] = [];
   const pendingNextLine: Directive[] = [];
+  const pattern = file.endsWith(".sql") ? SQL_DIRECTIVE : DIRECTIVE;
 
   lines.forEach((text, index) => {
-    const match = DIRECTIVE.exec(text);
+    const match = pattern.exec(text);
     if (!match) {
       // Stacked next-line directives all apply to the first code line.
       for (const directive of pendingNextLine.splice(0)) {
@@ -108,7 +115,7 @@ export function applySuppressions(
   results: AnalyzerResult[],
   context: ScanContext,
 ): AnalyzerResult[] {
-  const directives = context.matchFiles(SOURCE_PATTERN).flatMap((file) => {
+  const directives = context.matchFiles(SOURCE_PATTERNS).flatMap((file) => {
     const content = context.readText(file);
     return content?.includes(MARKER) ? parseDirectives(file, content) : [];
   });

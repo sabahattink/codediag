@@ -131,7 +131,10 @@ and no report ever contains the value. With `--secret-history` (or
 `secretHistory` in `.codediag.yml`), the lines recent commits added are also
 searched for credentials that were committed and later deleted, which every
 clone still contains (`secret-in-git-history`); it is off by default because
-results depend on clone depth. See
+results depend on clone depth. In Supabase projects, `supabase/migrations`
+is replayed in order and tables the API exposes without row level security
+are critical (`supabase-table-without-rls`), as are write policies whose
+`using` or `with check` is `true` (`supabase-permissive-policy`). See
 [Security analysis](docs/security-analysis.md).
 
 ### Dependencies
@@ -529,7 +532,9 @@ recognize. A clean result is not a statement that the app is secure:
 - **Direct database access.** When the browser talks to the database, as with
   Supabase's anon key or Firebase, row-level security policies or security
   rules are the boundary, however well the API routes are guarded. CodeDiag
-  does not read them.
+  reads Supabase migrations for tables without RLS and for write policies open
+  to every row, but it does not judge whether a policy's condition is right,
+  read the live database, or read Firebase rules.
 - **Next.js Server Actions** are not analyzed yet. Check auth inside each one.
 - **Checks it trusts by name.** A helper such as `requireUser()` counts as an
   auth check; CodeDiag follows project helpers a few calls deep but does not
@@ -573,6 +578,8 @@ recognize. A clean result is not a statement that the app is secure:
 - **0.11 "Agents":** an MCP server (`codediag mcp`), an Agent Skill, and a
   Claude Code plugin, so coding agents can find unprotected routes with
   CodeDiag.
+- **0.12 "Rows":** Supabase tables without row level security and write
+  policies open to every row, read from `supabase/migrations`.
 - **Next:** see [docs/roadmap.md](docs/roadmap.md) for planned framework
   support, editor improvements, and deeper taint tracking.
 

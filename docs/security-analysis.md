@@ -23,6 +23,9 @@ The analyzer currently reports:
 - optionally, secrets that recent commits added and the current tree no
   longer has (`secret-in-git-history`); see
   [below](#secrets-in-git-history);
+- Supabase tables without row level security (`supabase-table-without-rls`)
+  and write policies open to every row (`supabase-permissive-policy`); see
+  [below](#supabase-row-level-security);
 - JWT options that accept the `none` algorithm or `ignoreExpiration: true`,
   and jose's `UnsecuredJWT`;
 - session or token cookies (names containing session, sid, token, jwt, or
@@ -229,6 +232,42 @@ read or reported. `git log` output is limited to 64 MiB and 60 seconds; if
 either limit stops it, the findings cover the commits that were read and an
 `info` finding, `secret-history-incomplete`, says so. The VS Code extension
 never reads history.
+
+### Supabase row level security
+
+In a Supabase app the browser holds the anon key and queries the Data API
+directly, so row level security, not the app's API routes, decides who can
+read and write a table. CodeDiag replays `supabase/migrations/*.sql` (every
+`supabase` directory in a monorepo) in file-name order:
+
+- `create table` registers a table; `alter table … rename to`, `set schema`,
+  `drop table`, and `enable` or `disable row level security` update it.
+  Temporary tables and partitions are skipped.
+- A table in an exposed schema whose RLS is never enabled is critical
+  (`supabase-table-without-rls`). Exposed schemas are `public` and
+  `graphql_public`, or the `schemas` list under `[api]` in
+  `supabase/config.toml`.
+- `revoke all` from both `anon` and `authenticated`, on the table or on all
+  tables in its schema, hides it from the API and clears the finding; a later
+  `grant` to either role exposes it again.
+- A policy for `update`, `delete`, or `all` whose `using` is `true`, or an
+  `insert` or `all` policy for `anon` or `public` whose `with check` is `true`,
+  is a warning (`supabase-permissive-policy`). Read-only `using (true)`
+  policies are not reported, since public read access is often intended, and
+  `drop policy` removes a policy.
+
+Comments, string literals, and dollar-quoted function bodies are skipped, so
+SQL inside a function never counts. A table that is public on purpose can be
+suppressed with a SQL comment on the line above its `create table`:
+
+```sql
+-- codediag-ignore-next-line supabase-table-without-rls -- reference data; writes revoked in the dashboard
+create table countries (code text primary key);
+```
+
+CodeDiag reads migration files only. Tables or policies changed in the
+dashboard without a migration, the conditions inside a policy, views, and
+storage buckets are outside what it can see.
 
 ## Scope
 

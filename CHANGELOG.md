@@ -2,6 +2,31 @@
 
 All notable changes to CodeDiag are documented in this file.
 
+## [0.12.0] - 2026-11-02
+
+The "Rows" release: in Supabase apps, where the browser reaches the
+database directly, CodeDiag now checks row level security in your
+migrations.
+
+### Added
+
+- Supabase row level security. CodeDiag replays `supabase/migrations/*.sql`
+  in order and reports, as critical, tables in an exposed schema (`public`
+  and `graphql_public`, or `[api] schemas` in `supabase/config.toml`) whose
+  RLS is never enabled (`supabase-table-without-rls`). Renames, schema moves,
+  drops, `disable row level security`, and `revoke all` from both anon and
+  authenticated are followed. Write policies whose `using` or `with check` is
+  `true` are warnings (`supabase-permissive-policy`). Comments, strings, and
+  function bodies are skipped. Suggested on Indie Hackers; tracked in #53.
+- Suppression comments work in Supabase migration files with SQL `--`
+  comments.
+
+### Changed
+
+- The README says what a clean scan does not mean: object-level
+  authorization, direct database access, Server Actions, auth helpers trusted
+  by name, webhook replay, and non-Node runtimes.
+
 ## [0.11.2] - 2026-11-02
 
 ### Fixed

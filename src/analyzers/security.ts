@@ -12,6 +12,7 @@ import type { AnalyzerResult, DiagnosticIssue } from "../types.js";
 import { scanSecretHistory } from "./secret-history.js";
 import { findConfigSecrets, isPlaceholderValue } from "./secrets.js";
 import { analyzeSecuritySinks } from "./security-sinks.js";
+import { supabaseRlsIssues } from "./supabase-rls.js";
 
 interface SourceRecord {
   file: string;
@@ -644,6 +645,13 @@ export async function analyzeSecurity(
   const sinkIssues = await analyzeSecuritySinks(context);
   if (sinkIssues.length === 0) checksPassed++;
   issues.push(...sinkIssues);
+
+  const supabase = supabaseRlsIssues(context);
+  if (supabase.migrations > 0) {
+    checksRun++;
+    if (supabase.issues.length === 0) checksPassed++;
+    issues.push(...supabase.issues);
+  }
 
   if (isWebServer) {
     checksRun++;

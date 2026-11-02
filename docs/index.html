@@ -376,7 +376,7 @@ footer .links{font-size:.76rem}
     <li><a href="#analyzers">Analyzers</a></li>
     <li><a href="#scoring">Scoring</a></li>
     <li><a href="#ci">CI</a></li>
-    <li><a href="#new">New in 0.11</a></li>
+    <li><a href="#new">New in 0.12</a></li>
     <li><a href="guides/">Guides</a></li>
    </ul>
   </nav>
@@ -728,13 +728,13 @@ codediag scan . --ci --threshold 80 --baseline .codediag-baseline.json</code></p
 <section class="sec add" id="new" aria-labelledby="h-new">
  <div class="wrap">
   <div class="sec-head">
-   <h2 id="h-new">New in 0.11</h2>
-   <p>Ask your coding agent which routes anyone can call, and get CodeDiag's answer instead of a guess.</p>
+   <h2 id="h-new">New in 0.12</h2>
+   <p>In a Supabase app the browser talks to the database directly, so row level security is the real boundary. CodeDiag now checks it.</p>
   </div>
   <ul class="items">
-   <li><h3>An MCP server</h3><p>Three read-only tools for any MCP client: <code>find_unprotected_routes</code>, <code>scan_project</code>, and <code>explain_rule</code>. Structured results, offline by default, no new dependencies.</p><span class="flag">codediag mcp</span></li>
-   <li><h3>A Claude Code plugin</h3><p>One install adds the server and a skill: <code>/plugin install codediag --marketplace sabahattink/codediag</code>.</p></li>
-   <li><h3>An Agent Skill</h3><p>Tells any agent where each framework runs auth and to check a finding before calling a route vulnerable. <code>npx skills add sabahattink/codediag</code></p></li>
+   <li><h3>Tables without RLS</h3><p>Migrations are replayed in order, following renames, drops, and revokes. A table the API exposes without row level security is critical: the anon key can read and change every row.</p><span class="flag">supabase/migrations</span></li>
+   <li><h3>Policies open to every row</h3><p>Update, delete, or insert policies whose <code>using</code> or <code>with check</code> is <code>true</code> are flagged; public read policies are not.</p></li>
+   <li><h3>Agents, from 0.11</h3><p>An MCP server, a Claude Code plugin, and an Agent Skill: <code>/plugin install codediag --marketplace sabahattink/codediag</code>.</p></li>
    <li><h3>Earlier in 0.10</h3><p>SvelteKit and React Router analysis, Next.js middleware evaluated per route, and one pnpm audit per workspace.</p></li>
   </ul>
  </div>
