@@ -400,6 +400,24 @@ export const RULES = {
     owasp: [OWASP.misconfiguration],
     sensitiveSource: true,
   },
+  "supabase-table-without-rls": {
+    analyzer: "Security",
+    title: "Supabase table without row level security",
+    description:
+      "A table created in supabase/migrations, in a schema the Supabase API exposes (public and graphql_public by default, or the schemas under [api] in supabase/config.toml), never gets `alter table … enable row level security`. The anon key ships to the browser, so anyone can read and change every row through the Data API, however well the app's own routes are guarded. Migrations are replayed in file order, following renames, schema moves, drops, and later `disable row level security`. Temporary tables, partitions, and tables whose privileges are revoked with `revoke all` from both anon and authenticated are not reported. Only migration files are read, never the live database.",
+    defaultSeverity: "critical",
+    cwe: ["CWE-862"],
+    owasp: [OWASP.accessControl],
+  },
+  "supabase-permissive-policy": {
+    analyzer: "Security",
+    title: "Supabase policy that opens every row",
+    description:
+      "A row level security policy for UPDATE, DELETE, or ALL whose using expression is `true` lets every role it applies to change every row, and an INSERT or ALL policy for anon or public whose with check expression is `true` lets anyone insert any row. Read-only policies with `using (true)` are not reported, since a public table is often intended, and policies only for service_role are ignored.",
+    defaultSeverity: "warning",
+    cwe: ["CWE-284"],
+    owasp: [OWASP.accessControl],
+  },
   "secret-in-git-history": {
     analyzer: "Security",
     title: "Secret in Git history",

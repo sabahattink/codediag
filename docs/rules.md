@@ -495,6 +495,24 @@ EJS, Pug, Handlebars, Nunjucks, Eta, doT, or lodash compiles or renders a templa
 - CWE: [CWE-1336](https://cwe.mitre.org/data/definitions/1336.html), [CWE-94](https://cwe.mitre.org/data/definitions/94.html)
 - OWASP Top 10: A03:2021
 
+### supabase-permissive-policy
+
+**Supabase policy that opens every row** · default severity: `warning`
+
+A row level security policy for UPDATE, DELETE, or ALL whose using expression is `true` lets every role it applies to change every row, and an INSERT or ALL policy for anon or public whose with check expression is `true` lets anyone insert any row. Read-only policies with `using (true)` are not reported, since a public table is often intended, and policies only for service_role are ignored.
+
+- CWE: [CWE-284](https://cwe.mitre.org/data/definitions/284.html)
+- OWASP Top 10: A01:2021
+
+### supabase-table-without-rls
+
+**Supabase table without row level security** · default severity: `critical`
+
+A table created in supabase/migrations, in a schema the Supabase API exposes (public and graphql_public by default, or the schemas under [api] in supabase/config.toml), never gets `alter table … enable row level security`. The anon key ships to the browser, so anyone can read and change every row through the Data API, however well the app's own routes are guarded. Migrations are replayed in file order, following renames, schema moves, drops, and later `disable row level security`. Temporary tables, partitions, and tables whose privileges are revoked with `revoke all` from both anon and authenticated are not reported. Only migration files are read, never the live database.
+
+- CWE: [CWE-862](https://cwe.mitre.org/data/definitions/862.html)
+- OWASP Top 10: A01:2021
+
 ### tls-verification-disabled
 
 **TLS verification disabled** · default severity: `critical`
