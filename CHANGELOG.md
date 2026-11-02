@@ -2,7 +2,7 @@
 
 All notable changes to CodeDiag are documented in this file.
 
-## [0.13.0] - 2026-11-02
+## [0.13.0] - 2026-11-03
 
 The "Scope" release: Elysia analysis. Elysia hooks are local to the plugin
 that registers them unless it says otherwise, and apply only to routes
