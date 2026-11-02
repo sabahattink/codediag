@@ -1,6 +1,6 @@
 ---
 name: codediag
-description: Find the API routes, form actions, and tRPC procedures in a Node.js project that anyone can call, because they have no auth check or no input validation, find Supabase tables without row level security, and run a CodeDiag health scan (security, dependencies, tests, structure). Covers Next.js, SvelteKit, React Router/Remix, Express, Fastify, Hono, NestJS, and tRPC. Use when the user asks which routes are unprotected or public, whether an API is missing auth or validation, whether Supabase RLS is set up, for a security review of a Node.js backend, or for a check before shipping.
+description: Find the API routes, form actions, and tRPC procedures in a Node.js project that anyone can call, because they have no auth check or no input validation, find Supabase tables without row level security, and run a CodeDiag health scan (security, dependencies, tests, structure). Covers Next.js, SvelteKit, React Router/Remix, Express, Fastify, Hono, Elysia, NestJS, and tRPC. Use when the user asks which routes are unprotected or public, whether an API is missing auth or validation, whether Supabase RLS is set up, for a security review of a Node.js backend, or for a check before shipping.
 license: MIT
 compatibility: Needs Node.js 20.19 or newer and npx. Runs offline unless a dependency audit is requested.
 ---
@@ -27,8 +27,8 @@ npx -y @sabahattink/codediag scan . --format json --no-audit
 
 Findings are in `analyzers[].issues[]`, each with `rule`, `severity`, `message`, `file`, `line`, and often `fix`. Skip issues that carry a `suppression`. The route findings are these rule IDs in the "API Health" analyzer:
 
-- **No auth check:** `missing-auth-check`, `missing-auth-middleware`, `missing-auth-hook`, `missing-guard`, `missing-hono-auth-middleware`, `missing-sveltekit-auth`, `missing-react-router-auth`, `react-router-loader-auth-only`, `missing-trpc-auth-middleware`
-- **No input validation:** `missing-request-validation`, `missing-validation-middleware`, `missing-route-schema`, `missing-dto`, `dto-not-validated`, `missing-hono-validator`, `missing-sveltekit-validation`, `missing-react-router-validation`, `unvalidated-trpc-input`
+- **No auth check:** `missing-auth-check`, `missing-auth-middleware`, `missing-auth-hook`, `missing-guard`, `missing-hono-auth-middleware`, `missing-elysia-auth`, `missing-sveltekit-auth`, `missing-react-router-auth`, `react-router-loader-auth-only`, `missing-trpc-auth-middleware`
+- **No input validation:** `missing-request-validation`, `missing-validation-middleware`, `missing-route-schema`, `missing-dto`, `dto-not-validated`, `missing-hono-validator`, `missing-elysia-validation`, `missing-sveltekit-validation`, `missing-react-router-validation`, `unvalidated-trpc-input`
 
 In Supabase projects, the "Security" analyzer also reads `supabase/migrations`: `supabase-table-without-rls` is a table the API exposes with row level security never enabled, and `supabase-permissive-policy` is a write policy whose `using` or `with check` is `true`. Fix the first with `alter table … enable row level security;` plus policies for the access the app needs.
 
@@ -44,6 +44,7 @@ This is static analysis. "No recognizable auth check" means CodeDiag could not s
 | SvelteKit | the `handle` hook in `src/hooks.server.ts`, including `sequence()` parts; a `locals.user` check inside the action or `+server` handler. A layout `load` does not run before form actions. |
 | React Router / Remix | the action or loader itself; route `middleware`. A parent route's loader does not run before a child's action. |
 | Express, Fastify, Hono | middleware, hooks, or `use()` calls registered before the route |
+| Elysia | `onBeforeHandle()`, a `resolve()` that returns `status(401)`, `guard()`, or an auth macro (`{ auth: true }`) registered before the route; `onRequest()`; a check inside the handler. A plugin's hooks reach the instance that uses it only with `{ as: 'scoped' }` or `{ as: 'global' }`. |
 | NestJS | `@UseGuards` on the controller or method, or a global guard |
 | tRPC | a protected procedure's middleware, or a `createContext` that rejects anonymous callers in front of every adapter |
 

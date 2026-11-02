@@ -11,7 +11,9 @@ tRPC, taint through fields, constructors, callbacks, and injected providers,
 gates, and remediation quick fixes; 0.9 recognized tRPC auth in front of the
 procedures and made audits cached and concurrent; and 0.10 reached SvelteKit
 and React Router, judged Next.js middleware per route, and split pnpm
-workspace audits by package. These are the next candidates, roughly in
+workspace audits by package; 0.11 added an MCP server and an Agent Skill,
+0.12 Supabase row level security, and 0.13 Elysia with plugin hook scope.
+These are the next candidates, roughly in
 priority order. Each one should ship with realistic and defect fixtures in
 `tests/fixtures/` and keep the benchmark tests green.
 
@@ -37,6 +39,11 @@ priority order. Each one should ship with realistic and defect fixtures in
   `remixRoutesOptionAdapter`), Remix v1's nested folders, and SvelteKit
   remote functions (`*.remote.ts`).
 - **tRPC v9** routers and standalone tRPC servers' security headers.
+- **Elysia** security headers and rate limiting (`elysia-helmet`,
+  `elysia-rate-limit`), tRPC auth in front of an `@elysiajs/trpc` mount, and
+  plugins loaded lazily with `use(import("./plugin"))`.
+- **More servers:** Koa, Hapi, and Nitro have no API analyzer yet; reports
+  say their routes were not analyzed.
 
 ## Monorepos and pull requests
 

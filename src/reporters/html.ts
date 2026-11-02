@@ -468,7 +468,12 @@ export function renderHtml(result: ScanResult): string {
       <p class="eyebrow"><b>CodeDiag</b> · project health report</p>
       <h1 class="title">${escapeHtml(result.project)}</h1>
       <p class="meta">Generated <time datetime="${generated}">${generated.slice(0, 16).replace("T", " ")} UTC</time>${result.scoringVersion ? ` · scoring v${result.scoringVersion}` : ""}</p>
-      <div class="stack" aria-label="Detected stack">${stack}</div>
+      <div class="stack" aria-label="Detected stack">${stack}</div>${
+        result.stack.unsupportedServer
+          ? `
+      <p class="meta">API routes not analyzed: CodeDiag has no analyzer for ${escapeHtml(result.stack.unsupportedServer)}</p>`
+          : ""
+      }
     </div>
     ${renderGauge(result)}
   </header>

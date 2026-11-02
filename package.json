@@ -1,7 +1,7 @@
 {
   "name": "@sabahattink/codediag",
-  "version": "0.12.0",
-  "description": "Find API routes with no auth check or input validation in Next.js, SvelteKit, React Router, Express, Fastify, Hono, NestJS, and tRPC apps, plus a 0-100 project health score. CLI, GitHub Action, and MCP server.",
+  "version": "0.13.0",
+  "description": "Find API routes with no auth check or input validation in Next.js, SvelteKit, React Router, Express, Fastify, Hono, Elysia, NestJS, and tRPC apps, plus a 0-100 project health score. CLI, GitHub Action, and MCP server.",
   "mcpName": "io.github.sabahattink/codediag",
   "author": "Sabahattin Kalkan <hello@sabahattinkalkan.com> (https://sabahattinkalkan.com)",
   "license": "MIT",
@@ -50,6 +50,7 @@
     "express",
     "fastify",
     "hono",
+    "elysia",
     "trpc",
     "sveltekit",
     "react-router",

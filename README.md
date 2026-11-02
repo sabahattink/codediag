@@ -7,8 +7,8 @@
 <p align="center">
   <strong>Which of your API routes can anyone call?</strong><br>
   <sub>Auth and validation coverage for Next.js, SvelteKit, React Router, Express,
-  Fastify, Hono, NestJS, and tRPC, plus security, dependency, test, and
-  structure checks. One command, no account, runs offline.</sub>
+  Fastify, Hono, Elysia, NestJS, and tRPC, plus security, dependency, test,
+  and structure checks. One command, no account, runs offline.</sub>
 </p>
 
 <p align="center">
@@ -53,7 +53,7 @@ codediag auto-detects your stack and runs 5 analyzers. Every finding has a
 stable rule ID ([rule reference](docs/rules.md)), a severity, a location when
 one exists, and a suggested fix.
 
-### API Health `NestJS · Express · Fastify · Hono · Next.js · SvelteKit · React Router · tRPC`
+### API Health `NestJS · Express · Fastify · Hono · Elysia · Next.js · SvelteKit · React Router · tRPC`
 
 AST analysis (ts-morph, not regex) of the routes your app actually exposes.
 
@@ -77,6 +77,17 @@ AST analysis (ts-morph, not regex) of the routes your app actually exposes.
   middleware (`jwt()`, `bearerAuth()`, `basicAuth()`, or your own) on the
   route or an earlier matching `app.use()`; `zValidator` and other body
   validators; `onError`; and health endpoints.
+- **Elysia:** routes on `new Elysia()` instances, `prefix`, `group()`, and
+  plugins mounted with `use()` across files, functional plugins included,
+  replayed in registration order with Elysia's hook scope: a plugin's hooks
+  reach the instance that uses it only when they are `scoped` or `global`
+  (`{ as: 'scoped' }`, `.as('scoped')`). Auth from `onBeforeHandle()`, a
+  `derive()` or `resolve()` that rejects with 401, `guard()`, auth macros
+  such as better-auth's `{ auth: true }`, `onRequest()`, or a check in the
+  handler; when a route misses an auth hook that exists, the finding says
+  whether the hook stayed local to its plugin or came after the route. Body
+  schemas (TypeBox, Zod, or another Standard Schema) in the route options or
+  a `guard()`; `onError`; and health endpoints.
 - **Next.js:** App Router and Pages Router API handlers, without penalizing
   frontend-only projects. Middleware (`proxy.ts` in Next.js 16) protects a
   route only if it turns an anonymous request to that path away: its
@@ -104,7 +115,7 @@ AST analysis (ts-morph, not regex) of the routes your app actually exposes.
   the Express or Hono mount, an auth hook over the Fastify plugin, or a
   Next.js `middleware.ts` (`proxy.ts` in Next.js 16), Auth.js included, that
   rejects anonymous requests to the tRPC route. The checks run inside
-  whichever server hosts tRPC (T3/Next.js, Express, Fastify, Hono,
+  whichever server hosts tRPC (T3/Next.js, Express, Fastify, Hono, Elysia,
   SvelteKit), and a standalone tRPC server is its own stack. An intentionally public mutation, such as sign-up, is
   accepted with a reasoned `codediag-ignore-next-line` directive.
 
@@ -500,6 +511,7 @@ skipped and reported in the JSON `skipped` summary.
 | Express | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Fastify | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Hono | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Elysia | ✅ | ✅ | ✅ | ✅ | ✅ |
 | tRPC | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Node.js | — | ✅ | ✅ | ✅ | ✅ |
 
@@ -541,6 +553,9 @@ recognize. A clean result is not a statement that the app is secure:
   prove that every path through them rejects.
 - **Webhook replay.** A verified signature authenticates the sender; CodeDiag
   does not check timestamp tolerance or idempotency.
+- **Servers it does not analyze.** Koa, Hapi, Nuxt and Nitro, Astro, and
+  other servers get no API Health analysis at all; the report says "routes
+  not analyzed" for them instead of showing no route findings.
 - **Other runtimes.** Only Node.js backends are analyzed, not Python, Go, Ruby,
   or Java services.
 
@@ -580,6 +595,8 @@ recognize. A clean result is not a statement that the app is secure:
   CodeDiag.
 - **0.12 "Rows":** Supabase tables without row level security and write
   policies open to every row, read from `supabase/migrations`.
+- **0.13 "Scope":** Elysia analysis that follows plugins and hook scope, and
+  a "routes not analyzed" note for servers CodeDiag does not analyze.
 - **Next:** see [docs/roadmap.md](docs/roadmap.md) for planned framework
   support, editor improvements, and deeper taint tracking.
 

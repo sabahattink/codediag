@@ -13,6 +13,28 @@ const REACT_ROUTER_FRAMEWORK =
 /** Remix 2 packages; @remix-run/router is the library-mode router and does not count. */
 const REMIX =
   /^@remix-run\/(?:architect|cloudflare|deno|dev|express|node|react|serve)$/;
+/**
+ * Servers and full-stack frameworks with no API analyzer, so a report can
+ * say their routes were not checked instead of showing no route findings.
+ */
+const UNSUPPORTED_SERVERS = [
+  "koa",
+  "@hapi/hapi",
+  "restify",
+  "polka",
+  "@tinyhttp/app",
+  "hyper-express",
+  "@adonisjs/core",
+  "@feathersjs/feathers",
+  "@loopback/core",
+  "sails",
+  "nuxt",
+  "nitropack",
+  "h3",
+  "astro",
+  "@solidjs/start",
+  "@tanstack/react-start",
+];
 const ROUTE_CONFIG_FILES = ["ts", "js", "mts", "mjs"].map(
   (extension) => `app/routes.${extension}`,
 );
@@ -130,6 +152,11 @@ export function detectStack(projectPath: string): StackInfo {
     // Hono as a library (hono/client, hono/jwt helpers, a Next.js catch-all
     // route handler), while a Hono server has no reason to install them.
     info.framework = "hono";
+  } else if (allDeps.elysia) {
+    // Checked after the servers above for the same reason as Hono: an app
+    // built on them may call Elysia as a library, as a Next.js catch-all
+    // route handler that delegates to app.handle() does.
+    info.framework = "elysia";
   } else if (allDeps["@trpc/server"]) {
     // Checked last: tRPC usually runs inside one of the servers above, whose
     // API analyzers add the tRPC checks; this is a standalone tRPC server or
@@ -137,6 +164,8 @@ export function detectStack(projectPath: string): StackInfo {
     info.framework = "trpc";
   } else if (pkg.dependencies || pkg.devDependencies) {
     info.framework = "generic";
+    const server = UNSUPPORTED_SERVERS.find((name) => allDeps[name]);
+    if (server) info.unsupportedServer = server;
   }
 
   // ORM

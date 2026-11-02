@@ -62,6 +62,12 @@ export function renderMarkdown(result: ScanResult): string {
 
   lines.push(`| **Total** | **${result.totalScore}/100 (${result.grade})** |`);
   lines.push(``);
+  if (!result.workspace && result.stack.unsupportedServer) {
+    lines.push(
+      `> API routes not analyzed: CodeDiag has no analyzer for \`${result.stack.unsupportedServer}\`.`,
+      ``,
+    );
+  }
   if (result.scope) {
     lines.push(
       `> Scoped to ${result.scope.files} file${result.scope.files === 1 ? "" : "s"} changed since \`${result.scope.changedSince}\`; ${result.scope.excludedFindings} finding${result.scope.excludedFindings === 1 ? "" : "s"} elsewhere were not scored.`,

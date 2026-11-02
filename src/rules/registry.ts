@@ -218,6 +218,40 @@ export const RULES = {
       "No app.onError() handler was found. Hono's default handler logs the error and replies with a plain-text 500, so clients get a response that does not match the API's error format and errors reach no logger or error tracker beyond the console.",
     defaultSeverity: "info",
   },
+  // API Health: Elysia
+  "no-elysia-routes": {
+    analyzer: "API Health",
+    title: "No Elysia routes",
+    description:
+      "The project depends on Elysia but no route registrations on an instance created with new Elysia() were detected.",
+    defaultSeverity: "critical",
+    failsAnalyzer: true,
+  },
+  "missing-elysia-auth": {
+    analyzer: "API Health",
+    title: "Mutating Elysia route without auth check",
+    description:
+      "A POST, PUT, PATCH, or DELETE route has no recognizable auth check. Recognized: an onBeforeHandle() hook, a derive() or resolve() that returns or throws a 401 or 403 when the caller is missing, or a guard() with beforeHandle, registered before the route on its instance or on an instance that uses the route's plugin after the hook; a scoped or global hook ({ as: 'scoped' }, { as: 'global' }, .as('scoped')) of a plugin used before the route; onRequest() anywhere in the application; beforeHandle, resolve, or an auth macro such as { auth: true } in the route options or a guard(); and a handler that rejects anonymous requests itself, also in project functions it calls, or verifies a webhook signature (Stripe constructEvent(), Svix verify(), an HMAC compared with timingSafeEqual()). Elysia hooks are local to their plugin by default and apply only to routes registered after them, so when an auth hook exists but stays local to its plugin or comes after the route, the finding names it. Sign-in, sign-up, sign-out, and password recovery routes are not reported.",
+    defaultSeverity: "warning",
+    cwe: ["CWE-306"],
+    owasp: [OWASP.authentication],
+  },
+  "missing-elysia-validation": {
+    analyzer: "API Health",
+    title: "Elysia route reads an unvalidated body",
+    description:
+      "A POST, PUT, or PATCH handler reads the request body (a body binding of its context or request.json()) without a body schema in the route options, a guard() with a body schema before it, or a scoped or global guard() from a plugin, and without parsing the body with a schema in the handler. Elysia accepts TypeBox (t.Object) and Standard Schema libraries such as Zod and Valibot, and model names registered with .model().",
+    defaultSeverity: "warning",
+    cwe: ["CWE-20"],
+    owasp: [OWASP.injection],
+  },
+  "missing-elysia-error-handler": {
+    analyzer: "API Health",
+    title: "No Elysia error handler",
+    description:
+      "No onError() hook was found, so unexpected errors are answered by Elysia's default error response instead of the API's error format, and reach no error tracker.",
+    defaultSeverity: "info",
+  },
   // API Health: React Router
   "no-react-router-routes": {
     analyzer: "API Health",

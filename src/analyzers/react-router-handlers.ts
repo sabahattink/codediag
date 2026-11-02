@@ -1,4 +1,9 @@
-import { type CallExpression, Node, SyntaxKind } from "ts-morph";
+import {
+  type CallExpression,
+  type ConditionalExpression,
+  Node,
+  SyntaxKind,
+} from "ts-morph";
 import {
   definition,
   type FunctionLike,
@@ -21,9 +26,9 @@ import { returnedValues } from "./taint-graph.js";
 /** Bounds the project functions followed from a handler. */
 const MAX_HELPER_DEPTH = 2;
 
-/** A value naming the caller: `session`, `userId`, `accountId`, `token`. */
+/** A value naming the caller: `session`, `userId`, `accountId`, `token`, `bearer`. */
 const IDENTITY =
-  /session|token|auth|user|account|identity|viewer|member|principal|jwt|(?:logged|signed)in/i;
+  /session|token|auth|user|account|identity|viewer|member|principal|jwt|bearer|(?:logged|signed)in/i;
 /** A credential compared with an expected value: `Authorization`, an API key. */
 const CREDENTIAL = /authorization|api[-_]?key|signature|secret/i;
 /** A response that turns an anonymous request away: redirect(), redirectWithToast(), 401. */
@@ -138,10 +143,32 @@ function passesRequest(call: CallExpression): boolean {
   });
 }
 
+/** The operands of an `a && b && c` chain. */
+function conjuncts(node: Node): Node[] {
+  const value = unwrap(node);
+  return Node.isBinaryExpression(value) &&
+    value.getOperatorToken().getKind() === SyntaxKind.AmpersandAmpersandToken
+    ? [...conjuncts(value.getLeft()), ...conjuncts(value.getRight())]
+    : [value];
+}
+
+/** `user`, `session.user`, `getUser()`: a caller who is there. */
+function affirmsIdentity(condition: Node): boolean {
+  const value = unwrap(condition);
+  return (
+    (Node.isIdentifier(value) ||
+      Node.isPropertyAccessExpression(value) ||
+      Node.isCallExpression(value)) &&
+    IDENTITY.test(value.getText())
+  );
+}
+
 /**
  * `!user`, `!session.has("userId")`, `user == null`, a credential that does
- * not match (`authorization !== expected`, `note.ownerId !== userId`), and
- * `||` chains of them.
+ * not match (`authorization !== expected`, `note.ownerId !== userId`), `||`
+ * chains of them, and `&&` chains with a denial and no signed-in caller
+ * (`method !== "OPTIONS" && !authorized`, but not `user && !user.active`,
+ * which anonymous callers pass).
  */
 function deniesIdentity(condition: Node): boolean {
   const value = unwrap(condition);
@@ -156,6 +183,10 @@ function deniesIdentity(condition: Node): boolean {
   const [left, right] = [value.getLeft(), value.getRight()];
   if (operator === SyntaxKind.BarBarToken) {
     return deniesIdentity(left) || deniesIdentity(right);
+  }
+  if (operator === SyntaxKind.AmpersandAmpersandToken) {
+    const parts = conjuncts(value);
+    return parts.some(deniesIdentity) && !parts.some(affirmsIdentity);
   }
   const names = (node: Node) =>
     IDENTITY.test(node.getText()) || CREDENTIAL.test(node.getText());
@@ -178,11 +209,16 @@ function deniesIdentity(condition: Node): boolean {
   );
 }
 
+/** `set.status = 401` before returning a body, as Elysia handlers do. */
+const STATUS_ASSIGNMENT =
+  /\.status\s*=\s*(?:40[13]\b|["'](?:unauthorized|forbidden)["'])/i;
+
 /** Throws, or returns a redirect or a 401/403 response. */
 function rejects(branch: Node): boolean {
   if (
     Node.isThrowStatement(branch) ||
-    branch.getDescendantsOfKind(SyntaxKind.ThrowStatement).length > 0
+    branch.getDescendantsOfKind(SyntaxKind.ThrowStatement).length > 0 ||
+    STATUS_ASSIGNMENT.test(branch.getText())
   ) {
     return true;
   }
@@ -194,15 +230,45 @@ function rejects(branch: Node): boolean {
   );
 }
 
-/** `if (!user) throw redirect("/login")` and the like. */
-function rejectsAnonymous(fn: Node): boolean {
-  return fn
-    .getDescendantsOfKind(SyntaxKind.IfStatement)
-    .some(
-      (statement) =>
-        deniesIdentity(statement.getExpression()) &&
-        rejects(statement.getThenStatement()),
-    );
+/** `user ? next() : status(401)` or `!user ? redirect("/login") : data`. */
+function rejectsInConditional(conditional: ConditionalExpression): boolean {
+  const condition = conditional.getCondition();
+  const rejection = (node: Node) => REJECTION.test(node.getText());
+  return (
+    (deniesIdentity(condition) && rejection(conditional.getWhenTrue())) ||
+    (affirmsIdentity(condition) && rejection(conditional.getWhenFalse()))
+  );
+}
+
+/**
+ * `if (!user) throw redirect("/login")` and the like. With `ownBody`, only
+ * checks that run when `fn` runs count, not ones in functions it defines.
+ */
+export function rejectsAnonymous(fn: Node, ownBody = false): boolean {
+  const own = (node: Node) => !ownBody || enclosingFunction(node) === fn;
+  return (
+    fn
+      .getDescendantsOfKind(SyntaxKind.IfStatement)
+      .some(
+        (statement) =>
+          own(statement) &&
+          deniesIdentity(statement.getExpression()) &&
+          rejects(statement.getThenStatement()),
+      ) ||
+    fn
+      .getDescendantsOfKind(SyntaxKind.ConditionalExpression)
+      .some(
+        (conditional) => own(conditional) && rejectsInConditional(conditional),
+      )
+  );
+}
+
+/** The function or method a node is written in. */
+export function enclosingFunction(node: Node): Node | undefined {
+  return node.getFirstAncestor(
+    (ancestor) =>
+      isFunctionLike(ancestor) || Node.isMethodDeclaration(ancestor),
+  );
 }
 
 /** `context.get(userContext)`, which throws when middleware set no user. */
