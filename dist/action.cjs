@@ -407,8 +407,8 @@ var require_ignore = __commonJS({
     var MODE_CHECK_IGNORE = "checkRegex";
     var UNDERSCORE = "_";
     var replaceTrailingWildcard = (_, p1) => {
-      const prefix = p1 ? `${p1}[^/]+` : "[^/]*";
-      return `${prefix}(?=$|\\/$)`;
+      const prefix2 = p1 ? `${p1}[^/]+` : "[^/]*";
+      return `${prefix2}(?=$|\\/$)`;
     };
     var REGEX_REPLACE_TRAILING_DOUBLESTAR = /\uE001$/;
     var replaceTrailingDoublestar = () => ".+(?=$|\\/$)";
@@ -530,12 +530,12 @@ var require_ignore = __commonJS({
         (match2, index) => sources[index]
       ) : replaced;
     };
-    var checkSourceOf = (body, prefix) => {
+    var checkSourceOf = (body, prefix2) => {
       if (body[body.length - 1] === SLASH) {
-        prefix = makeRegexPrefix(body.slice(0, -1));
+        prefix2 = makeRegexPrefix(body.slice(0, -1));
       }
-      const head = prefix.slice(0, -1);
-      const last = prefix[prefix.length - 1];
+      const head = prefix2.slice(0, -1);
+      const last = prefix2[prefix2.length - 1];
       return last === TRAILING_WILDCARD ? `${head}$` : last === TRAILING_DOUBLESTAR ? `${head}.*$` : NEVER_MATCH;
     };
     var matchesBasename = (body) => {
@@ -567,13 +567,13 @@ var require_ignore = __commonJS({
     var checkPattern = (pattern) => pattern && isString(pattern) && !REGEX_INVALID_TRAILING_BACKSLASH.test(pattern);
     var splitPattern = (pattern) => pattern.split(REGEX_SPLITALL_CRLF).filter(Boolean);
     var IgnoreRule = class {
-      constructor(pattern, mark, body, ignoreCase, negative, prefix) {
+      constructor(pattern, mark, body, ignoreCase, negative, prefix2) {
         this.pattern = pattern;
         this.mark = mark;
         this.negative = negative;
         define(this, "body", body);
         define(this, "ignoreCase", ignoreCase);
-        define(this, "regexPrefix", prefix);
+        define(this, "regexPrefix", prefix2);
       }
       // Worked out on first use and kept behind an own property, the way `regex`
       //   caches itself in `_regex`. Deciding it in the constructor instead would
@@ -4511,8 +4511,8 @@ var require_typescript = __commonJS({
       function createGetCanonicalFileName(useCaseSensitiveFileNames2) {
         return useCaseSensitiveFileNames2 ? identity : toFileNameLowerCase;
       }
-      function patternText({ prefix, suffix }) {
-        return `${prefix}*${suffix}`;
+      function patternText({ prefix: prefix2, suffix }) {
+        return `${prefix2}*${suffix}`;
       }
       function matchedText(pattern, candidate) {
         Debug.assert(isPatternMatch(pattern, candidate));
@@ -4531,17 +4531,17 @@ var require_typescript = __commonJS({
         }
         return matchedValue;
       }
-      function startsWith(str, prefix, ignoreCase) {
-        return ignoreCase ? equateStringsCaseInsensitive(str.slice(0, prefix.length), prefix) : str.lastIndexOf(prefix, 0) === 0;
+      function startsWith(str, prefix2, ignoreCase) {
+        return ignoreCase ? equateStringsCaseInsensitive(str.slice(0, prefix2.length), prefix2) : str.lastIndexOf(prefix2, 0) === 0;
       }
-      function removePrefix(str, prefix) {
-        return startsWith(str, prefix) ? str.substr(prefix.length) : str;
+      function removePrefix(str, prefix2) {
+        return startsWith(str, prefix2) ? str.substr(prefix2.length) : str;
       }
-      function tryRemovePrefix(str, prefix, getCanonicalFileName = identity) {
-        return startsWith(getCanonicalFileName(str), getCanonicalFileName(prefix)) ? str.substring(prefix.length) : void 0;
+      function tryRemovePrefix(str, prefix2, getCanonicalFileName = identity) {
+        return startsWith(getCanonicalFileName(str), getCanonicalFileName(prefix2)) ? str.substring(prefix2.length) : void 0;
       }
-      function isPatternMatch({ prefix, suffix }, candidate) {
-        return candidate.length >= prefix.length + suffix.length && startsWith(candidate, prefix) && endsWith(candidate, suffix);
+      function isPatternMatch({ prefix: prefix2, suffix }, candidate) {
+        return candidate.length >= prefix2.length + suffix.length && startsWith(candidate, prefix2) && endsWith(candidate, suffix);
       }
       function and2(f, g) {
         return (arg) => f(arg) && g(arg);
@@ -10324,8 +10324,8 @@ ${lanes.join("\n")}
         );
         const firstComponent = pathComponents2[0];
         if (isAbsolutePathAnUrl && isRootedDiskPath(firstComponent)) {
-          const prefix = firstComponent.charAt(0) === directorySeparator ? "file://" : "file:///";
-          pathComponents2[0] = prefix + firstComponent;
+          const prefix2 = firstComponent.charAt(0) === directorySeparator ? "file://" : "file:///";
+          pathComponents2[0] = prefix2 + firstComponent;
         }
         return getPathFromPathComponents(pathComponents2);
       }
@@ -24486,8 +24486,8 @@ ${lanes.join("\n")}
         for (let i = endIndex2 - 1, bitOffset = 0; i >= startIndex; i--, bitOffset += log2Base) {
           const segment = bitOffset >>> 4;
           const digitChar = stringValue2.charCodeAt(i);
-          const digit = digitChar <= 57 ? digitChar - 48 : 10 + digitChar - (digitChar <= 70 ? 65 : 97);
-          const shiftedDigit = digit << (bitOffset & 15);
+          const digit2 = digitChar <= 57 ? digitChar - 48 : 10 + digitChar - (digitChar <= 70 ? 65 : 97);
+          const shiftedDigit = digit2 << (bitOffset & 15);
           segments[segment] |= shiftedDigit;
           const residual = shiftedDigit >>> 16;
           if (residual) segments[segment + 1] |= residual;
@@ -27559,12 +27559,12 @@ ${lanes.join("\n")}
           node.symbol = void 0;
           return node;
         }
-        function createBaseGeneratedIdentifier(text2, autoGenerateFlags, prefix, suffix) {
+        function createBaseGeneratedIdentifier(text2, autoGenerateFlags, prefix2, suffix) {
           const node = createBaseIdentifier(escapeLeadingUnderscores(text2));
           setIdentifierAutoGenerate(node, {
             flags: autoGenerateFlags,
             id: nextAutoGenerateId,
-            prefix,
+            prefix: prefix2,
             suffix
           });
           nextAutoGenerateId++;
@@ -27587,10 +27587,10 @@ ${lanes.join("\n")}
           }
           return node;
         }
-        function createTempVariable(recordTempVariable, reservedInNestedScopes, prefix, suffix) {
+        function createTempVariable(recordTempVariable, reservedInNestedScopes, prefix2, suffix) {
           let flags2 = 1;
           if (reservedInNestedScopes) flags2 |= 8;
-          const name = createBaseGeneratedIdentifier("", flags2, prefix, suffix);
+          const name = createBaseGeneratedIdentifier("", flags2, prefix2, suffix);
           if (recordTempVariable) {
             recordTempVariable(name);
           }
@@ -27608,23 +27608,23 @@ ${lanes.join("\n")}
             void 0
           );
         }
-        function createUniqueName(text2, flags2 = 0, prefix, suffix) {
+        function createUniqueName(text2, flags2 = 0, prefix2, suffix) {
           Debug.assert(!(flags2 & 7), "Argument out of range: flags");
           Debug.assert((flags2 & (16 | 32)) !== 32, "GeneratedIdentifierFlags.FileLevel cannot be set without also setting GeneratedIdentifierFlags.Optimistic");
-          return createBaseGeneratedIdentifier(text2, 3 | flags2, prefix, suffix);
+          return createBaseGeneratedIdentifier(text2, 3 | flags2, prefix2, suffix);
         }
-        function getGeneratedNameForNode(node, flags2 = 0, prefix, suffix) {
+        function getGeneratedNameForNode(node, flags2 = 0, prefix2, suffix) {
           Debug.assert(!(flags2 & 7), "Argument out of range: flags");
           const text2 = !node ? "" : isMemberName(node) ? formatGeneratedName(
             /*privateName*/
             false,
-            prefix,
+            prefix2,
             node,
             suffix,
             idText
           ) : `generated@${getNodeId(node)}`;
-          if (prefix || suffix) flags2 |= 16;
-          const name = createBaseGeneratedIdentifier(text2, 4 | flags2, prefix, suffix);
+          if (prefix2 || suffix) flags2 |= 16;
+          const name = createBaseGeneratedIdentifier(text2, 4 | flags2, prefix2, suffix);
           name.original = node;
           return name;
         }
@@ -27641,33 +27641,33 @@ ${lanes.join("\n")}
           if (!startsWith(text2, "#")) Debug.fail("First character of private identifier must be #: " + text2);
           return createBasePrivateIdentifier(escapeLeadingUnderscores(text2));
         }
-        function createBaseGeneratedPrivateIdentifier(text2, autoGenerateFlags, prefix, suffix) {
+        function createBaseGeneratedPrivateIdentifier(text2, autoGenerateFlags, prefix2, suffix) {
           const node = createBasePrivateIdentifier(escapeLeadingUnderscores(text2));
           setIdentifierAutoGenerate(node, {
             flags: autoGenerateFlags,
             id: nextAutoGenerateId,
-            prefix,
+            prefix: prefix2,
             suffix
           });
           nextAutoGenerateId++;
           return node;
         }
-        function createUniquePrivateName(text2, prefix, suffix) {
+        function createUniquePrivateName(text2, prefix2, suffix) {
           if (text2 && !startsWith(text2, "#")) Debug.fail("First character of private identifier must be #: " + text2);
           const autoGenerateFlags = 8 | (text2 ? 3 : 1);
-          return createBaseGeneratedPrivateIdentifier(text2 ?? "", autoGenerateFlags, prefix, suffix);
+          return createBaseGeneratedPrivateIdentifier(text2 ?? "", autoGenerateFlags, prefix2, suffix);
         }
-        function getGeneratedPrivateNameForNode(node, prefix, suffix) {
+        function getGeneratedPrivateNameForNode(node, prefix2, suffix) {
           const text2 = isMemberName(node) ? formatGeneratedName(
             /*privateName*/
             true,
-            prefix,
+            prefix2,
             node,
             suffix,
             idText
           ) : `#generated@${getNodeId(node)}`;
-          const flags2 = prefix || suffix ? 16 : 0;
-          const name = createBaseGeneratedPrivateIdentifier(text2, 4 | flags2, prefix, suffix);
+          const flags2 = prefix2 || suffix ? 16 : 0;
+          const name = createBaseGeneratedPrivateIdentifier(text2, 4 | flags2, prefix2, suffix);
           name.original = node;
           return name;
         }
@@ -32484,13 +32484,13 @@ ${lanes.join("\n")}
             [expr]
           );
         }
-        function createSetFunctionNameHelper(f, name, prefix) {
+        function createSetFunctionNameHelper(f, name, prefix2) {
           context.requestEmitHelper(setFunctionNameHelper);
           return context.factory.createCallExpression(
             getUnscopedHelperName("__setFunctionName"),
             /*typeArguments*/
             void 0,
-            prefix ? [f, name, context.factory.createStringLiteral(prefix)] : [f, name]
+            prefix2 ? [f, name, context.factory.createStringLiteral(prefix2)] : [f, name]
           );
         }
         function createValuesHelper(expression) {
@@ -34827,11 +34827,11 @@ ${lanes.join("\n")}
       function formatIdentifierWorker(node, generateName) {
         return isGeneratedPrivateIdentifier(node) ? generateName(node).slice(1) : isGeneratedIdentifier(node) ? generateName(node) : isPrivateIdentifier(node) ? node.escapedText.slice(1) : idText(node);
       }
-      function formatGeneratedName(privateName, prefix, baseName, suffix, generateName) {
-        prefix = formatGeneratedNamePart(prefix, generateName);
+      function formatGeneratedName(privateName, prefix2, baseName, suffix, generateName) {
+        prefix2 = formatGeneratedNamePart(prefix2, generateName);
         suffix = formatGeneratedNamePart(suffix, generateName);
         baseName = formatIdentifier(baseName, generateName);
-        return `${privateName ? "#" : ""}${prefix}${baseName}${suffix}`;
+        return `${privateName ? "#" : ""}${prefix2}${baseName}${suffix}`;
       }
       function createAccessorPropertyBackingField(factory2, node, modifiers, initializer) {
         return factory2.updatePropertyDeclaration(
@@ -54988,11 +54988,11 @@ ${lanes.join("\n")}
               candidates.push({ ending: void 0, value: relativeToBaseUrl });
             }
             if (indexOfStar !== -1) {
-              const prefix = pattern.substring(0, indexOfStar);
+              const prefix2 = pattern.substring(0, indexOfStar);
               const suffix = pattern.substring(indexOfStar + 1);
               for (const { ending, value } of candidates) {
-                if (value.length >= prefix.length + suffix.length && startsWith(value, prefix) && endsWith(value, suffix) && validateEnding({ ending, value })) {
-                  const matchedStar = value.substring(prefix.length, value.length - suffix.length);
+                if (value.length >= prefix2.length + suffix.length && startsWith(value, prefix2) && endsWith(value, suffix) && validateEnding({ ending, value })) {
+                  const matchedStar = value.substring(prefix2.length, value.length - suffix.length);
                   if (!pathIsRelative(matchedStar)) {
                     return replaceFirstStar(key, matchedStar);
                   }
@@ -75424,9 +75424,9 @@ ${lanes.join("\n")}
                     }
                     secondaryRootErrors.unshift([mappedMsg, args[0], args[1]]);
                   } else {
-                    const prefix = msg.code === Diagnostics.Construct_signature_return_types_0_and_1_are_incompatible.code || msg.code === Diagnostics.Construct_signatures_with_no_arguments_have_incompatible_return_types_0_and_1.code ? "new " : "";
+                    const prefix2 = msg.code === Diagnostics.Construct_signature_return_types_0_and_1_are_incompatible.code || msg.code === Diagnostics.Construct_signatures_with_no_arguments_have_incompatible_return_types_0_and_1.code ? "new " : "";
                     const params = msg.code === Diagnostics.Call_signatures_with_no_arguments_have_incompatible_return_types_0_and_1.code || msg.code === Diagnostics.Construct_signatures_with_no_arguments_have_incompatible_return_types_0_and_1.code ? "" : "...";
-                    path2 = `${prefix}${path2}(${params})`;
+                    path2 = `${prefix2}${path2}(${params})`;
                   }
                   break;
                 }
@@ -110926,13 +110926,13 @@ ${lanes.join("\n")}
         }
         function createHoistedVariableForClass(name, node, suffix) {
           const { className } = getPrivateIdentifierEnvironment().data;
-          const prefix = className ? { prefix: "_", node: className, suffix: "_" } : "_";
-          const identifier = typeof name === "object" ? factory2.getGeneratedNameForNode(name, 16 | 8, prefix, suffix) : typeof name === "string" ? factory2.createUniqueName(name, 16, prefix, suffix) : factory2.createTempVariable(
+          const prefix2 = className ? { prefix: "_", node: className, suffix: "_" } : "_";
+          const identifier = typeof name === "object" ? factory2.getGeneratedNameForNode(name, 16 | 8, prefix2, suffix) : typeof name === "string" ? factory2.createUniqueName(name, 16, prefix2, suffix) : factory2.createTempVariable(
             /*recordTempVariable*/
             void 0,
             /*reservedInNestedScopes*/
             true,
-            prefix,
+            prefix2,
             suffix
           );
           if (resolver.hasNodeCheckFlag(
@@ -112005,7 +112005,7 @@ ${lanes.join("\n")}
           if (!decoratorExpressions) {
             return void 0;
           }
-          const prefix = getClassMemberPrefix(node, member);
+          const prefix2 = getClassMemberPrefix(node, member);
           const memberName2 = getExpressionForPropertyName(
             member,
             /*generateNameForComputedPropertyName*/
@@ -112018,7 +112018,7 @@ ${lanes.join("\n")}
           const descriptor = isPropertyDeclaration(member) && !hasAccessorModifier(member) ? factory2.createVoidZero() : factory2.createNull();
           const helper = emitHelpers().createDecorateHelper(
             decoratorExpressions,
-            prefix,
+            prefix2,
             memberName2,
             descriptor
           );
@@ -113921,13 +113921,13 @@ ${lanes.join("\n")}
             3072
             /* NoComments */
           );
-          const prefix = kind === "get" || kind === "set" ? kind : void 0;
+          const prefix2 = kind === "get" || kind === "set" ? kind : void 0;
           const functionName2 = factory2.createStringLiteralFromNode(
             name,
             /*isSingleQuote*/
             void 0
           );
-          const namedFunction = emitHelpers().createSetFunctionNameHelper(func, functionName2, prefix);
+          const namedFunction = emitHelpers().createSetFunctionNameHelper(func, functionName2, prefix2);
           const method = factory2.createPropertyAssignment(factory2.createIdentifier(kind), namedFunction);
           setOriginalNode(method, original);
           setSourceMapRange(method, moveRangePastDecorators(original));
@@ -117988,8 +117988,8 @@ ${lanes.join("\n")}
           return Debug.failBadSyntaxKind(node);
         }
         function visitJsxText(node) {
-          const fixed = fixupWhitespaceAndDecodeEntities(node.text);
-          return fixed === void 0 ? void 0 : factory2.createStringLiteral(fixed);
+          const fixed2 = fixupWhitespaceAndDecodeEntities(node.text);
+          return fixed2 === void 0 ? void 0 : factory2.createStringLiteral(fixed2);
         }
         function fixupWhitespaceAndDecodeEntities(text2) {
           let acc;
@@ -129773,16 +129773,16 @@ ${lanes.join("\n")}
           if (isAmbientModule(updated) || updated.flags & 32) {
             return updated;
           }
-          const fixed = factory2.createModuleDeclaration(
+          const fixed2 = factory2.createModuleDeclaration(
             updated.modifiers,
             updated.name,
             updated.body,
             updated.flags | 32
             /* Namespace */
           );
-          setOriginalNode(fixed, updated);
-          setTextRange(fixed, updated);
-          return fixed;
+          setOriginalNode(fixed2, updated);
+          setTextRange(fixed2, updated);
+          return fixed2;
         }
         function transformTopLevelDeclaration(input) {
           if (lateMarkedStatements) {
@@ -134650,9 +134650,9 @@ ${lanes.join("\n")}
             emitExpression(node, parenthesizerRule);
           }
         }
-        function emitNodeWithPrefix(prefix, prefixWriter, node, emit2) {
+        function emitNodeWithPrefix(prefix2, prefixWriter, node, emit2) {
           if (node) {
-            prefixWriter(prefix);
+            prefixWriter(prefix2);
             emit2(node);
           }
         }
@@ -135390,10 +135390,10 @@ ${lanes.join("\n")}
             return autoGeneratedIdToGeneratedName[autoGenerateId] || (autoGeneratedIdToGeneratedName[autoGenerateId] = makeName(name));
           }
         }
-        function generateNameCached(node, privateName, flags, prefix, suffix) {
+        function generateNameCached(node, privateName, flags, prefix2, suffix) {
           const nodeId2 = getNodeId(node);
           const cache3 = privateName ? nodeIdToGeneratedPrivateName : nodeIdToGeneratedName;
-          return cache3[nodeId2] || (cache3[nodeId2] = generateNameForNode(node, privateName, flags ?? 0, formatGeneratedNamePart(prefix, generateName), formatGeneratedNamePart(suffix)));
+          return cache3[nodeId2] || (cache3[nodeId2] = generateNameForNode(node, privateName, flags ?? 0, formatGeneratedNamePart(prefix2, generateName), formatGeneratedNamePart(suffix)));
         }
         function isUniqueName(name, privateName) {
           return isFileLevelUniqueNameInCurrentFile(name, privateName) && !isReservedName(name, privateName) && !generatedNames.has(name);
@@ -135460,15 +135460,15 @@ ${lanes.join("\n")}
               break;
           }
         }
-        function makeTempVariableName(flags, reservedInNestedScopes, privateName, prefix, suffix) {
-          if (prefix.length > 0 && prefix.charCodeAt(0) === 35) {
-            prefix = prefix.slice(1);
+        function makeTempVariableName(flags, reservedInNestedScopes, privateName, prefix2, suffix) {
+          if (prefix2.length > 0 && prefix2.charCodeAt(0) === 35) {
+            prefix2 = prefix2.slice(1);
           }
-          const key = formatGeneratedName(privateName, prefix, "", suffix);
+          const key = formatGeneratedName(privateName, prefix2, "", suffix);
           let tempFlags2 = getTempFlags(key);
           if (flags && !(tempFlags2 & flags)) {
             const name = flags === 268435456 ? "_i" : "_n";
-            const fullName = formatGeneratedName(privateName, prefix, name, suffix);
+            const fullName = formatGeneratedName(privateName, prefix2, name, suffix);
             if (isUniqueName(fullName, privateName)) {
               tempFlags2 |= flags;
               if (privateName) {
@@ -135485,7 +135485,7 @@ ${lanes.join("\n")}
             tempFlags2++;
             if (count !== 8 && count !== 13) {
               const name = count < 26 ? "_" + String.fromCharCode(97 + count) : "_" + (count - 26);
-              const fullName = formatGeneratedName(privateName, prefix, name, suffix);
+              const fullName = formatGeneratedName(privateName, prefix2, name, suffix);
               if (isUniqueName(fullName, privateName)) {
                 if (privateName) {
                   reservePrivateNameInNestedScopes(fullName);
@@ -135498,15 +135498,15 @@ ${lanes.join("\n")}
             }
           }
         }
-        function makeUniqueName2(baseName, checkFn = isUniqueName, optimistic, scoped, privateName, prefix, suffix) {
+        function makeUniqueName2(baseName, checkFn = isUniqueName, optimistic, scoped, privateName, prefix2, suffix) {
           if (baseName.length > 0 && baseName.charCodeAt(0) === 35) {
             baseName = baseName.slice(1);
           }
-          if (prefix.length > 0 && prefix.charCodeAt(0) === 35) {
-            prefix = prefix.slice(1);
+          if (prefix2.length > 0 && prefix2.charCodeAt(0) === 35) {
+            prefix2 = prefix2.slice(1);
           }
           if (optimistic) {
-            const fullName = formatGeneratedName(privateName, prefix, baseName, suffix);
+            const fullName = formatGeneratedName(privateName, prefix2, baseName, suffix);
             if (checkFn(fullName, privateName)) {
               if (privateName) {
                 reservePrivateNameInNestedScopes(fullName);
@@ -135523,7 +135523,7 @@ ${lanes.join("\n")}
           }
           let i = 1;
           while (true) {
-            const fullName = formatGeneratedName(privateName, prefix, baseName + i, suffix);
+            const fullName = formatGeneratedName(privateName, prefix2, baseName + i, suffix);
             if (checkFn(fullName, privateName)) {
               if (privateName) {
                 reservePrivateNameInNestedScopes(fullName);
@@ -135620,7 +135620,7 @@ ${lanes.join("\n")}
             ""
           );
         }
-        function generateNameForMethodOrAccessor(node, privateName, prefix, suffix) {
+        function generateNameForMethodOrAccessor(node, privateName, prefix2, suffix) {
           if (isIdentifier(node.name)) {
             return generateNameCached(node.name, privateName);
           }
@@ -135629,11 +135629,11 @@ ${lanes.join("\n")}
             /*reservedInNestedScopes*/
             false,
             privateName,
-            prefix,
+            prefix2,
             suffix
           );
         }
-        function generateNameForNode(node, privateName, flags, prefix, suffix) {
+        function generateNameForNode(node, privateName, flags, prefix2, suffix) {
           switch (node.kind) {
             case 80:
             case 81:
@@ -135643,20 +135643,20 @@ ${lanes.join("\n")}
                 !!(flags & 16),
                 !!(flags & 8),
                 privateName,
-                prefix,
+                prefix2,
                 suffix
               );
             case 268:
             case 267:
-              Debug.assert(!prefix && !suffix && !privateName);
+              Debug.assert(!prefix2 && !suffix && !privateName);
               return generateNameForModuleOrEnum(node);
             case 273:
             case 279:
-              Debug.assert(!prefix && !suffix && !privateName);
+              Debug.assert(!prefix2 && !suffix && !privateName);
               return generateNameForImportOrExportDeclaration(node);
             case 263:
             case 264: {
-              Debug.assert(!prefix && !suffix && !privateName);
+              Debug.assert(!prefix2 && !suffix && !privateName);
               const name = node.name;
               if (name && !isGeneratedIdentifier(name)) {
                 return generateNameForNode(
@@ -135664,29 +135664,29 @@ ${lanes.join("\n")}
                   /*privateName*/
                   false,
                   flags,
-                  prefix,
+                  prefix2,
                   suffix
                 );
               }
               return generateNameForExportDefault();
             }
             case 278:
-              Debug.assert(!prefix && !suffix && !privateName);
+              Debug.assert(!prefix2 && !suffix && !privateName);
               return generateNameForExportDefault();
             case 232:
-              Debug.assert(!prefix && !suffix && !privateName);
+              Debug.assert(!prefix2 && !suffix && !privateName);
               return generateNameForClassExpression();
             case 175:
             case 178:
             case 179:
-              return generateNameForMethodOrAccessor(node, privateName, prefix, suffix);
+              return generateNameForMethodOrAccessor(node, privateName, prefix2, suffix);
             case 168:
               return makeTempVariableName(
                 0,
                 /*reservedInNestedScopes*/
                 true,
                 privateName,
-                prefix,
+                prefix2,
                 suffix
               );
             default:
@@ -135695,18 +135695,18 @@ ${lanes.join("\n")}
                 /*reservedInNestedScopes*/
                 false,
                 privateName,
-                prefix,
+                prefix2,
                 suffix
               );
           }
         }
         function makeName(name) {
           const autoGenerate = name.emitNode.autoGenerate;
-          const prefix = formatGeneratedNamePart(autoGenerate.prefix, generateName);
+          const prefix2 = formatGeneratedNamePart(autoGenerate.prefix, generateName);
           const suffix = formatGeneratedNamePart(autoGenerate.suffix);
           switch (autoGenerate.flags & 7) {
             case 1:
-              return makeTempVariableName(0, !!(autoGenerate.flags & 8), isPrivateIdentifier(name), prefix, suffix);
+              return makeTempVariableName(0, !!(autoGenerate.flags & 8), isPrivateIdentifier(name), prefix2, suffix);
             case 2:
               Debug.assertNode(name, isIdentifier);
               return makeTempVariableName(
@@ -135714,7 +135714,7 @@ ${lanes.join("\n")}
                 !!(autoGenerate.flags & 8),
                 /*privateName*/
                 false,
-                prefix,
+                prefix2,
                 suffix
               );
             case 3:
@@ -135724,7 +135724,7 @@ ${lanes.join("\n")}
                 !!(autoGenerate.flags & 16),
                 !!(autoGenerate.flags & 8),
                 isPrivateIdentifier(name),
-                prefix,
+                prefix2,
                 suffix
               );
           }
@@ -152357,8 +152357,8 @@ ${lanes.join("\n")}
       }
       function buildLinkParts(link, checker) {
         var _a;
-        const prefix = isJSDocLink(link) ? "link" : isJSDocLinkCode(link) ? "linkcode" : "linkplain";
-        const parts = [linkPart(`{@${prefix} `)];
+        const prefix2 = isJSDocLink(link) ? "link" : isJSDocLinkCode(link) ? "linkcode" : "linkplain";
+        const parts = [linkPart(`{@${prefix2} `)];
         if (!link.name) {
           if (link.text) {
             parts.push(linkTextPart(link.text));
@@ -153759,9 +153759,9 @@ ${lanes.join("\n")}
           let token = 0;
           let lastNonTriviaToken = 0;
           const templateStack = [];
-          const { prefix, pushTemplate } = getPrefixFromLexState(lexState);
-          text2 = prefix + text2;
-          const offset = prefix.length;
+          const { prefix: prefix2, pushTemplate } = getPrefixFromLexState(lexState);
+          text2 = prefix2 + text2;
+          const offset = prefix2.length;
           if (pushTemplate) {
             templateStack.push(
               16
@@ -162922,11 +162922,11 @@ ${newComment.split("\n").map((c) => ` * ${c}`).join("\n")}
           if (decls && decls.some((d) => d.parent === scopeDecl)) {
             return factory.createIdentifier(symbol.name);
           }
-          const prefix = tryReplaceWithQualifiedNameOrPropertyAccess(symbol.parent, scopeDecl, isTypeNode2);
-          if (prefix === void 0) {
+          const prefix2 = tryReplaceWithQualifiedNameOrPropertyAccess(symbol.parent, scopeDecl, isTypeNode2);
+          if (prefix2 === void 0) {
             return void 0;
           }
-          return isTypeNode2 ? factory.createQualifiedName(prefix, factory.createIdentifier(symbol.name)) : factory.createPropertyAccessExpression(prefix, symbol.name);
+          return isTypeNode2 ? factory.createQualifiedName(prefix2, factory.createIdentifier(symbol.name)) : factory.createPropertyAccessExpression(prefix2, symbol.name);
         }
       }
       function getExtractableParent(node) {
@@ -164241,13 +164241,13 @@ ${newComment.split("\n").map((c) => ` * ${c}`).join("\n")}
         if (textChangeRange) {
           if (version22 !== sourceFile.version) {
             let newText;
-            const prefix = textChangeRange.span.start !== 0 ? sourceFile.text.substr(0, textChangeRange.span.start) : "";
+            const prefix2 = textChangeRange.span.start !== 0 ? sourceFile.text.substr(0, textChangeRange.span.start) : "";
             const suffix = textSpanEnd(textChangeRange.span) !== sourceFile.text.length ? sourceFile.text.substr(textSpanEnd(textChangeRange.span)) : "";
             if (textChangeRange.newLength === 0) {
-              newText = prefix && suffix ? prefix + suffix : prefix || suffix;
+              newText = prefix2 && suffix ? prefix2 + suffix : prefix2 || suffix;
             } else {
               const changedText = scriptSnapshot.getText(textChangeRange.span.start, textChangeRange.span.start + textChangeRange.newLength);
-              newText = prefix && suffix ? prefix + changedText + suffix : prefix ? prefix + changedText : changedText + suffix;
+              newText = prefix2 && suffix ? prefix2 + changedText + suffix : prefix2 ? prefix2 + changedText : changedText + suffix;
             }
             const newSourceFile = updateSourceFile(sourceFile, newText, textChangeRange, aggressiveChecks);
             setSourceFileFields(newSourceFile, scriptSnapshot, version22);
@@ -166402,8 +166402,8 @@ ${newComment.split("\n").map((c) => ` * ${c}`).join("\n")}
           const end = pos + 6;
           const typeChecker = program.getTypeChecker();
           const symbol = typeChecker.getSymbolAtLocation(node.parent);
-          const prefix = symbol ? `${typeChecker.symbolToString(symbol, node.parent)} ` : "";
-          return { text: `${prefix}static {}`, pos, end };
+          const prefix2 = symbol ? `${typeChecker.symbolToString(symbol, node.parent)} ` : "";
+          return { text: `${prefix2}static {}`, pos, end };
         }
         const declName = isAssignedExpression(node) ? node.parent.name : Debug.checkDefined(getNameOfDeclaration(node), "Expected call hierarchy item to have a name");
         let text2 = isIdentifier(declName) ? idText(declName) : isStringOrNumericLiteralLike(declName) ? declName.text : isComputedPropertyName(declName) ? isStringOrNumericLiteralLike(declName.expression) ? declName.expression.text : void 0 : void 0;
@@ -169740,18 +169740,18 @@ ${newComment.split("\n").map((c) => ` * ${c}`).join("\n")}
         const commentNode = node.parent;
         const { leftSibling, rightSibling } = getLeftAndRightSiblings(node);
         let pos = commentNode.getStart();
-        let prefix = "";
+        let prefix2 = "";
         if (!leftSibling && commentNode.comment) {
           pos = findEndOfTextBetween(commentNode, commentNode.getStart(), node.getStart());
-          prefix = `${newLine} */${newLine}`;
+          prefix2 = `${newLine} */${newLine}`;
         }
         if (leftSibling) {
           if (fixAll && isJSDocTypedefTag(leftSibling)) {
             pos = node.getStart();
-            prefix = "";
+            prefix2 = "";
           } else {
             pos = findEndOfTextBetween(commentNode, leftSibling.getStart(), node.getStart());
-            prefix = `${newLine} */${newLine}`;
+            prefix2 = `${newLine} */${newLine}`;
           }
         }
         let end = commentNode.getEnd();
@@ -169765,7 +169765,7 @@ ${newComment.split("\n").map((c) => ` * ${c}`).join("\n")}
             suffix = `${newLine}/**${newLine} * `;
           }
         }
-        changes.replaceRange(sourceFile, { pos, end }, declaration, { prefix, suffix });
+        changes.replaceRange(sourceFile, { pos, end }, declaration, { prefix: prefix2, suffix });
       }
       function getLeftAndRightSiblings(typedefNode) {
         const commentNode = typedefNode.parent;
@@ -174206,9 +174206,9 @@ ${newComment.split("\n").map((c) => ` * ${c}`).join("\n")}
               result.push(createDeleteFix(deletion, [Diagnostics.Remove_unused_declaration_for_Colon_0, name.getText(sourceFile)]));
             }
           }
-          const prefix = ts_textChanges_exports.ChangeTracker.with(context, (t) => tryPrefixDeclaration(t, errorCode, sourceFile, token));
-          if (prefix.length) {
-            result.push(createCodeFixAction(fixName3, prefix, [Diagnostics.Prefix_0_with_an_underscore, token.getText(sourceFile)], fixIdPrefix, Diagnostics.Prefix_all_unused_declarations_with_where_possible));
+          const prefix2 = ts_textChanges_exports.ChangeTracker.with(context, (t) => tryPrefixDeclaration(t, errorCode, sourceFile, token));
+          if (prefix2.length) {
+            result.push(createCodeFixAction(fixName3, prefix2, [Diagnostics.Prefix_0_with_an_underscore, token.getText(sourceFile)], fixIdPrefix, Diagnostics.Prefix_all_unused_declarations_with_where_possible));
           }
           return result;
         },
@@ -183956,9 +183956,9 @@ ${newComment.split("\n").map((c) => ` * ${c}`).join("\n")}
         function getDirectoryMatches(directoryName) {
           return mapDefined(tryGetDirectories(host, directoryName), (dir) => dir === "node_modules" ? void 0 : directoryResult(dir));
         }
-        function trimPrefixAndSuffix(path2, prefix) {
+        function trimPrefixAndSuffix(path2, prefix2) {
           return firstDefined(matchingSuffixes, (suffix) => {
-            const inner = withoutStartAndEnd(normalizePath(path2), prefix, suffix);
+            const inner = withoutStartAndEnd(normalizePath(path2), prefix2, suffix);
             return inner === void 0 ? void 0 : removeLeadingDirectorySeparator(inner);
           });
         }
@@ -183991,7 +183991,7 @@ ${newComment.split("\n").map((c) => ` * ${c}`).join("\n")}
         if (!match2) {
           return void 0;
         }
-        const [, prefix, kind, toComplete] = match2;
+        const [, prefix2, kind, toComplete] = match2;
         const scriptPath = getDirectoryPath(sourceFile.path);
         const names = kind === "path" ? getCompletionEntriesForDirectoryFragment(
           toComplete,
@@ -184004,7 +184004,7 @@ ${newComment.split("\n").map((c) => ` * ${c}`).join("\n")}
           true,
           sourceFile.path
         ) : kind === "types" ? getCompletionEntriesFromTypings(program, host, moduleSpecifierResolutionHost, scriptPath, getFragmentDirectory(toComplete), getExtensionOptions(compilerOptions, 1, sourceFile)) : Debug.fail();
-        return addReplacementSpans(toComplete, range2.pos + prefix.length, arrayFrom(names.values()));
+        return addReplacementSpans(toComplete, range2.pos + prefix2.length, arrayFrom(names.values()));
       }
       function getCompletionEntriesFromTypings(program, host, moduleSpecifierResolutionHost, scriptPath, fragmentDirectory, extensionOptions, result = createNameAndKindSet()) {
         const options = program.getCompilerOptions();
@@ -190406,8 +190406,8 @@ ${content}
       ), spacePart()];
       function getSignatureHelpItem(candidateSignature, callTargetDisplayParts, isTypeParameterList, checker, enclosingDeclaration, sourceFile) {
         const infos = (isTypeParameterList ? itemInfoForTypeParameters : itemInfoForParameters)(candidateSignature, checker, enclosingDeclaration, sourceFile);
-        return map(infos, ({ isVariadic, parameters, prefix, suffix }) => {
-          const prefixDisplayParts = [...callTargetDisplayParts, ...prefix];
+        return map(infos, ({ isVariadic, parameters, prefix: prefix2, suffix }) => {
+          const prefixDisplayParts = [...callTargetDisplayParts, ...prefix2];
           const suffixDisplayParts = [...suffix, ...returnTypeToDisplayParts(candidateSignature, enclosingDeclaration, checker)];
           const documentation = candidateSignature.getDocumentationComment(checker);
           const tags = candidateSignature.getJsDocTags();
@@ -192608,11 +192608,11 @@ ${options.prefix}` : "\n" : options.prefix
           const noIndent = options.indentation !== void 0 || getLineStartPositionForPosition(pos, targetSourceFile) === pos ? text2 : text2.replace(/^\s+/, "");
           return (options.prefix || "") + noIndent + (!options.suffix || endsWith(noIndent, options.suffix) ? "" : options.suffix);
         }
-        function getFormattedTextOfNode(nodeIn, targetSourceFile, sourceFile, pos, { indentation, prefix, delta }, newLineCharacter, formatContext, validate2) {
+        function getFormattedTextOfNode(nodeIn, targetSourceFile, sourceFile, pos, { indentation, prefix: prefix2, delta }, newLineCharacter, formatContext, validate2) {
           const { node, text: text2 } = getNonformattedText(nodeIn, targetSourceFile, newLineCharacter);
           if (validate2) validate2(node, text2);
           const formatOptions = getFormatCodeSettingsForWriting(formatContext, targetSourceFile);
-          const initialIndentation = indentation !== void 0 ? indentation : ts_formatting_exports.SmartIndenter.getIndentation(pos, sourceFile, formatOptions, prefix === newLineCharacter || getLineStartPositionForPosition(pos, targetSourceFile) === pos);
+          const initialIndentation = indentation !== void 0 ? indentation : ts_formatting_exports.SmartIndenter.getIndentation(pos, sourceFile, formatOptions, prefix2 === newLineCharacter || getLineStartPositionForPosition(pos, targetSourceFile) === pos);
           if (delta === void 0) {
             delta = ts_formatting_exports.SmartIndenter.shouldIndentChildNode(formatOptions, nodeIn) ? formatOptions.indentSize || 0 : 0;
           }
@@ -210371,9 +210371,9 @@ Project '${project.projectName}' (${ProjectKind[project.projectKind]}) ${counter
           );
           if (completions === void 0) return void 0;
           if (kind === "completions-full") return completions;
-          const prefix = args.prefix || "";
+          const prefix2 = args.prefix || "";
           const entries = mapDefined(completions.entries, (entry) => {
-            if (completions.isMemberCompletion || startsWith(entry.name.toLowerCase(), prefix.toLowerCase())) {
+            if (completions.isMemberCompletion || startsWith(entry.name.toLowerCase(), prefix2.toLowerCase())) {
               const convertedSpan = entry.replacementSpan ? toProtocolTextSpan(entry.replacementSpan, scriptInfo) : void 0;
               return {
                 ...entry,
@@ -215273,10 +215273,10 @@ var require_scan = __commonJS({
         isGlob = false;
       }
       let base = str;
-      let prefix = "";
+      let prefix2 = "";
       let glob = "";
       if (start > 0) {
-        prefix = str.slice(0, start);
+        prefix2 = str.slice(0, start);
         str = str.slice(start);
         lastIndex -= start;
       }
@@ -215301,7 +215301,7 @@ var require_scan = __commonJS({
         }
       }
       const state = {
-        prefix,
+        prefix: prefix2,
         input,
         start,
         base,
@@ -215330,7 +215330,7 @@ var require_scan = __commonJS({
           if (opts.tokens) {
             if (idx === 0 && start !== 0) {
               tokens[idx].isPrefix = true;
-              tokens[idx].value = prefix;
+              tokens[idx].value = prefix2;
             } else {
               tokens[idx].value = value;
             }
@@ -217125,10 +217125,10 @@ var require_dist2 = __commonJS({
           const start = cwd.length + +!isRoot(cwd);
           return (p, isDir) => p.slice(start, isDir ? -1 : void 0) || ".";
         }
-        const prefix = root.slice(cwd.length + 1);
-        if (prefix) return (p, isDir) => {
-          if (p === ".") return prefix;
-          const result = `${prefix}/${p}`;
+        const prefix2 = root.slice(cwd.length + 1);
+        if (prefix2) return (p, isDir) => {
+          if (p === ".") return prefix2;
+          const result = `${prefix2}/${p}`;
           return isDir ? result.slice(0, -1) : result;
         };
         return (p, isDir) => isDir && p !== "." ? p.slice(0, -1) : p;
@@ -217138,8 +217138,8 @@ var require_dist2 = __commonJS({
     }
     function buildRelative(cwd, root) {
       if (root.startsWith(`${cwd}/`)) {
-        const prefix = root.slice(cwd.length + 1);
-        return (p) => `${prefix}/${p}`;
+        const prefix2 = root.slice(cwd.length + 1);
+        return (p) => `${prefix2}/${p}`;
       }
       return (p) => {
         const result = path2.posix.relative(cwd, `${root}/${p}`);
@@ -217710,8 +217710,8 @@ ${nodeLocation}` : message;
       errors.ArgumentTypeError = ArgumentTypeError;
       class PathNotFoundError extends BaseError {
         path;
-        constructor(path3, prefix = "Path") {
-          super(`${prefix} not found: ${path3}`);
+        constructor(path3, prefix2 = "Path") {
+          super(`${prefix2} not found: ${path3}`);
           this.path = path3;
         }
         code = "ENOENT";
@@ -242901,8 +242901,8 @@ var require_directives = __commonJS({
               if (parts.length < 2)
                 return false;
             }
-            const [handle, prefix] = parts;
-            this.tags[handle] = prefix;
+            const [handle, prefix2] = parts;
+            this.tags[handle] = prefix2;
             return true;
           }
           case "%YAML": {
@@ -242952,10 +242952,10 @@ var require_directives = __commonJS({
         const [, handle, suffix] = source.match(/^(.*!)([^!]*)$/s);
         if (!suffix)
           onError(`The ${source} tag has no suffix`);
-        const prefix = this.tags[handle];
-        if (prefix) {
+        const prefix2 = this.tags[handle];
+        if (prefix2) {
           try {
-            return prefix + decodeURIComponent(suffix);
+            return prefix2 + decodeURIComponent(suffix);
           } catch (error) {
             onError(String(error));
             return null;
@@ -242971,9 +242971,9 @@ var require_directives = __commonJS({
        * taking into account current tag prefixes and defaults.
        */
       tagString(tag) {
-        for (const [handle, prefix] of Object.entries(this.tags)) {
-          if (tag.startsWith(prefix))
-            return handle + escapeTagName(tag.substring(prefix.length));
+        for (const [handle, prefix2] of Object.entries(this.tags)) {
+          if (tag.startsWith(prefix2))
+            return handle + escapeTagName(tag.substring(prefix2.length));
         }
         return tag[0] === "!" ? tag : `!<${tag}>`;
       }
@@ -242990,11 +242990,11 @@ var require_directives = __commonJS({
           tagNames = Object.keys(tags);
         } else
           tagNames = [];
-        for (const [handle, prefix] of tagEntries) {
-          if (handle === "!!" && prefix === "tag:yaml.org,2002:")
+        for (const [handle, prefix2] of tagEntries) {
+          if (handle === "!!" && prefix2 === "tag:yaml.org,2002:")
             continue;
-          if (!doc || tagNames.some((tn) => tn.startsWith(prefix)))
-            lines.push(`%TAG ${handle} ${prefix}`);
+          if (!doc || tagNames.some((tn) => tn.startsWith(prefix2)))
+            lines.push(`%TAG ${handle} ${prefix2}`);
         }
         return lines.join("\n");
       }
@@ -243029,14 +243029,14 @@ var require_anchors = __commonJS({
       });
       return anchors;
     }
-    function findNewAnchor(prefix, exclude) {
+    function findNewAnchor(prefix2, exclude) {
       for (let i = 1; true; ++i) {
-        const name = `${prefix}${i}`;
+        const name = `${prefix2}${i}`;
         if (!exclude.has(name))
           return name;
       }
     }
-    function createNodeAnchors(doc, prefix) {
+    function createNodeAnchors(doc, prefix2) {
       const aliasObjects = [];
       const sourceObjects = /* @__PURE__ */ new Map();
       let prevAnchors = null;
@@ -243044,7 +243044,7 @@ var require_anchors = __commonJS({
         onAnchor: (source) => {
           aliasObjects.push(source);
           prevAnchors ?? (prevAnchors = anchorNames(doc));
-          const anchor2 = findNewAnchor(prefix, prevAnchors);
+          const anchor2 = findNewAnchor(prefix2, prevAnchors);
           prevAnchors.add(anchor2);
           return anchor2;
         },
@@ -245037,10 +245037,10 @@ var require_int = __commonJS({
     var stringifyNumber = require_stringifyNumber();
     var intIdentify = (value) => typeof value === "bigint" || Number.isInteger(value);
     var intResolve = (str, offset, radix, { intAsBigInt }) => intAsBigInt ? BigInt(str) : parseInt(str.substring(offset), radix);
-    function intStringify(node, radix, prefix) {
+    function intStringify(node, radix, prefix2) {
       const { value } = node;
       if (intIdentify(value) && value >= 0)
-        return prefix + value.toString(radix);
+        return prefix2 + value.toString(radix);
       return stringifyNumber.stringifyNumber(node);
     }
     var intOct = {
@@ -245502,11 +245502,11 @@ var require_int2 = __commonJS({
       const n = parseInt(str, radix);
       return sign === "-" ? -1 * n : n;
     }
-    function intStringify(node, radix, prefix) {
+    function intStringify(node, radix, prefix2) {
       const { value } = node;
       if (intIdentify(value)) {
         const str = value.toString(radix);
-        return value < 0 ? "-" + prefix + str.substr(1) : prefix + str;
+        return value < 0 ? "-" + prefix2 + str.substr(1) : prefix2 + str;
       }
       return stringifyNumber.stringifyNumber(node);
     }
@@ -251895,6 +251895,61 @@ function expand_(str, max, maxLength, maxDepth, depth, maxRewrites, isTop) {
   return acc;
 }
 
+// node_modules/@isaacs/nonrecursive-glob-match/dist/esm/numeric-range.js
+var digit = (a, b) => a === b ? { t: "lit", ch: String(a) } : { t: "class", re: new RegExp(`^[${a}-${b}]$`) };
+var prefix = (d, alts) => alts.map((s) => [digit(d, d), ...s]);
+var fixed = (a, b) => {
+  if (!a)
+    return [[]];
+  let lo = +a[0];
+  let hi = +b[0];
+  const ra = a.slice(1);
+  const rb = b.slice(1);
+  if (lo === hi)
+    return prefix(lo, fixed(ra, rb));
+  const zeros = "0".repeat(ra.length);
+  const nines = "9".repeat(ra.length);
+  const out = [];
+  if (ra !== zeros)
+    out.push(...prefix(lo++, fixed(ra, nines)));
+  const last = rb === nines ? [] : prefix(hi--, fixed(zeros, rb));
+  if (lo <= hi) {
+    out.push([digit(lo, hi), ...Array.from(ra, () => digit(0, 9))]);
+  }
+  out.push(...last);
+  return out;
+};
+var nonneg = (a, b, width) => {
+  if (width) {
+    return fixed(String(a).padStart(width, "0"), String(b).padStart(width, "0"));
+  }
+  const out = [];
+  for (let len = String(a).length; len <= String(b).length; len++) {
+    const lo = Math.max(a, len === 1 ? 0 : 10 ** (len - 1));
+    const hi = Math.min(b, 10 ** len - 1);
+    out.push(...fixed(String(lo), String(hi)));
+  }
+  return out;
+};
+var numericRange = (loStr, hiStr) => {
+  let lo = Number(loStr);
+  let hi = Number(hiStr);
+  if (!Number.isSafeInteger(lo) || !Number.isSafeInteger(hi))
+    return;
+  if (lo > hi)
+    [lo, hi] = [hi, lo];
+  const padded = /^-?0\d/.test(loStr) || /^-?0\d/.test(hiStr);
+  const width = padded ? Math.max(loStr.length, hiStr.length) : 0;
+  const out = [];
+  if (lo < 0) {
+    const neg = nonneg(Math.max(-hi, 1), -lo, width && width - 1);
+    out.push(...neg.map((s) => [{ t: "lit", ch: "-" }, ...s]));
+  }
+  if (hi >= 0)
+    out.push(...nonneg(Math.max(lo, 0), hi, width));
+  return out;
+};
+
 // node_modules/@isaacs/nonrecursive-glob-match/dist/esm/parse-class.js
 var posixClasses = {
   "[:alnum:]": ["\\p{L}\\p{Nl}\\p{Nd}"],
@@ -252031,10 +252086,24 @@ var litMatch = (l, c) => {
   ascii[code] ||= l.re.test(c) ? 1 : 2;
   return ascii[code] === 1;
 };
-var tokenize = (p, nocase, noext, form) => {
+var tokenize = (p, nocase, noext, form, mark) => {
   const toks = [];
   for (let i = 0; i < p.length; ) {
     const c = String.fromCodePoint(p.codePointAt(i));
+    if (mark) {
+      const m = c === "\\" && p.startsWith(mark, i + 1) ? 1 : 0;
+      if (m || c === mark) {
+        const start = i + m + mark.length;
+        const end = p.indexOf(mark, start);
+        const r = /^(-?\d+)\.\.(-?\d+)$/.exec(p.slice(start, end));
+        const alts = end !== -1 && r && numericRange(r[1], r[2]);
+        if (alts) {
+          toks.push({ t: "ext", type: "@", alts });
+          i = end + mark.length;
+          continue;
+        }
+      }
+    }
     if (c === "\\") {
       const e = p.codePointAt(i + 1);
       const ch = e === void 0 ? c : String.fromCodePoint(e);
@@ -252529,7 +252598,7 @@ var Matcher = class {
     const { nocase = false, noext = false, normalize: n } = options;
     this.#form = n === true ? "NFC" : n || void 0;
     const literal2 = /^[?*+@]\(\)$/.test(pattern);
-    const toks = tokenize(pattern, nocase, noext || literal2, this.#form);
+    const toks = tokenize(pattern, nocase, noext || literal2, this.#form, options.rangeMark);
     let [items] = build(toks, pair(toks), 0, toks.length, true);
     if (this.#form)
       items = normalize(items, this.#form);
@@ -252606,7 +252675,7 @@ var Matcher = class {
     if (chars !== void 0 && (chars.length < min || chars.length > max)) {
       return false;
     }
-    const prefix = this.#prefix.length;
+    const prefix2 = this.#prefix.length;
     if (this.#affix) {
       if (this.#prefixStr !== void 0 && this.#suffixStr !== void 0) {
         if (!s.startsWith(this.#prefixStr) || !s.endsWith(this.#suffixStr)) {
@@ -252624,13 +252693,13 @@ var Matcher = class {
     if (this.#linear) {
       if (s === "." || s === "..")
         return false;
-      if (dotStart && !prefix)
+      if (dotStart && !prefix2)
         return false;
       if (this.#wild)
         return true;
       chars ??= codePoints(s);
       const end = chars.length - this.#suffix.length;
-      return testLinear(this.#linear, chars, prefix, end);
+      return testLinear(this.#linear, chars, prefix2, end);
     }
     chars ??= codePoints(s);
     if (s === "." || s === "..") {
@@ -252759,6 +252828,8 @@ var braceExpand = (pattern, options = {}) => {
   return expand(pattern, { max: options.braceExpandMax });
 };
 minimatch.braceExpand = braceExpand;
+var RANGE_MIN = 100;
+var rangeRe = /(?<![\\$])\{(-?\d+)\.\.(-?\d+)\}/g;
 var match = (list2, pattern, options = {}) => {
   const mm = new Minimatch(pattern, options);
   list2 = list2.filter((f) => mm.match(f));
@@ -252922,6 +252993,8 @@ var Minimatch = class {
   #matchers = /* @__PURE__ */ new Map();
   // parse() returns PENDING in place of a Matcher
   #pending = false;
+  // the char that marks numeric ranges in globSet, if any
+  #rangeMark;
   // the GlobstarParts of each pattern row, by start index and partial
   #globstarParts = /* @__PURE__ */ new WeakMap();
   constructor(pattern, options = {}) {
@@ -253025,7 +253098,7 @@ var Minimatch = class {
       return;
     }
     this.parseNegate();
-    this.globSet = [...new Set(this.braceExpand())];
+    this.globSet = [...new Set(this.#expandBraces())];
     const rawGlobParts = this.globSet.map((s) => this.#slashSplit(s));
     this.globParts = this.preprocess(rawGlobParts);
     this.#pending = true;
@@ -253411,6 +253484,8 @@ var Minimatch = class {
   // this WOULD be allowed if ** did follow symlinks, or * didn't
   firstPhasePreProcess(globParts) {
     const { braceExpandMax = 1e5 } = this.options;
+    let splitCells = 0;
+    const maxSplitCells = 1e6;
     let didSomething = false;
     do {
       didSomething = false;
@@ -253429,13 +253504,18 @@ var Minimatch = class {
           const p2 = parts[gs + 3];
           if (next !== "..")
             continue;
-          if (!p || p === "." || p === ".." || !p2 || p2 === "." || p2 === ".." || globParts.length >= braceExpandMax) {
+          if (!p || p === "." || p === ".." || !p2 || p2 === "." || p2 === "..") {
             continue;
+          }
+          const addedCells = parts.length - 1;
+          if (globParts.length >= braceExpandMax || splitCells + addedCells > maxSplitCells) {
+            throw new RangeError(`optimizationLevel 2: too many patterns from '**/..'`);
           }
           didSomething = true;
           parts.splice(gs, 1);
           const other = parts.slice(0);
           other[gs] = "**";
+          splitCells += addedCells;
           globParts.push(other);
           gs--;
         }
@@ -253474,62 +253554,53 @@ var Minimatch = class {
     return globParts;
   }
   // second phase: multi-pattern dedupes
-  // {<pre>/*/<rest>,<pre>/<p>/<rest>} -> <pre>/*/<rest>
   // {<pre>/<rest>,<pre>/<rest>} -> <pre>/<rest>
-  // {<pre>/**/<rest>,<pre>/<rest>} -> <pre>/**/<rest>
-  //
-  // {<pre>/**/<rest>,<pre>/**/<p>/<rest>} -> <pre>/**/<rest>
-  // ^-- not valid because ** doens't follow symlinks
+  // {<pre>/*/<rest>,<pre>/<p>/<rest>} -> <pre>/*/<rest>
   secondPhasePreProcess(globParts) {
-    if (globParts.length > 1e3)
-      return globParts;
-    for (let i = 0; i < globParts.length - 1; i++) {
-      for (let j = i + 1; j < globParts.length; j++) {
-        const matched = this.partsMatch(globParts[i], globParts[j], !this.preserveMultipleSlashes);
-        if (matched) {
-          globParts[i] = [];
-          globParts[j] = matched;
-          break;
-        }
-      }
-    }
-    return globParts.filter((gs) => gs.length);
-  }
-  partsMatch(a, b, emptyGSMatch = false) {
-    let ai = 0;
-    let bi = 0;
-    let result = [];
-    let which = "";
-    while (ai < a.length && bi < b.length) {
-      if (a[ai] === b[bi]) {
-        result.push(which === "b" ? b[bi] : a[ai]);
-        ai++;
-        bi++;
-      } else if (emptyGSMatch && a[ai] === "**" && b[bi] === a[ai + 1]) {
-        result.push(a[ai]);
-        ai++;
-      } else if (emptyGSMatch && b[bi] === "**" && a[ai] === b[bi + 1]) {
-        result.push(b[bi]);
-        bi++;
-      } else if (a[ai] === "*" && b[bi] && (this.options.dot || !b[bi].startsWith(".")) && b[bi] !== "**") {
-        if (which === "b")
-          return false;
-        which = "a";
-        result.push(a[ai]);
-        ai++;
-        bi++;
-      } else if (b[bi] === "*" && a[ai] && (this.options.dot || !a[ai].startsWith(".")) && a[ai] !== "**") {
-        if (which === "a")
-          return false;
-        which = "b";
-        result.push(b[bi]);
-        ai++;
-        bi++;
-      } else {
+    const keys = /* @__PURE__ */ new Set();
+    const rows = globParts.filter((parts) => {
+      const key = parts.join("/");
+      if (keys.has(key))
         return false;
+      keys.add(key);
+      return true;
+    });
+    const stars = /* @__PURE__ */ new Map();
+    for (const parts of rows) {
+      const s = [];
+      for (let i = 0; i < parts.length; i++) {
+        if (parts[i] === "*")
+          s.push(i);
       }
+      if (s.length)
+        stars.set(s.join(","), s);
     }
-    return a.length === b.length && result;
+    if (!stars.size || rows.length * stars.size > 1e5)
+      return rows;
+    const { dot } = this.options;
+    return rows.filter((parts) => {
+      for (const s of stars.values()) {
+        if (s[s.length - 1] >= parts.length)
+          continue;
+        const c = [...parts];
+        let ok = true;
+        let changed = false;
+        for (const i of s) {
+          const p = parts[i];
+          if (p === "*")
+            continue;
+          if (!p || p === "**" || !dot && p.startsWith(".")) {
+            ok = false;
+            break;
+          }
+          c[i] = "*";
+          changed = true;
+        }
+        if (ok && changed && keys.has(c.join("/")))
+          return false;
+      }
+      return true;
+    });
   }
   parseNegate() {
     if (this.nonegate)
@@ -253739,6 +253810,44 @@ var Minimatch = class {
   braceExpand() {
     return braceExpand(this.pattern, this.options);
   }
+  // Expand braces, except numeric ranges such as {0..999} with at
+  // least RANGE_MIN values. Each of those stays in its pattern as
+  // `<mark>0..999<mark>`, for the Matcher to test. If a range might
+  // be inside a [...] class, expand all of them instead.
+  #expandBraces() {
+    const { pattern } = this;
+    if (this.options.nobrace)
+      return this.braceExpand();
+    let code = 57344;
+    while (pattern.includes(String.fromCharCode(code))) {
+      if (++code > 63743)
+        return this.braceExpand();
+    }
+    const mark = String.fromCharCode(code);
+    let found = false;
+    const marked = pattern.replace(rangeRe, (m, lo, hi) => {
+      const a = Number(lo);
+      const b = Number(hi);
+      if (!Number.isSafeInteger(a) || !Number.isSafeInteger(b) || Math.abs(a - b) + 1 < RANGE_MIN) {
+        return m;
+      }
+      found = true;
+      return `${mark}${lo}..${hi}${mark}`;
+    });
+    if (!found)
+      return this.braceExpand();
+    const set = braceExpand(marked, this.options);
+    for (const p of set) {
+      for (const portion of p.split("/")) {
+        const c = portion.indexOf("[");
+        if (c !== -1 && c < portion.lastIndexOf(mark)) {
+          return this.braceExpand();
+        }
+      }
+    }
+    this.#rangeMark = mark;
+    return set;
+  }
   parse(pattern) {
     assertValidPattern(pattern);
     const options = this.options;
@@ -253747,7 +253856,8 @@ var Minimatch = class {
     if (pattern === "")
       return "";
     const { nocase, nocaseMagicOnly, noext = false, dot, normalize: normalize3 } = options;
-    const lit2 = literal(pattern, noext);
+    const rangeMark = this.#rangeMark;
+    const lit2 = rangeMark && pattern.includes(rangeMark) ? void 0 : literal(pattern, noext);
     if (lit2 !== void 0 && !(nocase && !nocaseMagicOnly && pattern.toUpperCase() !== pattern.toLowerCase())) {
       return this.#norm(lit2);
     }
@@ -253755,7 +253865,13 @@ var Minimatch = class {
       return PENDING;
     let m = this.#matchers.get(pattern);
     if (!m) {
-      m = new Matcher(pattern, { nocase, noext, dot, normalize: normalize3 });
+      m = new Matcher(pattern, {
+        nocase,
+        noext,
+        dot,
+        normalize: normalize3,
+        ...rangeMark && { rangeMark }
+      });
       this.#matchers.set(pattern, m);
     }
     return m;
@@ -255091,9 +255207,9 @@ function ancestorGitignores(projectPath) {
 }
 function isGitignored(matchers, file, isDirectory) {
   let ignored = false;
-  for (const { matcher, base, prefix } of matchers) {
+  for (const { matcher, base, prefix: prefix2 } of matchers) {
     const local = base ? file.slice(base.length + 1) : file;
-    const candidate = `${prefix ? `${prefix}/` : ""}${local}${isDirectory ? "/" : ""}`;
+    const candidate = `${prefix2 ? `${prefix2}/` : ""}${local}${isDirectory ? "/" : ""}`;
     const result = matcher.test(candidate);
     if (result.ignored) ignored = true;
     else if (result.unignored) ignored = false;
@@ -256049,7 +256165,7 @@ function compareWithPrevious(result, previous, scope) {
       return { ...issue, isNew: true };
     })
   }));
-  const fixed = previous.analyzers.flatMap(
+  const fixed2 = previous.analyzers.flatMap(
     (analyzer) => analyzer.issues.filter(
       (issue) => isActive(issue) && issue.fingerprint !== void 0 && !currentFingerprints.has(issue.fingerprint) && (!scope || issue.file !== void 0 && scope.has(issue.file))
     ).map((issue) => ({
@@ -256068,8 +256184,8 @@ function compareWithPrevious(result, previous, scope) {
     scoreDelta: roundDelta(result.totalScore - previous.totalScore),
     analyzers: analyzerDeltas(result.analyzers, previous.analyzers),
     newFindings,
-    fixedFindings: fixed.length,
-    fixed
+    fixedFindings: fixed2.length,
+    fixed: fixed2
   };
   return { ...result, analyzers, comparison };
 }
@@ -257036,8 +257152,8 @@ var import_node_process = __toESM(require("process"), 1);
 var import_node_os = __toESM(require("os"), 1);
 var import_node_tty = __toESM(require("tty"), 1);
 function hasFlag(flag2, argv = globalThis.Deno ? globalThis.Deno.args : import_node_process.default.argv) {
-  const prefix = flag2.startsWith("-") ? "" : flag2.length === 1 ? "-" : "--";
-  const position = argv.indexOf(prefix + flag2);
+  const prefix2 = flag2.startsWith("-") ? "" : flag2.length === 1 ? "-" : "--";
+  const position = argv.indexOf(prefix2 + flag2);
   const terminatorPosition = argv.indexOf("--");
   return position !== -1 && (terminatorPosition === -1 || position < terminatorPosition);
 }
@@ -257180,12 +257296,12 @@ function stringReplaceAll(string, substring, replacer) {
   returnValue += string.slice(endIndex2);
   return returnValue;
 }
-function stringEncaseCRLFWithFirstIndex(string, prefix, postfix, index) {
+function stringEncaseCRLFWithFirstIndex(string, prefix2, postfix, index) {
   let endIndex2 = 0;
   let returnValue = "";
   do {
     const gotCR = string[index - 1] === "\r";
-    returnValue += string.slice(endIndex2, gotCR ? index - 1 : index) + prefix + (gotCR ? "\r\n" : "\n") + postfix;
+    returnValue += string.slice(endIndex2, gotCR ? index - 1 : index) + prefix2 + (gotCR ? "\r\n" : "\n") + postfix;
     endIndex2 = index + 1;
     index = string.indexOf("\n", endIndex2);
   } while (index !== -1);
@@ -258105,12 +258221,12 @@ var Ora = class {
     }
     return "";
   }
-  #getFullSuffixText(suffixText = this.#suffixText, prefix = " ") {
+  #getFullSuffixText(suffixText = this.#suffixText, prefix2 = " ") {
     if (typeof suffixText === "string" && suffixText !== "") {
-      return prefix + suffixText;
+      return prefix2 + suffixText;
     }
     if (typeof suffixText === "function") {
-      return prefix + suffixText();
+      return prefix2 + suffixText();
     }
     return "";
   }
@@ -258361,11 +258477,11 @@ function moduleOf(node) {
 function pathAliases(options, projectPath) {
   const base = options.baseUrl ?? (typeof options.pathsBasePath === "string" ? options.pathsBasePath : projectPath);
   return Object.entries(options.paths ?? {}).flatMap(([pattern, targets]) => {
-    const [prefix = "", suffix = "", ...rest] = pattern.split("*");
+    const [prefix2 = "", suffix = "", ...rest] = pattern.split("*");
     if (rest.length > 0) return [];
     return [
       {
-        prefix,
+        prefix: prefix2,
         suffix,
         targets: targets.map(
           (target) => (0, import_node_path8.relative)(projectPath, (0, import_node_path8.resolve)(base, target)).replace(/\\/g, "/")
@@ -258378,12 +258494,12 @@ function importBases(index, fromFile, specifier) {
   if (specifier.startsWith(".")) {
     return [import_node_path8.posix.normalize(import_node_path8.posix.join(import_node_path8.posix.dirname(fromFile), specifier))];
   }
-  return (index.aliases ?? []).flatMap(({ prefix, suffix, targets }) => {
-    if (specifier.length < prefix.length + suffix.length || !specifier.startsWith(prefix) || !specifier.endsWith(suffix)) {
+  return (index.aliases ?? []).flatMap(({ prefix: prefix2, suffix, targets }) => {
+    if (specifier.length < prefix2.length + suffix.length || !specifier.startsWith(prefix2) || !specifier.endsWith(suffix)) {
       return [];
     }
     const matched = specifier.slice(
-      prefix.length,
+      prefix2.length,
       specifier.length - suffix.length
     );
     return targets.map(
@@ -258690,8 +258806,8 @@ function either(left, right) {
     validation: left.validation || right.validation
   };
 }
-function joinPath(prefix, path2) {
-  const joined = `${prefix}/${path2}`.replace(/\/+/g, "/");
+function joinPath(prefix2, path2) {
+  const joined = `${prefix2}/${path2}`.replace(/\/+/g, "/");
   return joined.length > 1 ? joined.replace(/\/$/, "") : joined;
 }
 function walkChain(node) {
@@ -260391,15 +260507,15 @@ function patternParts(pattern) {
   partsMemo.set(pattern, parts);
   return parts;
 }
-function startsWithPattern(pattern, prefix) {
+function startsWithPattern(pattern, prefix2) {
   const parts = patternParts(pattern);
-  for (let position = 0; position < prefix.length; position++) {
+  for (let position = 0; position < prefix2.length; position++) {
     const part = parts[position];
     if (part === null) return void 0;
     if (part === void 0) {
-      return prefix.slice(position) === "/" ? void 0 : false;
+      return prefix2.slice(position) === "/" ? void 0 : false;
     }
-    if (part !== prefix[position]) return false;
+    if (part !== prefix2[position]) return false;
   }
   return true;
 }
@@ -260824,11 +260940,11 @@ function packageImports(context) {
   if (typeof imports !== "object" || imports === null) return [];
   return Object.entries(imports).flatMap(([pattern, value]) => {
     const target = typeof value === "string" ? value : typeof value === "object" && value !== null && "default" in value ? value.default : void 0;
-    const [prefix = "", suffix = "", ...rest] = pattern.split("*");
+    const [prefix2 = "", suffix = "", ...rest] = pattern.split("*");
     if (!pattern.startsWith("#") || typeof target !== "string" || rest.length) {
       return [];
     }
-    return [{ prefix, suffix, targets: [normalizedPath(target)] }];
+    return [{ prefix: prefix2, suffix, targets: [normalizedPath(target)] }];
   });
 }
 function svelteKitAliases(context) {
@@ -261897,7 +262013,7 @@ function lateHook(events, route) {
   const late = events.slice(events.indexOf(route) + 1).find((event) => event.kind === "hook" && event.auth);
   return late?.kind === "hook" ? { reason: "late", file: late.file, line: late.line } : void 0;
 }
-function place(walk, context, prefix, inherited3) {
+function place(walk, context, prefix2, inherited3) {
   if (walk.visiting.has(context)) return { hooks: [], requests: [] };
   walk.visiting.add(context);
   const events = ordered(
@@ -261917,7 +262033,7 @@ function place(walk, context, prefix, inherited3) {
     } else if (event.kind === "request") {
       requests.push(event);
     } else if (event.kind === "mount") {
-      const child = place(walk, event.child, joinPath(prefix, event.prefix), [
+      const child = place(walk, event.child, joinPath(prefix2, event.prefix), [
         ...active,
         event.hook
       ]);
@@ -261938,7 +262054,7 @@ function place(walk, context, prefix, inherited3) {
       walk.placements.push([
         event,
         {
-          path: joinPath(prefix, event.path),
+          path: joinPath(prefix2, event.path),
           auth: protection.auth,
           validation: protection.validation,
           missed: local ? { reason: "local", file: local.file, line: local.line } : lateHook(events, event)
@@ -262426,8 +262542,8 @@ function inherited(router, uses, visiting) {
     prefix: paths.length === 1 ? paths[0].prefix : ""
   };
 }
-function joinPath2(prefix, path2) {
-  const joined = `${prefix}/${path2}`.replace(/\/+/g, "/");
+function joinPath2(prefix2, path2) {
+  const joined = `${prefix2}/${path2}`.replace(/\/+/g, "/");
   return joined.length > 1 ? joined.replace(/\/$/, "") : joined;
 }
 async function analyzeExpressApi(context) {
@@ -262641,12 +262757,12 @@ function readOptions(index, options) {
     index,
     propertyValue(options.getProperty("options"))
   );
-  const prefix = literalText(propertyValue(pluginOptions?.getProperty("prefix"))) ?? "";
+  const prefix2 = literalText(propertyValue(pluginOptions?.getProperty("prefix"))) ?? "";
   const maxDepth = propertyValue(options.getProperty("maxDepth"));
   const text2 = (name) => literalText(propertyValue(options.getProperty(name)));
   return {
     dir,
-    prefix: prefix.replace(/\/$/, ""),
+    prefix: prefix2.replace(/\/$/, ""),
     encapsulate: flag(options, "encapsulate") ?? true,
     // A function renames directories; their names are the best estimate.
     dirNameRoutePrefix: flag(options, "dirNameRoutePrefix") ?? true,
@@ -262700,8 +262816,8 @@ function pluginPrefix(sourceFile, directory, options) {
   if (override !== null) return override;
   const directoryPrefix = options.dirNameRoutePrefix && directory ? `/${directory}` : "";
   const autoPrefix = literalText(exportedLiteral(sourceFile, "autoPrefix"));
-  const prefix = autoPrefix === null ? directoryPrefix : options.appendAutoPrefix && directoryPrefix ? `${directoryPrefix}/${autoPrefix}` : autoPrefix;
-  const combined = prefix ? `${options.prefix}${prefix.replace(/\/+/g, "/")}` : options.prefix;
+  const prefix2 = autoPrefix === null ? directoryPrefix : options.appendAutoPrefix && directoryPrefix ? `${directoryPrefix}/${autoPrefix}` : autoPrefix;
+  const combined = prefix2 ? `${options.prefix}${prefix2.replace(/\/+/g, "/")}` : options.prefix;
   return options.routeParams && combined ? combined.replace(/__/g, ":").replace(/\/_/g, "/:") : combined;
 }
 function loadedPlugin(index, file) {
@@ -262746,7 +262862,7 @@ function load2(index, call) {
       continue;
     }
     const prefixes = plugins.map((entry) => entry.prefix).filter(Boolean);
-    const shared = prefixes.length > 0 && prefixes.every((prefix) => prefix === prefixes[0]) ? prefixes[0] ?? "" : "";
+    const shared = prefixes.length > 0 && prefixes.every((prefix2) => prefix2 === prefixes[0]) ? prefixes[0] ?? "" : "";
     const id = `${fileOf(index, call)}:${call.getStart()}:autoload/${path2}`;
     autoload.scopes.push({ id, prefix: shared, hooks });
     for (const entry of plugins) {
@@ -262924,7 +263040,7 @@ function collectRegistration(index, parent, call, collected) {
   const target = pluginTarget(index, args[0]);
   const child = target ? index.plugins.get(target.fn) : void 0;
   if (target && child) {
-    const prefix = literalText(
+    const prefix2 = literalText(
       propertyValue(objectLiteral(index, args[1])?.getProperty("prefix"))
     );
     collected.registrations.push({
@@ -262932,7 +263048,7 @@ function collectRegistration(index, parent, call, collected) {
       child,
       encapsulated: target.encapsulated,
       // fastify-plugin ignores the prefix option and keeps its parent's.
-      prefix: target.encapsulated ? prefix ?? "" : ""
+      prefix: target.encapsulated ? prefix2 ?? "" : ""
     });
   }
   const plugin = args[0] ? moduleOf(args[0]) : null;
@@ -263025,8 +263141,8 @@ function inherited2(context, collected, visiting) {
     prefix: paths.length === 1 ? paths[0].prefix : ""
   };
 }
-function joinPath3(prefix, path2) {
-  const joined = `${prefix}/${path2}`.replace(/\/+/g, "/");
+function joinPath3(prefix2, path2) {
+  const joined = `${prefix2}/${path2}`.replace(/\/+/g, "/");
   return joined.length > 1 ? joined.replace(/\/$/, "") : joined;
 }
 function memberCalls(sourceFile) {
@@ -263090,11 +263206,11 @@ async function analyzeFastifyApi(context) {
     };
   }
   const endpoints = collected.routes.map((route) => {
-    const { prefix, ...protection } = protectionOf(route.context, collected);
+    const { prefix: prefix2, ...protection } = protectionOf(route.context, collected);
     return {
       ...route,
       ...either3(route, protection),
-      path: joinPath3(prefix, route.path)
+      path: joinPath3(prefix2, route.path)
     };
   });
   const mutatingEndpoints = endpoints.filter(
@@ -263310,21 +263426,21 @@ function ordered2(events, home) {
     (left, right) => rank(left) - rank(right) || left.file.localeCompare(right.file) || left.position - right.position
   );
 }
-function place2(collected, context, prefix, active, visiting, placements) {
+function place2(collected, context, prefix2, active, visiting, placements) {
   if (visiting.has(context)) return;
   visiting.add(context);
   const events = collected.events.get(context) ?? [];
   for (const event of ordered2(events, collected.homes.get(context) ?? "")) {
     if (event.kind === "use") {
       active.push({
-        pattern: pathPattern(joinPath(prefix, event.path)),
+        pattern: pathPattern(joinPath(prefix2, event.path)),
         protection: event
       });
     } else if (event.kind === "mount") {
-      const childPrefix = joinPath(prefix, event.prefix);
+      const childPrefix = joinPath(prefix2, event.prefix);
       place2(collected, event.child, childPrefix, active, visiting, placements);
     } else {
-      const path2 = joinPath(prefix, event.path);
+      const path2 = joinPath(prefix2, event.path);
       const protection = active.filter((use) => use.pattern.test(path2)).map((use) => use.protection).reduce(either, event);
       placements.set(event, [
         ...placements.get(event) ?? [],
@@ -264570,12 +264686,12 @@ function flatRoutePath(name) {
   });
   return `/${path2.join("/")}`;
 }
-function prefixed(prefix, path2) {
-  if (prefix === "") return path2;
-  return `${prefix.replace(/\/+$/, "")}/${path2.replace(/^\/+/, "")}`;
+function prefixed(prefix2, path2) {
+  if (prefix2 === "") return path2;
+  return `${prefix2.replace(/\/+$/, "")}/${path2.replace(/^\/+/, "")}`;
 }
-function fullPath(parent, prefix, path2) {
-  const relative9 = prefixed(prefix, path2);
+function fullPath(parent, prefix2, path2) {
+  const relative9 = prefixed(prefix2, path2);
   return joinPath(relative9.startsWith("/") ? "/" : parent.path, relative9);
 }
 function normalizedDirectory(directory) {
@@ -264668,7 +264784,7 @@ function childEntries(args, position) {
   const value = args[position] && unwrap(args[position]);
   return import_ts_morph23.Node.isObjectLiteralExpression(value) ? args[position + 1] : args[position];
 }
-function readFlatRoutes(reader, options, parent, prefix) {
+function readFlatRoutes(reader, options, parent, prefix2) {
   const config = objectLiteral(reader.index, options);
   if (options && !config) {
     reader.unresolved++;
@@ -264689,17 +264805,17 @@ function readFlatRoutes(reader, options, parent, prefix) {
     normalized2,
     ignored,
     parent,
-    fullPath(parent, prefix, "")
+    fullPath(parent, prefix2, "")
   );
   reader.nodes.push(...flat.nodes);
   reader.unresolved += flat.unresolved;
 }
-function readCall(reader, call, parent, prefix, depth) {
+function readCall(reader, call, parent, prefix2, depth) {
   const helper = helperOf(call);
   const args = call.getArguments();
   if (helper && FS_ROUTES_MODULES.has(helper.module)) {
     if (helper.name === "flatRoutes") {
-      readFlatRoutes(reader, args[0], parent, prefix);
+      readFlatRoutes(reader, args[0], parent, prefix2);
       return;
     }
   } else if (helper && CONFIG_MODULES.has(helper.module)) {
@@ -264708,29 +264824,29 @@ function readCall(reader, call, parent, prefix, depth) {
       const node = addRoute(
         reader,
         second,
-        fullPath(parent, prefix, first),
+        fullPath(parent, prefix2, first),
         parent
       );
       readEntries(reader, childEntries(args, 2), node, "", depth + 1);
       return;
     }
     if (helper.name === "index" && first != null) {
-      addRoute(reader, first, fullPath(parent, prefix, ""), parent);
+      addRoute(reader, first, fullPath(parent, prefix2, ""), parent);
       return;
     }
     if (helper.name === "layout" && first != null) {
       const node = addRoute(reader, first, parent.path, parent);
-      readEntries(reader, childEntries(args, 1), node, prefix, depth + 1);
+      readEntries(reader, childEntries(args, 1), node, prefix2, depth + 1);
       return;
     }
     if (helper.name === "prefix" && first != null) {
-      readEntries(reader, args[1], parent, prefixed(prefix, first), depth + 1);
+      readEntries(reader, args[1], parent, prefixed(prefix2, first), depth + 1);
       return;
     }
   }
   reader.unresolved++;
 }
-function readObject(reader, entry, parent, prefix, depth) {
+function readObject(reader, entry, parent, prefix2, depth) {
   const config = objectLiteral(reader.index, entry);
   const value = (key) => propertyValue(config?.getProperty(key));
   const file = literalText(value("file"));
@@ -264740,19 +264856,19 @@ function readObject(reader, entry, parent, prefix, depth) {
     return;
   }
   if (value("index")?.getText() === "true") {
-    addRoute(reader, file, fullPath(parent, prefix, path2 ?? ""), parent);
+    addRoute(reader, file, fullPath(parent, prefix2, path2 ?? ""), parent);
     return;
   }
-  const node = path2 === null ? addRoute(reader, file, parent.path, parent) : addRoute(reader, file, fullPath(parent, prefix, path2), parent);
+  const node = path2 === null ? addRoute(reader, file, parent.path, parent) : addRoute(reader, file, fullPath(parent, prefix2, path2), parent);
   readEntries(
     reader,
     value("children"),
     node,
-    path2 === null ? prefix : "",
+    path2 === null ? prefix2 : "",
     depth + 1
   );
 }
-function readEntries(reader, node, parent, prefix, depth) {
+function readEntries(reader, node, parent, prefix2, depth) {
   if (!node) return;
   if (depth > MAX_CONFIG_DEPTH) {
     reader.unresolved++;
@@ -264762,16 +264878,16 @@ function readEntries(reader, node, parent, prefix, depth) {
   if (import_ts_morph23.Node.isArrayLiteralExpression(value)) {
     for (const element of value.getElements()) {
       const entry = import_ts_morph23.Node.isSpreadElement(element) ? element.getExpression() : element;
-      readEntries(reader, entry, parent, prefix, depth + 1);
+      readEntries(reader, entry, parent, prefix2, depth + 1);
     }
   } else if (import_ts_morph23.Node.isCallExpression(value)) {
-    readCall(reader, value, parent, prefix, depth);
+    readCall(reader, value, parent, prefix2, depth);
   } else if (import_ts_morph23.Node.isObjectLiteralExpression(value)) {
-    readObject(reader, value, parent, prefix, depth);
+    readObject(reader, value, parent, prefix2, depth);
   } else if (import_ts_morph23.Node.isIdentifier(value)) {
     const declared = definition(reader.index, value);
     if (import_ts_morph23.Node.isVariableDeclaration(declared)) {
-      readEntries(reader, declared.getInitializer(), parent, prefix, depth + 1);
+      readEntries(reader, declared.getInitializer(), parent, prefix2, depth + 1);
     } else {
       reader.unresolved++;
     }
@@ -265810,21 +265926,21 @@ function isTaintedSql(query, taint) {
 }
 var FIXED_ORIGIN = /^(?:[a-z][a-z\d+.-]*:\/\/[^/?#\\]+[/?#]|[^:/?#\\]+[/?#]|\/[^/\\])/i;
 function requestControlsTarget(node, taint, start = "") {
-  let prefix = start;
+  let prefix2 = start;
   for (const part of stringParts(node)) {
     if (typeof part === "string") {
-      prefix += part;
+      prefix2 += part;
       continue;
     }
     const forwarded = taint.throughCallers(
       part,
-      (argument) => requestControlsTarget(argument, taint, prefix)
+      (argument) => requestControlsTarget(argument, taint, prefix2)
     );
     if (forwarded) return true;
     if (forwarded === void 0 && taint.isRequestValue(part)) {
-      return !FIXED_ORIGIN.test(prefix);
+      return !FIXED_ORIGIN.test(prefix2);
     }
-    prefix += "X";
+    prefix2 += "X";
   }
   return false;
 }
@@ -268093,10 +268209,10 @@ var TrpcResolver = class {
       ])
     );
     const paths = /* @__PURE__ */ new Map();
-    const join12 = (prefix, key) => [prefix, key].filter(Boolean).join(".");
-    const visit = (members, prefix, visiting) => {
+    const join12 = (prefix2, key) => [prefix2, key].filter(Boolean).join(".");
+    const visit = (members, prefix2, visiting) => {
       for (const { key, value } of members) {
-        const path2 = join12(prefix, key);
+        const path2 = join12(prefix2, key);
         if (value.kind === "procedure") {
           if (!paths.has(value.call)) paths.set(value.call, path2);
         } else if (value.kind === "record") {
@@ -268668,10 +268784,10 @@ async function scan(projectPath, config = loadConfig(projectPath), options = {})
 // src/core/workspace-scan.ts
 var MAX_LISTED_SKIPPED_FILES2 = 50;
 function packageIgnores(entries, path2) {
-  const prefix = `${path2}/`;
+  const prefix2 = `${path2}/`;
   return entries.flatMap((entry) => {
     const normalized2 = entry.replace(/\\/g, "/").replace(/^\.?\//, "");
-    if (normalized2.startsWith(prefix)) return [normalized2.slice(prefix.length)];
+    if (normalized2.startsWith(prefix2)) return [normalized2.slice(prefix2.length)];
     if (!normalized2.includes("/") || normalized2.startsWith("**/")) {
       return [normalized2];
     }
@@ -268695,11 +268811,11 @@ function packageConfig(root, path2, rootConfig) {
 }
 function packageScope(scope, path2) {
   if (!scope) return void 0;
-  const prefix = `${path2}/`;
+  const prefix2 = `${path2}/`;
   return {
     changedSince: scope.changedSince,
     files: new Set(
-      [...scope.files].filter((file) => file.startsWith(prefix)).map((file) => file.slice(prefix.length))
+      [...scope.files].filter((file) => file.startsWith(prefix2)).map((file) => file.slice(prefix2.length))
     )
   };
 }
